@@ -11,7 +11,7 @@ class HG.Imprint
 
     # create imprint link
     @_link = document.createElement "div"
-    @_link.innerHTML = "Impressum &nbsp; &copy; HistoGlobe Gbr " + new Date().getFullYear()
+    @_link.innerHTML = "Impressum &nbsp; &copy; HistoGlobe   2010-" + new Date().getFullYear()
     @_link.id = "imprint-link"
     @_link.classList.add "no-text-select"
 
