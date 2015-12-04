@@ -1,0 +1,227 @@
+NAME SCHEME & VARIABLES
+-----------------------
+
+root:           hg
+db name:        hg_db
+db user:        hg_user
+db passw:       hg_pwd
+db superuser:   hg_superuser
+db su E-Mail:   marcus.kossatz@histoglobe.com
+db su pw:       hg_superpwd
+django project: HistoGlobe_admin_project
+django app:     HistoGlobe_server
+django static:  HistoGlobe_client
+
+
+NORMAL ACCESS TO DB
+-------------------
+sudo -i -u postgres
+psql
+\c hg_db
+un: postgres
+pw: postgres
+
+CREATE DATABASE
+---------------
+
+sudo -i -u postgres
+createdb hg_db -O hg_user
+psql hg_db -c "GRANT ALL ON ALL TABLES IN SCHEMA public to hg_user;"
+psql hg_db -c "GRANT ALL ON ALL SEQUENCES IN SCHEMA public to hg_user;"
+psql hg_db -c "GRANT ALL ON ALL FUNCTIONS IN SCHEMA public to hg_user;"
+psql hg_db -c "GRANT ALL PRIVILEGES ON DATABASE hg_db TO hg_user;"
+psql hg_db -c "CREATE EXTENSION postgis;"
+
+
+INSTALLATION MANUAL
+-------------------
+
+## install python, postgresql, postgis and its components
+sudo apt-get install python3 python-pip python-dev libpq-dev postgresql postgresql-contrib postgresql-server-dev-9.3 libxml2-dev postgresql-9.3-postgis-2.1
+
+## setup postgres database and user
+sudo su - postgres
+psql
+CREATE DATABASE hg_db;
+CREATE USER hg_usr WITH PASSWORD 'hg_pw';
+ALTER ROLE hg_usr SET client_encoding TO 'utf8';
+ALTER ROLE hg_usr SET default_transaction_isolation TO 'read committed';
+ALTER ROLE hg_usr SET timezone TO 'UTC';
+
+# 2x 'ctrl+d' to leave psql and get back to normal user
+
+## postgis, GeoDjango and postgres management gui
+sudo apt-get install postgresql-client pgadmin3 postgis gdal-bin python-gdal libgeoip1
+sudo pip install dj-database-url django-leaftlet django-geojson
+
+## setup postgis
+sudo -i -u postgres
+psql
+\c hg_db
+CREATE EXTENSION postgis;
+-- Enable Topology
+CREATE EXTENSION postgis_topology;
+-- Enable PostGIS Advanced 3D and other geoprocessing algorithms
+CREATE EXTENSION postgis_sfcgal;
+-- fuzzy matching needed for Tiger
+CREATE EXTENSION fuzzystrmatch;
+-- rule based standardizer
+CREATE EXTENSION address_standardizer;
+-- example rule data set
+CREATE EXTENSION address_standardizer_data_us;
+-- Enable US Tiger Geocoder
+CREATE EXTENSION postgis_tiger_geocoder;
+
+## setup GEOS
+mkdir ~/.geos
+cd ~/.geos
+wget http://download.osgeo.org/geos/geos-3.5.0.tar.bz2
+tar xjf geos-3.5.0.tar.bz2
+cd geos-3.5.0
+./configure --with-python
+make
+sudo make install
+cd ..
+rm geos-3.5.0.tar.bz2
+
+## setup PROJ4.0
+mkdir ~/.proj4
+cd ~/.proj4
+wget http://download.osgeo.org/proj/proj-4.8.0.tar.gz
+wget http://download.osgeo.org/proj/proj-datumgrid-1.5.tar.gz
+tar xzf proj-4.8.0.tar.gz
+cd proj-4.8.0/nad
+tar xzf ../../proj-datumgrid-1.5.tar.gz
+cd ..
+./configure
+make
+sudo make install
+rm proj-4.8.0.tar.gz proj-datumgrid-1.5.tar.gz
+
+## setup GDL
+sudo apt-get install build-essential python-all-dev
+mkdir ~/.gdal
+cd ~/.gdal
+wget http://download.osgeo.org/gdal/1.11.0/gdal-1.11.0.tar.gz
+tar xvfz gdal-1.11.0.tar.gz
+cd gdal-1.11.0
+./configure --with-python
+make
+sudo make install
+cd ..
+rm gdal-1.11.0.tar.gz
+
+
+## install django in virtual environment (in home folder)
+sudo pip install virtualenv
+cd ~
+virtualenv .python_ve
+source .python_ve/bin/activate
+sudo pip install Django==1.8.6
+sudo pip install psycopg2 --upgrade
+
+## start django project
+cd ~/HistoGlobe/master_HistoGIS/www_root/api
+django-admin.py startproject hg .
+python manage.py startapp hg_app
+
+## set up project and
+subl hg/settings.py
+
+#replace the DATABASES part with following lines
+--------------------------------------------------------------------------------
+...
+DATABASES = {
+    'default': {
+        'ENGINE':   'django.contrib.gis.db.backends.postgis',
+        'NAME':     'hg_db',
+        'USER':     'hg_usr',
+        'PASSWORD': 'hg_pw',
+        'HOST':     'localhost',
+        'PORT':     '',
+    }
+}
+...
+INSTALLED_APPS = (
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django.contrib.gis',
+    'hg_app'
+)
+...
+--------------------------------------------------------------------------------
+
+## migrate database
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser
+
+## setup superuser
+python manage.py createsuperuser
+hg_superuser
+marcus.kossatz@histoglobe.com
+hg_superpwd
+
+## activate server
+python manage.py runserver 0.0.0.0:8000
+
+## test site in web browser:
+http://localhost:8000/
+http://localhost:8000/api
+  un: hg_superusr
+  pw: hg_superpw
+
+
+test database
+-------------
+
+-- Create table with spatial column
+CREATE TABLE hg.test (
+  id    SERIAL PRIMARY KEY,
+  geom  GEOMETRY(Point, 26910),
+  name  VARCHAR(128)
+);
+
+-- Add a spatial index
+CREATE INDEX test_gix
+  ON hg.test
+  USING GIST (geom);
+
+-- Add a point
+INSERT INTO hg.test (geom) VALUES (
+  ST_GeomFromText('POINT(0 0)', 26910)
+);
+
+-- Query point
+SELECT *
+FROM hg.test;
+
+
+using pgadmin
+-------------
+
+just open pgAdmin III
+
+ServerGroups
+  -> Servers
+    -> hgis
+      -> Databases
+        -> hg_db
+          -> Schemas
+            -> pubilc
+              -> Tables
+                -> HistoGlobe_xxx
+
+importing shp
+-------------
+
+shp2psql in_file.shp > out_file.sql
+
+
+use django
+----------
+$ django-admin.py startproject hgis
