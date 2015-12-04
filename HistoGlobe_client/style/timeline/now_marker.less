@@ -1,0 +1,45 @@
+#now_marker_arrow_bottom {
+  width:        0;
+  height:       0;
+  margin-left:  -10px;
+
+  border-left:  10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom:10px solid rgba(255,255,255,0.3);
+
+  position:   absolute;
+  z-index:    3;
+  bottom:     0px;
+
+  display: none;
+}
+
+#now_date_field {
+
+	// MAGIC
+	// click trough element
+	pointer-events: none;
+
+	font-family: Roboto;
+	color: #fff;
+  background-color: @now_marker_bgcolor;
+  position: absolute;
+  z-index: 10;
+  bottom: 0px;
+  left: 500px;
+  margin-left: -70px;
+  height: 45px;
+  line-height: 45px;
+  font-weight: 100;
+  font-size: 120%;
+  padding: 0px 20px;
+  //display: none;
+  width: 120px;
+  text-align: center;
+}
+
+.highContrast #now_date_field {
+	background-color: @now_marker_bgcolor_hc;
+  font-weight: bold;
+  font-size: 115%;
+}

@@ -1,0 +1,145 @@
+// --------------------- GLOBAL OPTIONS ----------------------------------------
+$primary_font_face                  = sans-serif
+$secondary_font_face                = sans-serif
+
+$shadow_intensity                   = 0.5
+$shadow_radius                      = 15px
+
+$text_color                         = #666666
+$text_highlight_color               = #AE3030
+
+$background_color                   = #333333
+
+$border_width                       = 0px
+$border_color                       = #ffffff
+$border_color_bright                = #ffffff
+$border_color_dark                  = #000000
+
+// --------------------- MAP OPTIONS -------------------------------------------
+$map_min_width                      = 300px
+$map_collapsed_width                = 50px
+$map_label_size                     = 1.7em
+
+
+// ------------------ SIDE_BAR OPTIONS -----------------------------------------
+$sidebar_collapse_button_size       = 40px
+$sidebar_aimation_speed             = 0.3s
+$sidebar_width                      = 400px
+$sidebar_collapsed_width            = 45px
+$sidebar_scrollbar_width            = 10px
+$sidebar_background_color           = #666666
+
+// ------------------- WIDGET OPTIONS ------------------------------------------
+$widget_aimation_speed                = 0.3s
+$widget_title_size                    = 30px
+$widget_title_background_color        = #ffcc00
+$widget_title_text_color              = #333333
+$widget_background_color              = #ffffff
+
+$widget_margin                        = 10px
+$widget_body_padding                  = 15px
+
+
+$widget_title_gradient_effect         = 0%
+
+$widget_border_radius_top_left        = 5px
+$widget_border_radius_top_right       = 0px
+$widget_border_radius_bottom_left     = 5px
+$widget_border_radius_bottom_right    = 0px
+
+$widget_font_size_factor              = 0.8
+
+// GALLERY WIDGET
+$gallery_widget_pagination_size       = 20px
+
+// PICTURE_GALLERY WIDGET
+$picture_gallery_widget_image_height  = 200px
+
+// VIP WIDGET
+$vip_widget_size                     = 100px
+$vip_widget_image_height             = 50px
+
+// LOGO WIDGET
+$logo_widget_image_height             = 100px
+
+// STATISTICS WIDGET
+$statistics_widget_min_height         = 175px
+$statistics_widget_margin_top         = 10px
+$statistics_widget_margin_right       = 15px
+$statistics_widget_margin_bottom      = 20px
+$statistics_widget_margin_left        = 30px
+
+$statistics_widget_axis_width         = 2px
+$statistics_widget_tooltip_size       = 1.0em
+
+// EVENT TICKER WIDGET ON ABOVE TIMELINE
+$event_ticker_margin_left    = 10px
+$event_ticker_font_size      = 17px
+
+// ------------------ HIVENT OPTIONS -------------------------------------------
+$hivent_marker_2D_width               = 32px
+$hivent_marker_2D_height              = 32px
+
+$hivent_marker_timeline_width         = 32px
+$hivent_marker_timeline_height        = 32px
+$hivent_marker_timeline_margin_bottom = 3px
+$hivent_marker_timeline_spacing       = 10px
+$hivent_marker_timeline_min_distance  = 16px
+
+$hivent_marker_timeline_main_topic_offset_y  = 0px
+$hivent_marker_timeline_sub_topic_offset_y  = 30px
+
+// ------------------ HIVENTINFO OPTIONS ---------------------------------------
+$hivent_info_popover_arrow_height     = 15px
+
+// ------------------ TIMELINE OPTIONS -----------------------------------------
+$timeline_height                            = 45px
+$timeline_background_color                  = #2f3b46
+$timeline_background_color_hc               = #131f29
+
+$timeline_row0_position                     = 46px
+$timeline_row1_position                     = 78px
+$timeline_row1_position_up                  = 104px
+
+$timeline_topic_height                      = 30px
+$timeline_topic_border_size                 = 1px
+$timeline_topic_border_size_hc              = 1.5px
+$timeline_topic_border_radius               = 5px
+$timeline_topic_border_color                = #2579bf
+$timeline_topic_border_color_hc             = #131f29
+$timeline_topic_font_size                   = 17px
+$timeline_topic_bgcolor                     = #ffffff
+$timeline_topic_shadow_color                = rgba(0,0,0,0.17)
+$timeline_topic_color                       = #2579bf
+$timeline_topic_color_hc                    = #131F29
+
+$timeline_topic_highlighted_bgcolor         = #2579bf
+$timeline_topic_highlighted_bgcolor_hc      = #131f29
+$timeline_topic_highlighted_color           = #ffffff
+$timeline_topic_highlighted_border_radius   = 5px
+$timeline_topic_highlighted_border_color    = #2f3b46
+$timeline_topic_highlighted_border_color_hc = #000000
+
+$timeline_subtopic_height                   = 25px
+$timeline_subtopic_font_size                = 12px
+$timeline_subtopic_bgcolor                  = #bdd7ec
+$timeline_subtopic_bgcolor_hc               = #e1e1e1
+$timeline_subtopic_color                    = #2f3b46
+$timeline_subtopic_color_hc                 = #131f29
+$timeline_subtopic_border_color             = #2579bf
+$timeline_subtopic_border_color_hc          = #131f29
+
+$timeline_month_font_size                   = 13px
+$timeline_month_color                       = rgba(255,255,255,0.3)
+
+$timeline_datemarker_line_height            = 30px
+$timeline_datemarker_font_size              = 15px
+$timeline_datemarker_color                  = #ffffff
+
+// ------------------ NOW MARKER OPTIONS -----------------------------------------
+$now_marker_bgcolor       = rgba(19, 31, 41, 0.77)
+$now_marker_bgcolor_hc    = rgba(0, 0, 0, 1)
+
+// ------------------ IMPRINT OPTIONS -----------------------------------------
+$imprint_width            = 800 px
+$imprint_height           = 600 px

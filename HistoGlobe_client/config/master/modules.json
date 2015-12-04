@@ -1,0 +1,97 @@
+{
+  "HistoGlobe" :
+  {
+    "container": "histoglobe",
+    "minYear": 1800,
+    "maxYear": 2015,
+    "nowYear": 1989,
+    "minZoom": 3,
+    "maxZoom": 7,
+    "startZoom": 4,
+    "startLatLong": [50.9869531, 11.3205004],
+    "tiles": "../HistoGlobe_client/config/common/tiles/tiles",
+    "tilesHighContrast": "../HistoGlobe_client/config/common/tiles/tiles_high_contrast",
+    "logoPath": "../HistoGlobe_client/config/common/graphics/logo-normal-farbe.png",
+    "areaAniTime" : 700,
+    "sidebarEnabled": false
+  },
+
+  "ABTest" :
+  {
+    "hiventsOnMap" :          "A",
+    "hiventsOnTl" :           "A",
+    "hiventsOnTlLabels" :     "A",
+    "numHiventsOnMap" :       "A",
+    "hiventRegionsOnMap" :    "A",
+    "hiventClusterLabels" :   "A",
+    "searchFilter" :          "A",
+    "regionLabels" :          "A",
+    "hiventMarkerMode" :      "B"
+  },
+
+  "Timeline" :
+  {
+    "timelineZoom" : 2,
+    "withTopics" : true,
+    "dsvPaths": ["../HistoGlobe_client/config/master/data/topics.csv"],
+    "rootDirs": ["../HistoGlobe_client/config/master/data/topics"],
+    "ignoredLines" : [1],
+    "indexMappings": [
+      {
+        "start"       : 0,
+        "end"         : 1,
+        "id"          : 2,
+        "subtopic_of" : 3,
+        "topic"       : 4,
+        "token"       : 5,
+        "row"         : 6
+      }
+    ]
+  },
+  "CategoryFilter":
+  {
+    "initial" : "noCategory"
+  },
+
+  "BrowserDetector": {},
+
+  "ZoomButtonsTimeline": {},
+  "ControlButtonArea": {},
+  "ZoomButtons": {},
+  "FullscreenButton": {},
+  "HighContrastButton": {},
+
+  "Imprint": {},
+
+  "Styler":
+  {
+    "normalStyle":
+    {
+      "areaColor":      "#ffffff",
+      "areaColor_hc":   "#ffffff",
+      "areaOpacity":    0.75,
+      "borderWidth":    1.25,
+      "borderColor":    "#c1c1c1",
+      "borderColor_hc": "#000000",
+      "borderOpacity":  1.0,
+      "labelSize":      2,
+      "labelColor":     "#7f7f7f",
+      "labelColor_hc":  "#000000",
+      "labelOpacity":   1.0
+    },
+    "highlightStyle":
+    {
+      "areaColor":      "#eaeaea",
+      "areaColor_hc":   "#d8d8d8"
+    }
+  },
+
+  "AreaController":  {},
+
+  "AreasOnMap" :
+  {
+    "labelVisibilityFactor" : 1.5
+  }
+
+}
+

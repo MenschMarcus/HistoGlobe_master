@@ -1,0 +1,41 @@
+// ------------------- GLOBAL OPTIONS ------------------------------------------
+$primary_font_face                  = Roboto
+$secondary_font_face                = Montserrat
+
+$border_width                       = 6px
+$border_color                       = #ffffff
+$border_color_bright                = #ffffff
+$border_color_dark                  = #333333
+
+// --------------------- MAP OPTIONS -------------------------------------------
+$map_label_size                     = 1.0em
+
+// ------------------- WIDGET OPTIONS ------------------------------------------
+$widget_title_background_color      = #ffffff
+$widget_title_text_color            = #333333
+$widget_background_color            = #ffffff
+$widget_title_size                  = 35px
+
+$text_color                         = #555555
+$text_highlight_color               = #58A84B
+
+$background_color                   = #43ca92
+
+$widget_margin                      = 15px
+
+$shadow_intensity                   = 0.2
+$shadow_radius                      = 10px
+
+$sidebar_collapsed_width            = 50px
+$sidebar_width                      = 350px
+
+$widget_border_radius_top_left      = 0px
+$widget_border_radius_top_right     = 0px
+$widget_border_radius_bottom_left   = 0px
+$widget_border_radius_bottom_right  = 0px
+
+$widget_font_size_factor            = 0.6
+
+$statistics_widget_margin_left      = 40px
+$picture_gallery_widget_image_height  = 200px
+$vip_widget_image_height  = 150px
