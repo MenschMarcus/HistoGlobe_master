@@ -54,10 +54,12 @@ class HG.AreaController
     @_labelsLoaded = no
     @_changesLoaded = no
     @_transitionsLoaded = yes
-    @_loadAreasFromJSON conf
-    @_loadLabelsFromJSON conf
-    @_loadChangesFromJSON conf
-    @_loadTransitionsFromJSON conf
+
+    # todo: replace this by loading them from the server
+    # @_loadAreasFromJSON conf
+    # @_loadLabelsFromJSON conf
+    # @_loadChangesFromJSON conf
+    # @_loadTransitionsFromJSON conf
 
     # problem: initially aloso transition areas and borders are shown, but that is not desired
     # -> introduce "initStatus"

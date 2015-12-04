@@ -18,5 +18,6 @@ from django.contrib import admin
 
 urlpatterns = [
   url(r'^admin/', include(admin.site.urls)),
-  url(r'^HistoGlobe/', include('HistoGlobe_server.urls'))
+  url(r'^HistoGlobe/', include('HistoGlobe_server.urls')),
+  url(r'', include('HistoGlobe_server.urls'))  
 ]

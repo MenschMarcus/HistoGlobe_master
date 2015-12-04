@@ -108,7 +108,7 @@ class HG.GraphOnGlobe
 
       # bundle tests
       window.addEventListener   "keydown",@_onKeyDown,       false
-      
+
       @_graphController.onShowGraphNodeConnection @, (c) =>
         @_showGraphNodeConnection c
 
@@ -122,7 +122,7 @@ class HG.GraphOnGlobe
         node.onHide @, (node) =>
           @_hideGraphNode node
 
-      
+
       conlist = @_graphController.getActiveGraphNodeConnections()
       for c in conlist
         @_showGraphNodeConnection c
@@ -130,7 +130,7 @@ class HG.GraphOnGlobe
       node_list = @_graphController.getActiveGraphNodes()
       for n in node_list
         @_showGraphNode(n)
-        
+
       #@_graphController.onShowGraphNode @, (node) =>
       #  @_showGraphNode node
 
@@ -162,9 +162,9 @@ class HG.GraphOnGlobe
     segments = 32
 
     circleGeometry = new THREE.CircleGeometry( radius, segments );
-    
+
     circleGeometry.applyMatrix( new THREE.Matrix4().makeScale( Math.pow(1.0 + (Math.abs(node._position[0])/3500),25), 1.0, 1.0) );
-    
+
     mesh = new THREE.Mesh( circleGeometry, material );
 
     #gps to cart mapping:
@@ -184,7 +184,7 @@ class HG.GraphOnGlobe
     mesh.geometry.computeVertexNormals();
     mesh.geometry.computeFaceNormals();
     mesh.geometry.computeBoundingSphere();
-    
+
     @_sceneGraphNode.add( mesh );
 
     node.Mesh3D = mesh
@@ -222,7 +222,7 @@ class HG.GraphOnGlobe
       @_hideGraphNode node
       @_showGraphNode node
       node.Mesh3D.material.color=old_color
-  
+
   # ============================================================================
   _showGraphNodeConnection: (connection) ->
 
@@ -296,11 +296,11 @@ class HG.GraphOnGlobe
     alphaLat = Math.abs(stepLat)
     alphaLng = Math.abs(stepLng)
     #counter = 0
-    while(not((currentPosLat<(latLongB.x+alphaLat) and currentPosLat>(latLongB.x-alphaLat)) or 
+    while(not((currentPosLat<(latLongB.x+alphaLat) and currentPosLat>(latLongB.x-alphaLat)) or
               (currentPosLng<(latLongB.y+alphaLng) and currentPosLng>(latLongB.y-alphaLng))))
-      
+
       # forward coordinate transformation to shader:
-      
+
       # mercator =
       #   x: currentPosLat
       #   y: currentPosLng
@@ -311,7 +311,7 @@ class HG.GraphOnGlobe
       currentPosLat+= stepLat
       currentPosLng+= stepLng
 
-      if currentPosLng > 180.0 
+      if currentPosLng > 180.0
         currentPosLng = -180.0 + (currentPosLng-180.0)
       if currentPosLng < -180.0
         currentPosLng = 180.0 - (currentPosLng+180.0)
@@ -377,7 +377,7 @@ class HG.GraphOnGlobe
     lineMaterial.uniforms.control_points.value = personalPoints
 
     @_connectionMaterials.push(lineMaterial)
-  
+
     connectionLine = new THREE.Line( lineGeometry, lineMaterial)
     if showConnection
       @_sceneGraphNodeConnection.add connectionLine
@@ -393,7 +393,7 @@ class HG.GraphOnGlobe
 
   # ============================================================================
   _hideGraphNodeConnection: (connection) ->
-    
+
     connection.isVisible = false
     if @_secondNodeOfInterest
       linkedNodes = connection.getLinkedNodes()
@@ -522,7 +522,7 @@ class HG.GraphOnGlobe
         sprite.MaxHeight = textHeight
 
         connection.Label3D = sprite
-      
+
       else
         @_sceneGraphNodeConnection.add connection.Label3D
         # update position
@@ -579,7 +579,7 @@ class HG.GraphOnGlobe
     if interactive_point != null
       @_controlPoints = interactive_point.concat(@_controlPoints)
 
-    
+
   # ============================================================================
   _removeControlPoint: (lng,lat) =>
 
@@ -639,7 +639,7 @@ class HG.GraphOnGlobe
       if (clickPos.x - @_dragStartPos.x is 0) and (clickPos.y - @_dragStartPos.y is 0)
 
         nodeIntersects = raycaster.intersectObjects @_sceneGraphNode.children
-        
+
         if nodeIntersects.length is 0 or @_secondNodeOfInterest
           #show all
           for c in @_graphController.getActiveGraphNodeConnections()
@@ -654,7 +654,7 @@ class HG.GraphOnGlobe
           @_highlightedConnections = []
 
           @_evaluate()
-        
+
         #hide uninvolved
         if nodeIntersects.length > 0
 
@@ -679,7 +679,7 @@ class HG.GraphOnGlobe
 
             @_nodeOfInterest.Mesh3D.material.opacity = OPACITY_MAX
 
-            for hc in @_highlightedConnections 
+            for hc in @_highlightedConnections
               @_showGraphNodeConnectionInfo(hc)
 
           @_nodeOfInterest = nodeIntersects[0].object.Node
@@ -756,7 +756,7 @@ class HG.GraphOnGlobe
         @_infoTag.style.visibility = "hidden"
 
       #hover countries
-      for intersect in nodeIntersects 
+      for intersect in nodeIntersects
         index = $.inArray(intersect.object, @_intersectedNodes)
         @_intersectedNodes.splice index, 1  if index >= 0
 
@@ -780,7 +780,7 @@ class HG.GraphOnGlobe
               node.Mesh3D.material.opacity = OPACITY_MAX if node.Mesh3D
 
         intersect.object.material.opacity = OPACITY_MAX
-      
+
         @_intersectedNodes.push intersect.object
 
     else
@@ -807,7 +807,7 @@ class HG.GraphOnGlobe
 
       if nodeIntersects.length is 0
         @_infoTag.style.visibility = "hidden"
-        
+
       for intersect in nodeIntersects
 
         name = intersect.object.Node.getName()
@@ -864,7 +864,7 @@ class HG.GraphOnGlobe
 
     #     line_end:
     #       type: "v3"
-    #       value: null  
+    #       value: null
 
     #     opacity:
     #       type: "f"
@@ -913,15 +913,16 @@ class HG.GraphOnGlobe
 
       fragmentShader: ''
 
-  bundle_vs_request = new XMLHttpRequest()
-  bundle_vs_request.open('GET', 'script/modules/graph/bundle.vs')
-  bundle_vs_request.onreadystatechange = () =>
-    SHADERS.bundle.vertexShader =  bundle_vs_request.responseText
-  bundle_vs_request.send()
+  # TODO: If GraphOnGlobe does not work, comment following lines back in
+  # bundle_vs_request = new XMLHttpRequest()
+  # bundle_vs_request.open('GET', 'script/modules/graph/bundle.vs')
+  # bundle_vs_request.onreadystatechange = () =>
+  #   SHADERS.bundle.vertexShader =  bundle_vs_request.responseText
+  # bundle_vs_request.send()
 
-  bundle_fs_request = new XMLHttpRequest()
-  bundle_fs_request.open('GET', 'script/modules/graph/bundle.fs')
-  bundle_fs_request.onreadystatechange = () =>
-    SHADERS.bundle.fragmentShader = bundle_fs_request.responseText
-  bundle_fs_request.send()
+  # bundle_fs_request = new XMLHttpRequest()
+  # bundle_fs_request.open('GET', 'script/modules/graph/bundle.fs')
+  # bundle_fs_request.onreadystatechange = () =>
+  #   SHADERS.bundle.fragmentShader = bundle_fs_request.responseText
+  # bundle_fs_request.send()
 
