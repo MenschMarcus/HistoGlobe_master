@@ -105,10 +105,6 @@ class HG.HistoGlobe
       # After all modules are loaded, notify whoever is interested
       @notifyAll "onAllModulesLoaded"
 
-      # hack: initial call of timeline now change
-      # if @timeline?
-      #   @timeline._updateNowDate true
-
       @_updateLayout()
 
       if @_config.sidebarCollapsed is "false"
@@ -116,6 +112,9 @@ class HG.HistoGlobe
       else if @_config.sidebarCollapsed is "auto" and @isInMobileMode()
         @_collapse()
 
+      # init buttons for edit mode
+      if @_config.editMode
+        @_makeEditMode()
     )
 
 
@@ -209,9 +208,25 @@ class HG.HistoGlobe
     $(@_collapse_button).click @_collapse
     $(@_collapse_area_left).click @_collapse
 
+
+  # ============================================================================
+  _makeEditMode: ->
+    # create edit buttons area
+    @_editButtonArea = new HG.EditButtonArea
+    @_editButtonArea.hgInit @
+
+    # create edit button
+    @_editButton = new HG.EditButton
+    @_editButton.hgInit @
+
+    # create operation buttons (but hidden)
+    @_operationButtons = new HG.OperationButtons
+    @_operationButtons.hgInit @
+
   # ============================================================================
   # Creates 2D Map. For more information, please see Display2D.coffe.
   # ============================================================================
+
   _createMap: ->
     @_map_area = @_createElement @_top_area_wrapper, "div", "map-area"
     @_map_area.className = "swiper-slide"

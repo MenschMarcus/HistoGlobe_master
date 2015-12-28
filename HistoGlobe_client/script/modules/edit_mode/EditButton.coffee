@@ -7,43 +7,9 @@ class HG.EditButton
   ##############################################################################
 
   # ============================================================================
-  constructor: (config) ->
+  constructor: (config, operationButtons) ->
     defaultConfig =
       help: undefined
-
-    @_operations =
-      [
-        {
-          "name":     "ADD",
-          "icon":     "fa-plus",
-          "tooltip":  "add new country"
-        },
-        {
-          "name":     "UNI",
-          "icon":     "fa-venus-mars",
-          "tooltip":  "unite countries"
-        },
-        {
-          "name":     "SEP",
-          "icon":     "fa-bolt",
-          "tooltip":  "separate country"
-        },
-        {
-          "name":     "CHB",
-          "icon":     "fa-arrows-h",
-          "tooltip":  "change borders between countries"
-        },
-        {
-          "name":     "CHN",
-          "icon":     "fa-amazon",
-          "tooltip":  "change name of country"
-        },
-        {
-          "name":     "DEL",
-          "icon":     "fa-ban",
-          "tooltip":  "delete country"
-        },
-      ]
 
     @_config = $.extend {}, defaultConfig, config
 
@@ -76,10 +42,6 @@ class HG.EditButton
         icon: "fa-pencil"
         tooltip: "Enter Edit Mode"
         callback: () =>
-          # add all buttons for historical operations
-          # TODO how to access object with operations?
-          hgInstance.edit_button_area.addButtonGroup @_operations
-
           @notifyAll "onEnterEditMode"
           return state_b
 
@@ -87,8 +49,6 @@ class HG.EditButton
         icon: "fa-pencil"
         tooltip: "Leave Edit Mode"
         callback: () =>
-          elem = document.body
-
           @notifyAll "onLeaveEditMode"
           return state_a
 
