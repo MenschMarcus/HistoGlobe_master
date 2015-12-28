@@ -83,12 +83,12 @@ class HG.Timeline
           @_zoom(-1)
 
       # show or hide topic
-      @_hgInstance.categoryFilter?.onFilterChanged @, (categoryFilter) =>
-        @_unhighlightTopics()
-        for topic in @_config.topics
-          if categoryFilter[0] is topic.id
-            @_switchTopic(topic)
-            break
+      # @_hgInstance.categoryFilter?.onFilterChanged @, (categoryFilter) =>
+      #   @_unhighlightTopics()
+      #   for topic in @_config.topics
+      #     if categoryFilter[0] is topic.id
+      #       @_switchTopic(topic)
+      #       break
 
       @_hgInstance.timeline?.onNowChanged @, (date) =>
         @_now.dateField.innerHTML = date.toLocaleDateString DATE_LOCALE, DATE_OPTIONS
@@ -127,14 +127,14 @@ class HG.Timeline
         @_dragged = true
         @_updateNowDate(@_moveDelay++ % 10 == 0)
         @_updateDateMarkers()
-        @_updateTextInTopics()
+        # @_updateTextInTopics()
       onTouchEnd: =>
         @_timelineClicked = false
       onSetWrapperTransition: (s, d) =>
         update_iteration_obj = setInterval =>
           @_updateNowDate(true)
           @_updateDateMarkers()
-          @_updateTextInTopics()
+          # @_updateTextInTopics()
         , 50
         setTimeout =>
           clearInterval(update_iteration_obj)
@@ -155,31 +155,31 @@ class HG.Timeline
     $(window).resize  =>
       @_updateLayout()
       @_updateDateMarkers()
-      @_updateTopics()
+      # @_updateTopics()
       @_updateNowDate()
 
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 
     # Start the timeline here !!!
     @_uiElements.tl.style.display = "none"
-    @_loadTopicsFromDSV( =>
-      @_updateLayout()
-      @_updateDateMarkers()
-      @_updateTopics()
-      @_updateTextInTopics()
-      @_updateNowDate()
-      categoryFilter = @_hgInstance.categoryFilter.getCurrentFilter()
-      for topic in @_config.topics
-        if categoryFilter[0] is topic.id
+    # @_loadTopicsFromDSV( =>
+    @_updateLayout()
+    @_updateDateMarkers()
+    # @_updateTopics()
+    # @_updateTextInTopics()
+    @_updateNowDate()
+    # categoryFilter = @_hgInstance.categoryFilter.getCurrentFilter()
+    # for topic in @_config.topics
+    #   if categoryFilter[0] is topic.id
 
-          #   switch topic
-          #   Params: name of topic, setHash in URL?, move to Topic?
-          @_switchTopic(topic)
-          break
-      @notifyAll "OnTopicsLoaded"
-      @topicsloaded = true
-      $(@_uiElements.tl).fadeIn()
-    )
+    #     #   switch topic
+    #     #   Params: name of topic, setHash in URL?, move to Topic?
+    #     @_switchTopic(topic)
+    #     break
+    # @notifyAll "OnTopicsLoaded"
+    # @topicsloaded = true
+    $(@_uiElements.tl).fadeIn()
+    # )
 
     # DIRTY HACK: at the end of everything, init now date again
     # and move the timeline, so the markers on the timeline are initially at the correct position
