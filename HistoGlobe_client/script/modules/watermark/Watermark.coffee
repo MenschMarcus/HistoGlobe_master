@@ -29,13 +29,13 @@ class HG.Watermark
       image.src = @_config.image
       image.className = "watermark"
       if @_config.top?
-        text.style.top = @_config.top
+        image.style.top = @_config.top
       if @_config.right?
-        text.style.right = @_config.right
+        image.style.right = @_config.right
       if @_config.bottom?
-        text.style.bottom = @_config.bottom
+        image.style.bottom = @_config.bottom
       if @_config.left?
-        text.style.left = @_config.left
+        image.style.left = @_config.left
       parentDiv.appendChild image
 
     else

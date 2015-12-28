@@ -12,7 +12,7 @@
     "tiles": "../HistoGlobe_client/config/common/tiles/tiles",
     "tilesHighContrast": "../HistoGlobe_client/config/common/tiles/tiles_high_contrast",
     "logoPath": "../HistoGlobe_client/config/common/graphics/logo-normal-farbe.png",
-    "sidebarEnabled": true
+    "sidebarEnabled": false
   },
 
   "ABTest" : {},
@@ -29,13 +29,19 @@
 
   "BrowserDetector": {},
 
-  "ZoomButtonsTimeline": {},
   "ControlButtonArea": {},
   "ZoomButtons": {},
   "FullscreenButton": {},
   "HighContrastButton": {},
+  "ZoomButtonsTimeline": {},
 
-  "Imprint": {},
+  "EditButtonArea": {},
+  "EditButton": {},
 
-  "AreaController":  {}
+  "Watermark":
+  {
+    "image": "../HistoGlobe_client/config/common/graphics/logo.png"
+  },
+
+  "Imprint": {}
 }
