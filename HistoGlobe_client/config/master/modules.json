@@ -16,38 +16,13 @@
     "sidebarEnabled": false
   },
 
-  "ABTest" :
-  {
-    "hiventsOnMap" :          "A",
-    "hiventsOnTl" :           "A",
-    "hiventsOnTlLabels" :     "A",
-    "numHiventsOnMap" :       "A",
-    "hiventRegionsOnMap" :    "A",
-    "hiventClusterLabels" :   "A",
-    "searchFilter" :          "A",
-    "regionLabels" :          "A",
-    "hiventMarkerMode" :      "B"
-  },
+  "ABTest" : {},
 
   "Timeline" :
   {
-    "timelineZoom" : 2,
-    "withTopics" : true,
-    "dsvPaths": ["../HistoGlobe_client/config/master/data/topics.csv"],
-    "rootDirs": ["../HistoGlobe_client/config/master/data/topics"],
-    "ignoredLines" : [1],
-    "indexMappings": [
-      {
-        "start"       : 0,
-        "end"         : 1,
-        "id"          : 2,
-        "subtopic_of" : 3,
-        "topic"       : 4,
-        "token"       : 5,
-        "row"         : 6
-      }
-    ]
+    "timelineZoom" : 2
   },
+
   "CategoryFilter":
   {
     "initial" : "noCategory"
