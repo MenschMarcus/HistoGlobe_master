@@ -28,22 +28,40 @@ class HG.EditButtonArea
     @_addButton config, group
 
   # ============================================================================
-  addButtonGroup: (configs) ->
-    group = @_addGroup()
+  addButtonGroup: (configs, name) ->
+    group = @_addGroup name
 
     for config in configs
       @_addButton config, group
+
+  # ============================================================================
+  removeButtonGroup: (name) ->
+    @_removeGroup name
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
 
   # ============================================================================
-  _addGroup: () ->
+  _addGroup: (name) ->
     group = document.createElement "div"
+    group.id = name if name?  # in order to delete buttons when leaving edit mode
     group.className = "edit-buttons-group"
     @_container.appendChild group
     return group
+
+  # ============================================================================
+  _addGroup: (name) ->
+    group = document.createElement "div"
+    group.id = name if name?  # in order to delete buttons when leaving edit mode
+    group.className = "edit-buttons-group"
+    @_container.appendChild group
+    return group
+
+  # ============================================================================
+  _removeGroup: (name) ->
+    group = document.getElementById name
+    group.parentNode.removeChild group
 
   # ============================================================================
   _addButton: (config, group) ->
@@ -56,10 +74,19 @@ class HG.EditButtonArea
 
     button = document.createElement "div"
     button.className = "edit-buttons-button"
-    $(button).tooltip {title: config.tooltip, placement: "right", container:"body"}
+    $(button).tooltip {
+      title: config.tooltip,
+      placement: "left",  # TODO: how to set it to bottom?
+      container:"body"
+    }
 
-    icon = document.createElement "i"
-    icon.className = "fa " + config.icon
+    unless config.ownIcon  # font awesome
+      icon = document.createElement "i"
+      icon.className = "fa " + config.icon
+    else                  # own icon
+      icon = document.createElement "div"
+      icon.className = "own-button"
+      $(icon).css 'background-image', 'url("' + config.icon + '")'
     button.appendChild icon
 
     $(button).click () ->
