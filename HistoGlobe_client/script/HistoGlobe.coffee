@@ -45,6 +45,8 @@ class HG.HistoGlobe
       sidebarCollapsed: "auto"
       sidebarEnabled: "true"
       tiles: 'data/tiles/'
+      editMode: true,
+      editOperationsPath: 'HistoGlobe_client/config/common/operations.json'
 
     # Asynchronous loading of a file containing module information located at
     # "pathToJson". Result is stored in the "config" object and passed to the
@@ -112,7 +114,7 @@ class HG.HistoGlobe
       else if @_config.sidebarCollapsed is "auto" and @isInMobileMode()
         @_collapse()
 
-      # init buttons for edit mode
+      # init edit mode
       if @_config.editMode
         @_makeEditMode()
     )
@@ -211,17 +213,26 @@ class HG.HistoGlobe
 
   # ============================================================================
   _makeEditMode: ->
-    # create edit buttons area
-    @_editButtonArea = new HG.ButtonArea 'top-right', 'horizontal'
-    @_editButtonArea.hgInit @
+    # load edit operations
+    $.getJSON(@_config.editOperationsPath, (operations) =>
 
-    # create edit button
-    @_editButton = new HG.EditButton
-    @_editButton.hgInit @
+      # create edit buttons area
+      @_editButtonArea = new HG.ButtonArea 'top-right', 'horizontal'
+      @_editButtonArea.hgInit @
 
-    # create operation buttons (but hidden)
-    @_operationButtons = new HG.OperationButtons
-    @_operationButtons.hgInit @
+      # create edit button
+      @_editButton = new HG.EditButton
+      @_editButton.hgInit @
+
+      # create operation buttons (but hidden)   hgInstance, list of operations, path to icons
+      @_operationButtons = new HG.OperationButtons operations['operations'], operations['iconPath']
+      @_operationButtons.hgInit @
+
+      # init edit operation controller
+      @_editOperationController = new HG.EditOperationController operations['operations']
+      @_editOperationController.hgInit @
+
+    )
 
   # ============================================================================
   # Creates 2D Map. For more information, please see Display2D.coffe.

@@ -11,8 +11,8 @@ class HG.ButtonArea
     @_position = position
     @_orientation = if orientation is 'horizontal' then 'horizontal' else 'vertical'
 
+  # ============================================================================
   hgInit: (hgInstance) ->
-
     @_hgInstance = hgInstance
     @_hgInstance.button_area = @
 
@@ -71,7 +71,7 @@ class HG.ButtonArea
     config = $.extend {}, defaultConfig, config
 
     button = document.createElement "div"
-    button.id = ('operation-button-' + config.name) if config.name
+    button.id = ('operation-button-' + config.id) if config.id
     button.className = 'button'
     if @_orientation is 'horizontal'
       button.className += ' button-horizontal'

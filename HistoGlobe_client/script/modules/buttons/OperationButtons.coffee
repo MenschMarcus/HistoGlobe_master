@@ -7,55 +7,35 @@ class HG.OperationButtons
   ##############################################################################
 
   # ============================================================================
-  constructor: () ->
-
-    @_iconPath = "../HistoGlobe_client/config/common/graphics/operations/"
-    @_operations =
-      [
-        {
-          "name":     "ADD",
-          "tooltip":  "add new country"
-        },
-        {
-          "name":     "UNI",
-          "tooltip":  "unite countries"
-        },
-        {
-          "name":     "SEP",
-          "tooltip":  "separate country"
-        },
-        {
-          "name":     "CHB",
-          "tooltip":  "change borders between countries"
-        },
-        {
-          "name":     "CHN",
-          "tooltip":  "change name of country"
-        },
-        {
-          "name":     "DEL",
-          "tooltip":  "delete country"
-        },
-      ]
-
-
-  hgInit: (hgInstance) ->
+  constructor: (operations, iconPath) ->
 
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    # generically create icons and callbacks on click on button
-    for operation in @_operations
-      callbackName = 'on' + operation.name
-      @addCallback callbackName
-      cn = callbackName
+    @_operations = operations
+    @_iconPath = iconPath
 
-      # operation object
+
+  # ============================================================================
+  hgInit: (hgInstance) ->
+
+    hgInstance.operation_buttons = @
+    @addCallback 'onStartEditOperation'
+
+    # create button for each operation
+    for operation in @_operations
+
+      # tooltip (same as title of operation window)
+      operation.tooltip = operation.title
+
+      # icon
       operation.ownIcon = true
-      operation.icon = @_iconPath + operation.name + '.svg'
+      operation.icon = @_iconPath + operation.id + '.svg'
+
+      # callback
       operation.callback = (div) =>
         operationName = div.id.slice -3 # horrible solution, please find a better way!
-        @notifyAll 'on' + operationName
+        @notifyAll 'onStartEditOperation', operationName
         # it is driving me nuts!
         # I could not find a better way for getting the name of the operation
         # for some reason the variable given into the callback is the containing

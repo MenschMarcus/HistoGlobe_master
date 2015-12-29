@@ -1,4 +1,4 @@
-// --------------------- GLOBAL OPTIONS ----------------------------------------
+// -------------------- GLOBAL OPTIONS --------------------
 $primary_font_face                  = sans-serif
 $secondary_font_face                = sans-serif
 
@@ -15,13 +15,19 @@ $border_color                       = #ffffff
 $border_color_bright                = #ffffff
 $border_color_dark                  = #000000
 
-// --------------------- MAP OPTIONS -------------------------------------------
+$color_bg_light                     = #ffffff
+$color_bg_medium                    = #ffffff
+$color_bg_dark                      = #ffffff
+$color_highlight_click              = #ffffff
+$color_highlight_active             = #ffffff
+
+// ---------------------- MAP OPTIONS ----------------------
 $map_min_width                      = 300px
 $map_collapsed_width                = 50px
 $map_label_size                     = 1.7em
 
 
-// ------------------ SIDE_BAR OPTIONS -----------------------------------------
+// -------------------- SIDE_BAR OPTIONS --------------------
 $sidebar_collapse_button_size       = 40px
 $sidebar_aimation_speed             = 0.3s
 $sidebar_width                      = 400px
@@ -29,7 +35,7 @@ $sidebar_collapsed_width            = 45px
 $sidebar_scrollbar_width            = 10px
 $sidebar_background_color           = #666666
 
-// ------------------- WIDGET OPTIONS ------------------------------------------
+// --------------------- WIDGET OPTIONS ---------------------
 $widget_aimation_speed                = 0.3s
 $widget_title_size                    = 30px
 $widget_title_background_color        = #ffcc00
@@ -76,7 +82,7 @@ $statistics_widget_tooltip_size       = 1.0em
 $event_ticker_margin_left    = 10px
 $event_ticker_font_size      = 17px
 
-// ------------------ HIVENT OPTIONS -------------------------------------------
+// ---------------------- HIVENT OPTIONS ----------------------
 $hivent_marker_2D_width               = 32px
 $hivent_marker_2D_height              = 32px
 
@@ -89,10 +95,10 @@ $hivent_marker_timeline_min_distance  = 16px
 $hivent_marker_timeline_main_topic_offset_y  = 0px
 $hivent_marker_timeline_sub_topic_offset_y  = 30px
 
-// ------------------ HIVENTINFO OPTIONS ---------------------------------------
+// --------------------- HIVENTINFO OPTIONS ---------------------
 $hivent_info_popover_arrow_height     = 15px
 
-// ------------------ TIMELINE OPTIONS -----------------------------------------
+// ---------------------- TIMELINE OPTIONS ----------------------
 $timeline_height                            = 45px
 $timeline_background_color                  = #2f3b46
 $timeline_background_color_hc               = #131f29
@@ -136,10 +142,10 @@ $timeline_datemarker_line_height            = 30px
 $timeline_datemarker_font_size              = 15px
 $timeline_datemarker_color                  = #ffffff
 
-// ------------------ NOW MARKER OPTIONS -----------------------------------------
+// ---------------------- NOW MARKER ---------------------------
 $now_marker_bgcolor       = rgba(19, 31, 41, 0.77)
 $now_marker_bgcolor_hc    = rgba(0, 0, 0, 1)
 
-// ------------------ IMPRINT OPTIONS -----------------------------------------
+// --------------------- IMPRINT OPTIONS --------------------
 $imprint_width            = 800 px
 $imprint_height           = 600 px
