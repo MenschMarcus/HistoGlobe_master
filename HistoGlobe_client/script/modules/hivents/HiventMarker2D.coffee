@@ -34,9 +34,9 @@ class HG.HiventMarker2D extends HG.HiventMarker
     @_long = long
 
     #Private Name and Location because constant use
-    @_markerLabelLocation=hiventHandle.getHivent().locationName
+    @_markerLabelLocation = hiventHandle.getHivent().locationName
 
-    @_markerLabelEventName=hiventHandle.getHivent().name
+    @_markerLabelEventName = hiventHandle.getHivent().name
 
 
     html="<div class=\"markerLabel left\">#{@_markerLabelLocation}</div>"
@@ -130,7 +130,7 @@ class HG.HiventMarker2D extends HG.HiventMarker
         else
           @_marker.setIcon icon_default
         if @_map.getZoom()<=4
-          @_marker._icon.innerHTML=""
+          @_marker._icon.innerHTML = ''
       else
         @_marker.setIcon icon_higlighted
 
@@ -230,7 +230,7 @@ class HG.HiventMarker2D extends HG.HiventMarker
         else
           @_marker._icon.innerHTML="<div class=\"markerLabel left\">#{@_markerLabelLocation}</div>"
       else
-        @_marker._icon.innerHTML=""
+        @_marker._icon.innerHTML = ''
 
     0
    # ============================================================================

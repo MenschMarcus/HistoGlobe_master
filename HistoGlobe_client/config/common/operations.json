@@ -1,0 +1,54 @@
+{
+  "iconPath": "../HistoGlobe_client/config/common/graphics/operations/",
+  "operations":
+  [
+    {
+      "id":       "ADD",
+      "title":    "Add New Country",
+      "numOld":   null,
+      "numNew":   "1",
+      "newGeo":   true,
+      "newName":  true
+    },
+    {
+      "id":       "UNI",
+      "title":    "Unite Countries",
+      "numOld":   "2+",
+      "numNew":   "1",
+      "newGeo":   false,
+      "newName":  true
+    },
+    {
+      "id":       "SEP",
+      "title":    "Separate Country",
+      "numOld":   "1",
+      "numNew":   "2+",
+      "newGeo":   true,
+      "newName":  true
+    },
+    {
+      "id":       "CHB",
+      "title":    "Change Borders Between Countries",
+      "numOld":   "2",
+      "numNew":   "2",
+      "newGeo":   true,
+      "newName":  false
+    },
+    {
+      "id":       "CHN",
+      "title":    "Change Name Of Country",
+      "numOld":   "1",
+      "numNew":   "1",
+      "newGeo":   false,
+      "newName":  true
+    },
+    {
+      "id":       "DEL",
+      "title":    "Delete Country",
+      "numOld":   "1+",
+      "numNew":   null,
+      "newGeo":   false,
+      "newName":  false
+    }
+  ]
+}
