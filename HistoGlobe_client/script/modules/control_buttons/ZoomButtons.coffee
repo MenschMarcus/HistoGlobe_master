@@ -17,7 +17,8 @@ class HG.ZoomButtons
 
     hgInstance.zoom_buttons = @
 
-    if hgInstance.control_button_area?
+    if hgInstance.control_buttons?
+
       zoom_in =
         icon: "fa-plus"
         tooltip: "Karte vergrößern"
@@ -30,7 +31,7 @@ class HG.ZoomButtons
         callback: () =>
           @notifyAll "onZoomOut"
 
-      hgInstance.control_button_area.addButtonGroup [zoom_in, zoom_out]
+      hgInstance.control_buttons.addButtonGroup [zoom_in, zoom_out]
 
     else
       console.error "Failed to add zoom buttons: ControlButtons module not found!"

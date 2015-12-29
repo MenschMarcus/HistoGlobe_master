@@ -212,7 +212,7 @@ class HG.HistoGlobe
   # ============================================================================
   _makeEditMode: ->
     # create edit buttons area
-    @_editButtonArea = new HG.EditButtonArea
+    @_editButtonArea = new HG.ButtonArea 'top-right', 'horizontal'
     @_editButtonArea.hgInit @
 
     # create edit button

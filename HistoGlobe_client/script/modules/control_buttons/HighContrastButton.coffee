@@ -40,7 +40,8 @@ class HG.HighContrastButton
         width: "70%"
 
 
-    if hgInstance.control_button_area?
+    if hgInstance.control_buttons?
+
       state_a = {}
       state_b = {}
 
@@ -60,7 +61,7 @@ class HG.HighContrastButton
           @notifyAll "onLeaveHighContrast"
           return state_a
 
-      hgInstance.control_button_area.addButton state_a
+      hgInstance.control_buttons.addButton state_a
 
     else
       console.error "Failed to add zoom buttons: ControlButtons module not found!"

@@ -1,19 +1,23 @@
 window.HG ?= {}
 
-class HG.ControlButtonArea
+class HG.ButtonArea
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
   ##############################################################################
 
   # ============================================================================
+  constructor : (position, orientation) ->
+    @_position = position
+    @_orientation = if orientation is 'horizontal' then 'horizontal' else 'vertical'
+
   hgInit: (hgInstance) ->
 
     @_hgInstance = hgInstance
-    @_hgInstance.control_button_area = @
+    @_hgInstance.button_area = @
 
     @_container = document.createElement "div"
-    @_container.className = "control-buttons"
+    @_container.className = "buttons-" + @_position
     @_hgInstance._top_area.appendChild @_container
 
     @_hgInstance.onTopAreaSlide @, (t) =>
@@ -28,22 +32,34 @@ class HG.ControlButtonArea
     @_addButton config, group
 
   # ============================================================================
-  addButtonGroup: (configs) ->
-    group = @_addGroup()
+  addButtonGroup: (configs, name) ->
+    group = @_addGroup name
 
     for config in configs
       @_addButton config, group
+
+  # ============================================================================
+  removeButtonGroup: (name) ->
+    @_removeGroup name
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
 
   # ============================================================================
-  _addGroup: () ->
-    group = document.createElement "div"
-    group.className = "control-buttons-group"
+  _addGroup: (name) ->
+    group = document.createElement 'div'
+    group.id = name if name?  # in order to delete buttons when leaving edit mode
+    group.className = 'buttons-group'
+    if @_orientation is 'horizontal'
+      group.className += ' buttons-group-horizontal'
     @_container.appendChild group
     return group
+
+  # ============================================================================
+  _removeGroup: (name) ->
+    group = document.getElementById name
+    group.parentNode.removeChild group
 
   # ============================================================================
   _addButton: (config, group) ->
@@ -55,11 +71,23 @@ class HG.ControlButtonArea
     config = $.extend {}, defaultConfig, config
 
     button = document.createElement "div"
-    button.className = "control-buttons-button"
-    $(button).tooltip {title: config.tooltip, placement: "right", container:"body"}
+    button.id = ('operation-button-' + config.name) if config.name
+    button.className = 'button'
+    if @_orientation is 'horizontal'
+      button.className += ' button-horizontal'
+    $(button).tooltip {
+      title: config.tooltip,
+      placement: "left",  # TODO: how to set it to bottom?
+      container: "body"
+    }
 
-    icon = document.createElement "i"
-    icon.className = "fa " + config.icon
+    unless config.ownIcon  # font awesome
+      icon = document.createElement "i"
+      icon.className = "fa " + config.icon
+    else                  # own icon
+      icon = document.createElement "div"
+      icon.className = "own-button"
+      $(icon).css 'background-image', 'url("' + config.icon + '")'
     button.appendChild icon
 
     $(button).click () ->
@@ -73,6 +101,3 @@ class HG.ControlButtonArea
     group.appendChild button
 
     return button
-
-
-
