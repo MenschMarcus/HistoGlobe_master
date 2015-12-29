@@ -57,7 +57,8 @@ class HG.Globe extends HG.Display
             @_tile_path = hgInstance._config.tiles
 
 
-        if hgInstance.control_button_area?
+        if hgInstance.control_buttons?
+
           state_a = {}
           state_b = {}
 
@@ -91,7 +92,7 @@ class HG.Globe extends HG.Display
 
               return state_a
 
-          hgInstance.control_button_area.addButton state_a
+          hgInstance.control_buttons.addButton state_a
 
         else
           console.error "Failed to add globe button: ControlButtons module not found!"
@@ -100,7 +101,8 @@ class HG.Globe extends HG.Display
       console.warn "Failed to initialize Globe: Webgl not supported!"
 
       hgInstance.onAllModulesLoaded @, () =>
-        if hgInstance.control_button_area?
+        if hgInstance.control_buttons?
+
 
           elem_title = 'Entschuldigung!';
           elem_content = '';
@@ -146,7 +148,7 @@ class HG.Globe extends HG.Display
                 x: offset.left + width
                 y: offset.top + height*0.5
 
-          hgInstance.control_button_area.addButton state
+          hgInstance.control_buttons.addButton state
 
         else
           console.error "Failed to add globe button: ControlButtons module not found!"

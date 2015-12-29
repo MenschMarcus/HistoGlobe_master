@@ -21,7 +21,8 @@ class HG.GraphButton
 
     hgInstance.graph_button = @
 
-    if hgInstance.control_button_area?
+    if hgInstance.control_buttons?
+
       state_a = {}
       state_b = {}
 
@@ -39,7 +40,7 @@ class HG.GraphButton
           @notifyAll "onHideGraph"
           return state_a
 
-      @_button_div = hgInstance.control_button_area.addButton state_a
+      @_button_div = hgInstance.control_buttons.addButton state_a
       @_parent_div = @_button_div.parentNode
 
       @hide_button()

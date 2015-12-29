@@ -46,7 +46,8 @@ class HG.Help
             @show()
             hgInstance.hiventInfoAtTag?.unsetOption("help")
 
-    if hgInstance.control_button_area?
+    if hgInstance.control_buttons?
+
       help =
         icon: "fa-question"
         tooltip: "Hilfe einblenden"
@@ -55,7 +56,7 @@ class HG.Help
             @_hgInstance._collapse()
           @show()
 
-      @_button = hgInstance.control_button_area.addButton help
+      @_button = hgInstance.control_buttons.addButton help
 
   # ============================================================================
   show:() ->

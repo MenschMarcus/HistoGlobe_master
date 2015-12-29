@@ -34,7 +34,7 @@ class HG.EditButton
         width: "70%"
 
     # main
-    if hgInstance.edit_button_area?
+    if hgInstance.button_area?
       state_a = {}  # browsing mode
       state_b = {}  # edit mode
 
@@ -52,7 +52,7 @@ class HG.EditButton
           @notifyAll "onLeaveEditMode"
           return state_a
 
-      hgInstance.edit_button_area.addButton state_a
+      hgInstance.button_area.addButton state_a
 
     else
       console.error "Failed to add zoom buttons: EditButtons module not found!"
