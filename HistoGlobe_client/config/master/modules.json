@@ -29,10 +29,12 @@
 
   "BrowserDetector": {},
 
-  "ControlButtonArea": {},
-  "ZoomButtons": {},
-  "FullscreenButton": {},
-  "HighContrastButton": {},
+  "ControlButtons": {
+    "zoom":         true,
+    "fullscreen":   true,
+    "highContrast": true
+  },
+
   "ZoomButtonsTimeline": {},
 
   "Watermark":

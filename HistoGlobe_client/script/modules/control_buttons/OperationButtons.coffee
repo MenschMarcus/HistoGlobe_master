@@ -14,32 +14,26 @@ class HG.OperationButtons
       [
         {
           "name":     "ADD",
-          "ownIcon":  true,
           "tooltip":  "add new country"
         },
         {
           "name":     "UNI",
-          "ownIcon":  true,
           "tooltip":  "unite countries"
         },
         {
           "name":     "SEP",
-          "ownIcon":  true,
           "tooltip":  "separate country"
         },
         {
           "name":     "CHB",
-          "ownIcon":  true,
           "tooltip":  "change borders between countries"
         },
         {
           "name":     "CHN",
-          "ownIcon":  true,
           "tooltip":  "change name of country"
         },
         {
           "name":     "DEL",
-          "ownIcon":  true,
           "tooltip":  "delete country"
         },
       ]
@@ -50,38 +44,28 @@ class HG.OperationButtons
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    # generically create callbacks
-    for op in @_operations
-      callbackName = 'on' + op.name
+    # generically create icons and callbacks on click on button
+    for operation in @_operations
+      callbackName = 'on' + operation.name
       @addCallback callbackName
+      cn = callbackName
 
-    # generically create path to icon
-    for op in @_operations
-      op.icon = @_iconPath + op.name + '.svg'
+      # operation object
+      operation.ownIcon = true
+      operation.icon = @_iconPath + operation.name + '.svg'
+      operation.callback = (div) =>
+        operationName = div.id.slice -3 # horrible solution, please find a better way!
+        @notifyAll 'on' + operationName
+        # it is driving me nuts!
+        # I could not find a better way for getting the name of the operation
+        # for some reason the variable given into the callback is the containing
+        # div of the button. I do not understand that :(
 
-
-    # if hgInstance.edit_button_area?
-    #   zoom_in =
-    #     icon: "fa-plus"
-    #     tooltip: "Karte vergrößern"
-    #     callback: () =>
-    #       @notifyAll "onZoomIn"
-
-    #   zoom_out =
-    #     icon: "fa-minus"
-    #     tooltip: "Karte verkleinern"
-    #     callback: () =>
-    #       @notifyAll "onZoomOut"
-
-    #   hgInstance.control_button_area.addButtonGroup [zoom_in, zoom_out]
-
-    # else
-    #   console.error "Failed to add zoom buttons: ControlButtons module not found!"
 
     # show operation buttons in edit mode
     hgInstance.edit_button.onEnterEditMode @, () ->
-      hgInstance.edit_button_area.addButtonGroup @_operations, "operation-buttons"
+      hgInstance.button_area.addButtonGroup @_operations, "operation-buttons"
 
     # hide operation buttons in browsing mode
     hgInstance.edit_button.onLeaveEditMode @, () ->
-      hgInstance.edit_button_area.removeButtonGroup "operation-buttons"
+      hgInstance.button_area.removeButtonGroup "operation-buttons"
