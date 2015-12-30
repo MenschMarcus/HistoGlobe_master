@@ -1,4 +1,38 @@
-// -------------------- GLOBAL OPTIONS --------------------
+// COLOR SCHEME ----------------------------------------------------
+
+$color_bg_white                     = #ffffff
+$color_bg_light                     = #dedede
+$color_bg_medium                    = #2f3b46
+$color_bg_dark                      = #121212
+
+$color_highlight                    = #d5c900
+$color_highlight_active             = #706400
+
+$color_disable                      = #dedede
+$color_disable_active               = #848484
+
+// BUTTONS ---------------------------------------------------------
+
+$button_diameter                    = 40px
+
+// EDIT OPERATION WINDOW -------------------------------------------
+
+$operation_window_border            = 5px
+$operation_step_width               = 250px
+$operation_entry_height             = 80px
+
+$operation_title_size               = 1.5em
+$operation_title_height             = 45px
+$operation_workflow_size            = 1.2em
+$operation_workflow_height          = 70px
+
+
+// ================================================================
+// TODO: cleanup from here on
+// ================================================================
+
+// GLOBAL OPTIONS --------------------------------------------------
+
 $primary_font_face                  = sans-serif
 $secondary_font_face                = sans-serif
 
@@ -15,19 +49,15 @@ $border_color                       = #ffffff
 $border_color_bright                = #ffffff
 $border_color_dark                  = #000000
 
-$color_bg_light                     = #ffffff
-$color_bg_medium                    = #ffffff
-$color_bg_dark                      = #ffffff
-$color_highlight_click              = #ffffff
-$color_highlight_active             = #ffffff
+// MAP OPTIONS -----------------------------------------------------
 
-// ---------------------- MAP OPTIONS ----------------------
 $map_min_width                      = 300px
 $map_collapsed_width                = 50px
 $map_label_size                     = 1.7em
 
 
-// -------------------- SIDE_BAR OPTIONS --------------------
+// SIDEBAR OPTIONS -------------------------------------------------
+
 $sidebar_collapse_button_size       = 40px
 $sidebar_aimation_speed             = 0.3s
 $sidebar_width                      = 400px
@@ -35,7 +65,9 @@ $sidebar_collapsed_width            = 45px
 $sidebar_scrollbar_width            = 10px
 $sidebar_background_color           = #666666
 
-// --------------------- WIDGET OPTIONS ---------------------
+
+// WIDGET OPTIONS --------------------------------------------------
+
 $widget_aimation_speed                = 0.3s
 $widget_title_size                    = 30px
 $widget_title_background_color        = #ffcc00
@@ -82,7 +114,9 @@ $statistics_widget_tooltip_size       = 1.0em
 $event_ticker_margin_left    = 10px
 $event_ticker_font_size      = 17px
 
-// ---------------------- HIVENT OPTIONS ----------------------
+
+// HIVENT OPTIONS --------------------------------------------------
+
 $hivent_marker_2D_width               = 32px
 $hivent_marker_2D_height              = 32px
 
@@ -95,10 +129,11 @@ $hivent_marker_timeline_min_distance  = 16px
 $hivent_marker_timeline_main_topic_offset_y  = 0px
 $hivent_marker_timeline_sub_topic_offset_y  = 30px
 
-// --------------------- HIVENTINFO OPTIONS ---------------------
 $hivent_info_popover_arrow_height     = 15px
 
-// ---------------------- TIMELINE OPTIONS ----------------------
+
+// TIMELINE OPTIONS ------------------------------------------------
+
 $timeline_height                            = 45px
 $timeline_background_color                  = #2f3b46
 $timeline_background_color_hc               = #131f29
@@ -142,10 +177,12 @@ $timeline_datemarker_line_height            = 30px
 $timeline_datemarker_font_size              = 15px
 $timeline_datemarker_color                  = #ffffff
 
-// ---------------------- NOW MARKER ---------------------------
+
+// NOW MARKER ------------------------------------------------------
+
 $now_marker_bgcolor       = rgba(19, 31, 41, 0.77)
 $now_marker_bgcolor_hc    = rgba(0, 0, 0, 1)
 
-// --------------------- IMPRINT OPTIONS --------------------
+// IMPRINT OPTIONS -------------------------------------------------
 $imprint_width            = 800 px
 $imprint_height           = 600 px
