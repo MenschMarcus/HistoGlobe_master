@@ -1,11 +1,59 @@
 #operation-main-window
 {
-  width: 400px;
-  height: 300px;
   position: absolute;
   left: 50%;
-  margin-left: -200px;
-  border: 1px solid black;
-  background-color: white;
+  bottom: @timeline_height + 3px;
+  border: @operation_window_border solid @color_bg_dark;
+  border-radius: 10px;
+  background-color: @color_bg_white;
 }
 
+#operation-title
+{
+  width: 100%;
+  height: @operation_title_height;
+  background-color: @color_bg_dark;
+  text-align: center;
+  font-size: @operation_title_size;
+  color: @color_bg_white;
+  line-height: @operation_title_height;   /* vertical centering */
+}
+
+#operation-workflow
+{
+  width: 100%;
+  height: @operation_workflow_height;
+  background-color: @color_bg_medium;
+  font-size: @operation_workflow_size;
+  color: @color_bg_white;
+  line-height: @operation_workflow_height;   /* vertical centering */
+  text-align: center;
+}
+
+#operation-content
+{
+  width: 100%;
+  height: @operation_entry_height;
+  font-size: 1.5em;
+}
+
+.operation-step
+{
+  float: left;
+  width: @operation_step_width;
+  height: 100%;
+}
+
+#back-button, #next-button
+{
+  position: absolute;
+  top: (@operation_workflow_height + @operation_title_height) * 0.5; /* random magic factor */
+}
+#back-button
+{
+  left: -@button_diameter - 10px;
+}
+#next-button
+{
+  right: -@button_diameter - 10px;
+}

@@ -37,6 +37,6 @@ class HG.EditOperationController
         op.id == operationId
       operation = operation[0]
 
-      # open operation window
-      @_operationWindow = new HG.EditOperationWindow @_hgInstance._config.container, operation
-
+      # setup operation window
+      @_opWindow.destroy() if @_opWindow? # cleanup before
+      @_opWindow = new HG.EditOperationWindow @_hgInstance._config.container, operation
