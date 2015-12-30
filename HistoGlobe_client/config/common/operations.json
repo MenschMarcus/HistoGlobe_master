@@ -3,52 +3,106 @@
   "operations":
   [
     {
-      "id":       "ADD",
-      "title":    "Add new country",
-      "numOld":   null,
-      "numNew":   "1",
-      "newGeo":   true,
-      "newName":  true
+      "id":         "ADD",
+      "title":      "Add new country",
+      "steps":
+      [
+        {
+          "id":       "setGeo",
+          "num":      "1",
+          "title":    "create borders <br/> of new country"
+        },
+        {
+          "id":       "setName",
+          "num":      "1",
+          "title":    "create name <br/> of new country"
+        }
+      ]
     },
     {
-      "id":       "UNI",
-      "title":    "Unite countries",
-      "numOld":   "2+",
-      "numNew":   "1",
-      "newGeo":   false,
-      "newName":  true
+      "id":         "UNI",
+      "title":      "Unite countries",
+      "steps":
+      [
+        {
+          "id":       "selOld",
+          "num":      "2+",
+          "title":    "select countries <br/> to be united"
+        },
+        {
+          "id":       "setName",
+          "num":      "1",
+          "title":    "create name <br/> of united country"
+        }
+      ]
     },
     {
-      "id":       "SEP",
-      "title":    "Separate country",
-      "numOld":   "1",
-      "numNew":   "2+",
-      "newGeo":   true,
-      "newName":  true
+      "id":         "SEP",
+      "title":      "Separate country",
+      "steps":
+      [
+        {
+          "id":       "selOld",
+          "num":      "1",
+          "title":    "select country <br/> to be separated"
+        },
+        {
+          "id":       "setGeo",
+          "num":      "2+",
+          "title":    "create borders <br/> of separated countries"
+        },
+        {
+          "id":       "setName",
+          "num":      "2+",
+          "title":    "create names <br/> of separated countries"
+        }
+      ]
     },
     {
-      "id":       "CHB",
-      "title":    "Change corders between countries",
-      "numOld":   "2",
-      "numNew":   "2",
-      "newGeo":   true,
-      "newName":  false
+      "id":         "CHB",
+      "title":      "Change corders between countries",
+      "steps":
+      [
+        {
+          "id":       "selOld",
+          "num":      "2",
+          "title":    "select two countries whose <br/> border is to be changed"
+        },
+        {
+          "id":       "setGeo",
+          "num":      "2",
+          "title":    "create new geometries <br/> of the two countries"
+        }
+      ]
     },
     {
-      "id":       "CHN",
-      "title":    "Change name of country",
-      "numOld":   "1",
-      "numNew":   "1",
-      "newGeo":   false,
-      "newName":  true
+      "id":         "CHN",
+      "title":      "Change name of country",
+      "steps":
+      [
+        {
+          "id":       "selOld",
+          "num":      "1",
+          "title":    "select country whose <br/> name is to be changed"
+        },
+        {
+          "id":       "setName",
+          "num":      "1",
+          "title":    "create new name <br/> of the country"
+        }
+      ]
     },
     {
-      "id":       "DEL",
-      "title":    "Delete country",
-      "numOld":   "1+",
-      "numNew":   null,
-      "newGeo":   false,
-      "newName":  false
+      "id":         "DEL",
+      "title":      "Delete country",
+      "steps":
+      [
+        {
+          "id":       "selOld",
+          "num":      "1+",
+          "title":    "select countries to be deleted"
+        }
+      ]
     }
   ]
 }
