@@ -13,14 +13,14 @@ class HG.EditOperationController
   ##############################################################################
 
   # ============================================================================
-  # Constructor
-  # ============================================================================
   constructor: (operations) ->
 
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @_operations = operations
+    @_operations = operations   # all possible operation
+    @_currOp = null             # currently active operation
+    @_currStep = null           # currently active step
 
 
   # ============================================================================
@@ -32,11 +32,11 @@ class HG.EditOperationController
     # listen to click on edit operation buttons => start operation
     @_hgInstance.operation_buttons.onStartEditOperation @, (operationId) =>
 
-      # get operation properties
+      # get operation [json object]
       operation = $.grep @_operations, (op) ->
         op.id == operationId
-      operation = operation[0]
+      @_currOp = operation[0]
 
       # setup operation window
       @_opWindow.destroy() if @_opWindow? # cleanup before
-      @_opWindow = new HG.EditOperationWindow @_hgInstance._config.container, operation
+      @_opWindow = new HG.EditOperationWindow @_hgInstance._config.container, @_currOp
