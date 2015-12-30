@@ -14,6 +14,7 @@ window.HG ?= {}
 
 class HG.EditOperationWindow
 
+
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
   ##############################################################################
@@ -29,6 +30,7 @@ class HG.EditOperationWindow
   #     newName = set name of new country/-ies? (bool)
   # ============================================================================
   constructor: (parentDiv, operation) ->
+    @_op = operation
 
     # create basic operation work flow divs
     @_mainWindow = document.createElement 'div'
@@ -43,14 +45,102 @@ class HG.EditOperationWindow
     @_workflow.id = 'operation-workflow'
     @_mainWindow.appendChild @_workflow
 
-    @_backButton = document.createElement 'div'
-    @_backButton.id = 'operation-back-button'
-    @_mainWindow.appendChild @_backButton
+    @_content = document.createElement 'div'
+    @_content.id = 'operation-content'
+    @_mainWindow.appendChild @_content
 
-    @_nextButton = document.createElement 'div'
-    @_nextButton.id = 'operation-next-button'
+
+    # initially create back and next buttons
+    @_backButton = @_makeButton 'back-button', "Undo / Go Back", 'chevron-left'
+    @_nextButton = @_makeButton 'next-button', "Done / Next Step", 'chevron-right'
+    @_mainWindow.appendChild @_backButton
     @_mainWindow.appendChild @_nextButton
 
+    # buttons will be set active / inactive throughout the workflow
+    # next button will be replaced by OK button in last step
+
+    # setup window
+    @_setTitle @_op.title
+    @_setColumns @_op.numOld, @_op.numNew, @_op.newGeo, @_op.newName
+
+  # ============================================================================
+  destroy: () ->
+    $(@_mainWindow).remove()
 
 
-    console.log operation.title
+  ##############################################################################
+  #                            PRIVATE INTERFACE                                #
+  ##############################################################################
+
+
+  # ============================================================================
+  _setTitle: (title) ->
+    $(@_title).text title
+
+  # ============================================================================
+  _setColumns: (numOld, numNew, newGeo, newName) ->
+    numCols = 0   # counter for number of columns = number of steps
+
+    # select old country/-ies
+    if numOld
+      numCols++
+      stepId = 'SEL-OLD'
+      stepTitle = "select countries"
+      stepTitle = "select country" if numOld is '1'
+      @_setColumn stepTitle, stepId
+
+    # create new country/-ies
+    if numNew
+      # set geometry
+      if newGeo
+        numCols++
+        stepId = 'SET-GEO'
+        stepTitle = "create geometries"
+        stepTitle = "create geometry" if numNew is '1'
+        @_setColumn stepTitle, stepId
+      # set name
+      if newName
+        numCols++
+        stepId = 'SET-NAME'
+        stepTitle = "create names"
+        stepTitle = "create name" if numNew is '1'
+        @_setColumn stepTitle, stepId
+
+    @_recenterWindow numCols
+
+  # ============================================================================
+  _setColumn: (title, id) ->
+    # title in workflow bar
+    titleCol = document.createElement 'div'
+    titleCol.id = id + '-title'
+    titleCol.className = 'operation-step'
+    titleCol.innerHTML = title
+    @_workflow.appendChild titleCol
+    # main content in main content window
+    contentCol = document.createElement 'div'
+    contentCol.id = id + '-content'
+    contentCol.className = 'operation-step'
+    @_content.appendChild contentCol
+
+
+  # ============================================================================
+  _recenterWindow: (numCols) ->
+    width = numCols * HGConfig.operation_step_width.val + HGConfig.operation_window_border.val
+    $(@_mainWindow).css 'margin-left', -width/2    # recenters div
+
+  # ============================================================================
+  _makeButton: (id, title, faIcon) ->
+    # button itself
+    button = document.createElement 'div'
+    button.id = id
+    button.className = 'button'
+    $(button).tooltip {
+      title: title,
+      placement: 'right',
+      container: 'body'
+    }
+    # font awesome icon
+    icon = document.createElement 'i'
+    icon.className = 'fa fa-' + faIcon
+    button.appendChild icon
+    button

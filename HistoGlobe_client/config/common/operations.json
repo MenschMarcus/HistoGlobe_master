@@ -4,7 +4,7 @@
   [
     {
       "id":       "ADD",
-      "title":    "Add New Country",
+      "title":    "Add new country",
       "numOld":   null,
       "numNew":   "1",
       "newGeo":   true,
@@ -12,7 +12,7 @@
     },
     {
       "id":       "UNI",
-      "title":    "Unite Countries",
+      "title":    "Unite countries",
       "numOld":   "2+",
       "numNew":   "1",
       "newGeo":   false,
@@ -20,7 +20,7 @@
     },
     {
       "id":       "SEP",
-      "title":    "Separate Country",
+      "title":    "Separate country",
       "numOld":   "1",
       "numNew":   "2+",
       "newGeo":   true,
@@ -28,7 +28,7 @@
     },
     {
       "id":       "CHB",
-      "title":    "Change Borders Between Countries",
+      "title":    "Change corders between countries",
       "numOld":   "2",
       "numNew":   "2",
       "newGeo":   true,
@@ -36,7 +36,7 @@
     },
     {
       "id":       "CHN",
-      "title":    "Change Name Of Country",
+      "title":    "Change name of country",
       "numOld":   "1",
       "numNew":   "1",
       "newGeo":   false,
@@ -44,7 +44,7 @@
     },
     {
       "id":       "DEL",
-      "title":    "Delete Country",
+      "title":    "Delete country",
       "numOld":   "1+",
       "numNew":   null,
       "newGeo":   false,
