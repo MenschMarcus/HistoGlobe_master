@@ -61,7 +61,7 @@ class HG.EditOperationWindow
 
     # setup window
     @_setTitle @_op.title
-    @_setColumns @_op.numOld, @_op.numNew, @_op.newGeo, @_op.newName
+    @_setColumns @_op
 
   # ============================================================================
   destroy: () ->
@@ -78,50 +78,23 @@ class HG.EditOperationWindow
     $(@_title).text title
 
   # ============================================================================
-  _setColumns: (numOld, numNew, newGeo, newName) ->
-    numCols = 0   # counter for number of columns = number of steps
+  _setColumns: (op) ->
+    for step in op.steps
 
-    # select old country/-ies
-    if numOld
-      numCols++
-      stepId = 'SEL-OLD'
-      stepTitle = "select countries"
-      stepTitle = "select country" if numOld is '1'
-      @_setColumn stepTitle, stepId
+      # title (in workflow bar)
+      titleCol = document.createElement 'div'
+      titleCol.id = step.id + '-title'
+      titleCol.className = 'operation-step'
+      titleCol.innerHTML = step.title
+      @_workflow.appendChild titleCol
 
-    # create new country/-ies
-    if numNew
-      # set geometry
-      if newGeo
-        numCols++
-        stepId = 'SET-GEO'
-        stepTitle = "create geometries"
-        stepTitle = "create geometry" if numNew is '1'
-        @_setColumn stepTitle, stepId
-      # set name
-      if newName
-        numCols++
-        stepId = 'SET-NAME'
-        stepTitle = "create names"
-        stepTitle = "create name" if numNew is '1'
-        @_setColumn stepTitle, stepId
+      # main content
+      contentCol = document.createElement 'div'
+      contentCol.id = step.id + '-content'
+      contentCol.className = 'operation-step'
+      @_content.appendChild contentCol
 
-    @_recenterWindow numCols
-
-  # ============================================================================
-  _setColumn: (title, id) ->
-    # title in workflow bar
-    titleCol = document.createElement 'div'
-    titleCol.id = id + '-title'
-    titleCol.className = 'operation-step'
-    titleCol.innerHTML = title
-    @_workflow.appendChild titleCol
-    # main content in main content window
-    contentCol = document.createElement 'div'
-    contentCol.id = id + '-content'
-    contentCol.className = 'operation-step'
-    @_content.appendChild contentCol
-
+    @_recenterWindow op.steps.length
 
   # ============================================================================
   _recenterWindow: (numCols) ->
