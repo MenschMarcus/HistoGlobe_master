@@ -224,14 +224,13 @@ class HG.HistoGlobe
       @_editButton = new HG.EditButton
       @_editButton.hgInit @
 
-      # create operation buttons (but hidden)   hgInstance, list of operations, path to icons
+      # create operation buttons (but hidden)      list of operations,       path to icons
       @_operationButtons = new HG.OperationButtons operations['operations'], operations['iconPath']
       @_operationButtons.hgInit @
 
       # init edit operation controller
       @_editOperationController = new HG.EditOperationController operations['operations']
       @_editOperationController.hgInit @
-
     )
 
   # ============================================================================

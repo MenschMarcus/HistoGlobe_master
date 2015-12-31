@@ -7,7 +7,7 @@ class HG.EditButton
   ##############################################################################
 
   # ============================================================================
-  constructor: (config, operationButtons) ->
+  constructor: (config) ->
     defaultConfig =
       help: undefined
 
@@ -23,15 +23,6 @@ class HG.EditButton
     @addCallback "onLeaveEditMode"
 
     hgInstance.edit_button = @
-
-    if hgInstance.help?
-      hgInstance.help.addHelp
-        image : "config/common/help/help01.png"
-        anchorX : "left"
-        anchorY : "top"
-        offsetX: 30
-        offsetY: 170
-        width: "70%"
 
     # main
     if hgInstance.button_area?

@@ -8,8 +8,8 @@ $color_bg_dark                      = #121212
 $color_highlight                    = #d5c900
 $color_highlight_active             = #706400
 
-$color_disable                      = #dedede
-$color_disable_active               = #848484
+$color_disabled                     = #dedede
+$color_disabled_active              = #848484
 
 // BUTTONS ---------------------------------------------------------
 

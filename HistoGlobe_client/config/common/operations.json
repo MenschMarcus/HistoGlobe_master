@@ -1,5 +1,5 @@
 {
-  "iconPath": "../HistoGlobe_client/config/common/graphics/operations/",
+  "iconPath":       "../HistoGlobe_client/config/common/graphics/operations/",
   "operations":
   [
     {
@@ -8,14 +8,14 @@
       "steps":
       [
         {
-          "id":       "setGeo",
-          "num":      "1",
-          "title":    "create borders <br/> of new country"
+          "id":     "setGeo",
+          "num":    "1",
+          "title":  "create borders <br/> of new country"
         },
         {
-          "id":       "setName",
-          "num":      "1",
-          "title":    "create name <br/> of new country"
+          "id":     "setName",
+          "num":    "1",
+          "title":  "create name <br/> of new country"
         }
       ]
     },
@@ -25,14 +25,14 @@
       "steps":
       [
         {
-          "id":       "selOld",
-          "num":      "2+",
-          "title":    "select countries <br/> to be united"
+          "id":     "selOld",
+          "num":    "2+",
+          "title":  "select countries <br/> to be united"
         },
         {
-          "id":       "setName",
-          "num":      "1",
-          "title":    "create name <br/> of united country"
+          "id":     "setName",
+          "num":    "1",
+          "title":  "create name <br/> of united country"
         }
       ]
     },
@@ -42,19 +42,19 @@
       "steps":
       [
         {
-          "id":       "selOld",
-          "num":      "1",
-          "title":    "select country <br/> to be separated"
+          "id":     "selOld",
+          "num":    "1",
+          "title":  "select country <br/> to be separated"
         },
         {
-          "id":       "setGeo",
-          "num":      "2+",
-          "title":    "create borders <br/> of separated countries"
+          "id":     "setGeo",
+          "num":    "2+",
+          "title":  "create borders <br/> of separated countries"
         },
         {
-          "id":       "setName",
-          "num":      "2+",
-          "title":    "create names <br/> of separated countries"
+          "id":     "setName",
+          "num":    "2+",
+          "title":  "create names <br/> of separated countries"
         }
       ]
     },
@@ -64,14 +64,14 @@
       "steps":
       [
         {
-          "id":       "selOld",
-          "num":      "2",
-          "title":    "select two countries whose <br/> border is to be changed"
+          "id":     "selOld",
+          "num":    "2",
+          "title":  "select two countries whose <br/> border is to be changed"
         },
         {
-          "id":       "setGeo",
-          "num":      "2",
-          "title":    "create new geometries <br/> of the two countries"
+          "id":     "setGeo",
+          "num":    "2",
+          "title":  "create new geometries <br/> of the two countries"
         }
       ]
     },
@@ -81,14 +81,14 @@
       "steps":
       [
         {
-          "id":       "selOld",
-          "num":      "1",
-          "title":    "select country whose <br/> name is to be changed"
+          "id":     "selOld",
+          "num":    "1",
+          "title":  "select country whose <br/> name is to be changed"
         },
         {
-          "id":       "setName",
-          "num":      "1",
-          "title":    "create new name <br/> of the country"
+          "id":     "setName",
+          "num":    "1",
+          "title":  "create new name <br/> of the country"
         }
       ]
     },
@@ -98,9 +98,9 @@
       "steps":
       [
         {
-          "id":       "selOld",
-          "num":      "1+",
-          "title":    "select countries to be deleted"
+          "id":     "selOld",
+          "num":    "1+",
+          "title":  "select countries to be deleted"
         }
       ]
     }
