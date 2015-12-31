@@ -7,43 +7,49 @@ class HG.Button
   ##############################################################################
 
   # ============================================================================
-  # state object
+  # button object into constructor
+  #   * = required, *A / *B = alternative -> either A or B have to be provided
   # {
-  #  *  id:       id                must be unique
-  #     classes:  []                classes of DOM element
-  #     tooltip:  text
-  #  *A iconFA:   name_of_fa_icon   https://fortawesome.github.io/Font-Awesome/icons/
-  #  *B iconOwn:  path_to_own_file  (alternative to iconFA one of the two must be set = not null)
-  #  *  callback: onCallbackName
+  #   *   hgInstance:   hgInstance,
+  #   *A  parentDiv:    $(DOM_element)
+  #   *B  parentGroup:  button_group
+  #   *   id:           buttonIdInCamelCase (!)
+  #   *   states:
+  #       [
+  #         {
+  #           *   id:       id                must be unique
+  #               classes:  []                classes of DOM element
+  #               tooltip:  text
+  #           *A  iconFA:   name_of_fa_icon   https://fortawesome.github.io/Font-Awesome/icons/
+  #           *B  iconOwn:  path_to_own_file  (alternative to iconFA one of the two must be set = not null)
+  #           *   callback: onCallbackName
+  #         },
+  #       ]
   # }
   # ============================================================================
-  constructor: (
-    @_hgInstance,   # normal hg instance passed through
-    @_parentDiv,    # parent DOM element to append to
-    @_id,           # id of DOM element
-    @_states,       # array of states object {} (first element [0] is the inital state)
-  ) ->
+  constructor: (@_hgInstance, @_buttonObj) ->
 
     # add button to button object in HG instance
-    @_hgInstance.buttons = {} unless @_hgInstance.buttons # initially add list to hgInstance
-    @_hgInstance.buttons[@_id] = @
+    unless @_hgInstance.buttons
+      @_hgInstance.buttons = {}  # initially add object to hgInstance
+    @_hgInstance.buttons[@_buttonObj.id] = @
 
     # init state
-    @_state = @_states[0]
+    @_state = @_buttonObj.states[0]
 
     # init callbacks
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
     # add all callbacks of all states in the very beginning
-    for state in @_states
+    for state in @_buttonObj.states
       @addCallback state.callback
 
     # create button itself
     @_button = document.createElement 'div'
     @_buttonDOM = $(@_button)
-    if @_id
-      @_button.id = @_id
+    if @_buttonObj.id
+      @_button.id = @_buttonObj.id
     else
       console.error "No id for button given!"
     @_button.className = 'button'
@@ -52,17 +58,21 @@ class HG.Button
     @_updateState()
 
     # finally add button either to parent div or to button area
-    @_parentDiv.appendChild @_button
+    if @_buttonObj.parentDiv
+      @_buttonObj.parentDiv.appendChild @_button
+    else if @_buttonObj.parentGroup
+      @_buttonObj[parentGroup].addButton @_button
+
 
   # ============================================================================
   changeState: (stateId) ->
     oldState = @_state
-    # find state
-    state = $.grep @_states, (state) ->
+    # find new state
+    state = $.grep @_buttonObj.states, (state) ->
       state.id == stateId
     @_state = state[0]
+    # update old state to new state
     @_updateState oldState
-
 
 
   # ============================================================================
