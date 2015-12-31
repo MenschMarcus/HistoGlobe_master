@@ -27,29 +27,29 @@ class HG.Button
   #       ]
   # }
   # ============================================================================
-  constructor: (@_hgInstance, @_buttonObj) ->
+  constructor: (@_hgInstance, @_buttonConfig) ->
 
     # add button to button object in HG instance
     unless @_hgInstance.buttons
       @_hgInstance.buttons = {}  # initially add object to hgInstance
-    @_hgInstance.buttons[@_buttonObj.id] = @
+    @_hgInstance.buttons[@_buttonConfig.id] = @
 
     # init state
-    @_state = @_buttonObj.states[0]
+    @_state = @_buttonConfig.states[0]
 
     # init callbacks
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
     # add all callbacks of all states in the very beginning
-    for state in @_buttonObj.states
+    for state in @_buttonConfig.states
       @addCallback state.callback
 
     # create button itself
     @_button = document.createElement 'div'
     @_buttonDOM = $(@_button)
-    if @_buttonObj.id
-      @_button.id = @_buttonObj.id
+    if @_buttonConfig.id
+      @_button.id = @_buttonConfig.id
     else
       console.error "No id for button given!"
     @_button.className = 'button'
@@ -58,17 +58,17 @@ class HG.Button
     @_updateState()
 
     # finally add button either to parent div or to button area
-    if @_buttonObj.parentDiv
-      @_buttonObj.parentDiv.appendChild @_button
-    else if @_buttonObj.parentGroup
-      @_buttonObj[parentGroup].addButton @_button
+    if @_buttonConfig.parentDiv
+      @_buttonConfig.parentDiv.appendChild @_button
+    else if @_buttonConfig.parentGroup
+      @_buttonConfig[parentGroup].addButton @_button
 
 
   # ============================================================================
   changeState: (stateId) ->
     oldState = @_state
     # find new state
-    state = $.grep @_buttonObj.states, (state) ->
+    state = $.grep @_buttonConfig.states, (state) ->
       state.id == stateId
     @_state = state[0]
     # update old state to new state
