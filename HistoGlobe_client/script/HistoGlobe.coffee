@@ -221,6 +221,12 @@ class HG.HistoGlobe
       @_editButtonArea.hgInit @
 
       # create edit button
+      # @_editButton = new HG.Button(
+      #   @,                    # hg instance
+      #   $(@_editButtonArea),  # parent DOM element to append to
+      #   @_id,           # id of DOM element
+      #   @_states,       # array of states object {} (first element [0] is the inital state)
+      # )
       @_editButton = new HG.EditButton
       @_editButton.hgInit @
 

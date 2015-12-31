@@ -24,9 +24,9 @@ class HG.Button
     @_states,       # array of states object {} (first element [0] is the inital state)
   ) ->
 
-    # add button to list of buttons in HG instance
-    @_hgInstance.buttons = [] unless @_hgInstance.buttons # initially add list to hgInstance
-    @_hgInstance.buttons.push @
+    # add button to button object in HG instance
+    @_hgInstance.buttons = {} unless @_hgInstance.buttons # initially add list to hgInstance
+    @_hgInstance.buttons[@_id] = @
 
     # init state
     @_state = @_states[0]
@@ -51,7 +51,7 @@ class HG.Button
     # set state-dependend properties of button
     @_updateState()
 
-    # finally add button
+    # finally add button either to parent div or to button area
     @_parentDiv.appendChild @_button
 
   # ============================================================================

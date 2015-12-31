@@ -67,7 +67,7 @@ class HG.EditOperationWindow
     @_backButton = new HG.Button(
       @_hgInstance,
       @_mainWindow
-      'back-button',
+      'backButton',
       [
         {
           'id':       'normal',
@@ -82,7 +82,7 @@ class HG.EditOperationWindow
     @_nextButton = new HG.Button(
       @_hgInstance,
       @_mainWindow
-      'next-button',
+      'nextButton',
       [
         {
           'id':       'normal',

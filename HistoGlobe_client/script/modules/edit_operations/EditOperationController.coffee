@@ -62,36 +62,32 @@ class HG.EditOperationController
 
 
       # listen to click on previous step button
-      for button in @_hgInstance.buttons
-        if button.onPrevStep
-          button.onPrevStep @, () =>
+      @_hgInstance.buttons.backButton.onPrevStep @, () =>
 
-            # update information
-            unless @_curr.stepNum is 1
-              @_curr.stepNum--
-              @_curr.step = @_curr.op.steps[@_curr.stepNum-1]
+        # update information
+        unless @_curr.stepNum is 1
+          @_curr.stepNum--
+          @_curr.step = @_curr.op.steps[@_curr.stepNum-1]
 
-            # change window
-            if @_curr.stepNum is 1
-              @_opWindow.disableBack()
-            if @_curr.stepNum is @_curr.stepNumTot-1
-              @_opWindow.disableFinish()
+        # change window
+        if @_curr.stepNum is 1
+          @_opWindow.disableBack()
+        if @_curr.stepNum is @_curr.stepNumTot-1
+          @_opWindow.disableFinish()
 
 
       # listen to click on next step button
-      for button in @_hgInstance.buttons
-        if button.onNextStep
-          button.onNextStep @, () =>
+      @_hgInstance.buttons.nextButton.onNextStep @, () =>
 
-            # update information
-            unless @_curr.stepNum is @_curr.stepNumTot
-              @_curr.stepNum++
-              @_curr.step = @_curr.op.steps[@_curr.stepNum-1]
+          # update information
+          unless @_curr.stepNum is @_curr.stepNumTot
+            @_curr.stepNum++
+            @_curr.step = @_curr.op.steps[@_curr.stepNum-1]
 
-            # change window
-            @_opWindow.enableBack()
-            if @_curr.stepNum is @_curr.stepNumTot
-              @_opWindow.enableFinish()
+          # change window
+          @_opWindow.enableBack()
+          if @_curr.stepNum is @_curr.stepNumTot
+            @_opWindow.enableFinish()
 
 
   ##############################################################################
