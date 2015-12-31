@@ -14,7 +14,6 @@ window.HG ?= {}
 
 class HG.EditOperationWindow
 
-
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
   ##############################################################################
@@ -29,15 +28,13 @@ class HG.EditOperationWindow
   #     newGeo = set geometry of new country/-ies? (bool)
   #     newName = set name of new country/-ies? (bool)
   # ============================================================================
-  constructor: (hgInstance, parentDiv, operation) ->
+  constructor: (@_hgInstance, @_parentDiv, @_operation) ->
 
     # init variables
-    @_op = operation
     @_nextDisabled = false
     @_backDisabled = false
 
     # add object to HG instance
-    @_hgInstance = hgInstance
     @_hgInstance.edit_operation_window = @
 
     # init callbacks
@@ -47,7 +44,7 @@ class HG.EditOperationWindow
     # create basic operation work flow divs
     @_mainWindow = document.createElement 'div'
     @_mainWindow.id = 'operation-main-window'
-    parentDiv.appendChild @_mainWindow
+    @_parentDiv.appendChild @_mainWindow
 
     @_title = document.createElement 'div'
     @_title.id = 'operation-title'
@@ -64,44 +61,46 @@ class HG.EditOperationWindow
     # create buttons
 
     ## 1) back button (only one state)
-    @_backButton = new HG.Button(
-      @_hgInstance,
-      @_mainWindow
-      'backButton',
-      [
-        {
-          'id':       'normal',
-          'tooltip':  "Undo / Go Back",
-          'iconFA':   'chevron-left',
-          'callback': 'onPrevStep'
-        }
-      ]
+    @_backButton = new HG.Button(@_hgInstance,
+      {
+        'parentDiv':  @_mainWindow,
+        'id':         'backButton',
+        'states': [
+          {
+            'id':       'normal',
+            'tooltip':  "Undo / Go Back",
+            'iconFA':   'chevron-left',
+            'callback': 'onPrevStep'
+          }
+        ]
+      }
     )
 
     ## 2) next button (changes to "finish" state in last step)
-    @_nextButton = new HG.Button(
-      @_hgInstance,
-      @_mainWindow
-      'nextButton',
-      [
-        {
-          'id':       'normal',
-          'tooltip':  "Done / Next Step",
-          'iconFA':   'chevron-right',
-          'callback': 'onNextStep'
-        },
-        {
-          'id':       'finish',
-          'tooltip':  "Done / Next Step",
-          'iconFA':   'check',
-          'callback': 'onFinishOperation'
-        },
-      ]
+    @_nextButton = new HG.Button(@_hgInstance,
+      {
+        'parentDiv':    @_mainWindow,
+        'id':           'nextButton',
+        'states': [
+          {
+            'id':       'normal',
+            'tooltip':  "Done / Next Step",
+            'iconFA':   'chevron-right',
+            'callback': 'onNextStep'
+          },
+          {
+            'id':       'finish',
+            'tooltip':  "Done / Next Step",
+            'iconFA':   'check',
+            'callback': 'onFinishOperation'
+          },
+        ]
+      }
     )
 
     # setup window
-    @_setTitle @_op.title
-    @_setColumns @_op
+    @_setTitle @_operation.title
+    @_setColumns @_operation
 
   # ============================================================================
   destroy: () ->
