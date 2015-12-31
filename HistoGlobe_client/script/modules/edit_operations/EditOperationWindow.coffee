@@ -29,8 +29,20 @@ class HG.EditOperationWindow
   #     newGeo = set geometry of new country/-ies? (bool)
   #     newName = set name of new country/-ies? (bool)
   # ============================================================================
-  constructor: (parentDiv, operation) ->
+  constructor: (hgInstance, parentDiv, operation) ->
+
+    # init variables
     @_op = operation
+    @_nextDisabled = false
+    @_backDisabled = false
+
+    # add object to HG instance
+    @_hgInstance = hgInstance
+    @_hgInstance.edit_operation_window = @
+
+    # init callbacks
+    HG.mixin @, HG.CallbackContainer
+    HG.CallbackContainer.call @
 
     # create basic operation work flow divs
     @_mainWindow = document.createElement 'div'
@@ -49,15 +61,43 @@ class HG.EditOperationWindow
     @_content.id = 'operation-content'
     @_mainWindow.appendChild @_content
 
+    # create buttons
 
-    # initially create back and next buttons
-    @_backButton = @_makeButton 'back-button', "Undo / Go Back", 'chevron-left'
-    @_nextButton = @_makeButton 'next-button', "Done / Next Step", 'chevron-right'
-    @_mainWindow.appendChild @_backButton
-    @_mainWindow.appendChild @_nextButton
+    ## 1) back button (only one state)
+    @_backButton = new HG.Button(
+      @_hgInstance,
+      @_mainWindow
+      'back-button',
+      [
+        {
+          'id':       'normal',
+          'tooltip':  "Undo / Go Back",
+          'iconFA':   'chevron-left',
+          'callback': 'onPrevStep'
+        }
+      ]
+    )
 
-    # buttons will be set active / inactive throughout the workflow
-    # next button will be replaced by OK button in last step
+    ## 2) next button (changes to "finish" state in last step)
+    @_nextButton = new HG.Button(
+      @_hgInstance,
+      @_mainWindow
+      'next-button',
+      [
+        {
+          'id':       'normal',
+          'tooltip':  "Done / Next Step",
+          'iconFA':   'chevron-right',
+          'callback': 'onNextStep'
+        },
+        {
+          'id':       'finish',
+          'tooltip':  "Done / Next Step",
+          'iconFA':   'check',
+          'callback': 'onFinishOperation'
+        },
+      ]
+    )
 
     # setup window
     @_setTitle @_op.title
@@ -66,6 +106,35 @@ class HG.EditOperationWindow
   # ============================================================================
   destroy: () ->
     $(@_mainWindow).remove()
+
+  # ============================================================================
+  disableNext: () ->
+    unless @_nextDisabled
+      @_nextButton.disable()
+      @_nextDisabled = true
+
+  enableNext: () ->
+    if @_nextDisabled
+      @_nextButton.enable()
+      @_nextDisabled = false
+
+  disableBack: () ->
+    unless @_backDisabled
+      @_backButton.disable()
+      @_backDisabled = true
+
+  enableBack: () ->
+    if @_backDisabled
+      @_backButton.enable()
+      @_backDisabled = false
+
+
+  # ============================================================================
+  enableFinish: () ->
+    @_nextButton.changeState('finish')
+
+  disableFinish: () ->
+    @_nextButton.changeState('normal')
 
 
   ##############################################################################
@@ -100,20 +169,3 @@ class HG.EditOperationWindow
   _recenterWindow: (numCols) ->
     width = numCols * HGConfig.operation_step_width.val + HGConfig.operation_window_border.val
     $(@_mainWindow).css 'margin-left', -width/2    # recenters div
-
-  # ============================================================================
-  _makeButton: (id, title, faIcon) ->
-    # button itself
-    button = document.createElement 'div'
-    button.id = id
-    button.className = 'button'
-    $(button).tooltip {
-      title: title,
-      placement: 'right',
-      container: 'body'
-    }
-    # font awesome icon
-    icon = document.createElement 'i'
-    icon.className = 'fa fa-' + faIcon
-    button.appendChild icon
-    button

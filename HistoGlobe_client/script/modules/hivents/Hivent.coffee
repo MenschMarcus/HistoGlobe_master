@@ -10,16 +10,18 @@ class HG.Hivent
   #                            PUBLIC INTERFACE                                #
   ##############################################################################
 
-  constructor: (id, name,
-                startYear, startMonth, startDay,
-                endYear, endMonth, endDay,
-                displayDate,
-                locationName,
-                long, lat, region,
-                isImp,
-                category, parentTopic, subTopic
-                content,
-                description, multimedia, link)  ->
+  constructor: (
+    id, name,
+    startYear, startMonth, startDay,
+    endYear, endMonth, endDay,
+    displayDate,
+    locationName,
+    long, lat, region,
+    isImp,
+    category, parentTopic, subTopic
+    content,
+    description, multimedia, link
+    )  ->
 
     @id = id
     @name = name

@@ -66,7 +66,7 @@ class HG.ButtonArea
     defaultConfig =
       icon: "fa-times"
       tooltip: "Unnamed button"
-      callback: ()-> console.log "Not implmented"
+      callback: ()-> console.log "Not implemented"
 
     config = $.extend {}, defaultConfig, config
 
