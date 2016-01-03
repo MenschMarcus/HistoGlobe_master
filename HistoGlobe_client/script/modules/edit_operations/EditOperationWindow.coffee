@@ -61,7 +61,7 @@ class HG.EditOperationWindow
     # create buttons
 
     ## 1) back button (only one state)
-    @_backButton = new HG.Button(@_hgInstance,
+    @_backButton = new HG.Button @_hgInstance,
       {
         'parentDiv':  @_mainWindow,
         'id':         'backButton',
@@ -74,10 +74,9 @@ class HG.EditOperationWindow
           }
         ]
       }
-    )
 
     ## 2) next button (changes to "finish" state in last step)
-    @_nextButton = new HG.Button(@_hgInstance,
+    @_nextButton = new HG.Button @_hgInstance,
       {
         'parentDiv':    @_mainWindow,
         'id':           'nextButton',
@@ -96,7 +95,6 @@ class HG.EditOperationWindow
           },
         ]
       }
-    )
 
     # setup window
     @_setTitle @_operation.title

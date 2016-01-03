@@ -12,7 +12,8 @@ class HG.Button
   # {
   #   *   hgInstance:   hgInstance,
   #   *A  parentDiv:    $(DOM_element)
-  #   *B  parentGroup:  button_group
+  #   *B  parentArea:   name_of_button_area
+  #       groupName:    name_of_button_group_in_button_area
   #   *   id:           buttonIdInCamelCase (!)
   #   *   states:
   #       [
@@ -59,9 +60,9 @@ class HG.Button
 
     # finally add button either to parent div or to button area
     if @_buttonConfig.parentDiv
-      @_buttonConfig.parentDiv.appendChild @_button
-    else if @_buttonConfig.parentGroup
-      @_buttonConfig[parentGroup].addButton @_button
+      @_buttonConfig.parentDiv.appendChild @_button, @_buttonConfig.groupName
+    else if @_buttonConfig.parentArea
+      @_buttonConfig.parentArea.addButton @_button, @_buttonConfig.groupName
 
 
   # ============================================================================
@@ -82,8 +83,8 @@ class HG.Button
   setInactive: () ->  @_buttonDOM.removeClass 'button-active'
 
   # ============================================================================
-  remove: () ->       @_buttonDOM.remove()
-
+  show: () ->         @_buttonDOM.show()
+  hide: () ->         @_buttonDOM.hide()
 
   ##############################################################################
   #                            PRIVATE INTERFACE                                #
@@ -102,13 +103,13 @@ class HG.Button
     # remove old class(es)
     if oldClasses
       for c in oldClasses
-        @_button.removeClass c
+        @_buttonDOM.removeClass c
 
   # ============================================================================
-  _setClasses: (oldClasses) ->
+  _setClasses: () ->
     if @_state.classes
       for c in @_state.classes
-        @_button.addClass c
+        @_buttonDOM.addClass c
 
   # ============================================================================
   _setTooltip: () ->
@@ -142,5 +143,17 @@ class HG.Button
 
   # ============================================================================
   _setCallback: () ->
+    # clear callbacks first to prevent multiple click handlers on same DOM element
+    @_buttonDOM.unbind 'click'
+    # define new callback
     @_buttonDOM.click () =>
-      @notifyAll @_state.callback
+      # callback = tell everybody that state has changed
+      # hand button itself (@) into callback so everybody can operate on the button (e.g. change state)
+      @notifyAll @_state.callback, @
+
+      # tooltip
+      # if c? and c.icon? and c.tooltip?
+      #   c = $.extend {}, defaultConfig, c
+      #   config = c
+      #   icon.className = "fa " + config.icon
+      #   $(button).attr('title', config.tooltip).tooltip('fixTitle').tooltip('show');

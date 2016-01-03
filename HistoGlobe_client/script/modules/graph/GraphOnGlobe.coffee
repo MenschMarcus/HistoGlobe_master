@@ -90,8 +90,8 @@ class HG.GraphOnGlobe
       @_sceneGraphNode.add   @_graphLight
       @_sceneGraphNodeConnection.add   @_graphLight
 
-      if @_hgInstance.graph_button?
-        button = @_hgInstance.graph_button
+      if @_hgInstance.buttons.graphButton?
+        button = @_hgInstance.buttons.graphButton
         button.onShowGraph @, () =>
           @_globe.addSceneToRenderer(@_sceneGraphNodeConnection)
           @_globe.addSceneToRenderer(@_sceneGraphNode)
