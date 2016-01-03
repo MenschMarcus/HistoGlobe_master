@@ -17,7 +17,7 @@ class HG.EditOperationController
 
     # init variables
     @_iconPath = operations['iconPath']
-    @_operations = operations['operations']       # all possible operation
+    @_operations = new HG.ObjArr operations['operations'] # all possible operations
     @_curr = {                      # object storing current state of workflow
       op          : null            # object of current operation
       stepNumTot  : null            # total number of steps of current operation
@@ -39,17 +39,17 @@ class HG.EditOperationController
 
     # listen to click on edit button => start edit mode
     @_hgInstance.buttons.editButton.onEnterEditMode @, (btn) ->
+      btn.changeState 'edit-mode'
       @_operationButtons.hgInit @_hgInstance
 
       # listen to click on edit operation buttons => start operation
-      for operation in @_operations
+      # for operation in @_operations
+      @_operations.foreach (operation) =>
         @_hgInstance.buttons[operation.id].onStart @, (btn) =>
 
           # get operation [json object]
-          opId = btn._button.id
-          op = $.grep @_operations, (o) ->
-            o.id == opId
-          @_curr.op = op[0]
+          opId = btn._button.id # to do: more elegant way to get button?
+          @_curr.op = @_operations.getByPropVal 'id', opId
 
           # setup operation window
           @_opWindow.destroy() if @_opWindow? # cleanup before
@@ -98,6 +98,7 @@ class HG.EditOperationController
 
     # listen to click on edit mode => leave edit mode
     @_hgInstance.buttons.editButton.onLeaveEditMode @, (btn) ->
+      btn.changeState 'normal'
       @_operationButtons.destroy()
 
 
