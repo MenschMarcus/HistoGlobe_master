@@ -6,6 +6,7 @@ class HG.ControlButtons
   #                            PUBLIC INTERFACE                                #
   ##############################################################################
 
+  # ============================================================================
   # for new control button:
   #   define identifier (id) for control (e.g. 'fullscreen')
   #   -> new entry in default config in constructor (default set false 'false')
@@ -14,7 +15,6 @@ class HG.ControlButtons
   #     2. set functionality of the button (listen to own callback)
   # if control button is used:
   #   in modules.json in module 'ControlButtons' set id to true
-
   # ============================================================================
   constructor: (config) ->
     defaultConfig =
@@ -142,11 +142,11 @@ class HG.ControlButtons
 
             # 2. set functionality
             @_hgInstance.buttons.highContrastButton.onEnterHighContrast @, (btn) =>
-              $(hgInstance._config.container).addClass 'highContrast'
+              $(@_hgInstance._config.container).addClass 'highContrast'
               btn.changeState 'high-contrast'
 
             @_hgInstance.buttons.highContrastButton.onLeaveHighContrast @, (btn) =>
-              $(hgInstance._config.container).removeClass 'highContrast'
+              $(@_hgInstance._config.container).removeClass 'highContrast'
               btn.changeState 'normal'
 
           )
@@ -176,11 +176,11 @@ class HG.ControlButtons
 
             # 2. set functionality
             @_hgInstance.buttons.minLayoutButton.onRemoveGUI @, (btn) =>
-              $(hgInstance._config.container).addClass 'minGUI'
+              $(@_hgInstance._config.container).addClass 'minGUI'
               btn.changeState 'min-layout'
 
             @_hgInstance.buttons.minLayoutButton.onOpenGUI @, (btn) =>
-              $(hgInstance._config.container).removeClass 'minGUI'
+              $(@_hgInstance._config.container).removeClass 'minGUI'
               btn.changeState 'normal'
           )
 
