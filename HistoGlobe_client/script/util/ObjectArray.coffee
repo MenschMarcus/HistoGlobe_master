@@ -6,7 +6,7 @@ window.HG ?= {}
 # assumption: each object in list is unique
 # ============================================================================
 
-class HG.ObjArr
+class HG.ObjectArray
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
