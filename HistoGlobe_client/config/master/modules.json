@@ -15,12 +15,12 @@
     "editMode": true
   },
 
+  "BrowserDetector": {},
+
   "Timeline" :
   {
     "timelineZoom" : 2
   },
-
-  "BrowserDetector": {},
 
   "ControlButtons": {
     "zoom":         true,
@@ -34,6 +34,17 @@
   {
     "image": "../HistoGlobe_client/config/common/graphics/logo.png"
   },
+
+  "AreaController":
+  {
+    "JSONPaths" : ["../HistoGlobe_client/config/common/data/countries.geojson"]
+  },
+
+  "AreasOnMap" :
+  {
+    "labelVisibilityFactor" : 1.5
+  },
+
 
   "Imprint": {}
 }
