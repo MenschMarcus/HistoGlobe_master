@@ -45,15 +45,16 @@ class HG.Globe extends HG.Display
       @center x: 10, y: 50
 
       hgInstance.onAllModulesLoaded @, () =>
-        if hgInstance.zoom_buttons?
-          hgInstance.zoom_buttons.onZoomIn @, @_zoomIn
-          hgInstance.zoom_buttons.onZoomOut @, @_zoomOut
+        if hgInstance.buttons.zoomInButton?
+          hgInstance.buttons.zoomInButton.onZoomIn @, @_zoomIn
+        if hgInstance.buttons.zoomOutButton?
+          hgInstance.zoom_buttons.onZoomOutButton @, @_zoomOut
 
-        if hgInstance.highcontrast_button?
-          hgInstance.highcontrast_button.onEnterHighContrast @, () =>
+        if hgInstance.buttons.highContrastButton?
+          hgInstance.buttons.highContrastButton.onEnterHighContrast @, () =>
             @_tile_path = hgInstance._config.tilesHighContrast
 
-          hgInstance.highcontrast_button.onLeaveHighContrast @, () =>
+          hgInstance.buttons.highContrastButton.onLeaveHighContrast @, () =>
             @_tile_path = hgInstance._config.tiles
 
 
