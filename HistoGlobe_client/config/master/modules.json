@@ -15,16 +15,9 @@
     "editMode": true
   },
 
-  "ABTest" : {},
-
   "Timeline" :
   {
     "timelineZoom" : 2
-  },
-
-  "CategoryFilter":
-  {
-    "initial" : "noCategory"
   },
 
   "BrowserDetector": {},

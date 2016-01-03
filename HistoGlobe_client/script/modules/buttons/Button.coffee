@@ -36,7 +36,8 @@ class HG.Button
     @_hgInstance.buttons[@_buttonConfig.id] = @
 
     # init state
-    @_state = @_buttonConfig.states[0]
+    @_states = new HG.ObjArr @_buttonConfig.states
+    @_state = @_states.getById 0 # initially start with first (= 'normal') state
 
     # init callbacks
     HG.mixin @, HG.CallbackContainer
@@ -69,9 +70,7 @@ class HG.Button
   changeState: (stateId) ->
     oldState = @_state
     # find new state
-    state = $.grep @_buttonConfig.states, (state) ->
-      state.id == stateId
-    @_state = state[0]
+    @_state = @_states.getByPropVal 'id', stateId
     # update old state to new state
     @_updateState oldState
 
