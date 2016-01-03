@@ -221,21 +221,28 @@ class HG.HistoGlobe
       @_editButtonArea.hgInit @
 
       # create edit button
-      @_editButton = new HG.EditButton
-      @_editButton.hgInit @
-      # @_editButton = new HG.Button(
-      #   @,                    # hg instance
-      #   $(@_editButtonArea),  # parent DOM element to append to
-      #   @_id,           # id of DOM element
-      #   @_states,       # array of states object {} (first element [0] is the inital state)
-      # )
-
-      # create operation buttons (but hidden)      list of operations,       path to icons
-      @_operationButtons = new HG.OperationButtons operations['operations'], operations['iconPath']
-      @_operationButtons.hgInit @
+      @_editButton = new HG.Button @,
+        {
+          'parentArea':   @_editButtonArea,
+          'id':           'editButton',
+          'states': [
+            {
+              'id':       'normal',
+              'tooltip':  "Enter Edit Mode",
+              'iconFA':   'pencil',
+              'callback': 'onEnterEditMode'
+            },
+            {
+              'id':       'edit-mode',
+              'tooltip':  "Leave Edit Mode",
+              'iconFA':   'pencil',
+              'callback': 'onLeaveEditMode'
+            }
+          ]
+        }
 
       # init edit operation controller
-      @_editOperationController = new HG.EditOperationController operations['operations']
+      @_editOperationController = new HG.EditOperationController @_editButtonArea, operations
       @_editOperationController.hgInit @
     )
 

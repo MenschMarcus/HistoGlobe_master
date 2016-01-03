@@ -13,10 +13,11 @@ class HG.EditOperationController
   ##############################################################################
 
   # ============================================================================
-  constructor: (operations) ->
+  constructor: (@_editButtonArea, operations) ->
 
     # init variables
-    @_operations = operations       # all possible operation
+    @_iconPath = operations['iconPath']
+    @_operations = operations['operations']       # all possible operation
     @_curr = {                      # object storing current state of workflow
       op          : null            # object of current operation
       stepNumTot  : null            # total number of steps of current operation
@@ -28,78 +29,78 @@ class HG.EditOperationController
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @addCallback "möööp"
-
+    # init operation buttons (hidden)
+    @_operationButtons = new HG.OperationButtons @_editButtonArea, @_operations, @_iconPath
 
   # ============================================================================
-  hgInit: (hgInstance) ->
+  hgInit: (@_hgInstance) ->
 
-    @_hgInstance = hgInstance
     @_hgInstance.edit_operation_controller = @
 
-    # listen to click on edit operation buttons => start operation
-    @_hgInstance.operation_buttons.onStartEditOperation @, (operationId) =>
+    # listen to click on edit button => start edit mode
+    @_hgInstance.buttons.editButton.onEnterEditMode @, (btn) ->
+      @_operationButtons.hgInit @_hgInstance
 
-      # get operation [json object]
-      operation = $.grep @_operations, (op) ->
-        op.id == operationId
-      @_curr.op = operation[0]
+      # listen to click on edit operation buttons => start operation
+      for operation in @_operations
+        @_hgInstance.buttons[operation.id].onStart @, (btn) =>
 
-      # setup operation window
-      @_opWindow.destroy() if @_opWindow? # cleanup before
-      @_opWindow = new HG.EditOperationWindow @_hgInstance, @_hgInstance._config.container, @_curr.op
+          # get operation [json object]
+          opId = btn._button.id
+          op = $.grep @_operations, (o) ->
+            o.id == opId
+          @_curr.op = op[0]
 
-      # update information about current state in workflow
-      @_curr.stepNumTot = @_curr.op.steps.length
-      @_curr.stepNum = 1
-      @_curr.step = @_curr.op.steps[@_curr.stepNum-1]
+          # setup operation window
+          @_opWindow.destroy() if @_opWindow? # cleanup before
+          @_opWindow = new HG.EditOperationWindow @_hgInstance, @_hgInstance._config.container, @_curr.op
 
-      # disable back button
-      # @_opWindow.disableNext()
-      @_opWindow.disableBack()
-      if @_curr.stepNum is @_curr.stepNumTot
-        @_opWindow.enableFinish()    # in case operation has only one step
-
-
-      # listen to click on previous step button
-      @_hgInstance.buttons.backButton.onPrevStep @, () =>
-
-        # update information
-        unless @_curr.stepNum is 1
-          @_curr.stepNum--
+          # update information about current state in workflow
+          @_curr.stepNumTot = @_curr.op.steps.length
+          @_curr.stepNum = 1
           @_curr.step = @_curr.op.steps[@_curr.stepNum-1]
 
-        # change window
-        if @_curr.stepNum is 1
+          # disable back button
+          # @_opWindow.disableNext()
           @_opWindow.disableBack()
-        if @_curr.stepNum is @_curr.stepNumTot-1
-          @_opWindow.disableFinish()
-
-
-      # listen to click on next step button
-      @_hgInstance.buttons.nextButton.onNextStep @, () =>
-
-          # update information
-          unless @_curr.stepNum is @_curr.stepNumTot
-            @_curr.stepNum++
-            @_curr.step = @_curr.op.steps[@_curr.stepNum-1]
-
-          # change window
-          @_opWindow.enableBack()
           if @_curr.stepNum is @_curr.stepNumTot
-            @_opWindow.enableFinish()
+            @_opWindow.enableFinish()    # in case operation has only one step
+
+
+          # listen to click on previous step button
+          @_hgInstance.buttons.backButton.onPrevStep @, () =>
+
+            # update information
+            unless @_curr.stepNum is 1
+              @_curr.stepNum--
+              @_curr.step = @_curr.op.steps[@_curr.stepNum-1]
+
+            # change window
+            if @_curr.stepNum is 1
+              @_opWindow.disableBack()
+            if @_curr.stepNum is @_curr.stepNumTot-1
+              @_opWindow.disableFinish()
+
+
+          # listen to click on next step button
+          @_hgInstance.buttons.nextButton.onNextStep @, () =>
+
+              # update information
+              unless @_curr.stepNum is @_curr.stepNumTot
+                @_curr.stepNum++
+                @_curr.step = @_curr.op.steps[@_curr.stepNum-1]
+
+              # change window
+              @_opWindow.enableBack()
+              if @_curr.stepNum is @_curr.stepNumTot
+                @_opWindow.enableFinish()
+
+
+    # listen to click on edit mode => leave edit mode
+    @_hgInstance.buttons.editButton.onLeaveEditMode @, (btn) ->
+      @_operationButtons.destroy()
 
 
   ##############################################################################
   #                            PRIVATE INTERFACE                                #
   ##############################################################################
-
-  # ============================================================================
-  # TODO: get this to work
-  # goal: in the code use "@_getButtonCallback('onCallbackName') @, () =>"
-  # ============================================================================
-  _getButtonCallback: (id) ->
-    cb = null
-    for bt in @_hgInstance.buttons
-      cb = bt[id] if bt[id]
-    cb
