@@ -11,10 +11,8 @@ class HG.OperationButtons
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
-
     # init buttons for each operation
-    for operation in @_operations
-
+    @_operations.foreach (operation) =>
       new HG.Button @_hgInstance,
         {
           'parentArea':   @_editButtonArea,
@@ -30,3 +28,8 @@ class HG.OperationButtons
             }
           ]
         }
+
+  # ============================================================================
+  destroy: () ->
+    @_editButtonArea.removeButtonGroup 'editOperations'
+

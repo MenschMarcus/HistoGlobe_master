@@ -10,7 +10,7 @@ class HG.ButtonArea
   constructor : (position, orientation) ->
     @_position = position
     @_orientation = if orientation is 'horizontal' then 'horizontal' else 'vertical'
-    @_groups = []
+    @_groups = new HG.ObjArr()
 
   # ============================================================================
   hgInit: (hgInstance) ->
@@ -36,7 +36,7 @@ class HG.ButtonArea
     # select group name
     name = null
     if groupName        # takes group if group name given
-      name = groupName
+      name = groupName + '-group'
     else                # sets group name manually if no group name
       name = button.id + '-group'
 
@@ -57,27 +57,27 @@ class HG.ButtonArea
   ##############################################################################
 
   # ============================================================================
-  _addGroup: (name) ->
+  _addGroup: (id) ->
     # if group exists, take it
-    group = $.grep @_groups, (g) ->
-      g.id == name
-    if group.length > 0
-      return group[0]
+    group = @_groups.getByPropVal 'id', id
+    if group
+      return group
+    # if group does not exist, create it
     else
-      # if group does not exist, create it
+      # add to UI
       group = document.createElement 'div'
-      group.id = name if name?  # in order to delete buttons when leaving edit mode
+      group.id = id if id?  # in order to delete buttons when leaving edit mode
       group.className = 'buttons-group'
       if @_orientation is 'horizontal'
         group.className += ' buttons-group-horizontal'
       @_container.appendChild group
+      # add to group list
       @_groups.push group
       return group
 
   # ============================================================================
-  _removeGroup: (name) ->
-    # TODO: remove from list
-
+  _removeGroup: (id) ->
+    # remove from group list
+    @_groups.remove 'id', id
     # remove from UI
-    groupDOM = document.getElementById name
-    groupDOM.parentNode.removeChild group
+    $('#'+id+'-group').remove()
