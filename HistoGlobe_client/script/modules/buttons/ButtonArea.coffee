@@ -10,7 +10,7 @@ class HG.ButtonArea
   constructor : (position, orientation) ->
     @_position = position
     @_orientation = if orientation is 'horizontal' then 'horizontal' else 'vertical'
-    @_groups = new HG.ObjArr()
+    @_groups = new HG.ObjectArray()
 
   # ============================================================================
   hgInit: (hgInstance) ->

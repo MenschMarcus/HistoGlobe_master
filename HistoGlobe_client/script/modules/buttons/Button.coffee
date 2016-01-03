@@ -36,7 +36,7 @@ class HG.Button
     @_hgInstance.buttons[@_buttonConfig.id] = @
 
     # init state
-    @_states = new HG.ObjArr @_buttonConfig.states
+    @_states = new HG.ObjectArray @_buttonConfig.states
     @_state = @_states.getById 0 # initially start with first (= 'normal') state
 
     # init callbacks

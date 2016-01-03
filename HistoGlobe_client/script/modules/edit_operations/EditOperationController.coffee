@@ -17,7 +17,7 @@ class HG.EditOperationController
 
     # init variables
     @_iconPath = operations['iconPath']
-    @_operations = new HG.ObjArr operations['operations'] # all possible operations
+    @_operations = new HG.ObjectArray operations['operations'] # all possible operations
     @_curr = {                      # object storing current state of workflow
       op          : null            # object of current operation
       stepNumTot  : null            # total number of steps of current operation
