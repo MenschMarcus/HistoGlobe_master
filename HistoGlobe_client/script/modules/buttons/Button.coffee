@@ -78,8 +78,8 @@ class HG.Button
   # ============================================================================
   disable: () ->      @_buttonDOM.addClass 'button-disabled'
   enable: () ->       @_buttonDOM.removeClass 'button-disabled'
-  setActive: () ->    @_buttonDOM.addClass 'button-active'
-  setInactive: () ->  @_buttonDOM.removeClass 'button-active'
+  activate: () ->     @_buttonDOM.addClass 'button-active'
+  deactivate: () ->   @_buttonDOM.removeClass 'button-active'
 
   # ============================================================================
   show: () ->         @_buttonDOM.show()

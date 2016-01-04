@@ -7,8 +7,7 @@ class HG.ButtonArea
   ##############################################################################
 
   # ============================================================================
-  constructor : (position, orientation) ->
-    @_position = position
+  constructor : (@_id, @_position, orientation) ->
     @_orientation = if orientation is 'horizontal' then 'horizontal' else 'vertical'
     @_groups = new HG.ObjectArray()
 
@@ -18,6 +17,7 @@ class HG.ButtonArea
     @_hgInstance.button_area = @
 
     @_container = document.createElement "div"
+    @_container.id = @_id
     @_container.className = "buttons-" + @_position
     @_hgInstance._top_area.appendChild @_container
 
