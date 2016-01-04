@@ -96,6 +96,22 @@ class HG.EditOperationWindow
         ]
       }
 
+    ## 3) abort button
+    @_abortButton = new HG.Button @_hgInstance,
+      {
+        'parentDiv':    @_mainWindow,
+        'id':           'abortButton',
+        'states': [
+          {
+            'id':       'normal',
+            'classes':  ['button-abort'],
+            'tooltip':  "Abort Operation",
+            'iconFA':   'times',
+            'callback': 'onAbort'
+          }
+        ]
+      }
+
     # setup window
     @_setTitle @_operation.title
     @_setColumns @_operation

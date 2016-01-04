@@ -14,6 +14,7 @@ $color_disabled_active              = #848484
 // BUTTONS ---------------------------------------------------------
 
 $button_diameter                    = 40px
+$button_abort_shrink_factor         = 0.75
 
 // EDIT OPERATION WINDOW -------------------------------------------
 

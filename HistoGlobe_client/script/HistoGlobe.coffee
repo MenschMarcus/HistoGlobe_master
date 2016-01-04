@@ -217,7 +217,7 @@ class HG.HistoGlobe
     $.getJSON(@_config.editOperationsPath, (operations) =>
 
       # create edit buttons area
-      @_editButtonArea = new HG.ButtonArea 'top-right', 'horizontal'
+      @_editButtonArea = new HG.ButtonArea 'editButtons', 'top-right', 'horizontal'
       @_editButtonArea.hgInit @
 
       # create edit button

@@ -30,7 +30,7 @@ class HG.ControlButtons
   hgInit: (@_hgInstance) ->
 
     # idea: module "ControlButtons" is instance of class "ButtonArea"
-    @_hgInstance.control_buttons = new HG.ButtonArea 'bottom-left', 'vertical'
+    @_hgInstance.control_buttons = new HG.ButtonArea 'controlButtons', 'bottom-left', 'vertical'
     @_hgInstance.control_buttons.hgInit @_hgInstance
 
     # init predefined buttons
