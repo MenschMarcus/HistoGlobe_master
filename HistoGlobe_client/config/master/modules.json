@@ -2,7 +2,7 @@
   "HistoGlobe" :
   {
     "container": "histoglobe",
-    "minYear": 1800,
+    "minYear": 1900,
     "maxYear": 2015,
     "nowYear": 1989,
     "minZoom": 3,
@@ -40,10 +40,7 @@
     "JSONPaths" : ["../HistoGlobe_client/config/common/data/countries.geojson"]
   },
 
-  "AreasOnMap" :
-  {
-    "labelVisibilityFactor" : 1.5
-  },
+  "AreasOnMap" : {},
 
 
   "Imprint": {}
