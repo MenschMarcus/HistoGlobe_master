@@ -208,11 +208,11 @@ class HG.ControlButtons
               }
 
             # 2. set functionality
-            @_hgInstance.buttons.graphButton.onRemoveGUI @, (btn) =>
+            @_hgInstance.buttons.graphButton.onShowGraph @, (btn) =>
               $(hgInstance._config.container).addClass 'minGUI'
               btn.changeState 'min-layout'
 
-            @_hgInstance.buttons.graphButton.onOpenGUI @, (btn) =>
+            @_hgInstance.buttons.graphButton.onHideGraph @, (btn) =>
               $(hgInstance._config.container).removeClass 'minGUI'
               btn.changeState 'normal'
           )
