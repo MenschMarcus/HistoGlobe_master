@@ -73,12 +73,8 @@ class HG.EditMode
 
     # load edit operations
     $.getJSON(@_config.changeOperationsPath, (operations) =>
-
       # array of all historical geographic change operations
       @_HGChangeOperations = new HG.ObjectArray operations # all possible operations
-
-      # create HG change operation buttons
-      @_opButtons = new HG.ChangeOperationButtons @_editButtonArea, @_HGChangeOperations, @_config.iconPath
     )
 
     # listen to click on edit button => start edit mode
@@ -104,7 +100,27 @@ class HG.EditMode
         }
 
       # setup operation buttons
-      @_opButtons.hgInit @_hgInstance
+      @_changeOperationButtons = new HG.ObjectArray
+
+      @_HGChangeOperations.foreach (operation) =>
+        @_changeOperationButtons.push {
+          'id':   operation.id,
+          'btn':  new HG.Button @_hgInstance,
+            {
+              'parentArea':   @_editButtonArea,
+              'groupName':    'editOperations'
+              'id':           operation.id,
+              'states': [
+                {
+                  'id':       'normal',
+                  'tooltip':  operation.title,
+                  'classes':  ['button-horizontal'],
+                  'iconOwn':  @_config.iconPath + operation.id + '.svg',
+                  'callback': 'onStart'
+                }
+              ]
+            }
+        }
 
       # listen to click on edit operation buttons => start operation
       # for operation in @_HGChangeOperations
@@ -117,8 +133,8 @@ class HG.EditMode
 
           # reset edit operation windows
           # disable all edit buttons, activate current operation
-          @_opButtons.disable()
-          @_opButtons.activate @_curr.op.id
+          # @_opButtons.disable()
+          # @_opButtons.activate @_curr.op.id
 
           # setup operation window
           @_opWindow.destroy() if @_opWindow? # cleanup before
@@ -162,8 +178,8 @@ class HG.EditMode
               # remove window
               @_opWindow.destroy()
               # reset buttons
-              @_opButtons.deactivate @_curr.op.id
-              @_opButtons.enable()
+              # @_opButtons.deactivate @_curr.op.id
+              # @_opButtons.enable()
               # update information
               @_curr.op = null
               @_curr.stepNumTotal = null
@@ -175,7 +191,7 @@ class HG.EditMode
     @_editButton.onLeaveEditMode @, (btn) ->
       btn.changeState 'normal'
       btn.deactivate()
-      @_opButtons.destroy()
+      # @_opButtons.destroy()
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
