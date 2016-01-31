@@ -14,13 +14,10 @@ class HG.ButtonArea
     ) ->
 
     @_orientation = new HG.StateVar ['horizontal', 'vertical']
-    @_direction = new HG.StateVar ['append', 'prepend']
-
     @_orientation.set orientation
-    @_direction.set direction
 
-    @_orientation = if @_orientation isnt 'horizontal' then @_orientation = 'vertical'
-    @_direction = if @_direction isnt 'prepend' then @_direction = 'vertical'
+    @_direction = new HG.StateVar   ['append', 'prepend']
+    @_direction.set direction
 
     @_groups = new HG.ObjectArray()
 
@@ -80,11 +77,19 @@ class HG.ButtonArea
       group = document.createElement 'div'
       group.id = id if id?  # in order to delete buttons when leaving edit mode
       group.className = 'buttons-group'
-      if @_orientation is 'horizontal'
+      if @_orientation.get() is 'horizontal'
         group.className += ' buttons-group-horizontal'
-      @_container.appendChild group
+
+      # append or prepend button (given in configuration of ButtonArea)
+      if @_direction.get() is 'append'
+        @_container.appendChild group
+        @_groups.append group
+
+      else if @_direction.get() is 'prepend'
+        @_container.insertBefore group, @_container.firstChild
+        @_groups.prepend group
+
       # add to group list
-      @_groups.push group
       return group
 
   # ============================================================================
