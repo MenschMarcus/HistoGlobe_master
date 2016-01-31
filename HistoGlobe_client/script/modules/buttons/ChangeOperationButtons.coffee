@@ -1,6 +1,6 @@
 window.HG ?= {}
 
-class HG.EditOperationButtons
+class HG.ChangeOperationButtons
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #

@@ -1,12 +1,12 @@
 window.HG ?= {}
 
 # ==============================================================================
-# EditOperationController has several controlling tasks:
+# ChangeController has several controlling tasks:
 #   register clicks on edit operation buttons -> init operation
 #   manage operation window (init, send data, get data)
 #   handle communication with backend (get data, send data)
 # ==============================================================================
-class HG.EditOperationController
+class HG.ChangeController
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
@@ -30,14 +30,15 @@ class HG.EditOperationController
     HG.CallbackContainer.call @
 
     # init operation buttons (hidden)
-    @_opButtons = new HG.EditOperationButtons @_editButtonArea, @_ops, @_iconPath
+    @_opButtons = new HG.ChangeOperationButtons @_editButtonArea, @_ops, @_iconPath
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
 
-    @_hgInstance.edit_operation_controller = @
+    @_hgInstance.change_controller = @
 
     @_editButton = @_hgInstance.buttons.editButton
+    @_container = @_hgInstance._hgInstance._config.container
 
     # listen to click on edit button => start edit mode
     @_hgInstance.buttons.editButton.onEnterEditMode @, (btn) ->
@@ -61,7 +62,7 @@ class HG.EditOperationController
 
           # setup operation window
           @_opWindow.destroy() if @_opWindow? # cleanup before
-          @_opWindow = new HG.EditOperationWindow @_hgInstance, @_hgInstance._config.container, @_curr.op
+          @_opWindow = new HG.ChangeOperationWorkflow @_hgInstance, @_container, @_curr.op
 
           # update information about current state in workflow
           @_curr.stepNumTotal = @_curr.op.steps.length

@@ -8,14 +8,18 @@
       "steps":
       [
         {
-          "id":     "setGeo",
+          "id":     "SET_GEOM",
           "num":    "1",
-          "title":  "create borders <br/> of new country"
+          "title":  "create territory <br/> of new country"
         },
         {
-          "id":     "setName",
+          "id":     "SET_NAME",
           "num":    "1",
           "title":  "create name <br/> of new country"
+        },
+        {
+          "id":     "SET_HIV",
+          "title":  "enter hivent <br /> information"
         }
       ]
     },
@@ -25,14 +29,18 @@
       "steps":
       [
         {
-          "id":     "selOld",
+          "id":     "SEL_OLD",
           "num":    "2+",
           "title":  "select countries <br/> to be united"
         },
         {
-          "id":     "setName",
+          "id":     "SET_NAME",
           "num":    "1",
           "title":  "create name <br/> of united country"
+        },
+        {
+          "id":     "SET_HIV",
+          "title":  "enter hivent <br /> information"
         }
       ]
     },
@@ -42,19 +50,23 @@
       "steps":
       [
         {
-          "id":     "selOld",
+          "id":     "SEL_OLD",
           "num":    "1",
           "title":  "select country <br/> to be separated"
         },
         {
-          "id":     "setGeo",
+          "id":     "SET_GEOM",
           "num":    "2+",
-          "title":  "create borders <br/> of separated countries"
+          "title":  "create territory <br/> of separated countries"
         },
         {
-          "id":     "setName",
+          "id":     "SET_NAME",
           "num":    "2+",
           "title":  "create names <br/> of separated countries"
+        },
+        {
+          "id":     "SET_HIV",
+          "title":  "enter hivent <br /> information"
         }
       ]
     },
@@ -64,14 +76,18 @@
       "steps":
       [
         {
-          "id":     "selOld",
+          "id":     "SEL_OLD",
           "num":    "2",
           "title":  "select two countries whose <br/> border is to be changed"
         },
         {
-          "id":     "setGeo",
+          "id":     "SET_GEOM",
           "num":    "2",
           "title":  "create new geometries <br/> of the two countries"
+        },
+        {
+          "id":     "SET_HIV",
+          "title":  "enter hivent <br /> information"
         }
       ]
     },
@@ -81,14 +97,18 @@
       "steps":
       [
         {
-          "id":     "selOld",
+          "id":     "SEL_OLD",
           "num":    "1",
           "title":  "select country whose <br/> name is to be changed"
         },
         {
-          "id":     "setName",
+          "id":     "SET_NAME",
           "num":    "1",
           "title":  "create new name <br/> of the country"
+        },
+        {
+          "id":     "SET_HIV",
+          "title":  "enter hivent <br /> information"
         }
       ]
     },
@@ -98,9 +118,13 @@
       "steps":
       [
         {
-          "id":     "selOld",
+          "id":     "SEL_OLD",
           "num":    "1+",
           "title":  "select countries to be deleted"
+        },
+        {
+          "id":     "SET_HIV",
+          "title":  "enter hivent <br /> information"
         }
       ]
     }
