@@ -12,7 +12,7 @@ window.HG ?= {}
 #   manage the work flow including data in / out
 # ==============================================================================
 
-class HG.EditOperationWindow
+class HG.ChangeOperationWorkflow
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
@@ -35,7 +35,7 @@ class HG.EditOperationWindow
     @_backDisabled = false
 
     # add object to HG instance
-    @_hgInstance.edit_operation_window = @
+    @_hgInstance.change_operation_workflow = @
 
     # init callbacks
     HG.mixin @, HG.CallbackContainer

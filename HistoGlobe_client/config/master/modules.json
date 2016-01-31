@@ -11,8 +11,7 @@
     "startLatLong": [50.9869531, 11.3205004],
     "tiles": "../HistoGlobe_client/config/common/tiles/tiles",
     "tilesHighContrast": "../HistoGlobe_client/config/common/tiles/tiles_high_contrast",
-    "sidebarEnabled": false,
-    "editMode": true
+    "sidebarEnabled": false
   },
 
   "BrowserDetector": {},
@@ -42,6 +41,11 @@
 
   "AreasOnMap" : {},
 
+
+  "EditMode" :
+  {
+    "changeOperationsPath": "HistoGlobe_client/config/common/operations.json"
+  },
 
   "Imprint": {}
 }

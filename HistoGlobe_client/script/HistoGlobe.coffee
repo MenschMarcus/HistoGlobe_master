@@ -45,8 +45,6 @@ class HG.HistoGlobe
       sidebarCollapsed: "auto"
       sidebarEnabled: "true"
       tiles: 'data/tiles/'
-      editMode: true,
-      editOperationsPath: 'HistoGlobe_client/config/common/operations.json'
 
     # Asynchronous loading of a file containing module information located at
     # "pathToJson". Result is stored in the "config" object and passed to the
@@ -113,10 +111,6 @@ class HG.HistoGlobe
         @_collapse()
       else if @_config.sidebarCollapsed is "auto" and @isInMobileMode()
         @_collapse()
-
-      # init edit mode
-      if @_config.editMode
-        @_makeEditMode()
     )
 
 
@@ -209,42 +203,6 @@ class HG.HistoGlobe
 
     $(@_collapse_button).click @_collapse
     $(@_collapse_area_left).click @_collapse
-
-
-  # ============================================================================
-  _makeEditMode: ->
-    # load edit operations
-    $.getJSON(@_config.editOperationsPath, (operations) =>
-
-      # create edit buttons area
-      @_editButtonArea = new HG.ButtonArea 'editButtons', 'top-right', 'horizontal'
-      @_editButtonArea.hgInit @
-
-      # create edit button
-      @_editButton = new HG.Button @,
-        {
-          'parentArea':   @_editButtonArea,
-          'id':           'editButton',
-          'states': [
-            {
-              'id':       'normal',
-              'tooltip':  "Enter Edit Mode",
-              'iconFA':   'pencil',
-              'callback': 'onEnterEditMode'
-            },
-            {
-              'id':       'edit-mode',
-              'tooltip':  "Leave Edit Mode",
-              'iconFA':   'pencil',
-              'callback': 'onLeaveEditMode'
-            }
-          ]
-        }
-
-      # init edit operation controller
-      @_editOperationController = new HG.EditOperationController @_editButtonArea, operations
-      @_editOperationController.hgInit @
-    )
 
   # ============================================================================
   # Creates 2D Map. For more information, please see Display2D.coffe.
