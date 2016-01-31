@@ -6,8 +6,7 @@ $color_bg_medium                    = #2f3b46
 $color_bg_dark                      = #121212
 
 $color_highlight                    = #d5c900
-$color_highlight_active             = #706400
-
+$color_active                       = #d57d00
 $color_disabled                     = #dedede
 $color_disabled_active              = #848484
 
@@ -27,6 +26,10 @@ $operation_title_height             = 45px
 $operation_workflow_size            = 1.2em
 $operation_workflow_height          = 70px
 
+// HIVENT MARKERS --------------------------------------------------
+
+$hivent_marker_color                = #2579bf
+$hivent_marker_color_light          = #0086f6
 
 // ================================================================
 // TODO: cleanup from here on
