@@ -7,38 +7,37 @@ class HG.Title
   ##############################################################################
 
   # ============================================================================
-  constructor: (config) ->
-    defaultConfig =
-      contentClass: ""
-      contentConfig: []
+  constructor: (@_hgInstance, txt='') ->
 
-    @_config = $.extend {}, defaultConfig, config
+    @_div = document.createElement 'div'
+    @_div.id = 'hg-title'
+    @_hgInstance._top_area.appendChild @_div
 
-  # ============================================================================
-  hgInit: (@_hgInstance) ->
+    @_domElem = $(@_div)[0]
 
-    @_div               = document.createElement("div")
-    @_div.className     = "hg-title"
+    # elements to calculate width of
+    @_window = $(window)
+    @_editButtons = $('#editButtons')
 
-    $("#histoglobe").append @_div
-
-    if @_config.contentClass isnt "" and window["HG"][@_config.contentClass]?
-      content = new window["HG"][@_config.contentClass] @_config.contentConfig
-      @setContent content
-    else
-      console.error "Failed to initialize Title module: The content class " +
-                     "#{@_config.contentClass} does not exist!"
-
-    $(window).on 'resize', @_resize
-    @_resize()
+    $(window).on 'resize', @resize
+    @resize()
+    @set txt
 
   # ============================================================================
-  setContent: (content) ->
-    content.init @_hgInstance, @_div
+  set: (txt) ->
+    @_domElem.innerHTML = txt
 
   # ============================================================================
-  _resize: () =>
-    height = $(@_div).outerHeight()
-    @_hgInstance._top_area.style.top = height + "px"
+  clear: () ->
+    @_domElem.innerHTML = ''
+
+  # ============================================================================
+  resize: () =>
+    width = @_window.width() -
+      2 * HGConfig.element_window_distance.val -
+      HGConfig.logo_width.val -
+      @_editButtons.width()
+    # PAIN IN THE AAAAAAAAAAASS!
+    @_domElem.style.width = width + 'px'
     @_hgInstance._onResize()
 

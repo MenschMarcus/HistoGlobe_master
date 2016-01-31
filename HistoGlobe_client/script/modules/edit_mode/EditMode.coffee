@@ -32,6 +32,7 @@ class HG.EditMode
     # init "current" object
     @_curr = {                      # object storing current state of workflow
       op          : null            # object of current operation
+      opBtn       : null            # button of current operation
       stepNumTotal: null            # total number of steps of current operation
       stepNum     : null            # number of current step in workflow [starting at 1!]
       step        : null            # object of current step in workflow
@@ -45,13 +46,18 @@ class HG.EditMode
     @_container = @_hgInstance._config.container
     @_changeOperationButtons = new HG.ObjectArray
 
-    # make edit button
+    # create transparent title bar (hidden)
+    tb = document.createElement 'div'
+    tb.id = 'titlebar'
+    @_titleBar = $(tb)
+    @_titleBar.hide()
+    @_hgInstance._top_area.appendChild tb
 
     # create edit buttons area
     @_editButtonArea = new HG.ButtonArea 'editButtons', 'top-right', 'horizontal', 'prepend'
     @_editButtonArea.hgInit @_hgInstance
 
-    # create edit button (and show)
+    # create edit button (show)
     @_editButton = new HG.Button @,
       {
         'parentArea':   @_editButtonArea,
@@ -97,10 +103,12 @@ class HG.EditMode
 
       # setup operation buttons
       @_HGChangeOperations.foreach (operation) =>
-        @_changeOperationButtons.push new HG.Button @_hgInstance,
+        @_changeOperationButtons.push {
+          'id': operation.id,
+          'button': new HG.Button @_hgInstance,
             {
               'parentArea':   @_editButtonArea,
-              'groupName':    'editOperations'
+              'groupName':    'changeOperations'
               'id':           operation.id,
               'hide':         yes,
               'states': [
@@ -113,7 +121,15 @@ class HG.EditMode
                 }
               ]
             }
+        }
     )
+
+    # create title to be filled
+    @_title = new HG.Title @_hgInstance
+
+    # -------------------------------------------------------------
+    # INTERACTIVITY
+    # -------------------------------------------------------------
 
     # listen to click on edit button => start edit mode
     @_editButton.onEnterEditMode @, (editButton) ->
@@ -122,10 +138,15 @@ class HG.EditMode
       editButton.changeState 'edit-mode'
       editButton.activate()
 
-      # show new hivent and change operation buttons
+      # show titlebar, new hivent and change operation buttons
+      @_titleBar.show()
       @_newHiventButton.show()
-      @_changeOperationButtons.foreach (btn) =>
-        btn.show()
+      @_changeOperationButtons.foreach (obj) =>
+        obj.button.show()
+
+      # update title
+      @_title.resize()
+      @_title.set 'EDIT MODE'
 
       # listen to click on edit operation buttons => start operation
       # for operation in @_HGChangeOperations
@@ -135,11 +156,13 @@ class HG.EditMode
           # get operation [json object]
           opId = btn._button.id # to do: more elegant way to get button?
           @_curr.op = @_HGChangeOperations.getByPropVal 'id', opId
+          @_curr.opBtn = (@_changeOperationButtons.getById @_curr.op.id).button
 
-          # reset edit operation windows
           # disable all edit buttons, activate current operation
-          # @_opButtons.disable()
-          # @_opButtons.activate @_curr.op.id
+          @_newHiventButton.disable()
+          @_changeOperationButtons.foreach (obj) =>
+            obj.button.disable()
+          @_curr.opBtn.activate()
 
           # setup operation window
           @_opWindow.destroy() if @_opWindow? # cleanup before
@@ -183,13 +206,16 @@ class HG.EditMode
               # remove window
               @_opWindow.destroy()
               # reset buttons
-              # @_opButtons.deactivate @_curr.op.id
-              # @_opButtons.enable()
-              # update information
-              @_curr.op = null
+              @_curr.opBtn.deactivate()
+              @_changeOperationButtons.foreach (obj) =>
+                obj.button.enable()
+              @_newHiventButton.enable()
+              # reset current operation
+              @_curr.op           = null
+              @_curr.opBtn        = null
               @_curr.stepNumTotal = null
-              @_curr.stepNum = null
-              @_curr.step = null
+              @_curr.stepNum      = null
+              @_curr.step         = null
 
 
     # listen to click on edit mode => leave edit mode
@@ -199,10 +225,16 @@ class HG.EditMode
       editButton.changeState 'normal'
       editButton.deactivate()
 
-      # hide new hivent and change operation buttons
+      # hide titlebar new hivent and change operation buttons
+      @_titleBar.hide()
       @_newHiventButton.hide()
-      @_changeOperationButtons.foreach (btn) =>
-        btn.hide()
+      @_changeOperationButtons.foreach (obj) =>
+        obj.button.hide()
+
+      # update title
+      @_title.clear()
+      @_title.resize()
+
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #

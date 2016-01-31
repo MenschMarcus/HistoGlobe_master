@@ -1,7 +1,7 @@
 .button
 {
   padding: 4px;
-  margin-bottom: 8px;
+  margin: 5px;
   width: @button_diameter;
   height: @button_diameter;
   border-radius: @button_diameter*0.5;
@@ -13,15 +13,23 @@
   cursor: pointer;
 }
 
+.button-disabled, .button-diabled-active
+{
+  cursor: auto;
+  pointer-events: none;   /*disables tooltip*/
+}
+
 .button-disabled
 {
   background-color: @color_disabled;
-  cursor: auto;
-  pointer-events: none;   /*disables tooltip*/
 }
 .button-active
 {
   background-color: @color_active;
+}
+.button-disabled-active
+{
+  background-color: @color_disabled_active;
 }
 
 .button-abort
