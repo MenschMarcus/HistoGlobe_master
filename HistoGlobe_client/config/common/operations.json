@@ -1,132 +1,128 @@
-{
-  "iconPath":       "../HistoGlobe_client/config/common/graphics/operations/",
-  "operations":
-  [
-    {
-      "id":         "ADD",
-      "title":      "Add new country",
-      "steps":
-      [
-        {
-          "id":     "SET_GEOM",
-          "num":    "1",
-          "title":  "create territory <br/> of new country"
-        },
-        {
-          "id":     "SET_NAME",
-          "num":    "1",
-          "title":  "create name <br/> of new country"
-        },
-        {
-          "id":     "SET_HIV",
-          "title":  "enter hivent <br /> information"
-        }
-      ]
-    },
-    {
-      "id":         "UNI",
-      "title":      "Unite countries",
-      "steps":
-      [
-        {
-          "id":     "SEL_OLD",
-          "num":    "2+",
-          "title":  "select countries <br/> to be united"
-        },
-        {
-          "id":     "SET_NAME",
-          "num":    "1",
-          "title":  "create name <br/> of united country"
-        },
-        {
-          "id":     "SET_HIV",
-          "title":  "enter hivent <br /> information"
-        }
-      ]
-    },
-    {
-      "id":         "SEP",
-      "title":      "Separate country",
-      "steps":
-      [
-        {
-          "id":     "SEL_OLD",
-          "num":    "1",
-          "title":  "select country <br/> to be separated"
-        },
-        {
-          "id":     "SET_GEOM",
-          "num":    "2+",
-          "title":  "create territory <br/> of separated countries"
-        },
-        {
-          "id":     "SET_NAME",
-          "num":    "2+",
-          "title":  "create names <br/> of separated countries"
-        },
-        {
-          "id":     "SET_HIV",
-          "title":  "enter hivent <br /> information"
-        }
-      ]
-    },
-    {
-      "id":         "CHB",
-      "title":      "Change corders between countries",
-      "steps":
-      [
-        {
-          "id":     "SEL_OLD",
-          "num":    "2",
-          "title":  "select two countries whose <br/> border is to be changed"
-        },
-        {
-          "id":     "SET_GEOM",
-          "num":    "2",
-          "title":  "create new geometries <br/> of the two countries"
-        },
-        {
-          "id":     "SET_HIV",
-          "title":  "enter hivent <br /> information"
-        }
-      ]
-    },
-    {
-      "id":         "CHN",
-      "title":      "Change name of country",
-      "steps":
-      [
-        {
-          "id":     "SEL_OLD",
-          "num":    "1",
-          "title":  "select country whose <br/> name is to be changed"
-        },
-        {
-          "id":     "SET_NAME",
-          "num":    "1",
-          "title":  "create new name <br/> of the country"
-        },
-        {
-          "id":     "SET_HIV",
-          "title":  "enter hivent <br /> information"
-        }
-      ]
-    },
-    {
-      "id":         "DEL",
-      "title":      "Delete country",
-      "steps":
-      [
-        {
-          "id":     "SEL_OLD",
-          "num":    "1+",
-          "title":  "select countries to be deleted"
-        },
-        {
-          "id":     "SET_HIV",
-          "title":  "enter hivent <br /> information"
-        }
-      ]
-    }
-  ]
-}
+[
+  {
+    "id":         "ADD",
+    "title":      "Add new country",
+    "steps":
+    [
+      {
+        "id":     "SET_GEOM",
+        "num":    "1",
+        "title":  "create territory <br/> of new country"
+      },
+      {
+        "id":     "SET_NAME",
+        "num":    "1",
+        "title":  "create name <br/> of new country"
+      },
+      {
+        "id":     "SET_HIV",
+        "title":  "enter hivent <br /> information"
+      }
+    ]
+  },
+  {
+    "id":         "UNI",
+    "title":      "Unite countries",
+    "steps":
+    [
+      {
+        "id":     "SEL_OLD",
+        "num":    "2+",
+        "title":  "select countries <br/> to be united"
+      },
+      {
+        "id":     "SET_NAME",
+        "num":    "1",
+        "title":  "create name <br/> of united country"
+      },
+      {
+        "id":     "SET_HIV",
+        "title":  "enter hivent <br /> information"
+      }
+    ]
+  },
+  {
+    "id":         "SEP",
+    "title":      "Separate country",
+    "steps":
+    [
+      {
+        "id":     "SEL_OLD",
+        "num":    "1",
+        "title":  "select country <br/> to be separated"
+      },
+      {
+        "id":     "SET_GEOM",
+        "num":    "2+",
+        "title":  "create territory <br/> of separated countries"
+      },
+      {
+        "id":     "SET_NAME",
+        "num":    "2+",
+        "title":  "create names <br/> of separated countries"
+      },
+      {
+        "id":     "SET_HIV",
+        "title":  "enter hivent <br /> information"
+      }
+    ]
+  },
+  {
+    "id":         "CHB",
+    "title":      "Change corders between countries",
+    "steps":
+    [
+      {
+        "id":     "SEL_OLD",
+        "num":    "2",
+        "title":  "select two countries whose <br/> border is to be changed"
+      },
+      {
+        "id":     "SET_GEOM",
+        "num":    "2",
+        "title":  "create new geometries <br/> of the two countries"
+      },
+      {
+        "id":     "SET_HIV",
+        "title":  "enter hivent <br /> information"
+      }
+    ]
+  },
+  {
+    "id":         "CHN",
+    "title":      "Change name of country",
+    "steps":
+    [
+      {
+        "id":     "SEL_OLD",
+        "num":    "1",
+        "title":  "select country whose <br/> name is to be changed"
+      },
+      {
+        "id":     "SET_NAME",
+        "num":    "1",
+        "title":  "create new name <br/> of the country"
+      },
+      {
+        "id":     "SET_HIV",
+        "title":  "enter hivent <br /> information"
+      }
+    ]
+  },
+  {
+    "id":         "DEL",
+    "title":      "Delete country",
+    "steps":
+    [
+      {
+        "id":     "SEL_OLD",
+        "num":    "1+",
+        "title":  "select countries to be deleted"
+      },
+      {
+        "id":     "SET_HIV",
+        "title":  "enter hivent <br /> information"
+      }
+    ]
+  }
+]

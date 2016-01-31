@@ -7,8 +7,21 @@ class HG.ButtonArea
   ##############################################################################
 
   # ============================================================================
-  constructor : (@_id, @_position, orientation) ->
-    @_orientation = if orientation is 'horizontal' then 'horizontal' else 'vertical'
+  constructor : (@_id,                #
+      @_position,                     # e.g. top-right or bottom-left
+      orientation,                    # horizontal or vertical
+      direction                       # append or prepend
+    ) ->
+
+    @_orientation = new HG.StateVar ['horizontal', 'vertical']
+    @_direction = new HG.StateVar ['append', 'prepend']
+
+    @_orientation.set orientation
+    @_direction.set direction
+
+    @_orientation = if @_orientation isnt 'horizontal' then @_orientation = 'vertical'
+    @_direction = if @_direction isnt 'prepend' then @_direction = 'vertical'
+
     @_groups = new HG.ObjectArray()
 
   # ============================================================================
