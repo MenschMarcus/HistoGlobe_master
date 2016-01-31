@@ -43,6 +43,7 @@ class HG.EditMode
     @_hgInstance.editController = @   # N.B. edit mode = edit controller :)
 
     @_container = @_hgInstance._config.container
+    @_changeOperationButtons = new HG.ObjectArray
 
     # make edit button
 
@@ -50,7 +51,7 @@ class HG.EditMode
     @_editButtonArea = new HG.ButtonArea 'editButtons', 'top-right', 'horizontal', 'prepend'
     @_editButtonArea.hgInit @_hgInstance
 
-    # create edit button
+    # create edit button (and show)
     @_editButton = new HG.Button @,
       {
         'parentArea':   @_editButtonArea,
@@ -71,45 +72,37 @@ class HG.EditMode
         ]
       }
 
+    # create new hivent button (hidden)
+    @_newHiventButton = new HG.Button @,
+      {
+        'parentArea':   @_editButtonArea,
+        'id':           'newHiventButton',
+        'hide':         yes
+        'states': [
+          {
+            'id':       'normal',
+            'tooltip':  "Add New Hivent",
+            'iconOwn':  @_config.iconPath + 'new_hivent.svg',
+            'callback': 'onAddNewHivent'
+          }
+        ]
+      }
+
     # load all historical geographic change operations
+    # and create their buttons (hidden)
     $.getJSON(@_config.changeOperationsPath, (operations) =>
 
+      # operatoins
       @_HGChangeOperations = new HG.ObjectArray operations # all possible operations
-    )
-
-    # listen to click on edit button => start edit mode
-    @_editButton.onEnterEditMode @, (editButton) ->
-
-      # activate edit button
-      editButton.changeState 'edit-mode'
-      editButton.activate()
-
-      # setup new hivent button
-      @_newHiventButton = new HG.Button @,
-        {
-          'parentArea':   @_editButtonArea,
-          'id':           'newHiventButton',
-          'states': [
-            {
-              'id':       'normal',
-              'tooltip':  "Add New Hivent",
-              'iconOwn':  @_config.iconPath + 'new_hivent.svg',
-              'callback': 'onAddNewHivent'
-            }
-          ]
-        }
 
       # setup operation buttons
-      @_changeOperationButtons = new HG.ObjectArray
-
       @_HGChangeOperations.foreach (operation) =>
-        @_changeOperationButtons.push {
-          'id':   operation.id,
-          'btn':  new HG.Button @_hgInstance,
+        @_changeOperationButtons.push new HG.Button @_hgInstance,
             {
               'parentArea':   @_editButtonArea,
               'groupName':    'editOperations'
               'id':           operation.id,
+              'hide':         yes,
               'states': [
                 {
                   'id':       'normal',
@@ -120,7 +113,19 @@ class HG.EditMode
                 }
               ]
             }
-        }
+    )
+
+    # listen to click on edit button => start edit mode
+    @_editButton.onEnterEditMode @, (editButton) ->
+
+      # activate edit button
+      editButton.changeState 'edit-mode'
+      editButton.activate()
+
+      # show new hivent and change operation buttons
+      @_newHiventButton.show()
+      @_changeOperationButtons.foreach (btn) =>
+        btn.show()
 
       # listen to click on edit operation buttons => start operation
       # for operation in @_HGChangeOperations
@@ -194,12 +199,10 @@ class HG.EditMode
       editButton.changeState 'normal'
       editButton.deactivate()
 
-      # remove new hivent button
-      @_newHiventButton.remove()
-
-      # remove change operation buttons
-      @_changeOperationButtons.foreach (coBtn) =>
-        coBtn.btn.remove()
+      # hide new hivent and change operation buttons
+      @_newHiventButton.hide()
+      @_changeOperationButtons.foreach (btn) =>
+        btn.hide()
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
