@@ -1,6 +1,15 @@
+// access variables
+//    in *.coffee:  HGConfig.var_name.val
+//    in *.less:    @var_name
+
+// GENERAL UI ----------------------------------------------------
+$element_window_distance            = 15px
+$logo_height                        = 43px
+$logo_width                         = 100px
+
 // COLOR SCHEME ----------------------------------------------------
 
-$color_bg_white                     = #ffffff
+$color_white                        = #ffffff
 $color_bg_light                     = #dedede
 $color_bg_medium                    = #2f3b46
 $color_bg_dark                      = #121212
@@ -16,7 +25,6 @@ $button_diameter                    = 40px
 $button_abort_shrink_factor         = 0.75
 
 // EDIT OPERATION WINDOW -------------------------------------------
-
 $operation_window_border            = 5px
 $operation_step_width               = 250px
 $operation_entry_height             = 80px

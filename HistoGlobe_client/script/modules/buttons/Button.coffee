@@ -39,7 +39,8 @@ class HG.Button
 
     # init state
     @_states = new HG.ObjectArray @_buttonConfig.states
-    @_state = @_states.getById 0 # initially start with first (= 'normal') state
+    @_state = @_states.getByIdx 0 # initially start with first (= 'normal') state
+    @_enabled = yes
 
     # init callbacks
     HG.mixin @, HG.CallbackContainer
@@ -84,10 +85,27 @@ class HG.Button
 
 
   # ============================================================================
-  disable: () ->      @_buttonDOM.addClass 'button-disabled'
-  enable: () ->       @_buttonDOM.removeClass 'button-disabled'
-  activate: () ->     @_buttonDOM.addClass 'button-active'
-  deactivate: () ->   @_buttonDOM.removeClass 'button-active'
+  disable: () ->
+    @_buttonDOM.addClass 'button-disabled'
+    @_enabled = no
+
+  enable: () ->
+    @_buttonDOM.removeClass 'button-disabled'
+    @_enabled = yes
+
+  activate: () ->
+    if @_enabled    # case: button enabled and active
+      @_buttonDOM.addClass 'button-active'
+    else            # case: button disabled and active
+      @_buttonDOM.removeClass 'button-disabled'
+      @_buttonDOM.addClass 'button-disabled-active'
+
+  deactivate: () ->
+    if @_enabled    # case: button enabled and active
+      @_buttonDOM.removeClass 'button-active'
+    else            # case: button disabled and active
+      @_buttonDOM.removeClass 'button-disabled-active'
+      @_buttonDOM.addClass 'button-disabled'
 
   # ============================================================================
   show: () ->         @_buttonDOM.show()
