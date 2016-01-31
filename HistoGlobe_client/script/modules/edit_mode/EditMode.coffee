@@ -47,7 +47,7 @@ class HG.EditMode
     # make edit button
 
     # create edit buttons area
-    @_editButtonArea = new HG.ButtonArea 'editButtons', 'top-right', 'horizontal'
+    @_editButtonArea = new HG.ButtonArea 'editButtons', 'top-right', 'horizontal', 'prepend'
     @_editButtonArea.hgInit @_hgInstance
 
     # create edit button
