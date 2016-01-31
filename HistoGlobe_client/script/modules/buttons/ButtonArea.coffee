@@ -19,6 +19,7 @@ class HG.ButtonArea
     @_container = document.createElement "div"
     @_container.id = @_id
     @_container.className = "buttons-" + @_position
+
     @_hgInstance._top_area.appendChild @_container
 
     @_hgInstance.onTopAreaSlide @, (t) =>
