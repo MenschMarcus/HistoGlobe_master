@@ -79,89 +79,114 @@
 
 
     <!-- own scripts -->
-
-    <script type='text/javascript' src='{% static "build/default_config.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/config.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/CallbackContainer.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/CSSCreator.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/Mixin.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/Vector.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/ObjectArray.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/ABTest.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/Popover.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/MultimediaController.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/Hivent.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventDatabaseInterface.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventBuilder.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventHandle.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventMarker.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventMarker2D.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventMarker3D.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventMarker3DGroup.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventMarkerTimeline.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventController.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/ShapeController.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/Area.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/AreaLabel.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/AreaController.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/Styler.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/AreasOnMap.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/AreasOnGlobe.js" %}'></script>
     <script type='text/javascript' src='{% static "build/Display.js" %}'></script>
     <script type='text/javascript' src='{% static "build/Display2D.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/Timeline.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/Sidebar.js" %}'></script>
-
-    <script type='text/javascript' src='{% static "build/SearchBoxArea.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/SearchBoxForm.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventList.js" %}'></script>
-
-    <script type='text/javascript' src='{% static "build/ButtonArea.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/Button.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/ControlButtons.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/ChangeOperationButtons.js" %}'></script>
-
-    <script type='text/javascript' src='{% static "build/EditMode.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/ChangeOperationWorkflow.js" %}'></script>
-
-    <script type='text/javascript' src='{% static "build/Help.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/Imprint.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventPresenter.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventsOnMap.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventsOnGlobe.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventsOnTimeline.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventTooltips.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventInfoPopover.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventInfoPopovers.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventInfoAtTag.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventStory.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/HiventMarkerRegion.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/CategoryIconMapping.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/Path.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/PathController.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/LinearPath2D.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/ArcPath2D.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/Watermark.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/BrowserDetector.js" %}'></script>
     <script type='text/javascript' src='{% static "build/Globe.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/CategoryFilter.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/WidgetController.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/ZoomButtonsTimeline.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/Crowd.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/CrowdMarker2D.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/CrowdController.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/CrowdsOnMap.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/Popover.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/Area.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/AreaController.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/AreaLabel.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/AreasOnGlobe.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/AreasOnMap.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/Styler.js" %}'></script>
+
     <script type='text/javascript' src='{% static "build/Battle.js" %}'></script>
-    <script type='text/javascript' src='{% static "build/BattleMarker2D.js" %}'></script>
     <script type='text/javascript' src='{% static "build/BattleController.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/BattleMarker2D.js" %}'></script>
     <script type='text/javascript' src='{% static "build/BattlesOnMap.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/BrowserDetector.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/Button.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/ButtonArea.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/ChangeOperationButtons.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/ControlButtons.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/CategoryFilter.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/CategoryIconMapping.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/Crowd.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/CrowdController.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/CrowdMarker2D.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/CrowdsOnMap.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/ChangeOperationWorkflow.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/EditMode.js" %}'></script>
+
     <script type='text/javascript' src='{% static "build/GraphController.js" %}'></script>
     <script type='text/javascript' src='{% static "build/GraphNode.js" %}'></script>
     <script type='text/javascript' src='{% static "build/GraphNodeConnection.js" %}'></script>
     <script type='text/javascript' src='{% static "build/GraphOnGlobe.js" %}'></script>
 
-    <script type='text/javascript' src='{% static "build/HistoGlobe.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/Title.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/TitleImage.js" %}'></script>
 
+    <script type='text/javascript' src='{% static "build/Help.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/Hivent.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventBuilder.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventController.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventDatabaseInterface.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventHandle.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventInfoAtTag.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventInfoPopover.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventInfoPopovers.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventList.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventMarker.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventMarker2D.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventMarker3D.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventMarker3DGroup.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventMarkerRegion.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventMarkerTimeline.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventPresenter.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventStory.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventTooltips.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventsOnGlobe.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventsOnMap.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/HiventsOnTimeline.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/Imprint.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/Label.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/LabelController.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/MultimediaController.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/Path.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/PathController.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/ArcPath2D.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/LinearPath2D.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/Logo.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/SearchBoxArea.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/SearchBoxForm.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/ShapeController.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/Sidebar.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/WidgetController.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/Timeline.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/ZoomButtonsTimeline.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/Watermark.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/ABTest.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/CSSCreator.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/CallbackContainer.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/Gallery.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/Mixin.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/ObjectArray.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/StateVar.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/Vector.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/VideoPlayer.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/default_config.js" %}'></script>
+    <script type='text/javascript' src='{% static "build/config.js" %}'></script>
+
+    <script type='text/javascript' src='{% static "build/HistoGlobe.js" %}'></script>
 
     <!-- INIT HISTOGLOBE -->
 
