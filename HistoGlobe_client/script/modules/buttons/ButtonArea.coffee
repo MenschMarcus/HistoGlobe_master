@@ -12,9 +12,7 @@ class HG.ButtonArea
     @_groups = new HG.ObjectArray()
 
   # ============================================================================
-  hgInit: (hgInstance) ->
-    @_hgInstance = hgInstance
-    @_hgInstance.button_area = @
+  hgInit: (@_hgInstance) ->
 
     @_container = document.createElement "div"
     @_container.id = @_id

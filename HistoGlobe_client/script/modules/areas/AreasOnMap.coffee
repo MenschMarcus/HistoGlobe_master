@@ -17,9 +17,9 @@ class HG.AreasOnMap
   hgInit: (@_hgInstance) ->
 
     @_hgInstance.areasOnMap = @
+
     @_map = @_hgInstance.map._map
     @_areaController = @_hgInstance.areaController
-
     @_zoomLevel = @_map.getZoom()
 
     # event handling

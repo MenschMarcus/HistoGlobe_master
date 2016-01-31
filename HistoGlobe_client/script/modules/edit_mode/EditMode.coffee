@@ -21,10 +21,11 @@ class HG.EditMode
 
     @_config = $.extend {}, defaultConfig, config
 
+    @_initEditMode()
+
   # ============================================================================
   hgInit: (@_hgInstance) ->
     @_hgInstance.editMode = @
-    @_initEditMode()
 
 
   ##############################################################################

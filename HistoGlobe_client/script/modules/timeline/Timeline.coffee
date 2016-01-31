@@ -56,8 +56,7 @@ class HG.Timeline
 
   ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 
-  hgInit: (hgInstance) ->
-    @_hgInstance = hgInstance
+  hgInit: (@_hgInstance) ->
     @_hgInstance.timeline = @
 
     @_config.minYear = @_hgInstance.getMinMaxYear()[0]
@@ -76,10 +75,10 @@ class HG.Timeline
       @_hgInstance.minGUIButton?.onOpenGUI @, () ->
         @_showCategories()
 
-      if @_hgInstance.zoom_buttons_timeline
-        @_hgInstance.zoom_buttons_timeline.onZoomIn @, () =>
+      if @_hgInstance.zoomButtonsTimeline
+        @_hgInstance.zoomButtonsTimeline.onZoomIn @, () =>
           @_zoom(1)
-        @_hgInstance.zoom_buttons_timeline.onZoomOut @, () =>
+        @_hgInstance.zoomButtonsTimeline.onZoomOut @, () =>
           @_zoom(-1)
 
       # show or hide topic

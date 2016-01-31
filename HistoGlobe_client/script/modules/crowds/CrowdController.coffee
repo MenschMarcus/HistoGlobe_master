@@ -24,9 +24,7 @@ class HG.CrowdController
     @_config = $.extend {}, defaultConfig, config
 
   # ============================================================================
-  hgInit: (hgInstance) ->
-    @_hgInstance = hgInstance
-
+  hgInit: (@_hgInstance) ->
     @_hgInstance.crowdController = @
 
     @_nowDate = @_hgInstance.timeline.getNowDate()

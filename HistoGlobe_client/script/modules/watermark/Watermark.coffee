@@ -21,8 +21,8 @@ class HG.Watermark
     @_config = $.extend {}, defaultConfig, config
 
   # ============================================================================
-  hgInit: (hgInstance) ->
-    parentDiv = hgInstance._config.container
+  hgInit: (@_hgInstance) ->
+    parentDiv = @_hgInstance._config.container
 
     if @_config.image?
       image = document.createElement "img"

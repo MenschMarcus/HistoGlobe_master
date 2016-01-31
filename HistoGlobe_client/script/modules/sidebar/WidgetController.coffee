@@ -18,13 +18,10 @@ class HG.WidgetController
 
 
   # ============================================================================
-  hgInit: (hgInstance) ->
+  hgInit: (@_hgInstance) ->
+    @_hgInstance.widgetController = @
 
-    @_hgInstance = hgInstance
-
-    hgInstance.widgetController = @
-
-    hgInstance.categoryFilter?.onFilterChanged @,(categoryFilter) =>
+    @_hgInstance.categoryFilter?.onFilterChanged @,(categoryFilter) =>
       @_currentCategoryFilter = categoryFilter
       @_filterWidgets()
 

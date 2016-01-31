@@ -7,7 +7,7 @@ class HG.Imprint
   ##############################################################################
 
   # ============================================================================
-  constructor: (config) ->
+  constructor: () ->
 
     # create imprint link
     @_link = document.createElement "div"
@@ -90,10 +90,9 @@ class HG.Imprint
 
 
   # ============================================================================
-  hgInit: (hgInstance) ->
-    @_hgInstance = hgInstance
+  hgInit: (@_hgInstance) ->
 
-    parentDiv = hgInstance._config.container
+    parentDiv = @_hgInstance._config.container
     parentDiv.appendChild @_link
     parentDiv.appendChild @_imprintOverlay
 

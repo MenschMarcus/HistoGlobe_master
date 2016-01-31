@@ -31,11 +31,11 @@ class HG.GraphController
     @_countryCodes = []
 
   # ============================================================================
-  hgInit: (hgInstance) ->
+  hgInit: (@_hgInstance) ->
 
-    hgInstance.graphController = @
+    @_hgInstance.graphController = @
 
-    @_timeline = hgInstance.timeline
+    @_timeline = @_hgInstance.timeline
 
     @_now = @_timeline.getNowDate()
 
@@ -61,7 +61,7 @@ class HG.GraphController
         execute_async c  # async
 
 
-    @_areaController = hgInstance.areaController
+    @_areaController = @_hgInstance.areaController
 
     @_areaController.onLabelsLoaded @,() =>
 
@@ -152,7 +152,7 @@ class HG.GraphController
                 @notifyAll "onHideGraphNodeConnection",connection
               newConnection.setDate @_now
 
-              @_connections.push newConnection 
+              @_connections.push newConnection
 
               #nodes:
               unless oldA
@@ -216,7 +216,7 @@ class HG.GraphController
         csvvalue=line.split("|")
         #id = csvvalue[0].replace(/\s+/g, '')
         latlng = csvvalue[2].split(",")
-        @_countryCodes[csvvalue[1]] = 
+        @_countryCodes[csvvalue[1]] =
           lat: parseFloat(latlng[0])
           lng: parseFloat(latlng[1])
     )

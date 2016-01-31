@@ -31,16 +31,15 @@ class HG.PathController
 
 
   # ============================================================================
-  hgInit: (hgInstance) ->
-    hgInstance.pathController = @
+  hgInit: (@_hgInstance) ->
+    @_hgInstance.pathController = @
 
-    @_hiventController = hgInstance.hiventController
+    @_hiventController = @_hgInstance.hiventController
+    @_timeline = @_hgInstance.timeline
 
     unless @_hiventController?
       console.warn "Failed to init PathController: No hiventController module detected!"
       return
-
-    @_timeline = hgInstance.timeline
 
     @_paths = []
     @_now = @_timeline.getNowDate()

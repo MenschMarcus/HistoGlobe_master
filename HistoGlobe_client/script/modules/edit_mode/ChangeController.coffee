@@ -35,7 +35,7 @@ class HG.ChangeController
   # ============================================================================
   hgInit: (@_hgInstance) ->
 
-    @_hgInstance.change_controller = @
+    @_hgInstance.changeController = @
 
     @_editButton = @_hgInstance.buttons.editButton
     @_container = @_hgInstance._hgInstance._config.container

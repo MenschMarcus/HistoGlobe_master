@@ -2,18 +2,15 @@ window.HG ?= {}
 
 
 class HG.HiventMarkerRegion extends HG.HiventMarker
-	constructor: (hiventHandle, display, map) ->
+	constructor: (@_hiventHandle, @_display, @_map) ->
 
     #Call HiventMarker Constructor
-    HG.HiventMarker.call @, hiventHandle, map.getPanes()["popupPane"]
+    HG.HiventMarker.call @, hiventHandle, @_map.getPanes()["popupPane"]
 
-    @hivent=hiventHandle.getHivent()
-    @hiventHandle=hiventHandle
+    @hivent = @_hiventHandle.getHivent()
     @hiventHandle.regionMarker=@
     @_locationName = @hivent.locactionName
 
-    @_map =display._map
-    @_display=display
     @_marker= L.polygon @hivent.region
     @_marker.options.stroke=false
     @_marker.addTo @_map
@@ -36,7 +33,7 @@ class HG.HiventMarkerRegion extends HG.HiventMarker
         @_display.focus @getHiventHandle().getHivent()
     )
 
-    @getHiventHandle().onActive(@, (mousePos) =>      
+    @getHiventHandle().onActive(@, (mousePos) =>
       @_map.on "drag", @_updatePosition
       @makeVisible()
     )
@@ -47,7 +44,7 @@ class HG.HiventMarkerRegion extends HG.HiventMarker
     )
 
     @getHiventHandle().onLink(@, (mousePos) =>
-     
+
       #@_marker.setIcon icon_higlighted
     )
 
@@ -79,7 +76,7 @@ class HG.HiventMarkerRegion extends HG.HiventMarker
     @pos = @_map.layerPointToContainerPoint(new L.Point @_position.x, @_position.y )
     return @pos
 
-  makeVisible:->    
+  makeVisible:->
     @_marker.setStyle({fillOpacity:0.5})
 
   makeInvisible:->

@@ -56,17 +56,12 @@ class HG.GraphOnGlobe
 
 
   # ============================================================================
-  hgInit: (hgInstance) ->
-    hgInstance.areasOnGlobe = @
-
-    @_hgInstance = hgInstance
+  hgInit: (@_hgInstance) ->
+    @_hgInstance.areasOnGlobe = @
 
     @_globe = hgInstance.globe
-
     @_globeCanvas = hgInstance.mapCanvas
-
     @_graphController = hgInstance.graphController
-
 
     if @_globe
       @_globe.onLoaded @, @_initGraph

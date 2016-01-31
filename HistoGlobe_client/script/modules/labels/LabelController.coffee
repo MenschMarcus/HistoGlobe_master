@@ -7,7 +7,7 @@ class HG.LabelController
   ##############################################################################
 
   # ============================================================================
-  constructor: (timeline) ->
+  constructor: () ->
 
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
@@ -16,8 +16,6 @@ class HG.LabelController
     @addCallback "onHideLabel"
 
     @_initMembers()
-
-    #timeline.addListener this
 
   # ============================================================================
   nowChanged: (date) ->

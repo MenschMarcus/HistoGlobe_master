@@ -12,7 +12,7 @@ class HG.ChangeOperationButtons
   # ============================================================================
   hgInit: (@_hgInstance) ->
 
-    @_hgInstance.edit_operation_buttons = @
+    @_hgInstance.ChangeOperationButtons = @
 
     # init buttons for each operation
     @_buttons = new HG.ObjectArray
