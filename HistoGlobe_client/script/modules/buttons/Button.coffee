@@ -33,6 +33,7 @@ class HG.Button
     # add button to button object in HG instance
     unless @_hgInstance.buttons
       @_hgInstance.buttons = {}  # initially add object to hgInstance
+
     @_hgInstance.buttons[@_buttonConfig.id] = @
 
     # init state
