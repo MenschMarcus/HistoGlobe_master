@@ -30,15 +30,15 @@ class HG.ShapeController
     @loadShapesFromJSON conf
 
   # ============================================================================
-  hgInit: (hgInstance) ->
-    hgInstance.ShapeController = @
+  hgInit: (@_hgInstance) ->
+    @_hgInstance.shapeController = @
 
-    @_timeline = hgInstance.timeline
-    @_shape_styler = hgInstance.shapeStyler
+    @_timeline = @_hgInstance.timeline
+    @_shape_styler = @_hgInstance.shapeStyler
     @_now = @_timeline.getNowDate()
 
     # quicky...
-    @_map = hgInstance.map._map
+    @_map = @_hgInstance.map._map
 
     @_timeline.onNowChanged @, (date) ->
       @_now = date
@@ -46,11 +46,11 @@ class HG.ShapeController
         # shape.setDate date
         @_filterShapeTimeQuicky shape
 
-    hgInstance.categoryFilter?.onFilterChanged @,(categoryFilter) =>
+    @_hgInstance.categoryFilter?.onFilterChanged @,(categoryFilter) =>
       @_currentCategoryFilter = categoryFilter
       @_filterActiveShapes()
 
-    @_categoryFilter = hgInstance.categoryFilter if hgInstance.categoryFilter
+    @_categoryFilter = @_hgInstance.categoryFilter if @_hgInstance.categoryFilter
 
   # ============================================================================
   loadShapesFromJSON: (config) ->

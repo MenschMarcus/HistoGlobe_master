@@ -7,13 +7,13 @@ class HG.HiventPresenter
   ##############################################################################
 
   # ============================================================================
-  hgInit: (hgInstance) ->
-    hgInstance.hiventPresenter = @
+  hgInit: (@_hgInstance) ->
+    @_hgInstance.hiventPresenter = @
 
-    hgInstance.onAllModulesLoaded @, () =>
-      @_timeline            = hgInstance.timeline
-      @_hiventController    = hgInstance.hiventController
-      @_hiventInfoPopovers  = hgInstance.hiventInfoPopovers
+    @_hgInstance.onAllModulesLoaded @, () =>
+      @_timeline            = @_hgInstance.timeline
+      @_hiventController    = @_hgInstance.hiventController
+      @_hiventInfoPopovers  = @_hgInstance.hiventInfoPopovers
 
   # ============================================================================
   present: (id) ->

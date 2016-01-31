@@ -11,24 +11,15 @@ class HG.HiventMarker3D extends HG.HiventMarker
 
   # ============================================================================
   #constructor: (hiventHandle, display, parent, scene, markerGroup, logos, latlng) ->
-  constructor: (hiventHandle, display, parent, scene, logos, hgInstance) ->
-
-    #HG.mixin @, HG.HiventMarker
+  constructor: (hiventHandle, @_globe, parent, @_scene, logos, @_hgInstance) ->
 
     HG.HiventMarker.call @, hiventHandle, parent
 
-
-
+    #HG.mixin @, HG.HiventMarker
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
     @addCallback "onMarkerDestruction"
-
-    @_globe = display
-    
-    @_scene = scene
-
-    @_hgInstance = hgInstance
 
     @ScreenCoordinates = null
 

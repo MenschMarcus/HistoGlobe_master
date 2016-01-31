@@ -29,10 +29,11 @@ class HG.MultimediaController
 
     @_config = $.extend {}, defaultConfig, config
 
-  # ============================================================================
-  hgInit: (hgInstance) ->
-    hgInstance.multimediaController = @
     @loadMultimediaFromDSV()
+
+  # ============================================================================
+  hgInit: (@_hgInstance) ->
+    @_hgInstance.multimediaController = @
 
   # ============================================================================
   onMultimediaLoaded: (callbackFunc) ->

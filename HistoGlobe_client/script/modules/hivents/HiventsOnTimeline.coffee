@@ -25,19 +25,18 @@ class HG.HiventsOnTimeline
     @_markersLoaded = false
 
   # ============================================================================
-  hgInit: (hgInstance) ->
-    @_hgInstance = hgInstance
-    hgInstance.hiventsOnTimeline = @
-    @_timeline = hgInstance.timeline
+  hgInit: (@_hgInstance) ->
+    @_hgInstance.hiventsOnTimeline = @
 
+    @_timeline = @_hgInstance.timeline
 
-    if hgInstance.categoryIconMapping
-      for category in hgInstance.categoryIconMapping.getCategories()
+    if @_hgInstance.categoryIconMapping
+      for category in @_hgInstance.categoryIconMapping.getCategories()
         # position = @_config.default_position
         # for obj in @_config.marker_positions
         #   if obj.category == category
         #     position = obj.position
-        icons = hgInstance.categoryIconMapping.getIcons(category)
+        icons = @_hgInstance.categoryIconMapping.getIcons(category)
         #iconsTimeLine = {default: "config/school/icons/marker_hivent-timeline.svg", highlighted: "config/school/icons/marker_hivent-timeline-active.svg"}
         #console.log icons
         #console.log iconsTimeLine
@@ -54,7 +53,7 @@ class HG.HiventsOnTimeline
            background-image: url(#{icons[element]}) !important;
            background-size: cover !important;"
 
-    @_hiventController = hgInstance.hiventController
+    @_hiventController = @_hgInstance.hiventController
 
     if @_hiventController
       @_hiventController.getHivents @, (handle) =>
@@ -103,8 +102,8 @@ class HG.HiventsOnTimeline
       console.error "Unable to show hivents on Timeline: HiventController module not detected in HistoGlobe instance!"
 
     #new:
-    # hgInstance.onAllModulesLoaded @, () =>
-    #   @_hiventGallerWidget = hgInstance.hiventGalleryWidget
+    # @_hgInstance.onAllModulesLoaded @, () =>
+    #   @_hiventGallerWidget = @_hgInstance.hiventGalleryWidget
     #   if @_hiventGallerWidget
     #     @_hiventGallerWidget.onHiventAdded @,(handle) =>
 

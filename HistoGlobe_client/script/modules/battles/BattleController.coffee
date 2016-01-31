@@ -24,9 +24,7 @@ class HG.BattleController
 
 
   # ============================================================================
-  hgInit: (hgInstance) ->
-    @_hgInstance = hgInstance
-
+  hgInit: (@_hgInstance) ->
     @_hgInstance.battleController = @
 
     @_hgInstance.timeline.onNowChanged @, (date) =>

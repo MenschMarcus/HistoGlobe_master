@@ -7,17 +7,16 @@ class HG.ZoomButtonsTimeline
   ##############################################################################
 
   # ============================================================================
-  hgInit: (hgInstance) ->
+  hgInit: (@_hgInstance) ->
+    @_hgInstance.zoomButtonsTimeline = @
+
+    @_timeline = @_hgInstance.timeline
 
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
     @addCallback "onZoomIn"
     @addCallback "onZoomOut"
-
-    hgInstance.zoom_buttons_timeline = @
-
-    @_timeline = hgInstance.timeline
 
     if @_timeline
 

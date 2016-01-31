@@ -29,15 +29,12 @@ class HG.HiventsOnGlobe
     @_hgInstance              = null
 
   # ============================================================================
-  hgInit: (hgInstance) ->
+  hgInit: (@_hgInstance) ->
+    @_hgInstance.hiventsOnGlobe = @
 
-    @_hgInstance = hgInstance
-
-    hgInstance.hiventsOnGlobe = @
-
-    if hgInstance.categoryIconMapping
-      for category in hgInstance.categoryIconMapping.getCategories()
-        icons = hgInstance.categoryIconMapping.getIcons(category)
+    if @_hgInstance.categoryIconMapping
+      for category in @_hgInstance.categoryIconMapping.getCategories()
+        icons = @_hgInstance.categoryIconMapping.getIcons(category)
         @_hiventLogos[category] = THREE.ImageUtils.loadTexture(icons["default"])
         @_hiventLogos[category+"_highlighted"] = THREE.ImageUtils.loadTexture(icons["highlighted"])
         @_hiventLogos["group_default"] = THREE.ImageUtils.loadTexture(icons["group_default"])
@@ -46,11 +43,11 @@ class HG.HiventsOnGlobe
     #console.log "@_hiventLogos ",@_hiventLogos
 
 
-    @_globeCanvas = hgInstance._map_canvas
+    @_globeCanvas = @_hgInstance._map_canvas
 
-    @_globe = hgInstance.globe
+    @_globe = @_hgInstance.globe
 
-    @_hiventController = hgInstance.hiventController
+    @_hiventController = @_hgInstance.hiventController
 
     if @_globe
       @_globe.onLoaded @, @_initHivents
@@ -112,7 +109,7 @@ class HG.HiventsOnGlobe
                 markerGroup = new HG.HiventMarker3DGroup([marker,m],@_globe, HG.Display.CONTAINER, @_sceneInterface, logos, @_hgInstance)
 
                 markerGroup.onMarkerDestruction @, (marker_group) =>
-                  #remove group and add last/remaining element to map 
+                  #remove group and add last/remaining element to map
                   index = @_hiventMarkerGroups.indexOf(marker_group)
                   @_hiventMarkerGroups.splice index,1 if index >= 0
                   @_sceneInterface.remove marker_group.sprite
@@ -318,7 +315,7 @@ class HG.HiventsOnGlobe
 
     for hivent in @_lastIntersected
       hivent.onMouseOut()
-        
+
 
     if tmp_intersects.length is 0
       HG.Display.CONTAINER.style.cursor = "auto"

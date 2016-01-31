@@ -7,10 +7,8 @@ class HG.HiventInfoPopover
   ##############################################################################
 
   # ============================================================================
-  constructor: (hiventHandle, container, hgInstance, hiventIndex, showArrow) ->
+  constructor: (@_hiventHandle, container, @_hgInstance, hiventIndex, showArrow) ->
 
-    @_hiventHandle = hiventHandle
-    @_hgInstance = hgInstance
     @_visible = false
     @_multimediaController = hgInstance.multimediaController
 

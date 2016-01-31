@@ -14,12 +14,11 @@ class HG.BattlesOnMap
 
 
   # ============================================================================
-  hgInit: (hgInstance) ->
-    hgInstance.battlesOnMap = @
+  hgInit: (@_hgInstance) ->
+    @_hgInstance.battlesOnMap = @
 
     @_map = hgInstance.map._map
-
-    @_battleController = hgInstance.battleController
+    @_battleController = @_hgInstance.battleController
 
     if @_battleController
       @_initBattles()

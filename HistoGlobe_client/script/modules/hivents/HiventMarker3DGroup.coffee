@@ -9,7 +9,7 @@ class HG.HiventMarker3DGroup
   ##############################################################################
 
   # ============================================================================
-  constructor: (hiventMarkers, display, parent, scene, logos, hgInstance) ->
+  constructor: (hiventMarkers, @_globe, parent, @_scene, logos, @_hgInstance) ->
 
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
@@ -17,12 +17,6 @@ class HG.HiventMarker3DGroup
     @addCallback "onMarkerDestruction"
     @addCallback "onSplitGroup"
     @addCallback "onCollapseGroup"
-
-    @_globe = display
-    
-    @_scene = scene
-
-    @_hgInstance = hgInstance
 
     @ScreenCoordinates = null
 
@@ -108,7 +102,7 @@ class HG.HiventMarker3DGroup
 
       if @_globe.isRunning()
         @_globe.setCenter {x: @getGPS()[1], y: @getGPS()[0]}
-      
+
       @notifyAll "onSplitGroup", @, @_hiventMarkers
       @_splitted = true
       @sprite.material.opacity = 0.2
@@ -157,7 +151,7 @@ class HG.HiventMarker3DGroup
       @_delete_marker marker
     marker.getHiventHandle().onInvisible @, () =>
       @_delete_marker marker
-  
+
 
   # ============================================================================
   getDisplayPosition:->

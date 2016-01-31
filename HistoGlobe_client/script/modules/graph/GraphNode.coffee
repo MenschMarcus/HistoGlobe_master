@@ -12,7 +12,6 @@ class HG.GraphNode
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-
     @addCallback "onShow"
     @addCallback "onHide"
     @addCallback "onStyleChange"
