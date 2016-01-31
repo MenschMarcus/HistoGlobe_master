@@ -30,8 +30,8 @@ class HG.ControlButtons
   hgInit: (@_hgInstance) ->
 
     # idea: module "ControlButtons" is instance of class "ButtonArea"
-    @_hgInstance.control_buttons = new HG.ButtonArea 'controlButtons', 'bottom-left', 'vertical'
-    @_hgInstance.control_buttons.hgInit @_hgInstance
+    @_hgInstance.controlButtons = new HG.ButtonArea 'controlButtons', 'bottom-left', 'vertical'
+    @_hgInstance.controlButtons.hgInit @_hgInstance
 
     # init predefined buttons
     for id, enable of @_config
@@ -40,7 +40,7 @@ class HG.ControlButtons
           when 'zoom' then (
             new HG.Button @_hgInstance,
               {
-                'parentArea':   @_hgInstance.control_buttons,
+                'parentArea':   @_hgInstance.controlButtons,
                 'groupName':    'zoom'
                 'id':           'zoomInButton',
                 'states': [
@@ -54,7 +54,7 @@ class HG.ControlButtons
               }
             new HG.Button @_hgInstance,
               {
-                'parentArea':   @_hgInstance.control_buttons,
+                'parentArea':   @_hgInstance.controlButtons,
                 'groupName':    'zoom'
                 'id':           'zoomOutButton',
                 'states': [
@@ -73,7 +73,7 @@ class HG.ControlButtons
             # 1. init button
             new HG.Button @_hgInstance,
               {
-                'parentArea':   @_hgInstance.control_buttons,
+                'parentArea':   @_hgInstance.controlButtons,
                 'id':           'fullscreenButton',
                 'states': [
                   {
@@ -122,7 +122,7 @@ class HG.ControlButtons
             # 1. init button
             new HG.Button @_hgInstance,
               {
-                'parentArea':   @_hgInstance.control_buttons,
+                'parentArea':   @_hgInstance.controlButtons,
                 'id':           'highContrastButton',
                 'states': [
                   {
@@ -156,7 +156,7 @@ class HG.ControlButtons
             # 1. init button
             new HG.Button @_hgInstance,
               {
-                'parentArea':   @_hgInstance.control_buttons,
+                'parentArea':   @_hgInstance.controlButtons,
                 'id':           'minLayoutButton',
                 'states': [
                   {
@@ -189,7 +189,7 @@ class HG.ControlButtons
             # 1. init button
             new HG.Button @_hgInstance,
               {
-                'parentArea':   @_hgInstance.control_buttons,
+                'parentArea':   @_hgInstance.controlButtons,
                 'id':           'graphButton',
                 'states': [
                   {

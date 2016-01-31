@@ -33,8 +33,7 @@ class HG.Help
       @addHelp e
 
   # ============================================================================
-  hgInit: (hgInstance) ->
-    @_hgInstance = hgInstance
+  hgInit: (@_hgInstance) ->
     @_hgInstance.help = @
 
     @_hgInstance.getContainer().appendChild @_div
@@ -46,7 +45,7 @@ class HG.Help
             @show()
             hgInstance.hiventInfoAtTag?.unsetOption("help")
 
-    if hgInstance.control_buttons?
+    if hgInstance.controlButtons?
 
       help =
         icon: "fa-question"
@@ -56,7 +55,7 @@ class HG.Help
             @_hgInstance._collapse()
           @show()
 
-      @_button = hgInstance.control_buttons.addButton help
+      @_button = hgInstance.controlButtons.addButton help
 
   # ============================================================================
   show:() ->

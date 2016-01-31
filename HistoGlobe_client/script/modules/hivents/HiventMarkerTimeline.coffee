@@ -11,12 +11,9 @@ class HG.HiventMarkerTimeline extends HG.HiventMarker
   ##############################################################################
 
   # ============================================================================
-  constructor: (hgInstance, timeline, hiventHandle, parent, posX, rowPosition=0, id) ->
-    HG.HiventMarker.call @, hiventHandle, parent
+  constructor: (@_hgInstance, @_timeline, hiventHandle, parent, posX, rowPosition=0, @_id) ->
 
-    @_hgInstance = hgInstance
-    @_timeline = timeline
-    @_id = id
+    HG.HiventMarker.call @, hiventHandle, parent
 
     time = hiventHandle.getHivent().startDate.getTime()
 

@@ -13,16 +13,16 @@ class HG.Logo
 
     @_config = $.extend {}, defaultConfig
 
-  hgInit: (hgInstance) ->
+  #   --------------------------------------------------------------------------
+  hgInit: (@_hgInstance) ->
+    @_hgInstance.logo = @
 
-    hgInstance.logo = @
-
-    if hgInstance.hg_logo?
+    if @_hgInstance.hg_logo?
       logo =
         icon:       @_config.icon
         callback: ()-> console.log "Not implmented"
 
-      hgInstance.hg_logo.addLogo logo
+      @_hgInstance.hg_logo.addLogo logo
 
     else
       console.error "Failed to add logo: SearchBoxArea module not found!"

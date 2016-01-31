@@ -9,21 +9,21 @@ class HG.SearchBoxForm
   #   --------------------------------------------------------------------------
   constructor: () ->
     defaultConfig =
-      #method: "get" 
+      #method: "get"
       #action: "http://www.google.com"
       tooltip:  "Suchfeld - Demnächst verfügbar"
 
     @_config = $.extend {}, defaultConfig
 
-  hgInit: (hgInstance) ->
+  hgInit: (@_hgInstance) ->
 
-    hgInstance.search_form = @
+    @_hgInstance.searchForm = @
 
-    if hgInstance.search_box_area?
-      search_form =
+    if @_hgInstance.searchBoxArea?
+      searchForm =
         callback: ()-> console.log "Not implmented"
 
-      hgInstance.search_box_area.addSearchBox search_form
+      @_hgInstance.searchBoxArea.addSearchBox searchForm
 
     else
       console.error "Failed to add search form: SearchBoxArea module not found!"

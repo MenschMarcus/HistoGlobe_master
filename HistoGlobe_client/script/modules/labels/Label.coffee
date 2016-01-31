@@ -15,7 +15,7 @@ class HG.Label
     @addCallback "onShow"
     @addCallback "onHide"
 
-    @_initMembers(json)
+    @_initMembers json
 
   # ============================================================================
   getName: ->

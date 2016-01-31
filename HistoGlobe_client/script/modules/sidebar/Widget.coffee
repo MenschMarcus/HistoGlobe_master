@@ -24,13 +24,12 @@ class HG.Widget
     @loaded = false
 
   # ============================================================================
-  hgInit: (hgInstance) ->
+  hgInit: (@_hgInstance) ->
 
     @loaded = true
 
     @_width = 0
-    @_hgInstance = hgInstance
-    @_sidebar = hgInstance.sidebar
+    @_sidebar = @_hgInstance.sidebar
     @_createLayout()
     @_sidebar.onWidthChanged @, (width) =>
       @setWidth width - 2*HGConfig.widget_margin.val - HGConfig.sidebar_scrollbar_width.val - HGConfig.widget_title_size.val - 2*HGConfig.widget_body_padding.val

@@ -14,7 +14,7 @@ class HG.HiventMarker
   # Constructor
   # Initializes members and adds callbacks for state changes.
   # ============================================================================
-  constructor: (hiventHandle, parentDiv) ->
+  constructor: (@_hiventHandle, @_parentDiv) ->
 
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
@@ -22,12 +22,7 @@ class HG.HiventMarker
     @addCallback "onPositionChanged"
     @addCallback "onDestruction"
 
-    @parentDiv = parentDiv
-
-    @_hiventHandle = hiventHandle
-
-  hgInit: (hgInstance) ->
-    @_hgInstance = hgInstance
+  hgInit: (@_hgInstance) ->
 
   # ============================================================================
   # Returns the associated HiventHandle. Multiple HiventMarkers may share the

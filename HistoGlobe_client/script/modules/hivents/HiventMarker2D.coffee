@@ -14,32 +14,23 @@ class HG.HiventMarker2D extends HG.HiventMarker
   # Constructor
   # Inits members and adds a new Leaflet marker to the map.
   # ============================================================================
-  constructor: (hiventHandle, lat, long, display, map, markerGroup, locationName, hgInstance) ->
+  constructor: (hiventHandle, @_lat, @_long, @_display, @_map, markerGroup, @_locationName, @_hgInstance) ->
 
-    #Call HiventMarker Constructor
+    # Call HiventMarker Constructor
     HG.HiventMarker.call @, hiventHandle, map.getPanes()["popupPane"]
 
-    #List of all HiventMarker2Ds
+    # List of all HiventMarker2Ds
     VISIBLE_MARKERS_2D.push @
 
-    @_hgInstance = hgInstance
     @_mode = hgInstance.abTest.config.hiventMarkerMode
 
-    @locationName = locationName
-
-    @_display = display
-    @_map = map
-
-    @_lat = lat
-    @_long = long
 
     #Private Name and Location because constant use
     @_markerLabelLocation = hiventHandle.getHivent().locationName
-
     @_markerLabelEventName = hiventHandle.getHivent().name
 
 
-    html="<div class=\"markerLabel left\">#{@_markerLabelLocation}</div>"
+    html = "<div class=\"markerLabel left\">#{@_markerLabelLocation}</div>"
 
 
     iconAnchor=[15,45]

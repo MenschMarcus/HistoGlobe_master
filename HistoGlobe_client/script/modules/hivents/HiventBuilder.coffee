@@ -12,9 +12,7 @@ class HG.HiventBuilder
   ##############################################################################
 
   # ============================================================================
-  constructor: (config, multimediaController) ->
-    @_config = config
-    @_multimediaController = multimediaController
+  constructor: (@_config, @_multimediaController) ->
 
   # ============================================================================
   constructHiventFromArray: (dataArray, successCallback) ->

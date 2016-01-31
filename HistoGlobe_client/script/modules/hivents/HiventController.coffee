@@ -41,14 +41,13 @@ class HG.HiventController
   # ============================================================================
   # Issues configuration depending on the current HistoGlobe instance.
   # ============================================================================
-  hgInit: (hgInstance) ->
-    @_hgInstance = hgInstance
-
-    # init AB tests
-    @_ab = hgInstance.abTest.config
+  hgInit: (@_hgInstance) ->
 
     # Register HiventController at the current HistoGlobe instance.
     @_hgInstance.hiventController = @
+
+    # init AB tests
+    @_ab = hgInstance.abTest.config
 
     # Register listeners to update filters or react on updated filters.
     @_hgInstance.timeline.onIntervalChanged @, (timeFilter) =>

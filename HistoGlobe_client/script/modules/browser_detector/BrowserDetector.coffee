@@ -33,8 +33,8 @@ class HG.BrowserDetector
     @webglSupported = getWebgl()
 
   # ============================================================================
-  hgInit: (hgInstance) ->
-    hgInstance.browserDetector = @
+  hgInit: (@_hgInstance) ->
+    @_hgInstance.browserDetector = @
 
 
 

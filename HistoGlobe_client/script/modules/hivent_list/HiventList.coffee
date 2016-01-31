@@ -23,8 +23,8 @@ class HG.HiventList
     @theme = ''
 
   #   --------------------------------------------------------------------------
-  hgInit: (hgInstance) ->
-    @_hgInstance = hgInstance
+  hgInit: (@_hgInstance) ->
+
     @_hivent_array = []
     @_hivent_list = document.createElement "div"
     @_hivent_list.className = "hivent-list"
@@ -48,7 +48,7 @@ class HG.HiventList
     $(@_hivent_list).on("mouseenter", ".hiventListItem",  ->
       id=this.id
       handle=window.hgInstance.hiventController.getHiventHandleById(id)
-      
+
       if !handle._activated
         handle.mark @, 0
         handle.linkAll @, 0
@@ -87,7 +87,7 @@ class HG.HiventList
       @notifyAll "onUpdateTheme", @theme
 
     @_hgInstance.onAllModulesLoaded @, () =>
-      @_hgInstance.search_box_area?.onSearchBoxChanged @, (search_props) =>
+      @_hgInstance.searchBoxArea?.onSearchBoxChanged @, (search_props) =>
         if @props.active
           if search_props.active
             @props.height_hivent_list = 0
@@ -166,11 +166,11 @@ class HG.HiventList
 
           hivent.onInActive @, (mousePos, handle) =>
             @deactivateElement handle.getHivent().id
-          
+
           hivent.onLink @, (mousePos, handle) =>
             if !handle._activated
               @hoverElement handle.getHivent().id
-          
+
           hivent.onUnLink @, (mousePos, handle) =>
             if !handle._activated
               @dehoverElement handle.getHivent().id
@@ -229,7 +229,7 @@ class HG.HiventList
     else
       @props.active = false
 
-    if @_hgInstance.search_box_area.props.active
+    if @_hgInstance.searchBoxArea.props.active
       @props.height_hivent_list = 0
       @props.heigth_options = 0
       @props.border = 0
@@ -254,16 +254,16 @@ class HG.HiventList
 
     return @_hivent_list
 
-  activateElement: (id) ->    
+  activateElement: (id) ->
     $("#"+id).switchClass("inactive", "active")
     $(".hivent-list").scrollTo "#"+id, 500
 
-  deactivateElement:(id) ->    
+  deactivateElement:(id) ->
     $("#"+id).switchClass("active", "inactive")
-  
-  hoverElement:(id) ->    
+
+  hoverElement:(id) ->
     $("#"+id).switchClass("inactive", "hover", 10)
-  
+
   dehoverElement:(id) ->
     $("#"+id).switchClass("hover", "inactive", 10)
 

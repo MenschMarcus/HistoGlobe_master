@@ -15,9 +15,7 @@ class HG.Title
     @_config = $.extend {}, defaultConfig, config
 
   # ============================================================================
-  hgInit: (hgInstance) ->
-
-    @hgInstance = hgInstance
+  hgInit: (@_hgInstance) ->
 
     @_div               = document.createElement("div")
     @_div.className     = "hg-title"
@@ -36,11 +34,11 @@ class HG.Title
 
   # ============================================================================
   setContent: (content) ->
-    content.init @hgInstance, @_div
+    content.init @_hgInstance, @_div
 
   # ============================================================================
   _resize: () =>
     height = $(@_div).outerHeight()
-    @hgInstance._top_area.style.top = height + "px"
-    @hgInstance._onResize()
+    @_hgInstance._top_area.style.top = height + "px"
+    @_hgInstance._onResize()
 

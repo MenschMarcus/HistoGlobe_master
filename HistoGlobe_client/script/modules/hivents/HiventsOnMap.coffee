@@ -20,16 +20,16 @@ class HG.HiventsOnMap
     @_dragStart = new HG.Vector 0, 0
 
   # ============================================================================
-  hgInit: (hgInstance) ->
-    @_hgInstance=hgInstance
-    hgInstance.hiventsOnMap = @
+  hgInit: (@_hgInstance) ->
+    @_hgInstance.hiventsOnMap = @
+
     # init AB tests
-    @_ab = hgInstance.abTest.config
+    @_ab = @_hgInstance.abTest.config
 
     # Assign css classes to the HiventMarkers according to their category
-    if hgInstance.categoryIconMapping
-      for category in hgInstance.categoryIconMapping.getCategories()
-        icons = hgInstance.categoryIconMapping.getIcons(category)
+    if @_hgInstance.categoryIconMapping
+      for category in @_hgInstance.categoryIconMapping.getCategories()
+        icons = @_hgInstance.categoryIconMapping.getIcons(category)
         for element of icons
           HG.createCSSSelector ".hivent_marker_2D_#{category}_#{element}",
           "width: #{HGConfig.hivent_marker_2D_width.val}px !important;
@@ -50,8 +50,8 @@ class HG.HiventsOnMap
          background-size: cover !important;
          z-index: 100;"
 
-    @_map = hgInstance.map._map
-    @_hiventController = hgInstance.hiventController
+    @_map = @_hgInstance.map._map
+    @_hiventController = @_hgInstance.hiventController
 
     if @_hiventController
       @_markerGroup = new L.MarkerClusterGroup
@@ -101,7 +101,7 @@ class HG.HiventsOnMap
             locations = self.getHivent().locationName[0].split(',')
 
             for i in [0...self.getHivent().lat.length]
-              marker = new HG.HiventMarker2D self, self.getHivent().lat[i], self.getHivent().long[i],  hgInstance.map, @_map, @_markerGroup, locations[i], hgInstance
+              marker = new HG.HiventMarker2D self, self.getHivent().lat[i], self.getHivent().long[i],  @_hgInstance.map, @_map, @_markerGroup, locations[i], @_hgInstance
 
               @_hiventMarkers.push marker
 
@@ -114,7 +114,7 @@ class HG.HiventsOnMap
           #HiventRegion NEW
           @region=self.getHivent().region
           if @region? and Array.isArray(@region) and @region.length>0
-            region = new HG.HiventMarkerRegion self, hgInstance.map, @_map
+            region = new HG.HiventMarkerRegion self, @_hgInstance.map, @_map
 
             @_hiventMarkers.push region
             callback region for callback in @_onMarkerAddedCallbacks

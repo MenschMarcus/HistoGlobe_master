@@ -18,7 +18,6 @@ class HG.Display2D extends HG.Display
   # ============================================================================
   hgInit: (hgInstance) ->
     super hgInstance
-
     @_hgInstance = hgInstance
 
     # @_labelController = labelController

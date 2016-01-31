@@ -26,10 +26,9 @@ class HG.HiventInfoPopovers
     @_onPopoverAddedCallbacks = []
 
   # ============================================================================
-  hgInit: (hgInstance) ->
-    hgInstance.hiventInfoPopovers = @
+  hgInit: (@_hgInstance) ->
+    @_hgInstance.hiventInfoPopovers = @
 
-    @_hgInstance = hgInstance
     @_hiventsOnMap = hgInstance.hiventsOnMap
     @_hiventsOnGlobe = hgInstance.hiventsOnGlobe
     @_hiventsOnTimeline = hgInstance.hiventsOnTimeline
