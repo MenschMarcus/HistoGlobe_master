@@ -41,11 +41,7 @@
 
   "AreasOnMap" : {},
 
-
-  "EditMode" :
-  {
-    "changeOperationsPath": "HistoGlobe_client/config/common/operations.json"
-  },
+  "EditMode" :  {},
 
   "Imprint": {}
 }

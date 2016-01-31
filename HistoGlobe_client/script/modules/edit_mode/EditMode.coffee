@@ -25,6 +25,7 @@ class HG.EditMode
     # init config
     defaultConfig =
       changeOperationsPath: 'HistoGlobe_client/config/common/operations.json'
+      iconPath:             'HistoGlobe_client/config/common/graphics/operations/'
 
     @_config = $.extend {}, defaultConfig, config
 
@@ -74,17 +75,35 @@ class HG.EditMode
     $.getJSON(@_config.changeOperationsPath, (operations) =>
 
       # array of all historical geographic change operations
-      @_HGChangeOperations = new HG.ObjectArray operations['operations'] # all possible operations
+      @_HGChangeOperations = new HG.ObjectArray operations # all possible operations
 
       # create HG change operation buttons
-      @_opButtons = new HG.ChangeOperationButtons @_editButtonArea, @_HGChangeOperations, operations['iconPath']
+      @_opButtons = new HG.ChangeOperationButtons @_editButtonArea, @_HGChangeOperations, @_config.iconPath
     )
 
     # listen to click on edit button => start edit mode
-    console.log @_hgInstance.buttons
     @_editButton.onEnterEditMode @, (btn) ->
+
+      # activate edit button
       btn.changeState 'edit-mode'
       btn.activate()
+
+      # setup new hivent button
+      @_newHiventButton = new HG.Button @,
+        {
+          'parentArea':   @_editButtonArea,
+          'id':           'newHiventButton',
+          'states': [
+            {
+              'id':       'normal',
+              'tooltip':  "Add New Hivent",
+              'iconOwn':  @_config.iconPath + 'new_hivent.svg',
+              'callback': 'onAddNewHivent'
+            }
+          ]
+        }
+
+      # setup operation buttons
       @_opButtons.hgInit @_hgInstance
 
       # listen to click on edit operation buttons => start operation
