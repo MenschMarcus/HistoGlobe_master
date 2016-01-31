@@ -10,6 +10,7 @@ class HG.Watermark
   constructor: (config) ->
 
     defaultConfig =
+      id: ''
       top: null
       right: null
       bottom: null
@@ -22,11 +23,14 @@ class HG.Watermark
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
+    @_hgInstance.watermark = @
+
     parentDiv = @_hgInstance._config.container
 
     if @_config.image?
       image = document.createElement "img"
       image.src = @_config.image
+      image.id = @_config.id
       image.className = "watermark"
       if @_config.top?
         image.style.top = @_config.top
