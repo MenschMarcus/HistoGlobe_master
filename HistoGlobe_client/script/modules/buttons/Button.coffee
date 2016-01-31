@@ -15,6 +15,7 @@ class HG.Button
   #   *B  parentArea:   name_of_button_area
   #       groupName:    name_of_button_group_in_button_area
   #   *   id:           buttonIdInCamelCase (!)
+  #       hide:         bool (yes = hidden, no = shown)
   #   *   states:
   #       [
   #         {
@@ -51,11 +52,17 @@ class HG.Button
     # create button itself
     @_button = document.createElement 'div'
     @_buttonDOM = $(@_button)
+
+    # set id and classes
     if @_buttonConfig.id
       @_button.id = @_buttonConfig.id
     else
       console.error "No id for button given!"
     @_button.className = 'button'
+
+    # hide if wanted
+    if @_buttonConfig.hide
+      @_buttonDOM.hide()
 
     # set state-dependend properties of button
     @_updateState()
@@ -87,10 +94,7 @@ class HG.Button
   hide: () ->         @_buttonDOM.hide()
 
   # ============================================================================
-  remove: () ->
-    @_buttonDOM.remove()
-    delete @_buttonDOM
-    delete @_button
+  remove: () ->       @_buttonDOM.remove()
 
   ##############################################################################
   #                            PRIVATE INTERFACE                                #
