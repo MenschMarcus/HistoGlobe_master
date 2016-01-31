@@ -71,18 +71,18 @@ class HG.EditMode
         ]
       }
 
-    # load edit operations
+    # load all historical geographic change operations
     $.getJSON(@_config.changeOperationsPath, (operations) =>
-      # array of all historical geographic change operations
+
       @_HGChangeOperations = new HG.ObjectArray operations # all possible operations
     )
 
     # listen to click on edit button => start edit mode
-    @_editButton.onEnterEditMode @, (btn) ->
+    @_editButton.onEnterEditMode @, (editButton) ->
 
       # activate edit button
-      btn.changeState 'edit-mode'
-      btn.activate()
+      editButton.changeState 'edit-mode'
+      editButton.activate()
 
       # setup new hivent button
       @_newHiventButton = new HG.Button @,
@@ -188,10 +188,18 @@ class HG.EditMode
 
 
     # listen to click on edit mode => leave edit mode
-    @_editButton.onLeaveEditMode @, (btn) ->
-      btn.changeState 'normal'
-      btn.deactivate()
-      # @_opButtons.destroy()
+    @_editButton.onLeaveEditMode @, (editButton) ->
+
+      # reset edit button
+      editButton.changeState 'normal'
+      editButton.deactivate()
+
+      # remove new hivent button
+      @_newHiventButton.remove()
+
+      # remove change operation buttons
+      @_changeOperationButtons.foreach (coBtn) =>
+        coBtn.btn.remove()
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
