@@ -127,6 +127,7 @@ class HG.EditMode
     # create title to be filled
     @_title = new HG.Title @_hgInstance
 
+
     # -------------------------------------------------------------
     # INTERACTIVITY
     # -------------------------------------------------------------
@@ -218,7 +219,7 @@ class HG.EditMode
               @_curr.step         = null
 
 
-    # listen to click on edit mode => leave edit mode
+    # listen to next click on edit button => leave edit mode
     @_editButton.onLeaveEditMode @, (editButton) ->
 
       # reset edit button
@@ -235,6 +236,10 @@ class HG.EditMode
       @_title.clear()
       @_title.resize()
 
+
+    # listen to click on area -> open area box
+    @_hgInstance.areasOnMap.onClickArea @, (a) ->
+      console.log a
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #

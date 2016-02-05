@@ -10,6 +10,14 @@ class HG.AreasOnMap
 
   # ============================================================================
   constructor: (config) ->
+
+    # handle callbacks
+    HG.mixin @, HG.CallbackContainer
+    HG.CallbackContainer.call @
+
+    @addCallback "onClickArea"
+
+    # init variables
     @_map             = null
     @_areaController  = null
 
@@ -107,7 +115,7 @@ class HG.AreasOnMap
 
   # ============================================================================
   _onClick: (event) =>
-    console.log event.target.hgArea
+    @notifyAll "onClickArea", event.target.hgArea
     @_map.fitBounds event.target.getBounds()
 
   # ============================================================================

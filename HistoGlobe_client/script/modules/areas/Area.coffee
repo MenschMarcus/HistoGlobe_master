@@ -13,11 +13,17 @@ class HG.Area
     @_geom = area.geometry
     bbox = @_calcBoundingBox()
 
+    @_commName = area.properties.name
+    # @_commName = area.properties.commName
+    # @_fullName = area.properties.fullName
+
     @_labelName = area.properties.name
     @_labelPos = [
       (bbox[0]+bbox[2])/2,
       (bbox[1]+bbox[3])/2
     ]
+
+    @
 
   # ============================================================================
   getId: () ->           @_id
