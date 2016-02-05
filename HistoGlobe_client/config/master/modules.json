@@ -18,7 +18,7 @@
 
   "Timeline" :
   {
-    "zoom" : 2
+    "startZoom" : 5
   },
 
   "ControlButtons": {
