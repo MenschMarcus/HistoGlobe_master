@@ -3,9 +3,10 @@
 //    in *.less:    @var_name
 
 // GENERAL UI ----------------------------------------------------
-$element_window_distance            = 15px
 $logo_height                        = 43px
 $logo_width                         = 100px
+$element_window_distance            = 15px
+$histograph_height                  = 175px
 
 // COLOR SCHEME ----------------------------------------------------
 

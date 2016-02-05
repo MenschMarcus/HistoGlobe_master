@@ -1,5 +1,7 @@
 window.HG ?= {}
 
+# TODO: use normal button, to be consistent
+
 class HG.ZoomButtonsTimeline
 
   ##############################################################################
@@ -8,15 +10,19 @@ class HG.ZoomButtonsTimeline
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
+    # add buttons to HG instance
     @_hgInstance.zoomButtonsTimeline = @
 
-    @_timeline = @_hgInstance.timeline
-
+    # handle callbacks
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
     @addCallback "onZoomIn"
     @addCallback "onZoomOut"
+
+    # init variables
+    @_timeline = @_hgInstance.timeline
+
 
     if @_timeline
 
@@ -27,19 +33,19 @@ class HG.ZoomButtonsTimeline
         @_container.appendChild group
 
         zoom_in =
-        icon: "fa-plus"
-        tooltip: "Zeitleiste vergrößern"
-        callback: () =>
-          @notifyAll "onZoomIn"
+          icon: "fa-plus"
+          tooltip: "Zoom In"
+          callback: () =>
+            @notifyAll "onZoomIn"
 
         zoom_out =
-        icon: "fa-minus"
-        tooltip: "Zeitleiste verkleinern"
-        callback: () =>
-          @notifyAll "onZoomOut"
+          icon: "fa-minus"
+          tooltip: "Zoom Out"
+          callback: () =>
+            @notifyAll "onZoomOut"
 
-        @_addButton(zoom_in,group)
-        @_addButton(zoom_out,group)
+        @_addButton zoom_in, group
+        @_addButton zoom_out, group
 
 
     else
