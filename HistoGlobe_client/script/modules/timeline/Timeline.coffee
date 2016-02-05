@@ -43,13 +43,11 @@ class HG.Timeline
     # init members
     @_activeTopic     = null
     @_dragged         = false
-    @_topicsLoaded    = false
-    @_timelineClicked = false
 
     @_hgInstance.onAllModulesLoaded @, () =>
 
       @_hiventController = @_hgInstance.hiventController
-      @notifyAll "onNowChanged", @_cropDateToMinMax @_now.date
+      @notifyAll "onNowChanged", @_cropDateToMinMax @_nowDate
       @notifyAll "onIntervalChanged", @_getTimeFilter()
 
       ### LISTENERS ###
@@ -70,15 +68,8 @@ class HG.Timeline
 
       # now marker changing
       @_hgInstance.timeline?.onNowChanged @, (date) =>
-        @_now.dateField.innerHTML = date.toLocaleDateString DATE_LOCALE, DATE_OPTIONS
-
-      # show or hide topic
-      # @_hgInstance.categoryFilter?.onFilterChanged @, (categoryFilter) =>
-      #   @_unhighlightTopics()
-      #   for topic in @_config.topics
-      #     if categoryFilter[0] is topic.id
-      #       @_switchTopic(topic)
-      #       break
+        @_nowMarker.setDate date
+        # TODO: isn't that weird? The nowMarker should rewrite itself...
 
 
     ### UI ELEMENTS ###
@@ -90,12 +81,9 @@ class HG.Timeline
       tl_slide:     @_addUiElement "tl_slide", "swiper-slide", tl_wrapper
       dateMarkers:  []
 
-    # now marker
-    # TODO: use real HG.NowMarker
-    @_now =
-      date: @_yearToDate(@_config.nowYear)
-      marker: @_addUiElement "now_marker_arrow_bottom", null, @_hgContainer
-      dateField: @_addUiElement "now_date_field", null, @_hgContainer
+    # now
+    @_nowDate = @_yearToDate @_config.nowYear
+    @_nowMarker = new HG.NowMarker @_hgContainer
 
     # drag timeline
     # = transition of timeline container with swiper.js
@@ -107,7 +95,6 @@ class HG.Timeline
 
       onTouchStart: =>
         @_dragged = false
-        @_timelineClicked = true
         @_moveDelay = 0
 
       onTouchMove: =>
@@ -116,7 +103,6 @@ class HG.Timeline
         @_updateDateMarkers()
 
       onTouchEnd: =>
-        @_timelineClicked = false
 
       onSetWrapperTransition: (s, d) =>
         update_iteration_obj = setInterval =>
@@ -152,12 +138,12 @@ class HG.Timeline
   # ============================================================================
   # GETTER
 
-  getNowDate: ->      @_now.date
+  getNowDate: ->      @_nowDate
   getParentDiv: ->    @_parentDiv
   getSlider: ->       @_uiElements.tl_slide
 
   # TODO: sort out
-  getNowMarker: ->    @_now.marker
+  getNowMarker: ->    @_nowMarker
 
 
 
@@ -181,9 +167,9 @@ class HG.Timeline
       @_uiElements.tl_wrapper.style.MsTransform = "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
       @_uiElements.tl_wrapper.style.oTransform = "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
 
-      @_now.date = @_cropDateToMinMax date
+      @_nowDate = @_cropDateToMinMax date
 
-      @notifyAll "onNowChanged", @_now.date
+      @notifyAll "onNowChanged", @_nowDate
       @notifyAll "onIntervalChanged", @_getTimeFilter()
 
       setTimeout(successCallback, delay * 1000) if successCallback?
@@ -198,7 +184,7 @@ class HG.Timeline
     else
       timefilter.end = @_maxVisibleDate()
       timefilter.start = @_minVisibleDate()
-    timefilter.now = @_now.date
+    timefilter.now = @_nowDate
     timefilter
 
 
@@ -207,10 +193,10 @@ class HG.Timeline
     mpp = (@_yearsToMillis(@_config.maxYear - @_config.minYear) / window.innerWidth) / @_config.startZoom
 
   _minVisibleDate: ->
-    d = new Date(@_now.date.getTime() - (@_millisPerPixel() * window.innerWidth / 2))
+    d = new Date(@_nowDate.getTime() - (@_millisPerPixel() * window.innerWidth / 2))
 
   _maxVisibleDate: ->
-    d = new Date(@_now.date.getTime() + (@_millisPerPixel() * window.innerWidth / 2))
+    d = new Date(@_nowDate.getTime() + (@_millisPerPixel() * window.innerWidth / 2))
 
   _timelineLength: ->
     @_yearsToMillis(@_config.maxYear - @_config.minYear) / @_millisPerPixel()
@@ -324,16 +310,15 @@ class HG.Timeline
   _updateLayout: ->
     @_uiElements.tl.style.width       = window.innerWidth + "px"
     @_uiElements.tl_slide.style.width = (@_timelineLength() + window.innerWidth) + "px"
-    @_now.marker.style.left           = (window.innerWidth / 2) + "px"
-    @_now.dateField.style.left        = (window.innerWidth / 2) + "px"
-    @_moveToDate(@_now.date, 0)
+    @_nowMarker.resetPos (window.innerWidth / 2) + "px"
+    @_moveToDate @_nowDate, 0
     @_timeline_swiper.reInit()
 
   _updateNowDate: (fireCallbacks = true) ->
-    @_now.date = @_cropDateToMinMax new Date(@_yearToDate(@_config.minYear).getTime() + (-1) * @_timeline_swiper.getWrapperTranslate("x") * @_millisPerPixel())
-    @_now.dateField.innerHTML = @_now.date.toLocaleDateString DATE_LOCALE, DATE_OPTIONS
+    @_nowDate = @_cropDateToMinMax new Date(@_yearToDate(@_config.minYear).getTime() + (-1) * @_timeline_swiper.getWrapperTranslate("x") * @_millisPerPixel())
+    @_nowMarker.setDate @_nowDate
     if fireCallbacks
-      @notifyAll "onNowChanged", @_now.date
+      @notifyAll "onNowChanged", @_nowDate
       @notifyAll "onIntervalChanged", @_getTimeFilter()
 
   _updateDateMarkers: ->
@@ -450,11 +435,3 @@ class HG.Timeline
   FADE_ANIMATION_TIME = 200   # fade in time for datemarkers and so
 
   MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
-
-  DATE_LOCALE = 'de-DE'
-  DATE_OPTIONS = {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  }
-
