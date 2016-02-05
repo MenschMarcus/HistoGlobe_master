@@ -22,6 +22,14 @@ class HG.TopicController
 
     @_config = $.extend {}, defaultConfig, config
 
+    # this part was in Timeline.coffee
+      # show or hide topic
+      # @_hgInstance.categoryFilter?.onFilterChanged @, (categoryFilter) =>
+      #   @_unhighlightTopics()
+      #   for topic in @_config.topics
+      #     if categoryFilter[0] is topic.id
+      #       @_switchTopic(topic)
+      #       break
 
     @_uiElements.tl.style.display = "none"
     # @_loadTopicsFromDSV( =>
