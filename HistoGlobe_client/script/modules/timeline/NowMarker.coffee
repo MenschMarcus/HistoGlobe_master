@@ -11,23 +11,25 @@ class HG.NowMarker
 
   # ============================================================================
   constructor: (@_parent) ->
-    # make now marker
+
+    # create now marker
     @_nowMarker = document.createElement 'div'
-    @_nowMarker.id = "now_marker_arrow_bottom"
+    @_nowMarker.id = 'nowMarker'
     # hack to disable text select on timeline
     @_nowMarker.classList.add "no-text-select"
 
     @_parent.appendChild @_nowMarker
 
-    # make date field
+    # create date field
     @_dateField = document.createElement 'div'
-    @_dateField.id = "now_date_field"
+    @_dateField.id = 'nowDateField'
     # hack to disable text select on timeline
     @_dateField.classList.add "no-text-select"
 
     @_parent.appendChild @_dateField
 
-  setDate: (date) ->
+  # ============================================================================
+  upDate: (date) ->
     @_dateField.innerHTML = date.toLocaleDateString DATE_LOCALE, DATE_OPTIONS
 
   resetPos: (pos) ->
