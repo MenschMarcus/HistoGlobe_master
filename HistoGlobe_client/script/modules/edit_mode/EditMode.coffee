@@ -54,8 +54,14 @@ class HG.EditMode
     @_hgInstance._top_area.appendChild tb
 
     # create edit buttons area
-    @_editButtonArea = new HG.ButtonArea 'editButtons', 'right', 'top', 'horizontal', 'prepend'
-    @_editButtonArea.hgInit @_hgInstance
+    @_editButtonArea = new HG.ButtonArea @_hgInstance,
+    {
+      'id':           'editButtons',
+      'position':     'abs',
+      'positionX':    'right',
+      'positionY':    'top',
+      'orientation':  'horizontal'
+    }
 
     # create edit button (show)
     @_editButton = new HG.Button @,
@@ -238,7 +244,7 @@ class HG.EditMode
 
 
     # listen to click on area -> open area box
-    @_hgInstance.areasOnMap.onClickArea @, (a) ->
+    @_hgInstance.areasOnMap.onSelectArea @, (a) ->
       console.log a
 
   ##############################################################################

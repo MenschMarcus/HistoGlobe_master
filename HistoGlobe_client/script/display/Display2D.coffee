@@ -182,7 +182,7 @@ class HG.Display2D extends HG.Display
 
   # ============================================================================
   _onClick: (event) =>
-    @notifyAll "onClick"
+    @notifyAll "onClick", event.target
 
   # ============================================================================
   _showLabel: (label) =>

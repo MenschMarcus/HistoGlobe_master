@@ -18,8 +18,8 @@ class HG.HistoGraph
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @addCallback "onShow"
-    @addCallback "onHide"
+    @addCallback 'onShow'
+    @addCallback 'onHide'
 
     # handle config
     defaultConfig =
@@ -46,23 +46,24 @@ class HG.HistoGraph
     ### LISTENER ###
     @_hgInstance.onAllModulesLoaded @, () =>
       # open on click of area
-      @_hgInstance.areasOnMap.onClickArea @, (area) =>
-        @show()
+      @_hgInstance.areasOnMap.onSelectArea @, (area) =>
+        @show area
       # closes on click on anything else in the display
-      @_hgInstance.display2D.onClick @, () =>
+      @_hgInstance.areasOnMap.onDeselectArea @, () =>
         @hide()
 
   # ============================================================================
-  show: () ->
+  show: (area) ->
     if not @_visible
       @_canvas.show()
-      @notifyAll "onShow", @_canvas
+      @notifyAll 'onShow', @_canvas
       @_visible = yes
+      # @_showArea area
 
   hide: () ->
     if @_visible
       @_canvas.hide()
-      @notifyAll "onHide", @_canvas
+      @notifyAll 'onHide', @_canvas
       @_visible = no
 
   ##############################################################################
