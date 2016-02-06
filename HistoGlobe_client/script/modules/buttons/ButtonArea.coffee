@@ -7,38 +7,38 @@ class HG.ButtonArea
   ##############################################################################
 
   # ============================================================================
-  constructor : (@_id,                #
-      positionX,                      # center, right or left
-      positionY,                      # center, top or bottom
-      orientation,                    # horizontal or vertical
-      direction                       # append or prepend
-    ) ->
+  constructor : (@_hgInstance, config) ->
 
+    # variables (read from config)
     @_positionX = new HG.StateVar ['center', 'right', 'left']
-    @_positionX.set positionX
+    @_positionX.set config.positionX
 
     @_positionY = new HG.StateVar ['center', 'top', 'bottom']
-    @_positionY.set positionY
+    @_positionY.set config.positionY
 
     @_orientation = new HG.StateVar ['horizontal', 'vertical']
-    @_orientation.set orientation
+    @_orientation.set config.orientation
 
     @_direction = new HG.StateVar   ['append', 'prepend']
-    @_direction.set direction
+    @_direction.set config.direction
 
     @_groups = new HG.ObjectArray()
 
-  # ============================================================================
-  hgInit: (@_hgInstance) ->
-
+    # make button area
     @_container = document.createElement 'div'
-    @_container.id = @_id
-    @_container.className = 'buttons-' + @_positionY.get() + '-' + @_positionX.get()
+    @_container.id = config.id
+    @_container.className =   'button-area'
+    @_container.className += ' button-area-abs' if config.position is 'abs'
+    @_container.className += ' button-area-' + @_positionY.get()
+    @_container.className += ' button-area-' + @_positionX.get()
+    @_container.className += ' ' + config.classes if config.classes
+
 
     @_domElem = $(@_container)
 
     @_hgInstance._top_area.appendChild @_container
 
+    # listen to slider
     @_hgInstance.onTopAreaSlide @, (t) =>
       if @_hgInstance.isInMobileMode()
         @_container.style.left = '#{t*0.5}px'

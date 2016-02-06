@@ -15,11 +15,13 @@ class HG.AreasOnMap
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @addCallback "onClickArea"
+    @addCallback "onSelectArea"
+    @addCallback "onDeselectArea"
 
     # init variables
     @_map             = null
     @_areaController  = null
+    @_areaSelected    = no
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
@@ -41,6 +43,12 @@ class HG.AreasOnMap
     else
       console.error "Unable to show areas on Map: AreaController module not detected in HistoGlobe instance!"
 
+    @_hgInstance.onAllModulesLoaded @, () =>
+      # deselect area
+      @_hgInstance.display2D.onClick @, (target) =>
+        if @_areaSelected # TODO: and target not an area
+          @notifyAll 'onDeselectArea'
+          @_areaSelected = no
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
@@ -113,8 +121,9 @@ class HG.AreasOnMap
 
   # ============================================================================
   _onClick: (event) =>
-    @notifyAll "onClickArea", event.target.hgArea
+    @notifyAll "onSelectArea", event.target.hgArea
     @_map.fitBounds event.target.getBounds()
+    @_areaSelected = yes
 
   # ============================================================================
   _addLinebreaks : (name) =>
