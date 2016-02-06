@@ -13,12 +13,19 @@ class HG.Display2D extends HG.Display
   constructor: () ->
     HG.Display.call @
 
+    # handle callbacks
+    HG.mixin @, HG.CallbackContainer
+    HG.CallbackContainer.call @
+
+    @addCallback "onClick"
+
   # ============================================================================
   # Inits associated data.
   # ============================================================================
   hgInit: (hgInstance) ->
     super hgInstance
     @_hgInstance = hgInstance
+    @_hgInstance.display2D = @
 
     # @_labelController = labelController
     @_initMembers()
@@ -155,6 +162,7 @@ class HG.Display2D extends HG.Display
   # ============================================================================
   _initEventHandling: ->
     window.addEventListener 'resize', @_onWindowResize, false
+    window.addEventListener 'click', @_onClick, false
 
   # ============================================================================
   _initLabels: ->
@@ -172,6 +180,9 @@ class HG.Display2D extends HG.Display
     @_mapParent.style.width = $(HG.Display.CONTAINER.parentNode).width() + "px"
     @_mapParent.style.height = $(HG.Display.CONTAINER.parentNode).height() + "px"
 
+  # ============================================================================
+  _onClick: (event) =>
+    @notifyAll "onClick"
 
   # ============================================================================
   _showLabel: (label) =>

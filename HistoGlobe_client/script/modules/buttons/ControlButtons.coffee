@@ -30,8 +30,10 @@ class HG.ControlButtons
   hgInit: (@_hgInstance) ->
 
     # idea: module "ControlButtons" is instance of class "ButtonArea"
-    @_hgInstance.controlButtons = new HG.ButtonArea 'controlButtons', 'bottom-left', 'vertical'
-    @_hgInstance.controlButtons.hgInit @_hgInstance
+    @_buttonArea = new HG.ButtonArea 'controlButtons', 'left', 'bottom', 'vertical'
+    @_buttonArea.hgInit @_hgInstance
+
+    @_hgInstance.controlButtons = @_buttonArea
 
     # init predefined buttons
     for id, enable of @_config
@@ -216,3 +218,17 @@ class HG.ControlButtons
               $(hgInstance._config.container).removeClass 'minGUI'
               btn.changeState 'normal'
           )
+
+    # listen to show/hide of HistoGraph
+    @_hgInstance.histoGraph.onShow @, (elem) =>
+      @moveUp elem.height()
+
+    @_hgInstance.histoGraph.onHide @, (elem) =>
+      @moveDown elem.height()
+
+  # ============================================================================
+  moveUp: (height) ->
+    @_buttonArea.moveVertical height
+
+  moveDown: (height) ->
+    @_buttonArea.moveVertical -height

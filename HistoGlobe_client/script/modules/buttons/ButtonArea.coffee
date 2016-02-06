@@ -8,10 +8,17 @@ class HG.ButtonArea
 
   # ============================================================================
   constructor : (@_id,                #
-      @_position,                     # e.g. top-right or bottom-left
+      positionX,                      # center, right or left
+      positionY,                      # center, top or bottom
       orientation,                    # horizontal or vertical
       direction                       # append or prepend
     ) ->
+
+    @_positionX = new HG.StateVar ['center', 'right', 'left']
+    @_positionX.set positionX
+
+    @_positionY = new HG.StateVar ['center', 'top', 'bottom']
+    @_positionY.set positionY
 
     @_orientation = new HG.StateVar ['horizontal', 'vertical']
     @_orientation.set orientation
@@ -24,17 +31,19 @@ class HG.ButtonArea
   # ============================================================================
   hgInit: (@_hgInstance) ->
 
-    @_container = document.createElement "div"
+    @_container = document.createElement 'div'
     @_container.id = @_id
-    @_container.className = "buttons-" + @_position
+    @_container.className = 'buttons-' + @_positionY.get() + '-' + @_positionX.get()
+
+    @_domElem = $(@_container)
 
     @_hgInstance._top_area.appendChild @_container
 
     @_hgInstance.onTopAreaSlide @, (t) =>
       if @_hgInstance.isInMobileMode()
-        @_container.style.left = "#{t*0.5}px"
+        @_container.style.left = '#{t*0.5}px'
       else
-        @_container.style.left = "0px"
+        @_container.style.left = '0px'
 
   # ============================================================================
   # add button solo: leave out groupName (null) => will be put in single unnamed group
@@ -57,9 +66,22 @@ class HG.ButtonArea
   addButtonGroup: (name) ->
     group = @_addGroup name
 
-  # ============================================================================
   removeButtonGroup: (name) ->
     @_removeGroup name
+
+
+  # ============================================================================
+  moveVertical: (dist) ->
+    if @_positionY.get() is 'top'
+      @_domElem.animate {'top': '+=' + dist}
+    else if @_positionY.get() is 'bottom'
+      @_domElem.animate {'bottom': '+=' + dist}
+
+  moveHorizontal: (dist) ->
+    if @_positionX.get() is 'left'
+      @_domElem.animate {'left': '+=' + dist}
+    else if @_positionX.get() is 'right'
+      @_domElem.animate {'right': '+=' + dist}
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #

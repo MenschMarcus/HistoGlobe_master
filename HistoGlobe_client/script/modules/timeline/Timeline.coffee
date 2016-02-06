@@ -68,12 +68,11 @@ class HG.Timeline
 
       # now marker changing
       @_hgInstance.timeline?.onNowChanged @, (date) =>
-        @_nowMarker.setDate date
-        # TODO: isn't that weird? The nowMarker should rewrite itself...
+        @_nowMarker.upDate date
 
 
     ### UI ELEMENTS ###
-    @_parentDiv = @_addUiElement "timeline-area", "timeline-area", @_hgContainer
+    @_parentDiv = @_addUiElement "timeline-area", null, @_hgContainer
 
     @_uiElements =
       tl:           @_addUiElement "tl", "swiper-container", @_parentDiv
@@ -83,7 +82,7 @@ class HG.Timeline
 
     # now
     @_nowDate = @_yearToDate @_config.nowYear
-    @_nowMarker = new HG.NowMarker @_hgContainer
+    @_nowMarker = new HG.NowMarker @_parentDiv
 
     # drag timeline
     # = transition of timeline container with swiper.js
@@ -144,8 +143,6 @@ class HG.Timeline
 
   # TODO: sort out
   getNowMarker: ->    @_nowMarker
-
-
 
 
   ##############################################################################
@@ -316,7 +313,7 @@ class HG.Timeline
 
   _updateNowDate: (fireCallbacks = true) ->
     @_nowDate = @_cropDateToMinMax new Date(@_yearToDate(@_config.minYear).getTime() + (-1) * @_timeline_swiper.getWrapperTranslate("x") * @_millisPerPixel())
-    @_nowMarker.setDate @_nowDate
+    @_nowMarker.upDate @_nowDate
     if fireCallbacks
       @notifyAll "onNowChanged", @_nowDate
       @notifyAll "onIntervalChanged", @_getTimeFilter()

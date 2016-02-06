@@ -21,6 +21,8 @@
     "startZoom" : 5
   },
 
+  "HistoGraph": {},
+
   "ControlButtons": {
     "zoom":         true,
     "fullscreen":   true,
