@@ -69,11 +69,11 @@ class HG.ButtonArea
     if groupName        # takes group if group name given
       name = groupName + '-group'
     else                # sets group name manually if no group name
-      name = button.id + '-group'
+      name = button.obj().id + '-group'
 
     # create button in group
     group = @_addGroup name
-    group.appendChild button
+    group.appendChild button.obj()
 
   # ============================================================================
   addButtonGroup: (name) ->

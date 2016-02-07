@@ -42,28 +42,24 @@ class HG.ChangeOperationWorkflow
     HG.CallbackContainer.call @
 
     # create basic operation work flow divs
-    @_mainWindow = document.createElement 'div'
-    @_mainWindow.id = 'operation-main-window'
-    @_parentDiv.appendChild @_mainWindow
+    @_mainWindow = new HG.Div 'operation-main-window'
+    @_parentDiv.appendChild @_mainWindow.obj()
 
-    @_title = document.createElement 'div'
-    @_title.id = 'operation-title'
-    @_mainWindow.appendChild @_title
+    @_title = new HG.Div 'operation-title'
+    @_mainWindow.append @_title
 
-    @_workflow = document.createElement 'div'
-    @_workflow.id = 'operation-workflow'
-    @_mainWindow.appendChild @_workflow
+    @_workflow = new HG.Div 'operation-workflow'
+    @_mainWindow.append @_workflow
 
-    @_content = document.createElement 'div'
-    @_content.id = 'operation-content'
-    @_mainWindow.appendChild @_content
+    @_content = new HG.Div 'operation-content'
+    @_mainWindow.append @_content
 
     # create buttons
 
     ## 1) back button (only one state)
     @_backButton = new HG.Button @_hgInstance,
       {
-        'parentDiv':  @_mainWindow,
+        'parentDiv':  @_mainWindow.obj(),
         'id':         'backButton',
         'states': [
           {
@@ -78,7 +74,7 @@ class HG.ChangeOperationWorkflow
     ## 2) next button (changes to "finish" state in last step)
     @_nextButton = new HG.Button @_hgInstance,
       {
-        'parentDiv':    @_mainWindow,
+        'parentDiv':    @_mainWindow.obj(),
         'id':           'nextButton',
         'states': [
           {
@@ -99,7 +95,7 @@ class HG.ChangeOperationWorkflow
     ## 3) abort button
     @_abortButton = new HG.Button @_hgInstance,
       {
-        'parentDiv':    @_mainWindow,
+        'parentDiv':    @_mainWindow.obj(),
         'id':           'abortButton',
         'states': [
           {
@@ -118,7 +114,7 @@ class HG.ChangeOperationWorkflow
 
   # ============================================================================
   destroy: () ->
-    $(@_mainWindow).remove()
+    @_mainWindow.dom().remove()
 
   # ============================================================================
   disableNext: () ->
@@ -157,28 +153,24 @@ class HG.ChangeOperationWorkflow
 
   # ============================================================================
   _setTitle: (title) ->
-    $(@_title).text title
+    @_title.dom().html title
 
   # ============================================================================
   _setColumns: (op) ->
     for step in op.steps
 
       # title (in workflow bar)
-      titleCol = document.createElement 'div'
-      titleCol.id = step.id + '-title'
-      titleCol.className = 'operation-step'
-      titleCol.innerHTML = step.title
-      @_workflow.appendChild titleCol
+      titleCol = new HG.Div step.id + '-title', ['operation-step']
+      titleCol.dom().html step.title
+      @_workflow.append titleCol
 
       # main content
-      contentCol = document.createElement 'div'
-      contentCol.id = step.id + '-content'
-      contentCol.className = 'operation-step'
-      @_content.appendChild contentCol
+      contentCol = new HG.Div step.id + '-content', ['operation-step']
+      @_content.append contentCol
 
     @_recenterWindow op.steps.length
 
   # ============================================================================
   _recenterWindow: (numCols) ->
     width = numCols * HGConfig.operation_step_width.val + HGConfig.operation_window_border.val
-    $(@_mainWindow).css 'margin-left', -width/2    # recenters div
+    @_mainWindow.dom().css 'margin-left', -width/2    # recenters div

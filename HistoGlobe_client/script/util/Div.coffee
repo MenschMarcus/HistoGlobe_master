@@ -14,14 +14,13 @@ class HG.Div
   ##############################################################################
 
   # ============================================================================
-  constructor: (id, classes=[], hidden=false) ->
+  constructor: (id=null, classes=[], hidden=false) ->
 
-    # error handling
-    if not id
-      console.error 'No id of div given'
+    # error handling: if only one class as string given, make it an array
+    classes = [classes] if typeof classes is 'string'
 
     @_obj = document.createElement 'div'      # creates element
-    @_obj.id = id                             # sets id
+    @_obj.id = id if id                       # sets id
     @_dom = $(@_obj)                          # saves DOM element
     @_dom.hide() if hidden                    # hides element if given
     @_dom.addClass c for c in classes         # adds all classes
