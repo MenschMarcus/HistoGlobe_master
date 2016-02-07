@@ -1,21 +1,11 @@
-
-//  -------------------------------------------------------------------
-
-#timeline-area {
+#timeline-area
+{
   box-shadow:   1px 1px 2px 2px rgba(0,0,0,@shadow_intensity);
   overflow: visible !important;
   font-family: @primary_font_face;
 
-  //  -------------------------------------------------------------------
-
-  .timeline-control-buttons-group {
-    box-shadow: 1px 1px 2px 2px rgba(0,0,0,@shadow_intensity);
-    margin-top: -20px;
-  }
-
-  //  -------------------------------------------------------------------
-
-  #tl {
+  #tl
+  {
     position:   absolute;
     left:       0px;
     bottom:     0px;
@@ -25,142 +15,55 @@
     cursor:     -webkit-grab;
     cursor:     -moz-grab;
 
-    #tl_wrapper {
+    #tl_wrapper
+    {
       height: @timeline_height !important;
-      background-color: @timeline_background_color;
+      background-color: @color_bg_medium;
 
-      #tl_slide {
+      #tl_slide
+      {
         height: @timeline_height !important;
 
-        .tl_datemarker {
-          font-size: @timeline_datemarker_font_size;
+        .tl_datemarker
+        {
+          position: absolute;
+          z-index: 2;
+          top: 1px;
+          left: 0;
+          padding: 0px 0px 0px 5px;
+
+          font-size: @timeline_datemarker_size;
           line-height: @timeline_datemarker_line_height;
-          color: @timeline_datemarker_color;
+          color: @color_white;
           font-weight: 100;
           display: none;
 
-          position: absolute;
-          left: 0;
-          top: 1px;
-          padding: 0px 0px 0px 5px;
-          z-index: 2;
-          //overflow: hidden;
-
-          .tl_months {
+          .tl_months
+          {
             position: relative;
-            margin: -13px 0px 0px -5px;
             height: 0px;
-            //overflow: hidden;
+            margin: -13px 0px 0px -5px;
 
-            .tl_month {
+            .tl_month
+            {
               position: absolute;
-              //background-color: #185766;
-              //height: @timeline_height - @border_width;
-              //line-height: @timeline_height - @border_width;
-              font-size: @timeline_month_font_size;
-              text-align: center;
-              color: @timeline_month_color;
               overflow: hidden;
-              text-overflow: clip;
-              padding-left: 5px;
               z-index: 1;
-            }
-          }
-        }
-
-        .tl_topic {
-          height: @timeline_topic_height;
-          line-height: @timeline_topic_height;
-          font-size: @timeline_topic_font_size;
-          color: @timeline_topic_color;
-          box-shadow: -3px 0px 3px @timeline_topic_shadow_color;
-          background-color: @timeline_topic_bgcolor;
-          //text-align: center;
-          border: solid @timeline_topic_border_size @timeline_topic_border_color;
-          border-radius: @timeline_topic_border_radius;
-
-          white-space: nowrap; // avoids break
-
-          position: absolute;
-          padding: 0px 0px 0px 0px;
-          z-index: 1;
-          overflow: hidden;
-          text-overflow: ellipsis;
-
-          // Text in topic bars
-          div:nth-child(2) {
-            //margin: 0px auto;
-            display: inline-block;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            text-align: center;
-            margin: 0px auto;
-            width: 100%;
-          }
-
-          .tl_subtopics {
-            position: relative;
-            margin: -27px 0px 0px 0px;
-            height: @timeline_subtopic_height;
-            width: 100%;
-            //overflow: hidden;
-
-            .tl_subtopic {
-              position: absolute;
-              text-align: center;
-              background-color: @timeline_subtopic_bgcolor;
-              color: @timeline_subtopic_color;
-              height: @timeline_subtopic_height;
-              line-height: @timeline_subtopic_height;
-              font-size: @timeline_subtopic_font_size;
-              box-shadow: 0px 0px 5px rgba(0,0,0,0.5);
-              overflow: hidden;
-              text-overflow: ellipsis;
               padding-left: 5px;
-              border: none;
-              // border: solid @timeline_topic_border_size @timeline_subtopic_border_color;
-              border-radius: @timeline_topic_border_radius;
+              font-size: @timeline_month_size;
+              text-align: center;
+              color: @color_white;
+              opacity: @timeline_month_opacity;
+              text-overflow: clip;
             }
           }
-        }
-
-        .tl_topic_row0 { bottom: @timeline_row0_position; }
-        .tl_topic_row1 {
-          bottom: @timeline_row1_position;
-          transition: bottom 1s;
-        }
-
-        .tl_topic_highlighted{
-          .tl_topic;
-          overflow: visible;
-          color: @timeline_topic_highlighted_color;
-          background-color: @timeline_topic_highlighted_bgcolor;
-          border: solid @timeline_topic_border_size @timeline_topic_highlighted_border_color;
-          border-radius: @timeline_topic_highlighted_border_radius !important;
         }
       }
     }
   }
 }
 
-.highContrast #timeline-area #tl #tl_wrapper #tl_slide {
-    background-color: @timeline_background_color_hc;
-
-    .tl_datemarker {
-      font-weight: bold;
-    }
-    .tl_topic {
-      color: @timeline_topic_color_hc;
-      border: solid @timeline_topic_border_size_hc @timeline_topic_border_color_hc;
-    }
-    .tl_topic_highlighted .tl_subtopics .tl_subtopic {
-      background-color: @timeline_subtopic_bgcolor_hc;
-      color: @timeline_subtopic_color_hc;
-      border: solid @timeline_topic_border_size @timeline_subtopic_border_color_hc;
-    }
-    .tl_topic_highlighted {
-      background-color: @timeline_topic_highlighted_bgcolor_hc;
-      border: solid @timeline_topic_border_size @timeline_topic_highlighted_border_color_hc;
-
-    }
+.highContrast #timeline-area #tl #tl_wrapper #tl_slide
+{
+    background-color: @color_bg_hc;
 }

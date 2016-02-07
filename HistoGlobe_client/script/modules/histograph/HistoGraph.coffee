@@ -1,4 +1,4 @@
-window.HG ?= {}
++window.HG ?= {}
 
 ##############################################################################
 # graph above the timeline that shows the history of countries
@@ -36,13 +36,18 @@ class HG.HistoGraph
     # add graph to HG instance
     @_hgInstance.histoGraph = @
 
-    # create canvas (put above timeline, hidden)
-    @_canvas = new HG.Div 'histograph', null, true
-    @_hgInstance.timeline.getParentDiv().append @_canvas
+    # create wrapper (put above timeline, hidden)
+    @_wrapper = new HG.Div 'histograph-wrapper', null, true
+    @_hgInstance.timeline.getParentDiv().append @_wrapper
 
     # create transparent center line
     @_line = new HG.Div 'histograph-line', null, true
-    @_canvas.append @_line
+    @_wrapper.append @_line
+
+    # canvas itself
+    @_canvas = d3.select @_wrapper.obj()
+      .append 'svg'
+      .attr 'id', 'histograph-canvas'
 
     ### LISTENER ###
     @_hgInstance.onAllModulesLoaded @, () =>
@@ -56,17 +61,17 @@ class HG.HistoGraph
   # ============================================================================
   show: (area) ->
     if not @_visible
-      @_canvas.dom().show()
+      @_wrapper.dom().show()
       @_line.dom().show()
-      @notifyAll 'onShow', @_canvas.dom()
+      @notifyAll 'onShow', @_wrapper.dom()
       @_visible = yes
-      # @_showArea area
+      @_showHistory area
 
   hide: () ->
     if @_visible
-      @_canvas.dom().hide()
+      @_wrapper.dom().hide()
       @_line.dom().hide()
-      @notifyAll 'onHide', @_canvas.dom()
+      @notifyAll 'onHide', @_wrapper.dom()
       @_visible = no
 
   ##############################################################################
@@ -74,3 +79,12 @@ class HG.HistoGraph
   ##############################################################################
 
   # ============================================================================
+  _showHistory: (area) ->
+    @_canvas.append 'circle'
+      .style 'stroke', 'gray'
+      .style 'fill', 'white'
+      .attr 'r', 25
+      .attr 'cx', @_wrapper.dom().width()/2
+      .attr 'cy', @_wrapper.dom().height()/2
+      .on 'mouseover', -> d3.select(@).style 'fill', 'red'
+      .on 'mouseout', ->  d3.select(@).style 'fill', 'white'
