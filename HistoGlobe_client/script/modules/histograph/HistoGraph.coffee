@@ -38,7 +38,7 @@ class HG.HistoGraph
 
     # create canvas (put above timeline, hidden)
     @_canvas = new HG.Div 'histograph', null, true
-    @_hgInstance.timeline.getParentDiv().appendChild @_canvas.obj()
+    @_hgInstance.timeline.getParentDiv().append @_canvas
 
     # create transparent center line
     @_line = new HG.Div 'histograph-line', null, true
