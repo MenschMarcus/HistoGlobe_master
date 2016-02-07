@@ -29,16 +29,16 @@ class HG.Button
   #       ]
   # }
   # ============================================================================
-  constructor: (@_hgInstance, @_buttonConfig) ->
+  constructor: (@_hgInstance, @_config) ->
 
     # add button to button object in HG instance
     unless @_hgInstance.buttons
       @_hgInstance.buttons = {}  # initially add object to hgInstance
 
-    @_hgInstance.buttons[@_buttonConfig.id] = @
+    @_hgInstance.buttons[@_config.id] = @
 
     # init state
-    @_states = new HG.ObjectArray @_buttonConfig.states
+    @_states = new HG.ObjectArray @_config.states
     @_state = @_states.getByIdx 0 # initially start with first (= 'normal') state
     @_enabled = yes
 
@@ -47,32 +47,20 @@ class HG.Button
     HG.CallbackContainer.call @
 
     # add all callbacks of all states in the very beginning
-    for state in @_buttonConfig.states
+    for state in @_config.states
       @addCallback state.callback
 
     # create button itself
-    @_button = document.createElement 'div'
-    @_buttonDOM = $(@_button)
-
-    # set id and classes
-    if @_buttonConfig.id
-      @_button.id = @_buttonConfig.id
-    else
-      console.error "No id for button given!"
-    @_button.className = 'button'
-
-    # hide if wanted
-    if @_buttonConfig.hide
-      @_buttonDOM.hide()
+    @_button = new HG.Div @_config.id, ['button'], @_config.hide
 
     # set state-dependend properties of button
     @_updateState()
 
     # finally add button either to parent div or to button area
-    if @_buttonConfig.parentDiv
-      @_buttonConfig.parentDiv.appendChild @_button, @_buttonConfig.groupName
-    else if @_buttonConfig.parentArea
-      @_buttonConfig.parentArea.addButton @_button, @_buttonConfig.groupName
+    if @_config.parentDiv
+      @_config.parentDiv.appendChild @_button.obj()
+    else if @_config.parentArea
+      @_config.parentArea.addButton @_button, @_config.groupName
 
 
   # ============================================================================
@@ -86,33 +74,33 @@ class HG.Button
 
   # ============================================================================
   disable: () ->
-    @_buttonDOM.addClass 'button-disabled'
+    @_button.dom().addClass 'button-disabled'
     @_enabled = no
 
   enable: () ->
-    @_buttonDOM.removeClass 'button-disabled'
+    @_button.dom().removeClass 'button-disabled'
     @_enabled = yes
 
   activate: () ->
     if @_enabled    # case: button enabled and active
-      @_buttonDOM.addClass 'button-active'
+      @_button.dom().addClass 'button-active'
     else            # case: button disabled and active
-      @_buttonDOM.removeClass 'button-disabled'
-      @_buttonDOM.addClass 'button-disabled-active'
+      @_button.dom().removeClass 'button-disabled'
+      @_button.dom().addClass 'button-disabled-active'
 
   deactivate: () ->
     if @_enabled    # case: button enabled and active
-      @_buttonDOM.removeClass 'button-active'
+      @_button.dom().removeClass 'button-active'
     else            # case: button disabled and active
-      @_buttonDOM.removeClass 'button-disabled-active'
-      @_buttonDOM.addClass 'button-disabled'
+      @_button.dom().removeClass 'button-disabled-active'
+      @_button.dom().addClass 'button-disabled'
 
   # ============================================================================
-  show: () ->         @_buttonDOM.show()
-  hide: () ->         @_buttonDOM.hide()
+  show: () ->         @_button.dom().show()
+  hide: () ->         @_button.dom().hide()
 
   # ============================================================================
-  remove: () ->       @_buttonDOM.remove()
+  remove: () ->       @_button.dom().remove()
 
   ##############################################################################
   #                            PRIVATE INTERFACE                                #
@@ -131,18 +119,18 @@ class HG.Button
     # remove old class(es)
     if oldClasses
       for c in oldClasses
-        @_buttonDOM.removeClass c
+        @_button.dom().removeClass c
 
   # ============================================================================
   _setClasses: () ->
     if @_state.classes
       for c in @_state.classes
-        @_buttonDOM.addClass c
+        @_button.dom().addClass c
 
   # ============================================================================
   _setTooltip: () ->
     if @_state.tooltip
-      @_buttonDOM.tooltip {
+      @_button.dom().tooltip {
         title: @_state.tooltip,
         placement: 'right',
         container: 'body'
@@ -151,30 +139,30 @@ class HG.Button
   # ============================================================================
   _setIcon: () ->
     # remove old icon
-    @_buttonDOM.empty()
+    @_button.dom().empty()
     icon = null
 
     # add new icon
     if @_state.iconFA           # 1. font awesome icon
       icon = document.createElement 'i'
       icon.className = 'fa fa-' + @_state.iconFA
+      @_button.obj().appendChild icon
 
     else if @_state.iconOwn     # 2. own icon
-      icon = document.createElement 'div'
-      icon.className = 'own-button'
-      $(icon).css 'background-image', 'url("' + @_state.iconOwn + '")'
+      icon = new HG.Div '', 'own-button'
+      icon.dom().css 'background-image', 'url("' + @_state.iconOwn + '")'
+      @_button.append icon
 
     else                # no icon
       console.error "No icon for button " + @_id + " set!"
 
-    @_button.appendChild icon if icon
 
   # ============================================================================
   _setCallback: () ->
     # clear callbacks first to prevent multiple click handlers on same DOM element
-    @_buttonDOM.unbind 'click'
+    @_button.dom().unbind 'click'
     # define new callback
-    @_buttonDOM.click () =>
+    @_button.dom().click () =>
       # callback = tell everybody that state has changed
       # hand button itself (@) into callback so everybody can operate on the button (e.g. change state)
       @notifyAll @_state.callback, @

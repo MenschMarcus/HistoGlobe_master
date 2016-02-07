@@ -161,7 +161,7 @@ class HG.EditMode
         @_hgInstance.buttons[operation.id].onStart @, (btn) =>
 
           # get operation [json object]
-          opId = btn._button.id # to do: more elegant way to get button?
+          opId = btn._config.id # to do: more elegant way to get button?
           @_curr.op = @_HGChangeOperations.getByPropVal 'id', opId
           @_curr.opBtn = (@_changeOperationButtons.getById @_curr.op.id).button
 
