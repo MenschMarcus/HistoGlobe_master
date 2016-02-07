@@ -31,7 +31,7 @@ class HG.VIPWidget extends HG.Widget
     @_timeline = hgInstance.timeline
     @_timeline.onNowChanged @, @_nowChanged
 
-    @_VIPContent = document.createElement "div"
+    @_VIPContent = document.createElement 'div'
     @_VIPContent.className = "vip-widget"
 
     @_sidebar = hgInstance.sidebar
@@ -40,16 +40,16 @@ class HG.VIPWidget extends HG.Widget
 
     for person, i in @_config.persons
       if person.name?
-        personDisplay = document.createElement "div"
+        personDisplay = document.createElement 'div'
         personDisplay.id = "vip-widget-person-display-#{i}"
         personDisplay.className = "vip-person-display"
 
-        portrait = document.createElement "div"
+        portrait = document.createElement 'div'
         portrait.className = "vip-widget-image"
         portrait.style.backgroundImage = "url('#{person.image}')"
         personDisplay.appendChild portrait
 
-        name = document.createElement "div"
+        name = document.createElement 'div'
         name.className = "vip-widget-name"
         name.innerHTML = person.name + "<br/><small>" + person.info + "</small>"
         personDisplay.appendChild name

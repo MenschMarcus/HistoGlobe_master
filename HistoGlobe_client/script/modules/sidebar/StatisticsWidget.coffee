@@ -115,17 +115,17 @@ class HG.StatisticsWidget extends HG.Widget
       if @_canvas?
         d3.select(@_canvas).remove()
 
-      @content = document.createElement "div"
+      @content = document.createElement 'div'
       @content.className = "statistics-widget swiper-no-swiping"
 
       if @_config.title?
-        title = document.createElement "div"
+        title = document.createElement 'div'
         title.className = "statistics-widget statistics-widget-title"
         title.innerHTML = @_config.title
         @content.appendChild title
 
       if @_config.subtitle?
-        subtitle = document.createElement "div"
+        subtitle = document.createElement 'div'
         subtitle.className = "statistics-widget statistics-widget-subtitle"
         subtitle.innerHTML = @_config.subtitle
         @content.appendChild subtitle

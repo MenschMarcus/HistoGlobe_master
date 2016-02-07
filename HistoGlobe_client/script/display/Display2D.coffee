@@ -119,7 +119,7 @@ class HG.Display2D extends HG.Display
   # Sets up leaflet
   # ============================================================================
   _initCanvas: ->
-    @_mapParent = document.createElement "div"
+    @_mapParent = document.createElement 'div'
     @_mapParent.style.width = HG.Display.CONTAINER.offsetWidth + "px"
     @_mapParent.style.height = HG.Display.CONTAINER.offsetHeight + "px"
     @_mapParent.style.zIndex = "#{HG.Display.Z_INDEX}"

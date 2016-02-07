@@ -27,27 +27,27 @@ class HG.GalleryWidget extends HG.Widget
   hgInit: (hgInstance) ->
     super hgInstance
 
-    @_galleryContent = document.createElement "div"
+    @_galleryContent = document.createElement 'div'
     @_galleryContent.className = "gallery-widget"
 
-    galleryContainer = document.createElement "div"
+    galleryContainer = document.createElement 'div'
     galleryContainer.id = "gallery-widget-#{@_id}"
     galleryContainer.className = "gallery-widget-slider"
     galleryContainer.style.width = "#{@_config.width}px"
 
-    @_gallery = document.createElement "div"
+    @_gallery = document.createElement 'div'
     @_gallery.className = "swiper-wrapper swiper-no-swiping"
 
     @_leftArrow = document.createElement "i"
     @_leftArrow.className = "arrow arrow-left  fa fa-chevron-circle-left"
 
-    leftShadow = document.createElement "div"
+    leftShadow = document.createElement 'div'
     leftShadow.className = "shadow shadow-left"
 
     @_rightArrow = document.createElement "i"
     @_rightArrow.className = "arrow arrow-right fa fa-chevron-circle-right"
 
-    rightShadow = document.createElement "div"
+    rightShadow = document.createElement 'div'
     rightShadow.className = "shadow shadow-right"
 
     pagination = document.createElement "span"
@@ -93,7 +93,7 @@ class HG.GalleryWidget extends HG.Widget
 
   # ============================================================================
   addDivSlide: (div) ->
-    slide = document.createElement "div"
+    slide = document.createElement 'div'
     slide.className = "swiper-slide"
     slide.appendChild div
 
@@ -101,7 +101,7 @@ class HG.GalleryWidget extends HG.Widget
 
   # ============================================================================
   addHTMLSlide: (html) ->
-    slide = document.createElement "div"
+    slide = document.createElement 'div'
     slide.className = "swiper-slide"
     slide.innerHTML = html
 

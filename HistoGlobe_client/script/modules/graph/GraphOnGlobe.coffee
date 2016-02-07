@@ -41,7 +41,7 @@ class HG.GraphOnGlobe
     @_controlFunction = 0.0 # 0 = sine; 1 = square power
 
     #info tag
-    @_infoTag = document.createElement "div"
+    @_infoTag = document.createElement 'div'
     @_infoTag.className = "leaflet-label"
 
     @_infoTag.style.position = "absolute"

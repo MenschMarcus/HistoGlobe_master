@@ -21,20 +21,20 @@ class HG.Gallery
 
     @id = ++LAST_GALLERY_ID
 
-    @mainDiv = document.createElement "div"
+    @mainDiv = document.createElement 'div'
     @mainDiv.className = "hg-gallery"
 
-    galleryContainer = document.createElement "div"
+    galleryContainer = document.createElement 'div'
     galleryContainer.id = "hg-gallery-#{@id}"
     galleryContainer.className = "hg-gallery-slider"
 
-    @_gallery = document.createElement "div"
+    @_gallery = document.createElement 'div'
     @_gallery.className = "swiper-wrapper swiper-no-swiping"
 
-    leftShadow = document.createElement "div"
+    leftShadow = document.createElement 'div'
     leftShadow.className = "shadow shadow-left"
 
-    rightShadow = document.createElement "div"
+    rightShadow = document.createElement 'div'
     rightShadow.className = "shadow shadow-right"
 
     @mainDiv.appendChild leftShadow
@@ -102,7 +102,7 @@ class HG.Gallery
 
   # ============================================================================
   addDivSlide: (div) ->
-    slide = document.createElement "div"
+    slide = document.createElement 'div'
     slide.className = "swiper-slide"
     slide.appendChild div
 
@@ -110,7 +110,7 @@ class HG.Gallery
 
   # ============================================================================
   addHTMLSlide: (html) ->
-    slide = document.createElement "div"
+    slide = document.createElement 'div'
     slide.className = "swiper-slide"
     slide.innerHTML = html
 

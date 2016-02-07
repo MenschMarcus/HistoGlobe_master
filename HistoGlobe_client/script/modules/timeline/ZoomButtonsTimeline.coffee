@@ -28,7 +28,7 @@ class HG.ZoomButtonsTimeline
 
         @_container = @_timeline.getParentDiv()
 
-        group = document.createElement "div"
+        group = document.createElement 'div'
         group.className = "timeline-control-buttons-group"
         @_container.appendChild group
 
@@ -62,7 +62,7 @@ class HG.ZoomButtonsTimeline
 
     config = $.extend {}, defaultConfig, config
 
-    button = document.createElement "div"
+    button = document.createElement 'div'
     button.className = "timeline-control-buttons-button"
     $(button).tooltip {title: config.tooltip, placement: "right", container:"body"}
 

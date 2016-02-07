@@ -18,7 +18,7 @@ class HG.HiventInfoPopover
     #@_multimedia_ID = @_hiventHandle.getHivent().multimedia.substring(2)
 
     # generate content
-    body = document.createElement "div"
+    body = document.createElement 'div'
     body.className = "hivent-body"
 
     titleDiv = document.createElement "h4"
@@ -26,7 +26,7 @@ class HG.HiventInfoPopover
     titleDiv.innerHTML = @_hiventHandle.getHivent().name
     body.appendChild titleDiv
 
-    text = document.createElement "div"
+    text = document.createElement 'div'
     text.className = "hivent-content"
 
     description = @_hiventHandle.getHivent().description
@@ -125,12 +125,12 @@ class HG.HiventInfoPopover
       #         gallery.addDivSlide elem
 
       #       else if mm.type is "YOUTUBE"
-      #         elem = document.createElement "div"
+      #         elem = document.createElement 'div'
       #         elem.innerHTML = "<iframe width='100%' height='240px' src='#{mm.link}' frameborder='0' allowfullscreen> </iframe>"
       #         gallery.addDivSlide elem
 
       #       else if mm.type is "AUDIO"
-      #         elem = document.createElement "div"
+      #         elem = document.createElement 'div'
       #         elem.style.marginTop = "150px"
       #         audio = document.createElement "audio"
       #         audio.className = "swiper-no-swiping"
@@ -163,14 +163,14 @@ class HG.HiventInfoPopover
 
       #         elem.appendChild audio
 
-      #         text = document.createElement "div"
+      #         text = document.createElement 'div'
       #         text.innerHTML = mm.description
       #         elem.appendChild text
 
       #         gallery.addDivSlide elem
 
 
-            #   elem = document.createElement "div"
+            #   elem = document.createElement 'div'
             #   gallery.addDivSlide elem
 
             #   link = mm.link

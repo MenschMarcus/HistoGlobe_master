@@ -42,7 +42,7 @@ class HG.HiventMarkerTimeline extends HG.HiventMarker
     @_classDefault     = "hivent_marker_timeline_#{hiventHandle.getHivent().category}_default"
     @_classHighlighted = "hivent_marker_timeline_#{hiventHandle.getHivent().category}_highlighted"
 
-    @_div = document.createElement "div"
+    @_div = document.createElement 'div'
     @_div.setAttribute "class", @_classDefault
     @_div.setAttribute "width", 50+"px";
     @_div.style.left = @_position.x + "px"
@@ -106,7 +106,7 @@ class HG.HiventMarkerTimeline extends HG.HiventMarker
     labelX = -20
     labelY = -140
 
-    @_labelDiv = document.createElement "div"
+    @_labelDiv = document.createElement 'div'
     @_labelDiv.innerHTML = hiventName
     @_labelDiv.setAttribute "class", labelClass
     @_labelDiv.style.width = width + "px"
