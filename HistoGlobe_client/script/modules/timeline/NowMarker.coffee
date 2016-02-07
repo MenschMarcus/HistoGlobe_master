@@ -13,28 +13,20 @@ class HG.NowMarker
   constructor: (@_parent) ->
 
     # create now marker
-    @_nowMarker = document.createElement 'div'
-    @_nowMarker.id = 'nowMarker'
-    # hack to disable text select on timeline
-    @_nowMarker.classList.add "no-text-select"
-
-    @_parent.appendChild @_nowMarker
+    @_nowMarker = new HG.Div 'nowMarker', 'no-text-select'
+    @_parent.append @_nowMarker
 
     # create date field
-    @_dateField = document.createElement 'div'
-    @_dateField.id = 'nowDateField'
-    # hack to disable text select on timeline
-    @_dateField.classList.add "no-text-select"
-
-    @_parent.appendChild @_dateField
+    @_dateField = new HG.Div 'nowDateField', 'no-text-select'
+    @_parent.append @_dateField
 
   # ============================================================================
   upDate: (date) ->
-    @_dateField.innerHTML = date.toLocaleDateString DATE_LOCALE, DATE_OPTIONS
+    @_dateField.dom().html date.toLocaleDateString DATE_LOCALE, DATE_OPTIONS
 
   resetPos: (pos) ->
-    @_nowMarker.style.left = pos
-    @_dateField.style.left = pos
+    @_nowMarker.obj().style.left = pos
+    @_dateField.obj().style.left = pos
 
   ##############################################################################
   #                            STATIC CONSTANTS                                #

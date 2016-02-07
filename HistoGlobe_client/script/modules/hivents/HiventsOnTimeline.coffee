@@ -77,7 +77,7 @@ class HG.HiventsOnTimeline
               rowPosition = @_timeline.getRowFromTopicId(self.getHivent().subTopic)
               id = self.getHivent().subTopic
               #console.log rowPosition + " and " + self.getHivent().subTopic
-            marker = new HG.HiventMarkerTimeline @_hgInstance, @_timeline, self, @_timeline.getSlider(), @_timeline.dateToPosition(hiventMarkerDate), rowPosition, id
+            marker = new HG.HiventMarkerTimeline @_hgInstance, @_timeline, self, @_timeline.getSlider().obj(), @_timeline.dateToPosition(hiventMarkerDate), rowPosition, id
             @_hiventMarkers.push marker
             marker.onDestruction @, ()=>
               index = $.inArray(marker, @_hiventMarkers)
@@ -108,13 +108,13 @@ class HG.HiventsOnTimeline
     #     @_hiventGallerWidget.onHiventAdded @,(handle) =>
 
     #       hiventMarkerDate = handle.getHivent().startDate
-    #       marker = new HG.HiventMarkerTimeline @_timeline, handle, @_timeline.getSlider(), @_timeline.dateToPosition(hiventMarkerDate)
+    #       marker = new HG.HiventMarkerTimeline @_timeline, handle, @_timeline.getSlider().obj(), @_timeline.dateToPosition(hiventMarkerDate)
     #       callback marker for callback in @_onMarkerAddedCallbacks
 
     #       '''show = (self, oldState) =>
     #         if oldState is 0 # invisible
     #           hiventMarkerDate = self.getHivent().startDate
-    #           marker = new HG.HiventMarkerTimeline @_timeline, self, @_timeline.getSlider(), @_timeline.dateToPosition(hiventMarkerDate)
+    #           marker = new HG.HiventMarkerTimeline @_timeline, self, @_timeline.getSlider().obj(), @_timeline.dateToPosition(hiventMarkerDate)
     #           @_hiventMarkers.push marker
     #           @_markersLoaded = @_hiventController._hiventsLoaded
     #           callback marker for callback in @_onMarkerAddedCallbacks
