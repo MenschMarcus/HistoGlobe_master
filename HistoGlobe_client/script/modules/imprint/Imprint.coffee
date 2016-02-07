@@ -10,46 +10,21 @@ class HG.Imprint
   constructor: () ->
 
     # create imprint link
-    @_link = document.createElement 'div'
-    @_link.innerHTML = "Impressum &nbsp; &copy; HistoGlobe   2010-" + new Date().getFullYear()
-    @_link.id = "imprint-link"
-    @_link.classList.add "no-text-select"
+    @_link = new HG.Div 'imprint-link', 'no-text-select'
+    @_link.dom().html "Impressum &nbsp; &copy; HistoGlobe   2010-" + new Date().getFullYear()
 
-    $(@_link).click () =>
+    @_link.dom().click () =>
       @showBox()
 
     # create imprint
-    @_imprintOverlay = document.createElement 'div'
-    @_imprintOverlay.id = "imprint-overlay"
+    @_imprintOverlay = new HG.Div 'imprint-overlay'
+    @_imprintBox = new HG.Div 'imprint-box'
 
-    @_imprintBox = document.createElement 'div'
-    @_imprintBox.id = "imprint-box"
+    @_imprintClose = new HG.Span null, 'close-button'
+    @_imprintClose.dom().html 'x'
 
-    @_imprintClose = document.createElement "span"
-    @_imprintClose.innerHTML = "x"
-    @_imprintClose.className = "close-button"
-
-    # TODO: # load imprint from external file
-    # $.getJSON @_config.imprintPath, (jsonContent) =>
-
-    #   imprintTitle = document.createElement "h3"
-    #   imprintTitle.innerHTML = jsonContent.title
-    #   imprintContent = document.createElement 'div'
-
-    #   for par in jsonContent.paragraphs
-    #     parTitle = document.createElement "h2"
-    #     parTitle.innerHTML = par.title
-    #     parText = document.createElement "p"
-    #     parText.innerHTML = par.text
-    #     imprintContent.appendChild parTitle
-    #     imprintContent.appendChild parText
-
-        # # write imprint
-        # @_imprintBox.appendChild imprintTitle
-        # @_imprintBox.appendChild imprintContent
-
-    @_imprintText = document.createElement 'div'
-    @_imprintText.innerHTML = '
+    @_imprintText = new HG.Div 'imprint-text'
+    @_imprintText.obj().innerHTML = '
       <h1>Impressum</h1>
       <p>Angaben gemäß § 5 TMG</p>
       <h2>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV:</h2>
@@ -77,31 +52,30 @@ class HG.Imprint
         <p>Der Nutzung von im Rahmen der Impressumspflicht veröffentlichten Kontaktdaten durch Dritte zur Übersendung von nicht ausdrücklich angeforderter Werbung und Informationsmaterialien wird hiermit ausdrücklich widersprochen. Die Betreiber der Seiten behalten sich ausdrücklich rechtliche Schritte im Falle der unverlangten Zusendung von Werbeinformationen, etwa durch Spam-Mails, vor.</p>
     '
 
-    @_imprintBox.appendChild @_imprintClose
-    @_imprintBox.appendChild @_imprintText
-    @_imprintOverlay.appendChild @_imprintBox
+    @_imprintBox.append @_imprintClose
+    @_imprintBox.append @_imprintText
+    @_imprintOverlay.append @_imprintBox
 
 
     # event handling
-    $(@_imprintClose).click () =>
+    @_imprintClose.dom().click () =>
       @hideBox()
 
-    $(@_imprintOverlay).fadeOut 0
+    @_imprintOverlay.dom().fadeOut 0
 
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
-
     parentDiv = @_hgInstance._config.container
-    parentDiv.appendChild @_link
-    parentDiv.appendChild @_imprintOverlay
+    parentDiv.appendChild @_link.obj()
+    parentDiv.appendChild @_imprintOverlay.obj()
 
 
   # ============================================================================
   showBox:() ->
-    $(@_imprintOverlay).fadeIn()
+    @_imprintOverlay.dom().fadeIn()
 
   # ============================================================================
   hideBox:() ->
-    $(@_imprintOverlay).fadeOut()
+    @_imprintOverlay.dom().fadeOut()
 
