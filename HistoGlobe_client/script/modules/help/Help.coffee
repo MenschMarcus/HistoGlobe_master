@@ -14,10 +14,9 @@ class HG.Help
 
     @_config = $.extend {}, defaultConfig, config
 
-    @_div = document.createElement 'div'
-    @_div.className = "help-overlay"
+    @_div = new HG.Div null, "help-overlay"
 
-    $(@_div).click () =>
+    @_div.dom().click () =>
       @hide()
       window.setTimeout () =>
         $(@_button).attr('title', "Hilfe wieder einblenden").tooltip('fixTitle').tooltip('show');
@@ -27,7 +26,7 @@ class HG.Help
       , 500
 
 
-    $(@_div).fadeOut 0
+    @_div.dom().fadeOut 0
 
     for e in @_config.elements
       @addHelp e
@@ -36,7 +35,7 @@ class HG.Help
   hgInit: (@_hgInstance) ->
     @_hgInstance.help = @
 
-    @_hgInstance.getContainer().appendChild @_div
+    @_hgInstance.getContainer().appendChild @_div.obj()
 
     if @_config.autoShow
       @_hgInstance.onAllModulesLoaded @, () =>
@@ -59,18 +58,18 @@ class HG.Help
 
   # ============================================================================
   show:() ->
-    $(@_div).fadeIn()
+    @_div.dom().fadeIn()
 
   # ============================================================================
   hide:() ->
-    $(@_div).fadeOut()
+    @_div.dom().fadeOut()
 
   # ============================================================================
   addHelp:(element) ->
     image = document.createElement "img"
     image.className = "help-image"
     image.src = element.image
-    @_div.appendChild image
+    @_div.obj().appendChild image
 
     $(image).load () =>
       $(image).css {"max-width": image.naturalWidth + "px"}

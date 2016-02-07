@@ -47,11 +47,8 @@ class HG.EditMode
     @_changeOperationButtons = new HG.ObjectArray
 
     # create transparent title bar (hidden)
-    tb = document.createElement 'div'
-    tb.id = 'titlebar'
-    @_titleBar = $(tb)
-    @_titleBar.hide()
-    @_hgInstance._top_area.appendChild tb
+    @_titleBar = new HG.Div 'titlebar', null, true
+    @_hgInstance._top_area.appendChild @_titleBar.obj()
 
     # create edit buttons area
     @_editButtonArea = new HG.ButtonArea @_hgInstance,
@@ -146,7 +143,7 @@ class HG.EditMode
       editButton.activate()
 
       # show titlebar, new hivent and change operation buttons
-      @_titleBar.show()
+      @_titleBar.dom().show()
       @_newHiventButton.show()
       @_changeOperationButtons.foreach (obj) =>
         obj.button.show()
@@ -233,7 +230,7 @@ class HG.EditMode
       editButton.deactivate()
 
       # hide titlebar new hivent and change operation buttons
-      @_titleBar.hide()
+      @_titleBar.dom().hide()
       @_newHiventButton.hide()
       @_changeOperationButtons.foreach (obj) =>
         obj.button.hide()
