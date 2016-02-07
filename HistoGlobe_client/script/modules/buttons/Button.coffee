@@ -144,18 +144,16 @@ class HG.Button
 
     # add new icon
     if @_state.iconFA           # 1. font awesome icon
-      icon = document.createElement 'i'
-      icon.className = 'fa fa-' + @_state.iconFA
-      @_button.obj().appendChild icon
+      icon = new HG.Icon null, ['fa', 'fa-' + @_state.iconFA]
 
     else if @_state.iconOwn     # 2. own icon
       icon = new HG.Div '', 'own-button'
       icon.dom().css 'background-image', 'url("' + @_state.iconOwn + '")'
-      @_button.append icon
 
     else                # no icon
       console.error "No icon for button " + @_id + " set!"
 
+    @_button.append icon if icon?
 
   # ============================================================================
   _setCallback: () ->
