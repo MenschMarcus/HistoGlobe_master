@@ -14,7 +14,7 @@ class HG.Help
 
     @_config = $.extend {}, defaultConfig, config
 
-    @_div = document.createElement "div"
+    @_div = document.createElement 'div'
     @_div.className = "help-overlay"
 
     $(@_div).click () =>

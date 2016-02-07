@@ -111,29 +111,29 @@ class HG.Widget
 
   # ============================================================================
   _createLayout: () ->
-    @container = document.createElement "div"
+    @container = document.createElement 'div'
     @container.className = "widgetContainer"
 
     # header -------------------------------------------------------------------
-    @_header = document.createElement "div"
+    @_header = document.createElement 'div'
     @_header.className = "widgetHeader"
     @container.appendChild @_header
 
     # icon
-    icon_container = document.createElement "div"
+    icon_container = document.createElement 'div'
     icon_container.className = "iconContainer collapseOnClick"
     @_header.appendChild icon_container
 
     @_icon = document.createElement "i"
     icon_container.appendChild @_icon
 
-    @_title_top = document.createElement "div"
+    @_title_top = document.createElement 'div'
     @_title_top.className = "topTitleContainer"
     @_header.appendChild @_title_top
 
 
     # collapse button
-    collapse_button_container = document.createElement "div"
+    collapse_button_container = document.createElement 'div'
     collapse_button_container.className = "collapseButtonContainer"
     @_header.appendChild collapse_button_container
 
@@ -154,26 +154,26 @@ class HG.Widget
         @_collapse()
 
     # body ---------------------------------------------------------------------
-    body_collapsable = document.createElement "div"
+    body_collapsable = document.createElement 'div'
     body_collapsable.className = "collapsable"
     @container.appendChild body_collapsable
 
     # title
-    title_container = document.createElement "div"
+    title_container = document.createElement 'div'
     title_container.className = "verticalTitleContainer collapseOnClick"
     body_collapsable.appendChild title_container
 
-    @_title = document.createElement "div"
+    @_title = document.createElement 'div'
     @_title.className = "verticalTextInner"
     @_title.innerHTML = name
     title_container.appendChild @_title
 
     # content
-    @_content = document.createElement "div"
+    @_content = document.createElement 'div'
     @_content.className = "widgetBody"
     body_collapsable.appendChild @_content
 
-    clear = document.createElement "div"
+    clear = document.createElement 'div'
     clear.className = "clear"
     @container.appendChild clear
 

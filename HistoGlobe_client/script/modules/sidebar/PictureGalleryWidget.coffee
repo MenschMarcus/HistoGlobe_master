@@ -53,7 +53,7 @@ class HG.PictureGalleryWidget extends HG.GalleryWidget
 
     config = $.extend {}, defaultConfig, config
 
-    div = document.createElement "div"
+    div = document.createElement 'div'
     div.className = "picture-gallery-widget"
 
     if config.type is "IMAGE"
@@ -75,11 +75,11 @@ class HG.PictureGalleryWidget extends HG.GalleryWidget
         maxHeight: "80%"
 
     else if config.type is "YOUTUBE"
-      elem = document.createElement "div"
+      elem = document.createElement 'div'
       elem.innerHTML = "<iframe width='100%' height='240px' src='#{config.image}' frameborder='0' allowfullscreen> </iframe>"
       div.appendChild elem
 
-    text = document.createElement "div"
+    text = document.createElement 'div'
     text.className = "clear picture-gallery-widget-text"
     text.innerHTML = config.description
     div.appendChild text

@@ -57,7 +57,7 @@ class HG.LegendWidget extends HG.Widget
 
   # ============================================================================
   addColumn: (column_count) ->
-    col_div = document.createElement "div"
+    col_div = document.createElement 'div'
     col_div.className = "legend-column legend-column-#{column_count}"
     @_mainDiv.appendChild col_div
     return col_div
@@ -72,7 +72,7 @@ class HG.LegendWidget extends HG.Widget
 
     config = $.extend {}, defaultConfig, config
 
-    row = document.createElement "div"
+    row = document.createElement 'div'
     col_div.appendChild row
 
     if @_categoryIconMapping
@@ -111,7 +111,7 @@ class HG.LegendWidget extends HG.Widget
     config = $.extend {}, defaultConfig, config
 
 
-    row = document.createElement "div"
+    row = document.createElement 'div'
     col_div.appendChild row
 
     cellIcon = document.createElement "span"
@@ -148,7 +148,7 @@ class HG.LegendWidget extends HG.Widget
 
     config = $.extend {}, defaultConfig, config
 
-    row = document.createElement "div"
+    row = document.createElement 'div'
     col_div.appendChild row
 
     cellColor = document.createElement "span"
@@ -176,17 +176,17 @@ class HG.LegendWidget extends HG.Widget
 
   # ============================================================================
   addSpacer: (col_div) ->
-    row = document.createElement "div"
+    row = document.createElement 'div'
     row.className = "legend-row legend-row-spacer"
     col_div.appendChild row
 
   # ============================================================================
   addGroup: (name, col_div) ->
 
-    group_div = document.createElement "div"
+    group_div = document.createElement 'div'
     group_div.className = "legend-group"
 
-    heading = document.createElement "div"
+    heading = document.createElement 'div'
     heading.className = "legend-row legend-row-heading"
     heading.innerHTML = name
 
@@ -200,7 +200,7 @@ class HG.LegendWidget extends HG.Widget
 
   # ============================================================================
   _init: () ->
-    @_mainDiv = document.createElement "div"
+    @_mainDiv = document.createElement 'div'
     @_mainDiv.className = "legend-widget"
 
     #@_categoryFilter = []

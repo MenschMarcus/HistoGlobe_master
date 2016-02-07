@@ -43,7 +43,7 @@ class HG.Watermark
       parentDiv.appendChild image
 
     else
-      text = document.createElement "div"
+      text = document.createElement 'div'
       text.innerHTML = @_config.text
       text.className = "watermark"
 

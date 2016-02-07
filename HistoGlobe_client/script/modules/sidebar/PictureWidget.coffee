@@ -28,7 +28,7 @@ class HG.PictureWidget extends HG.Widget
     image = document.createElement "img"
     image.src = @_config.url
 
-    content = document.createElement "div"
+    content = document.createElement 'div'
     content.className = "picture-widget"
     content.appendChild image
 
