@@ -52,10 +52,10 @@ class HG.Timeline
       ### LISTENERS ###
 
       # zoom
-      @_hgInstance.zoomButtonsTimeline?.onZoomIn @, () =>
+      @_hgInstance.buttons.timelineZoomIn.onClick @, () =>
         @_zoom(1)
 
-      @_hgInstance.zoomButtonsTimeline?.onZoomOut @, () =>
+      @_hgInstance.buttons.timelineZoomOut.onClick @, () =>
         @_zoom(-1)
 
       # minimize UI
@@ -71,6 +71,8 @@ class HG.Timeline
 
 
     ### UI ELEMENTS ###
+
+    # parent, wrapper, slider, date markers
     @_parentDiv = new HG.Div 'timeline-area', ['no-text-select']
     @_hgContainer.appendChild @_parentDiv.obj()
 
@@ -83,9 +85,12 @@ class HG.Timeline
 
     @_dateMarkers = []
 
-    # now
+    # now marker
     @_nowDate = @_yearToDate @_config.nowYear
     @_nowMarker = new HG.NowMarker @_parentDiv
+
+    # zoom buttons
+    new HG.ZoomButtonsTimeline @_hgInstance if @_config.zoomButtons
 
     # drag timeline
     # = transition of timeline container with swiper.js
@@ -142,10 +147,6 @@ class HG.Timeline
   getNowDate: ->      @_nowDate
   getParentDiv: ->    @_parentDiv
   getSlider: ->       @_tlSlider
-
-  # TODO: sort out
-  getNowMarker: ->    @_nowMarker
-
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #

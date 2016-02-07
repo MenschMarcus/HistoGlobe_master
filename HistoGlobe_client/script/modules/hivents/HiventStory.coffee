@@ -30,7 +30,7 @@ class HG.HiventStory
     @_hgInstance.onAllModulesLoaded @, () =>
 
       @_timeline = @_hgInstance.timeline
-      @_nowMarker = @_hgInstance.timeline.getNowMarker()
+      # @_nowMarker = @_hgInstance.timeline.getNowMarker()
       @_hiventController = @_hgInstance.hiventController
       @_categoryFilter = @_hgInstance.categoryFilter
       @_hashSetter = @_hgInstance.hiventInfoAtTag
