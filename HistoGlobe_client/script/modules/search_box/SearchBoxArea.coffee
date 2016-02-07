@@ -26,14 +26,14 @@ class HG.SearchBoxArea
   hgInit: (@_hgInstance) ->
     @_hgInstance.searchBoxArea = @
 
-    @_container = document.createElement "div"
+    @_container = document.createElement 'div'
     @_container.className = "search-box-area"
     @_hgInstance._top_area.appendChild @_container
     @_allTopics = @_hgInstance.timeline._config.topics
 
     @_hgInstance.hg_logo = @
 
-    @_logo_container = document.createElement "div"
+    @_logo_container = document.createElement 'div'
     @_logo_container.className = "logo-area"
     @_hgInstance._top_area.appendChild @_logo_container
 
@@ -117,7 +117,7 @@ class HG.SearchBoxArea
   # ============================================================================
   _addLogo: () ->
 
-    logo = document.createElement "div"
+    logo = document.createElement 'div'
     logo.className = "logo"
     logo.innerHTML = '<img class = "hg-logo" src = "data/png/logo-normal-farbe.png">';
     @_logo_container.appendChild logo
@@ -127,7 +127,7 @@ class HG.SearchBoxArea
   # ============================================================================
   _addSearchBox: () ->
 
-    box = document.createElement "div"
+    box = document.createElement 'div'
     box.className = "search-box"
 
     form = document.createElement "form"
@@ -144,14 +144,14 @@ class HG.SearchBoxArea
     form.appendChild input
 
     # Clear Icon ==================================================================
-    clear = document.createElement "div"
+    clear = document.createElement 'div'
     clear.className = "clear"
     clear.innerHTML = '<span>x</span>' #'<i class="fa fa-times"></i>'
     form.appendChild clear
     $(clear).hide()
 
     # Search Icon =================================================================
-    icon = document.createElement "div"
+    icon = document.createElement 'div'
     icon.className = "search-icon"
     icon.innerHTML = '<i class="fa fa-search"></i>'
     form.appendChild icon
@@ -169,7 +169,7 @@ class HG.SearchBoxArea
     #     box.removeChild options
 
     # Options =====================================================================
-    # options = document.createElement "div"
+    # options = document.createElement 'div'
     # options.id = "options"
     # options.innerHTML = '<span class="msg">Was möchtest du finden?</span>'
 
@@ -193,7 +193,7 @@ class HG.SearchBoxArea
       #   @_search_opt_year = options_input[3].checked
 
       if !@_search_results?
-        @_search_results = document.createElement "div"
+        @_search_results = document.createElement 'div'
         @_search_results.id = "search-results"
 
       curr_category = @_hgInstance.categoryFilter._categoryFilter[0]

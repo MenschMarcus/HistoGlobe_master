@@ -26,13 +26,13 @@ class HG.HiventList
   hgInit: (@_hgInstance) ->
 
     @_hivent_array = []
-    @_hivent_list = document.createElement "div"
+    @_hivent_list = document.createElement 'div'
     @_hivent_list.className = "hivent-list"
-    @_hivent_headline = document.createElement "div"
+    @_hivent_headline = document.createElement 'div'
     @_hivent_headline.className = "hivent-list-headline"
-    @_alliances_option = document.createElement "div"
+    @_alliances_option = document.createElement 'div'
     @_alliances_option.className = "hivent-list-alliances"
-    @_container = document.createElement "div"
+    @_container = document.createElement 'div'
     @_container.className = "hivent-list-module"
     @_hgInstance._top_area.appendChild @_container
 

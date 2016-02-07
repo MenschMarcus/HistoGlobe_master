@@ -10,7 +10,7 @@ class HG.Imprint
   constructor: () ->
 
     # create imprint link
-    @_link = document.createElement "div"
+    @_link = document.createElement 'div'
     @_link.innerHTML = "Impressum &nbsp; &copy; HistoGlobe   2010-" + new Date().getFullYear()
     @_link.id = "imprint-link"
     @_link.classList.add "no-text-select"
@@ -19,10 +19,10 @@ class HG.Imprint
       @showBox()
 
     # create imprint
-    @_imprintOverlay = document.createElement "div"
+    @_imprintOverlay = document.createElement 'div'
     @_imprintOverlay.id = "imprint-overlay"
 
-    @_imprintBox = document.createElement "div"
+    @_imprintBox = document.createElement 'div'
     @_imprintBox.id = "imprint-box"
 
     @_imprintClose = document.createElement "span"
@@ -34,7 +34,7 @@ class HG.Imprint
 
     #   imprintTitle = document.createElement "h3"
     #   imprintTitle.innerHTML = jsonContent.title
-    #   imprintContent = document.createElement "div"
+    #   imprintContent = document.createElement 'div'
 
     #   for par in jsonContent.paragraphs
     #     parTitle = document.createElement "h2"
@@ -48,7 +48,7 @@ class HG.Imprint
         # @_imprintBox.appendChild imprintTitle
         # @_imprintBox.appendChild imprintContent
 
-    @_imprintText = document.createElement "div"
+    @_imprintText = document.createElement 'div'
     @_imprintText.innerHTML = '
       <h1>Impressum</h1>
       <p>Angaben gemäß § 5 TMG</p>

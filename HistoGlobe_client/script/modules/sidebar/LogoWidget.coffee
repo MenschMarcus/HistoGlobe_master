@@ -33,20 +33,20 @@ class HG.LogoWidget extends HG.TimeGalleryWidget
 
     config = $.extend {}, defaultConfig, config
 
-    div = document.createElement "div"
+    div = document.createElement 'div'
     div.className = "logo-widget"
 
-    logo = document.createElement "div"
+    logo = document.createElement 'div'
     logo.className = "logo-widget-image"
     logo.style.backgroundImage = "url('#{config.logo}')"
     div.appendChild logo
 
-    name = document.createElement "div"
+    name = document.createElement 'div'
     name.className = "text"
     name.innerHTML = config.text
     div.appendChild name
 
-    text = document.createElement "div"
+    text = document.createElement 'div'
     text.className = "clear"
     div.appendChild text
 

@@ -48,7 +48,7 @@ class HG.Popover
     @_widthFSBox = @_map_size.x - HIVENTLIST_OFFSET #- FULLSCREEN_BOX_LEFT_OFFSET
     @_heightFSBox = 0.82 * @_map_size.y
 
-    @_mainDiv = document.createElement "div"
+    @_mainDiv = document.createElement 'div'
     @_mainDiv.className = "guiPopover"
 
     @_mainDiv.style.position = "absolute"
@@ -61,19 +61,19 @@ class HG.Popover
       @_mainDiv.style.left = "#{WINDOW_TO_ANCHOR_OFFSET_X}px"
 
     # YouTube div slide ===============================================
-    @_videoDiv = document.createElement "div"
+    @_videoDiv = document.createElement 'div'
     @_videoDiv.className = "guiPopoverVideo"
 
-    @_videoDivBig = document.createElement "div"
+    @_videoDivBig = document.createElement 'div'
     @_videoDivBig.className = "guiPopoverVideoBig"
 
     # Big HiventBox ===================================================
-    @_bodyDivBig = document.createElement "div"
+    @_bodyDivBig = document.createElement 'div'
     @_bodyDivBig.className = "guiPopoverBodyBig"
     @_bodyDivBig.style.width = "#{0.6 * @_widthFSBox}px"
     @_bodyDivBig.style.height = "#{@_heightFSBox}px"
 
-    contentBig = document.createElement "div"
+    contentBig = document.createElement 'div'
     contentBig.className = "guiPopoverContentBig"
     contentBig.style.width = "#{0.4 * @_widthFSBox}px"
     contentBig.style.height = "#{@_heightFSBox}px"
@@ -82,14 +82,14 @@ class HG.Popover
     sourceBig.className = "source-big"
     #sourceBig.innerHTML = 'Quelle: ' + @_imgSource
 
-    linkListBig = document.createElement "div"
+    linkListBig = document.createElement 'div'
     linkListBig.className = "info-links-big"
 
     linkListBig.appendChild sourceBig
     @_bodyDivBig.appendChild linkListBig
 
     # generate content for big HiventBox ==============================
-    bodyBig = document.createElement "div"
+    bodyBig = document.createElement 'div'
     bodyBig.className = "hivent-body-big"
 
     titleDivBig = document.createElement "h4"
@@ -97,7 +97,7 @@ class HG.Popover
     titleDivBig.innerHTML = @_config.hiventHandle.getHivent().name
     bodyBig.appendChild titleDivBig
 
-    textBig = document.createElement "div"
+    textBig = document.createElement 'div'
     textBig.className = "hivent-content-big"
 
     descriptionBig = @_config.hiventHandle.getHivent().description
@@ -120,20 +120,20 @@ class HG.Popover
     dateBig.appendChild gotoDateBig
 
     # =================================================================
-    @_bodyDiv = document.createElement "div"
+    @_bodyDiv = document.createElement 'div'
     @_bodyDiv.className = "guiPopoverBodyV1"
 
     source = document.createElement "span"
     source.className = "source"
     #source.innerHTML = 'Quelle: ' + @_imgSource
 
-    linkList = document.createElement "div"
+    linkList = document.createElement 'div'
     linkList.className = "info-links"
 
     linkList.appendChild source
     @_bodyDiv.appendChild linkList
 
-    closeDiv = document.createElement "div"
+    closeDiv = document.createElement 'div'
     closeDiv.className = "close-button"
 
     # closeDiv = document.createElement "span"
@@ -141,22 +141,22 @@ class HG.Popover
     # closeDiv.innerHTML = "×"
     # closeDiv.style.color = "#D5C900"
 
-    @_expandBox = document.createElement "div"
+    @_expandBox = document.createElement 'div'
     @_expandBox.className = "expand2FS"
     @_expandBox.innerHTML = '<i class="fa fa-expand"></i>'
     # $(expandBox).tooltip {title: "Box vergrößern", placement: "left", container:"#histoglobe"}
 
-    @_compressBox = document.createElement "div"
+    @_compressBox = document.createElement 'div'
     @_compressBox.className = "compress2Normal"
     @_compressBox.innerHTML = '<i class="fa fa-compress"></i>'
     # $(compressBox).tooltip {title: "Zurück zur normalen Ansicht", placement: "left", container:"#histoglobe"}
 
-    @_switch2Video = document.createElement "div"
+    @_switch2Video = document.createElement 'div'
     @_switch2Video.className = "go2Video"
     @_switch2Video.innerHTML = '<i class="fa fa-youtube-play"></i>'
     # $(expandBox).tooltip {title: "Zum Video", placement: "left", container:"#histoglobe"}
 
-    @_switch2Normal = document.createElement "div"
+    @_switch2Normal = document.createElement 'div'
     @_switch2Normal.className = "back2Normal"
     @_switch2Normal.innerHTML = '<i class="fa fa-picture-o"></i>'
     # $(compressBox).tooltip {title: "Zurück zur normalen Ansicht", placement: "left", container:"#histoglobe"}
@@ -168,7 +168,7 @@ class HG.Popover
 
     if @_config.content? or @_config.contentHTML isnt ""
 
-      content = document.createElement "div"
+      content = document.createElement 'div'
       content.className = "guiPopoverContent"
 
       if @_config.content?

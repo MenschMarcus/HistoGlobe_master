@@ -45,11 +45,11 @@ class HG.HiventGalleryWidget extends HG.TimeGalleryWidget
     # date = config.date.split "."
     # @_changeDates[@getSlideCount()] = new Date date[2], date[1] - 1, date[0]
     # super config.html
-    
-    div = document.createElement "div"
+
+    div = document.createElement 'div'
     div.className = "logo-widget"
 
-    media = document.createElement "div"
+    media = document.createElement 'div'
     media.className = "logo-widget-image"
     indexStart = config.media.indexOf("<a href=") + 9
     indexEnd = config.media.indexOf(" rel",indexStart) - 1
@@ -58,25 +58,25 @@ class HG.HiventGalleryWidget extends HG.TimeGalleryWidget
     #media.style.backgroundImage = "url('#{config.media}')"
     div.appendChild media
 
-    name = document.createElement "div"
+    name = document.createElement 'div'
     name.className = "text"
     n = "<h4>"+config.name+"</h4>"
     name.innerHTML = n
     div.appendChild name
 
-    description = document.createElement "div"
+    description = document.createElement 'div'
     description.className = "text"
     description.innerHTML = config.description
     div.appendChild description
 
-    displayDate = document.createElement "div"
+    displayDate = document.createElement 'div'
     displayDate.className = "date"
     d = "<h6>"+config.date+"</h6>"
     displayDate.innerHTML = d
     div.appendChild displayDate
 
     @addDivSlide {date: config.date, div: div}
-    
+
     #html = "<h5>" + config.name + "</h5>" + config.media
     #@addHTMLSlide {date: config.date, html: html}
 
