@@ -54,7 +54,6 @@ class HG.EditMode
     @_editButtonArea = new HG.ButtonArea @_hgInstance,
     {
       'id':           'editButtons',
-      'position':     'abs',
       'positionX':    'right',
       'positionY':    'top',
       'orientation':  'horizontal'

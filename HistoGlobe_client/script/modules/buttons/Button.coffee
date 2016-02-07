@@ -10,7 +10,6 @@ class HG.Button
   # button object into constructor
   #   * = required, *A / *B = alternative -> either A or B have to be provided
   # {
-  #   *   hgInstance:   hgInstance,
   #   *A  parentDiv:    $(DOM_element)
   #   *B  parentArea:   name_of_button_area
   #       groupName:    name_of_button_group_in_button_area
@@ -28,6 +27,9 @@ class HG.Button
   #         },
   #       ]
   # }
+  #
+  # usage
+  #   @_hgInstance.buttons.buttonName.onCallbackName @, () =>
   # ============================================================================
   constructor: (@_hgInstance, @_config) ->
 
