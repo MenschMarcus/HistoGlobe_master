@@ -1,7 +1,7 @@
-#histograph
+#histograph-wrapper
 {
   position: absolute;
-  z-index: 20;
+  z-index: 10;
   width: 100%;
   height: @histograph_height;
   bottom: @timeline_height;
@@ -12,7 +12,7 @@
 #histograph-line
 {
   position: relative;
-  z-index: 90;
+  z-index: 50;
   height: 100%;
   width: @histograph_line_width;
   margin-left: auto;      /* centering div */
@@ -20,4 +20,13 @@
   left: -@histograph_line_width/2;
   background-color: @color_bg_dark;
   opacity: 0.5;
+}
+
+#histograph-canvas
+{
+  position: absolute;
+  z-index: 20;
+  width: 100%;
+  height: 100%;
+  bottom: 0;
 }

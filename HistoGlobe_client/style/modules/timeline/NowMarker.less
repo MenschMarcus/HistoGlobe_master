@@ -1,40 +1,28 @@
-#nowMarker {
-  display: none;
-  position: absolute;
-  z-index: 3;
-  bottom: 0px;
-  width:        0;
-  height:       0;
-  margin-left:  -10px;
-  border-left:  10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom:10px solid rgba(255,255,255,0.3);
-}
-
-#nowDateField {
-
-	// MAGIC: click trough element
-	pointer-events: none;
-
+#nowMarker
+{
   position: absolute;
   z-index: 10;
-  width: 120px;
-  height: 45px;
-  bottom: 0px;
-  left: 500px;
-  margin-left: -70px;
+  width: @now_marker_width;
+  height: 100%;
+  bottom: 0;
+  left: 50%;
+  margin-left: -@now_marker_width/2;
   padding: 0px 20px;
-  background-color: @now_marker_bgcolor;
+
+  color: @color_white;
+  background-color: @color_bg_dark;
+  opacity: @now_marker_opacity;
   text-align: center;
   font-family: Roboto;
-  font-size: 120%;
+  font-size: @now_marker_font_size;
   font-weight: 100;
-  color: #fff;
-  line-height: 45px;
+  line-height: @timeline_height;
+
+	pointer-events: none; // MAGIC: click trough element
 }
 
-.highContrast #now_date_field {
-	background-color: @now_marker_bgcolor_hc;
+.highContrast #nowMarker {
+  background-color: @color_bg_hc;
+	opacity: @now_marker_opacity_hc;
   font-weight: bold;
-  font-size: 115%;
 }

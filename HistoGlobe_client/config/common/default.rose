@@ -2,29 +2,59 @@
 //    in *.coffee:  HGConfig.var_name.val
 //    in *.less:    @var_name
 
-// GENERAL UI ----------------------------------------------------
-$logo_height                        = 43px
-$logo_width                         = 100px
-$element_window_distance            = 15px
+// GLOBAL ---------------------------------------------------------
 
-// COLOR SCHEME ----------------------------------------------------
+$primary_font_face                  = sans-serif
+$secondary_font_face                = sans-serif
 
 $color_white                        = #ffffff
 $color_bg_light                     = #dedede
 $color_bg_medium                    = #2f3b46
 $color_bg_dark                      = #121212
 
+$color_bg_hc                        = #131f29
+
 $color_highlight                    = #d5c900
 $color_active                       = #d57d00
 $color_disabled                     = #dedede
 $color_disabled_active              = #848484
 
-// BUTTONS ---------------------------------------------------------
+$shadow_intensity                   = 0.5
+$shadow_radius                      = 15px
+
+
+// GENERAL UI -----------------------------------------------------
+
+$logo_height                        = 43px
+$logo_width                         = 100px
+$element_window_distance            = 15px
 
 $button_diameter                    = 40px
 $button_abort_shrink_factor         = 0.75
 
+
+// TIMELINE & NOW MARKER -------------------------------------------
+
+$timeline_height                    = 45px
+$timeline_datemarker_size           = 15px
+$timeline_datemarker_line_height    = 30px
+$timeline_month_size                = 13px
+$timeline_month_opacity             = 0.3
+
+$now_marker_width                   = 120px
+$now_marker_font_size               = 1.2em
+$now_marker_opacity                 = 0.75
+$now_marker_opacity_hc              = 1
+
+
+// HISTOGRAPH ------------------------------------------------------
+
+$histograph_height                  = 175px
+$histograph_line_width              = 10px
+
+
 // EDIT OPERATION WINDOW -------------------------------------------
+
 $operation_window_border            = 5px
 $operation_step_width               = 250px
 $operation_entry_height             = 80px
@@ -34,14 +64,13 @@ $operation_title_height             = 45px
 $operation_workflow_size            = 1.2em
 $operation_workflow_height          = 70px
 
+
 // HIVENT MARKERS --------------------------------------------------
 
 $hivent_marker_color                = #2579bf
 $hivent_marker_color_light          = #0086f6
 
-// HISTOGRAPH ------------------------------------------------------
-$histograph_height                  = 175px
-$histograph_line_width              = 10px
+
 
 
 // ================================================================
@@ -50,12 +79,6 @@ $histograph_line_width              = 10px
 
 
 // GLOBAL OPTIONS --------------------------------------------------
-
-$primary_font_face                  = sans-serif
-$secondary_font_face                = sans-serif
-
-$shadow_intensity                   = 0.5
-$shadow_radius                      = 15px
 
 $text_color                         = #666666
 $text_highlight_color               = #AE3030
@@ -152,10 +175,6 @@ $hivent_info_popover_arrow_height     = 15px
 
 // TIMELINE OPTIONS ------------------------------------------------
 
-$timeline_height                            = 45px
-$timeline_background_color                  = #2f3b46
-$timeline_background_color_hc               = #131f29
-
 $timeline_row0_position                     = 46px
 $timeline_row1_position                     = 78px
 $timeline_row1_position_up                  = 104px
@@ -188,18 +207,6 @@ $timeline_subtopic_color_hc                 = #131f29
 $timeline_subtopic_border_color             = #2579bf
 $timeline_subtopic_border_color_hc          = #131f29
 
-$timeline_month_font_size                   = 13px
-$timeline_month_color                       = rgba(255,255,255,0.3)
-
-$timeline_datemarker_line_height            = 30px
-$timeline_datemarker_font_size              = 15px
-$timeline_datemarker_color                  = #ffffff
-
-
-// NOW MARKER ------------------------------------------------------
-
-$now_marker_bgcolor       = rgba(19, 31, 41, 0.77)
-$now_marker_bgcolor_hc    = rgba(0, 0, 0, 1)
 
 // IMPRINT OPTIONS -------------------------------------------------
 $imprint_width            = 800 px

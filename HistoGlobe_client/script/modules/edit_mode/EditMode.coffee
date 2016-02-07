@@ -239,10 +239,6 @@ class HG.EditMode
       @_title.resize()
 
 
-    # listen to click on area -> open area box
-    @_hgInstance.areasOnMap.onSelectArea @, (a) ->
-      console.log a
-
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
