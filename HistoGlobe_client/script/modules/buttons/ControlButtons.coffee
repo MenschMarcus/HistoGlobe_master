@@ -33,7 +33,6 @@ class HG.ControlButtons
     @_buttonArea = new HG.ButtonArea @_hgInstance,
     {
       'id':           'controlButtons',
-      'position':     'abs',
       'positionX':    'left',
       'positionY':    'bottom',
       'orientation':  'vertical'

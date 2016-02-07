@@ -18,7 +18,8 @@
 
   "Timeline" :
   {
-    "startZoom" : 5
+    "startZoom" : 5,
+    "zoomButtons": true
   },
 
   "HistoGraph": {},
@@ -28,8 +29,6 @@
     "fullscreen":   true,
     "highContrast": true
   },
-
-  "ZoomButtonsTimeline": {},
 
   "Watermark":
   {

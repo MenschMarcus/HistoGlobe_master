@@ -3,10 +3,11 @@ window.HG ?= {}
 ##############################################################################
 # creates a button area, requires a config with the following information:
 # {
-#   'id':            id of the DOM element (no underscore)
+#   'id':           id of the DOM element (no underscore)
 #   'classes':      additional classes in ['className'] array
-#   'position':     'abs' (absolute, at the corners of the UI) or
-#                   'rel' (relative, inside the currentdiv)
+#   'parentDiv':    div to which area will be added to
+#                   (default: top_area of HistoGlobe)
+#   'position':     'abs' or 'rel'
 #   'positionX':    'left', 'right' or 'center' (default)
 #   'positionY':    'top', bottom' or 'center' (default)
 #   'orientation':  'horizontal' (default) or 'vertical'
@@ -25,31 +26,43 @@ class HG.ButtonArea
   # ============================================================================
   constructor : (@_hgInstance, config) ->
 
+    # handle config
+    defaultConfig =
+      id:                 null
+      classes:            null
+      parentDiv:          @_hgInstance._top_area
+      absolutePosition:   true
+      positionX:          'center'
+      positionY:          'center'
+      orientation:        'horizontal'
+      direction:          'append'
+    @_config = $.extend {}, defaultConfig, config
+
     # variables (read from config)
     @_positionX = new HG.StateVar ['center', 'right', 'left']
-    @_positionX.set config.positionX
+    @_positionX.set @_config.positionX
 
     @_positionY = new HG.StateVar ['center', 'top', 'bottom']
-    @_positionY.set config.positionY
+    @_positionY.set @_config.positionY
 
     @_orientation = new HG.StateVar ['horizontal', 'vertical']
-    @_orientation.set config.orientation
+    @_orientation.set @_config.orientation
 
     @_direction = new HG.StateVar ['append', 'prepend']
-    @_direction.set config.direction
+    @_direction.set @_config.direction
 
     @_groups = new HG.ObjectArray()
 
     # make button area
     classes = ['button-area']
-    classes.push 'button-area-abs' if config.position is 'abs'
+    classes.push 'button-area-abs' if @_config.absolutePosition
     classes.push 'button-area-' + @_positionY.get()
     classes.push 'button-area-' + @_positionX.get()
-    if config.classes
-      classes.push c for c in config.c
+    if @_config.classes
+      classes.push c for c in @_config.c
 
-    @_div = new HG.Div config.id, classes
-    @_hgInstance._top_area.appendChild @_div.obj()
+    @_div = new HG.Div @_config.id, classes
+    @_config.parentDiv.appendChild @_div.obj()
 
     # listen to slider
     @_hgInstance.onTopAreaSlide @, (t) =>
