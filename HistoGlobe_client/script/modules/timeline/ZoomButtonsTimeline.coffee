@@ -28,9 +28,8 @@ class HG.ZoomButtonsTimeline
 
         @_container = @_timeline.getParentDiv()
 
-        group = document.createElement 'div'
-        group.className = "timeline-control-buttons-group"
-        @_container.appendChild group
+        group = new HG.Div null, 'timeline-control-buttons-group'
+        @_container.append group
 
         zoom_in =
           icon: "fa-plus"
@@ -44,8 +43,8 @@ class HG.ZoomButtonsTimeline
           callback: () =>
             @notifyAll "onZoomOut"
 
-        @_addButton zoom_in, group
-        @_addButton zoom_out, group
+        @_addButton zoom_in, group.obj()
+        @_addButton zoom_out, group.obj()
 
 
     else
