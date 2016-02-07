@@ -71,6 +71,10 @@ $hivent_marker_color                = #2579bf
 $hivent_marker_color_light          = #0086f6
 
 
+// IMPRINT OPTIONS -------------------------------------------------
+
+$imprint_width            = 800 px
+$imprint_height           = 600 px
 
 
 // ================================================================
@@ -206,8 +210,3 @@ $timeline_subtopic_color                    = #2f3b46
 $timeline_subtopic_color_hc                 = #131f29
 $timeline_subtopic_border_color             = #2579bf
 $timeline_subtopic_border_color_hc          = #131f29
-
-
-// IMPRINT OPTIONS -------------------------------------------------
-$imprint_width            = 800 px
-$imprint_height           = 600 px
