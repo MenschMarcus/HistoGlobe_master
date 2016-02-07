@@ -1,5 +1,20 @@
 window.HG ?= {}
 
+##############################################################################
+# creates a button area, requires a config with the following information:
+# {
+#   'id':            id of the DOM element (no underscore)
+#   'position':     'abs' (absolute, at the corners of the UI) or
+#                   'rel' (relative, inside the currentdiv)
+#   'positionX':    'left', 'right' or 'center' (default)
+#   'positionY':    'top', bottom' or 'center' (default)
+#   'orientation':  'horizontal' (default) or 'vertical'
+#   'direction':    'append' (default) or 'prepend'
+#                   (next button added to the area will be
+#                   appended to the back or prepended to the front)
+# }
+
+
 class HG.ButtonArea
 
   ##############################################################################
