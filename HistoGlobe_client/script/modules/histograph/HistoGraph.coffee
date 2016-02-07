@@ -37,11 +37,11 @@ class HG.HistoGraph
     @_hgInstance.histoGraph = @
 
     # create canvas (put above timeline, hidden)
-    canvas = document.createElement 'div'
-    canvas.id = 'histograph'
-    @_hgInstance.timeline?.getParentDiv().appendChild canvas
-    @_canvas = $(canvas)
-    @_canvas.hide()
+    @_canvas = new HG.Div 'histograph', null, true
+    @_hgInstance.timeline.getParentDiv().appendChild @_canvas.obj()
+
+    # create transparent center line
+
 
     ### LISTENER ###
     @_hgInstance.onAllModulesLoaded @, () =>
@@ -55,15 +55,15 @@ class HG.HistoGraph
   # ============================================================================
   show: (area) ->
     if not @_visible
-      @_canvas.show()
-      @notifyAll 'onShow', @_canvas
+      @_canvas.dom().show()
+      @notifyAll 'onShow', @_canvas.dom()
       @_visible = yes
       # @_showArea area
 
   hide: () ->
     if @_visible
-      @_canvas.hide()
-      @notifyAll 'onHide', @_canvas
+      @_canvas.dom().hide()
+      @notifyAll 'onHide', @_canvas.dom()
       @_visible = no
 
   ##############################################################################

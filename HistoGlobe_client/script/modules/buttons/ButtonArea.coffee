@@ -4,6 +4,7 @@ window.HG ?= {}
 # creates a button area, requires a config with the following information:
 # {
 #   'id':            id of the DOM element (no underscore)
+#   'classes':      additional classes in ['className'] array
 #   'position':     'abs' (absolute, at the corners of the UI) or
 #                   'rel' (relative, inside the currentdiv)
 #   'positionX':    'left', 'right' or 'center' (default)
@@ -34,31 +35,28 @@ class HG.ButtonArea
     @_orientation = new HG.StateVar ['horizontal', 'vertical']
     @_orientation.set config.orientation
 
-    @_direction = new HG.StateVar   ['append', 'prepend']
+    @_direction = new HG.StateVar ['append', 'prepend']
     @_direction.set config.direction
 
     @_groups = new HG.ObjectArray()
 
     # make button area
-    @_container = document.createElement 'div'
-    @_container.id = config.id
-    @_container.className =   'button-area'
-    @_container.className += ' button-area-abs' if config.position is 'abs'
-    @_container.className += ' button-area-' + @_positionY.get()
-    @_container.className += ' button-area-' + @_positionX.get()
-    @_container.className += ' ' + config.classes if config.classes
+    classes = ['button-area']
+    classes.push 'button-area-abs' if config.position is 'abs'
+    classes.push 'button-area-' + @_positionY.get()
+    classes.push 'button-area-' + @_positionX.get()
+    if config.classes
+      classes.push c for c in config.c
 
-
-    @_domElem = $(@_container)
-
-    @_hgInstance._top_area.appendChild @_container
+    @_div = new HG.Div config.id, classes
+    @_hgInstance._top_area.appendChild @_div.obj()
 
     # listen to slider
     @_hgInstance.onTopAreaSlide @, (t) =>
       if @_hgInstance.isInMobileMode()
-        @_container.style.left = '#{t*0.5}px'
+        @_div.obj().style.left = '#{t*0.5}px'
       else
-        @_container.style.left = '0px'
+        @_div.obj().style.left = '0px'
 
   # ============================================================================
   # add button solo: leave out groupName (null) => will be put in single unnamed group
@@ -88,15 +86,15 @@ class HG.ButtonArea
   # ============================================================================
   moveVertical: (dist) ->
     if @_positionY.get() is 'top'
-      @_domElem.animate {'top': '+=' + dist}
+      @_div.dom().animate {'top': '+=' + dist}
     else if @_positionY.get() is 'bottom'
-      @_domElem.animate {'bottom': '+=' + dist}
+      @_div.dom().animate {'bottom': '+=' + dist}
 
   moveHorizontal: (dist) ->
     if @_positionX.get() is 'left'
-      @_domElem.animate {'left': '+=' + dist}
+      @_div.dom().animate {'left': '+=' + dist}
     else if @_positionX.get() is 'right'
-      @_domElem.animate {'right': '+=' + dist}
+      @_div.dom().animate {'right': '+=' + dist}
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
@@ -105,29 +103,27 @@ class HG.ButtonArea
   # ============================================================================
   _addGroup: (id) ->
     # if group exists, take it
-    group = @_groups.getByPropVal 'id', id
+    group = (@_groups.getByPropVal 'id', id)
     if group
       return group
     # if group does not exist, create it
     else
       # add to UI
-      group = document.createElement 'div'
-      group.id = id if id?  # in order to delete buttons when leaving edit mode
-      group.className = 'buttons-group'
-      if @_orientation.get() is 'horizontal'
-        group.className += ' buttons-group-horizontal'
+      classes = ['buttons-group']
+      classes.push 'buttons-group-horizontal' if @_orientation.get() is 'horizontal'
+      group = new HG.Div id, classes
 
       # append or prepend button (given in configuration of ButtonArea)
       if @_direction.get() is 'append'
-        @_container.appendChild group
-        @_groups.append group
+        @_div.append group
+        @_groups.append group.obj()
 
       else if @_direction.get() is 'prepend'
-        @_container.insertBefore group, @_container.firstChild
-        @_groups.prepend group
+        @_div.prepend group
+        @_groups.prepend group.obj()
 
       # add to group list
-      return group
+      return group.obj()
 
   # ============================================================================
   _removeGroup: (id) ->
