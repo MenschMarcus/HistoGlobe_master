@@ -16,17 +16,12 @@ class HG.NowMarker
     @_nowMarker = new HG.Div 'nowMarker', 'no-text-select'
     @_parent.append @_nowMarker
 
-    # create date field
-    @_dateField = new HG.Div 'nowDateField', 'no-text-select'
-    @_parent.append @_dateField
-
   # ============================================================================
   upDate: (date) ->
-    @_dateField.dom().html date.toLocaleDateString DATE_LOCALE, DATE_OPTIONS
+    @_nowMarker.dom().html date.toLocaleDateString DATE_LOCALE, DATE_OPTIONS
 
   resetPos: (pos) ->
     @_nowMarker.obj().style.left = pos
-    @_dateField.obj().style.left = pos
 
   ##############################################################################
   #                            STATIC CONSTANTS                                #

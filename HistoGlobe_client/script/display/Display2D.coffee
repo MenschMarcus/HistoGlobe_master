@@ -162,7 +162,7 @@ class HG.Display2D extends HG.Display
   # ============================================================================
   _initEventHandling: ->
     window.addEventListener 'resize', @_onWindowResize, false
-    window.addEventListener 'click', @_onClick, false
+    @_mapParent.addEventListener 'click', @_onClick, false
 
   # ============================================================================
   _initLabels: ->
