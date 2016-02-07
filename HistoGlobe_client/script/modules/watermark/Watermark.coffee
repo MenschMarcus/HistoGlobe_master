@@ -28,24 +28,16 @@ class HG.Watermark
     parentDiv = @_hgInstance._config.container
 
     if @_config.image?
-      image = document.createElement "img"
-      image.src = @_config.image
-      image.id = @_config.id
-      image.className = "watermark"
-      if @_config.top?
-        image.style.top = @_config.top
-      if @_config.right?
-        image.style.right = @_config.right
-      if @_config.bottom?
-        image.style.bottom = @_config.bottom
-      if @_config.left?
-        image.style.left = @_config.left
-      parentDiv.appendChild image
+      image = new HG.Img @_config.id, 'watermark', @_config.image
+      image.obj().style.top = @_config.top        if @_config.top?
+      image.obj().style.right = @_config.right    if @_config.right?
+      image.obj().style.bottom = @_config.bottom  if @_config.bottom?
+      image.obj().style.left = @_config.left      if @_config.left?
+      parentDiv.appendChild image.obj()
 
     else
-      text = document.createElement 'div'
-      text.innerHTML = @_config.text
-      text.className = "watermark"
+      text = new HG.Div null, 'watermark'
+      text.dom().html @_config.text
 
       if @_config.top?
         text.style.top = @_config.top
@@ -56,4 +48,4 @@ class HG.Watermark
       if @_config.left?
         text.style.left = @_config.left
 
-      parentDiv.appendChild text
+      parentDiv.appendChild text.obj()

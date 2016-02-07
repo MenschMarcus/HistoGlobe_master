@@ -66,28 +66,26 @@ class HG.Help
 
   # ============================================================================
   addHelp:(element) ->
-    image = document.createElement "img"
-    image.className = "help-image"
-    image.src = element.image
-    @_div.obj().appendChild image
+    image = new HG.Img null, 'help-image', element.image
+    @_div.append image
 
-    $(image).load () =>
-      $(image).css {"max-width": image.naturalWidth + "px"}
-      $(image).css {"width": element.width}
+    image.dom().load () =>
+      image.dom().css {"max-width": image.naturalWidth + "px"}
+      image.dom().css {"width": element.width}
 
     if element.anchorX is "left"
-      $(image).css {"left":element.offsetX + "px"}
+      image.dom().css {"left":element.offsetX + "px"}
     else if element.anchorX is "right"
-      $(image).css {"right":element.offsetX + "px"}
+      image.dom().css {"right":element.offsetX + "px"}
     else if element.anchorX is "center"
-      $(image).css {"left": element.offsetX + "px", "right": 0, "margin-right": "auto", "margin-left": "auto"}
+      image.dom().css {"left": element.offsetX + "px", "right": 0, "margin-right": "auto", "margin-left": "auto"}
 
     if element.anchorY is "top"
-      $(image).css {"top":element.offsetY + "px"}
+      image.dom().css {"top":element.offsetY + "px"}
     else if element.anchorY is "bottom"
-      $(image).css {"bottom":element.offsetY + "px"}
+      image.dom().css {"bottom":element.offsetY + "px"}
     else if element.anchorY is "center"
-      $(image).css {"top": element.offsetY + "px", "bottom": 0, "margin-bottom": "auto", "margin-top": "auto"}
+      image.dom().css {"top": element.offsetY + "px", "bottom": 0, "margin-bottom": "auto", "margin-top": "auto"}
 
 
 
