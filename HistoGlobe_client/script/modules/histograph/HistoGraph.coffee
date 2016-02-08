@@ -79,12 +79,33 @@ class HG.HistoGraph
   ##############################################################################
 
   # ============================================================================
+  _highlight: (elem, col) ->
+    d3.select(elem).transition()
+      .style 'fill', col
+
+  # ============================================================================
   _showHistory: (area) ->
+    color_white = @_toHex HGConfig.color_white
+    color_highlight = @_toHex HGConfig.color_highlight
+    color_active = @_toHex HGConfig.color_active
+
     @_canvas.append 'circle'
-      .style 'stroke', 'gray'
-      .style 'fill', 'white'
-      .attr 'r', 25
+      .style 'fill', color_white
+      .attr 'r', 10
       .attr 'cx', @_wrapper.dom().width()/2
       .attr 'cy', @_wrapper.dom().height()/2
-      .on 'mouseover', -> d3.select(@).style 'fill', 'red'
-      .on 'mouseout', ->  d3.select(@).style 'fill', 'white'
+      .on 'mouseover', () -> d3.select(@).style 'fill', color_highlight
+      .on 'mouseout', () -> d3.select(@).style 'fill', color_white
+      .on 'click', () -> d3.select(@).style 'fill', color_active
+      # these lines took 2 hours !!! this is for some reason the way to
+      # hand in local variables into a callback function. I will never understand...
+
+  # ============================================================================
+  _toHex: (obj) ->
+    r = obj.r.toString 16
+    g = obj.g.toString 16
+    b = obj.b.toString 16
+    r = "0"+r if r.length is 1
+    g = "0"+g if g.length is 1
+    b = "0"+b if b.length is 1
+    "#" + r + g + b
