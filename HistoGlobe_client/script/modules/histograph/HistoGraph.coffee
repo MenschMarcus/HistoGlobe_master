@@ -29,6 +29,7 @@ class HG.HistoGraph
 
     # init variables
     @_visible = no
+    @_initHistory = no
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
@@ -91,11 +92,10 @@ class HG.HistoGraph
     ]
 
     # a line and a text (label for the line) for each country
-    if not @_visible
-      @_countryLines = @_canvas.selectAll 'line'
-      @_countryLabels = @_canvas.selectAll 'text'
+    if not @_initHistory
       @_initLines countryData
       @_initLabels countryData
+      @_initHistory = yes
     else
       @_updateLines countryData
       @_updateLabels countryData
@@ -113,7 +113,7 @@ class HG.HistoGraph
 
 
   _initLines: (d) ->
-    @_countryLines
+    @_canvas.selectAll 'line'
       .data d
       .enter()
       .append 'line'
@@ -127,7 +127,7 @@ class HG.HistoGraph
       .on 'click', () -> d3.select(@).style 'stroke', HGConfig.color_active.val
 
   _initLabels: (d) ->
-    @_countryLabels
+    @_canvas.selectAll 'text'
       .data d
       .enter()
       .append 'text'
@@ -137,6 +137,7 @@ class HG.HistoGraph
       .text (d) -> d.name
 
   _updateLines: (d) ->
+    @_canvas.selectAll 'line'
 
   _updateLabels: (d) ->
     @_canvas.selectAll 'text'
