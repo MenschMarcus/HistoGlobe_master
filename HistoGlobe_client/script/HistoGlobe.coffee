@@ -46,6 +46,21 @@ class HG.HistoGlobe
       sidebarEnabled: "true"
       tiles: 'data/tiles/'
 
+    # issue: HGConfig provides rose variables, but for colors it does not return
+    # the hex code '#rrggbb', but an object with r, g, b, a and val attributes
+    # the val attribute is a rather weird number string
+    # solution: for colors, rewrite this number string to the actual hex value
+    for prop, val of HGConfig
+      # decide if color value or not
+      if val.r? and val.g? and val.b?
+        # calculate color value in hex
+        r = @_toHex val.r
+        g = @_toHex val.g
+        b = @_toHex val.b
+        # rewrite properties
+        val.type = 'color'
+        val.val = '#'+r+g+b
+
     # Asynchronous loading of a file containing module information located at
     # "pathToJson". Result is stored in the "config" object and passed to the
     # specified callback function.
@@ -305,3 +320,9 @@ class HG.HistoGlobe
     div.id = id
     container.appendChild div
     return div
+
+  # ============================================================================
+  _toHex: (prop) ->
+    v = prop.toString 16
+    v = "0"+v if v.length is 1
+    v
