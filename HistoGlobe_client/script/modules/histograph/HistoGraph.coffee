@@ -1,9 +1,9 @@
-+window.HG ?= {}
+window.HG ?= {}
 
 ##############################################################################
 # graph above the timeline that shows the history of countries
-# very d3 intensive
-
+# visualisation based on d3
+##############################################################################
 
 class HG.HistoGraph
 
@@ -30,10 +30,9 @@ class HG.HistoGraph
     # init variables
     @_visible = no
 
-
   # ============================================================================
   hgInit: (@_hgInstance) ->
-    # add graph to HG instance
+    # add HistoGraph to HG instance
     @_hgInstance.histoGraph = @
 
     # create wrapper (put above timeline, hidden)
@@ -44,7 +43,7 @@ class HG.HistoGraph
     @_line = new HG.Div 'histograph-line', null, true
     @_wrapper.append @_line
 
-    # canvas itself
+    # create canvas itself
     @_canvas = d3.select @_wrapper.obj()
       .append 'svg'
       .attr 'id', 'histograph-canvas'
@@ -60,12 +59,12 @@ class HG.HistoGraph
 
   # ============================================================================
   show: (area) ->
+    @_showHistory area
     if not @_visible
       @_wrapper.dom().show()
       @_line.dom().show()
       @notifyAll 'onShow', @_wrapper.dom()
       @_visible = yes
-      @_showHistory area
 
   hide: () ->
     if @_visible
@@ -74,38 +73,82 @@ class HG.HistoGraph
       @notifyAll 'onHide', @_wrapper.dom()
       @_visible = no
 
+
   ##############################################################################
-  #                            PRIVATE INTERFACE                                #
+  #                            PRIVATE INTERFACE                               #
   ##############################################################################
+
+  # ============================================================================
+  _showHistory: (area) ->
+
+    # data for each country
+    countryData = [
+      {
+        'name':   area.getCommName()
+        'start':  new Date 1981, 1, 1
+        'end':    new Date 1994, 1, 1
+      }
+    ]
+
+    # a line and a text (label for the line) for each country
+    if not @_visible
+      @_countryLines = @_canvas.selectAll 'line'
+      @_countryLabels = @_canvas.selectAll 'text'
+      @_initLines countryData
+      @_initLabels countryData
+    else
+      @_updateLines countryData
+      @_updateLabels countryData
+
+
+    # put in event the center assuming history of country is "infinite"
+    @_canvas.append 'circle'
+      .classed 'graph-hivent', true
+      .attr 'r', 10
+      .attr 'cx', @_wrapper.dom().width()/2
+      .attr 'cy', @_wrapper.dom().height()/2
+      .on 'mouseover', () -> d3.select(@).style 'fill', HGConfig.color_highlight.val
+      .on 'mouseout', () -> d3.select(@).style 'fill', HGConfig.color_white.val
+      .on 'click', () -> d3.select(@).style 'fill', HGConfig.color_active.val
+
+
+  _initLines: (d) ->
+    @_countryLines
+      .data d
+      .enter()
+      .append 'line'
+      .classed 'graph-country-line', true
+      .attr 'x1', 0
+      .attr 'x2', $(window).width()
+      .attr 'y1', @_wrapper.dom().height()/2
+      .attr 'y2', @_wrapper.dom().height()/2
+      .on 'mouseover', () -> d3.select(@).style 'stroke', HGConfig.color_highlight.val
+      .on 'mouseout', () -> d3.select(@).style 'stroke', HGConfig.color_white.val
+      .on 'click', () -> d3.select(@).style 'stroke', HGConfig.color_active.val
+
+  _initLabels: (d) ->
+    @_countryLabels
+      .data d
+      .enter()
+      .append 'text'
+      .classed 'graph-country-label', true
+      .attr 'x', 15
+      .attr 'y', @_wrapper.dom().height()/2 - 5
+      .text (d) -> d.name
+
+  _updateLines: (d) ->
+
+  _updateLabels: (d) ->
+    @_canvas.selectAll 'text'
+      .data d
+      .transition()
+      .duration 200
+      .text (d) -> d.name
+
+
+
 
   # ============================================================================
   _highlight: (elem, col) ->
     d3.select(elem).transition()
       .style 'fill', col
-
-  # ============================================================================
-  _showHistory: (area) ->
-    color_white = @_toHex HGConfig.color_white
-    color_highlight = @_toHex HGConfig.color_highlight
-    color_active = @_toHex HGConfig.color_active
-
-    @_canvas.append 'circle'
-      .style 'fill', color_white
-      .attr 'r', 10
-      .attr 'cx', @_wrapper.dom().width()/2
-      .attr 'cy', @_wrapper.dom().height()/2
-      .on 'mouseover', () -> d3.select(@).style 'fill', color_highlight
-      .on 'mouseout', () -> d3.select(@).style 'fill', color_white
-      .on 'click', () -> d3.select(@).style 'fill', color_active
-      # these lines took 2 hours !!! this is for some reason the way to
-      # hand in local variables into a callback function. I will never understand...
-
-  # ============================================================================
-  _toHex: (obj) ->
-    r = obj.r.toString 16
-    g = obj.g.toString 16
-    b = obj.b.toString 16
-    r = "0"+r if r.length is 1
-    g = "0"+g if g.length is 1
-    b = "0"+b if b.length is 1
-    "#" + r + g + b

@@ -26,10 +26,11 @@ class HG.Area
     @
 
   # ============================================================================
-  getId: () ->           @_id
-  getGeometry: () ->     @_geom
-  getLabelName: () ->    @_labelName
-  getLabelPos: () ->     @_labelPos
+  getId: () ->          @_id
+  getGeometry: () ->    @_geom
+  getCommName: () ->    @_commName
+  getLabelName: () ->   @_labelName
+  getLabelPos: () ->    @_labelPos
 
 
   ##############################################################################
