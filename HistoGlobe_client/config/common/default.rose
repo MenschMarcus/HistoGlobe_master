@@ -7,17 +7,18 @@
 $primary_font_face                  = sans-serif
 $secondary_font_face                = sans-serif
 
-$color_white                        = #ffffff
-$color_bg_light                     = #dedede
-$color_bg_medium                    = #2f3b46
-$color_bg_dark                      = #121212
+$color_white                        = rgb(255,255,255)
+$color_bg_light                     = rgb(222,222,222)
+$color_bg_medium                    = rgb(47,59,70)
+$color_bg_medium_semitransparent    = rgba(47,59,70,0.65)
+$color_bg_dark                      = rgb(18,18,18)
 
-$color_bg_hc                        = #131f29
+$color_bg_hc                        = rgb(19,31,41)
 
-$color_highlight                    = #d5c900
-$color_active                       = #d57d00
-$color_disabled                     = #dedede
-$color_disabled_active              = #848484
+$color_highlight                    = rgb(213,201,0)
+$color_active                       = rgb(213,125,0)
+$color_disabled                     = rgb(222,222,222)
+$color_disabled_active              = rgb(132,132,132)
 
 $shadow_intensity                   = 0.2
 $shadow_radius                      = 10px
@@ -64,7 +65,7 @@ $histograph_line_width              = 10px
 // EDIT OPERATION WINDOW -------------------------------------------
 
 $operation_window_height            = 120px
-$operation_step_width               = 250px
+$operation_step_width               = 175px
 $operation_entry_height             = 80px
 
 $operation_workflow_size            = 1.2em
@@ -72,8 +73,8 @@ $operation_workflow_size            = 1.2em
 
 // HIVENT MARKERS --------------------------------------------------
 
-$hivent_marker_color                = #2579bf
-$hivent_marker_color_light          = #0086f6
+$hivent_marker_color                = rgb(37,121,191)
+$hivent_marker_color_light          = rgb(0,134,246)
 
 
 // IMPRINT OPTIONS -------------------------------------------------
@@ -87,18 +88,15 @@ $imprint_height           = 600 px
 // ================================================================
 
 // FROM PROJECT STYLE.ROSE ----------------------------------------
-$border_color                       = #ffffff
-$border_color_bright                = #ffffff
-$border_color_dark                  = #333333
+$border_color                       = rgb(255,255,255)
+$border_color_bright                = rgb(255,255,255)
+$border_color_dark                  = rgb(51,51,51)
 
 
 // GLOBAL OPTIONS --------------------------------------------------
 
-$text_color                         = #555555
-$text_highlight_color               = #58A84B
-
-$background_color                   = #43ca92
-
+$text_color                         = rgb(85,85,85)
+$text_highlight_color               = rgb(88,168,75)
 
 // MAP OPTIONS -----------------------------------------------------
 
@@ -114,16 +112,16 @@ $sidebar_aimation_speed             = 0.3s
 $sidebar_width                      = 350px
 $sidebar_collapsed_width            = 50px
 $sidebar_scrollbar_width            = 10px
-$sidebar_background_color           = #666666
+$sidebar_background_color           = rgb(102,102,102)
 
 
 // WIDGET OPTIONS --------------------------------------------------
 
 $widget_aimation_speed                = 0.3s
 $widget_title_size                    = 35px
-$widget_title_background_color        = #ffffff
-$widget_title_text_color              = #333333
-$widget_background_color              = #ffffff
+$widget_title_background_color        = rgb(255,255,255)
+$widget_title_text_color              = rgb(51,51,51)
+$widget_background_color              = rgb(255,255,255)
 
 $widget_margin                        = 15px
 $widget_body_padding                  = 15px
@@ -197,23 +195,23 @@ $timeline_topic_border_radius               = 5px
 $timeline_topic_border_color                = #2579bf
 $timeline_topic_border_color_hc             = #131f29
 $timeline_topic_font_size                   = 17px
-$timeline_topic_bgcolor                     = #ffffff
+$timeline_topic_bgcolor                     = rgb(255,255,255)
 $timeline_topic_shadow_color                = rgba(0,0,0,0.17)
 $timeline_topic_color                       = #2579bf
 $timeline_topic_color_hc                    = #131F29
 
 $timeline_topic_highlighted_bgcolor         = #2579bf
 $timeline_topic_highlighted_bgcolor_hc      = #131f29
-$timeline_topic_highlighted_color           = #ffffff
+$timeline_topic_highlighted_color           = rgb(255,255,255)
 $timeline_topic_highlighted_border_radius   = 5px
-$timeline_topic_highlighted_border_color    = #2f3b46
+$timeline_topic_highlighted_border_color    = rgb(47,59,70)
 $timeline_topic_highlighted_border_color_hc = #000000
 
 $timeline_subtopic_height                   = 25px
 $timeline_subtopic_font_size                = 12px
 $timeline_subtopic_bgcolor                  = #bdd7ec
 $timeline_subtopic_bgcolor_hc               = #e1e1e1
-$timeline_subtopic_color                    = #2f3b46
+$timeline_subtopic_color                    = rgb(47,59,70)
 $timeline_subtopic_color_hc                 = #131f29
 $timeline_subtopic_border_color             = #2579bf
 $timeline_subtopic_border_color_hc          = #131f29

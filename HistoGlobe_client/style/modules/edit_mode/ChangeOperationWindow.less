@@ -17,8 +17,7 @@
   width: 100%;
   height: @operation_window_height - (2*@element_window_distance + @logo_height);
 
-  background-color: @color_bg_medium;
-  opacity: 0.5;
+  background-color: @color_bg_medium_semitransparent; /*@color_bg_medium;*/
 }
 
 .co-workflow-row
@@ -50,20 +49,20 @@
 }
 
 /*
-#backButton, #nextButton
+#coBack, #coNext
 {
   position: absolute;
 }
-#backButton
+#coBack
 {
   left: -@button_diameter - 10px;
 }
-#nextButton
+#coNext
 {
   right: -@button_diameter - 10px;
 }
 
-#abortButton
+#coAbort
 {
   position: absolute;
   top: 3px;
