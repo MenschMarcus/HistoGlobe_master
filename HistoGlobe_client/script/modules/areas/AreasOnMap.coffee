@@ -20,8 +20,9 @@ class HG.AreasOnMap
     @addCallback 'onDeactivateArea'
 
     # init variables
-    @_activeArea  = null
     @_multipleSelections = no
+    @_activeArea  = null                  # for single-seletion mode
+    @_activeAreas = new HG.ObjectArray    # for multi-selection mode
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
@@ -47,12 +48,17 @@ class HG.AreasOnMap
 
   # ============================================================================
   # handle multiple selections mode (and state number of possible selections)
-  enableMultipleSelections: (num) ->  # can receive a number (1, 2, 3) or infinite ('n')
+  enableMultipleSelection: (num) ->  # can receive a number (1, 2, 3) or infinite ('n')
     num = 999 if num is 'n'
     @_multipleSelections = num
+    @_activeAreas.empty()
+    @_activeAreas.push @_activeArea if @_activeArea?    # there is already an active area from the single-selection mode
+    @_activeArea = null
 
-  disableMultipleSelections: () ->
+  disableMultipleSelection: () ->
     @_multipleSelections = no
+    @_activeArea = null
+    @_deactivateAll()
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
@@ -140,34 +146,34 @@ class HG.AreasOnMap
     if not @_multipleSelections
       # clicking inactive area => activate it and deactivate currently active area
       if not area.isActive()
-        @_deactivate null
+        @_deactivate @_activeArea
         @_activate target
         @notifyAll 'onActivateArea', area
 
       # clicking active area => deactivate it
       else
-        @_deactivate null
-        @notifyAll 'onDectivateArea', area
+        @_deactivate @_activeArea
+        @notifyAll 'onDeactivateArea', area
 
 
     # multiple-selection mode
     else
       # clicking inactive area => activate it
-      if not area.isActive()
+      if not area.isActive() and @_activeAreas.num() < @_multipleSelections
         @_activate target
+        @_activeAreas.push target
         @notifyAll 'onActivateArea', area
 
       # clicking active area => deactivate it
-      else
+      else if area.isActive()
         @_deactivate target
-        @notifyAll 'onDectivateArea', area
+        @_activeAreas.remove '_leaflet_id', target._leaflet_id
+        @notifyAll 'onDeactivateArea', area
 
   # ============================================================================
   _activate: (target) =>
     # center on the map
     @_map.fitBounds target.getBounds()
-
-    console.log "activate " + target.hgArea.getCommName()
 
     # animate color to active state
     @_animate target, {
@@ -179,11 +185,7 @@ class HG.AreasOnMap
 
   # ============================================================================
   _deactivate: (target) =>
-    # single-selection mode: only one area can be active -> target is the active area
-    target = @_activeArea unless @_multipleSelections
-
     if target?  # accounts for the case that there is no active area
-      console.log "deactivate " + target.hgArea.getCommName()
 
       # animate color back to normal state
       @_animate target, {
@@ -192,6 +194,13 @@ class HG.AreasOnMap
 
       target.hgArea.deactivate()
       @_activeArea = null
+
+  # ============================================================================
+  _deactivateAll: () =>
+    @_activeAreas.foreach (target) =>
+      @_deactivate target
+    @_activeAreas.empty()
+
 
 
   # ============================================================================
