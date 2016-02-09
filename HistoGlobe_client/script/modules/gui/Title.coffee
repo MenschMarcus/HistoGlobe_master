@@ -32,6 +32,7 @@ class HG.Title
   resize: () =>
     width = @_window.width() -
       2 * HGConfig.element_window_distance.val -
+      2 * HGConfig.title_distance_horizontal.val -
       HGConfig.logo_width.val -
       @_editButtons.width()
     # PAIN IN THE AAAAAAAAAAASS!
