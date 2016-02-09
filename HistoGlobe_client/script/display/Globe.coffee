@@ -45,10 +45,10 @@ class HG.Globe extends HG.Display
       @center x: 10, y: 50
 
       hgInstance.onAllModulesLoaded @, () =>
-        if hgInstance.buttons.zoomInButton?
-          hgInstance.buttons.zoomInButton.onZoomIn @, @_zoomIn
-        if hgInstance.buttons.zoomOutButton?
-          hgInstance.zoom_buttons.onZoomOutButton @, @_zoomOut
+        if hgInstance.buttons.zoomIn?
+          hgInstance.buttons.zoomIn.onClick @, @_zoomIn
+        if hgInstance.buttons.zoomOut?
+          hgInstance.buttons.zoomOut.onClick @, @_zoomOut
 
         if hgInstance.buttons.highContrastButton?
           hgInstance.buttons.highContrastButton.onEnterHighContrast @, () =>
