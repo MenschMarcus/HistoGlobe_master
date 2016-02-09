@@ -28,8 +28,13 @@ class HG.HistoGraph
     @_config = $.extend {}, defaultConfig, config
 
     # init variables
-    @_visible = no
     @_initHistory = no
+    @_graphVisible = no
+
+    # 2 modi: single-selection -> 1 country can be selected => show its history
+    #         multiple-selection -> n countries can be selected => added to operation
+    @_multipleSelection = no
+    @_selectedCountries = []
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
@@ -51,28 +56,37 @@ class HG.HistoGraph
 
     ### LISTENER ###
     @_hgInstance.onAllModulesLoaded @, () =>
-      # open on click of area
-      @_hgInstance.areasOnMap.onSelectArea @, (area) =>
-        @show area
-      # closes on click on anything else in the display
-      @_hgInstance.areasOnMap.onDeselectArea @, () =>
-        @hide()
+
+      # for test purpose: activate multiple selections (2)
+      # @_hgInstance.buttons.
+
+      @_hgInstance.areasOnMap.onActivateArea @, (country) =>
+        @show() unless @_graphVisible
+        if not @_multipleSelection          # single-selection mode
+          @_showHistory country
+        else                                # multiple-selection mode
+          @_selectedCountries.push country
+
+      # no active country => no graph
+      @_hgInstance.areasOnMap.onDeactivateArea @, (country) =>
+        if not @_multipleSelection          # single-selection mode
+          @hide()
+        else                                # multiple-selection mode
+          # @_selectedCountries.push country
+
 
   # ============================================================================
-  show: (area) ->
-    @_showHistory area
-    if not @_visible
-      @_wrapper.dom().show()
-      @_line.dom().show()
-      @notifyAll 'onShow', @_wrapper.dom()
-      @_visible = yes
+  show: () ->
+    @_wrapper.dom().show()
+    @_line.dom().show()
+    @notifyAll 'onShow', @_wrapper.dom()
+    @_graphVisible = yes
 
   hide: () ->
-    if @_visible
-      @_wrapper.dom().hide()
-      @_line.dom().hide()
-      @notifyAll 'onHide', @_wrapper.dom()
-      @_visible = no
+    @_wrapper.dom().hide()
+    @_line.dom().hide()
+    @notifyAll 'onHide', @_wrapper.dom()
+    @_graphVisible = no
 
 
   ##############################################################################

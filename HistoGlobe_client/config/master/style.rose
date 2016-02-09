@@ -1,8 +1,4 @@
 // ------------------- GLOBAL OPTIONS ------------------------------------------
-$primary_font_face                  = Roboto
-$secondary_font_face                = Montserrat
-
-$border_width                       = 6px
 $border_color                       = #ffffff
 $border_color_bright                = #ffffff
 $border_color_dark                  = #333333

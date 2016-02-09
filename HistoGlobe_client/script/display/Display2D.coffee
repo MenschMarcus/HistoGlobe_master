@@ -141,12 +141,12 @@ class HG.Display2D extends HG.Display
     tileLayer.addTo @_map
 
     @_hgInstance.onAllModulesLoaded @, () =>
-      if @_hgInstance.buttons.zoomInButton?
-        @_hgInstance.buttons.zoomInButton.onZoomIn @, () =>
+      if @_hgInstance.buttons.zoomIn?
+        @_hgInstance.buttons.zoomIn.onClick @, () =>
           @_map.zoomIn()
 
-      if @_hgInstance.buttons.zoomOutButton?
-        @_hgInstance.buttons.zoomOutButton.onZoomOut @, () =>
+      if @_hgInstance.buttons.zoomOut?
+        @_hgInstance.buttons.zoomOut.onClick @, () =>
           @_map.zoomOut()
 
       if @_hgInstance.buttons.highContrastButton?

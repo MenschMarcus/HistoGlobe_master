@@ -22,6 +22,7 @@ class HG.Display
     # If all modules are loaded, check whether the module "HiventInfoAtTag" is
     # present and if so, register for notification on URL hash changes.
     hgInstance.onAllModulesLoaded @, () =>
+
       hgInstance.hiventInfoAtTag?.onHashChanged @, (key, value) =>
         # If the passed URL hash key is "bounds", zoom to the specified area.
         if key is "bounds"
@@ -29,6 +30,50 @@ class HG.Display
           mins = minMax[0].split ","
           maxs = minMax[1].split ","
           @zoomToBounds(mins[0], mins[1], maxs[0], maxs[1])
+
+      # fullscreen
+      @_hgInstance.buttons.fullscreen?.onEnter @, (btn) =>
+        body = document.body
+        if (body.requestFullscreen)
+          body.requestFullscreen()
+        else if (body.msRequestFullscreen)
+          body.msRequestFullscreen()
+        else if (body.mozRequestFullScreen)
+          body.mozRequestFullScreen()
+        else if (body.webkitRequestFullscreen)
+          body.webkitRequestFullscreen()
+        btn.changeState 'fullscreen'
+
+      @_hgInstance.buttons.fullscreen?.onLeave @, (btn) =>
+        body = document.body
+        if (body.requestFullscreen)
+          document.cancelFullScreen()
+        else if (body.msRequestFullscreen)
+          document.msExitFullscreen()
+        else if (body.mozRequestFullScreen)
+          document.mozCancelFullScreen()
+        else if (body.webkitRequestFullscreen)
+          document.webkitCancelFullScreen()
+        btn.changeState 'normal'
+
+      # high contrast mode
+      @_hgInstance.buttons.highContrast?.onEnter @, (btn) =>
+        $(@_hgInstance._config.container).addClass 'highContrast'
+        btn.changeState 'high-contrast'
+
+      @_hgInstance.buttons.highContrast?.onLeave @, (btn) =>
+        $(@_hgInstance._config.container).removeClass 'highContrast'
+        btn.changeState 'normal'
+
+      # graph on globe
+      @_hgInstance.buttons.graph?.onShow @, (btn) =>
+        $(hgInstance._config.container).addClass 'minGUI'
+        btn.changeState 'min-layout'
+
+      @_hgInstance.buttons.graph?.onHide @, (btn) =>
+        $(hgInstance._config.container).removeClass 'minGUI'
+        btn.changeState 'normal'
+
 
   # ============================================================================
   # Focus a specific Hivent. "setCenter" is implemented by derived classes.

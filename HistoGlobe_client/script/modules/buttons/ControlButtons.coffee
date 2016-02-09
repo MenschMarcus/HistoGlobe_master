@@ -49,13 +49,13 @@ class HG.ControlButtons
               {
                 'parentArea':   @_hgInstance.controlButtons,
                 'groupName':    'zoom'
-                'id':           'zoomInButton',
+                'id':           'zoomIn',
                 'states': [
                   {
                     'id':       'normal',
                     'tooltip':  "Zoom In",
                     'iconFA':   'plus',
-                    'callback': 'onZoomIn'
+                    'callback': 'onClick'
                   }
                 ]
               }
@@ -63,13 +63,13 @@ class HG.ControlButtons
               {
                 'parentArea':   @_hgInstance.controlButtons,
                 'groupName':    'zoom'
-                'id':           'zoomOutButton',
+                'id':           'zoomOut',
                 'states': [
                   {
                     'id':       'normal',
                     'tooltip':  "Zoom Out",
                     'iconFA':   'minus',
-                    'callback': 'onZoomOut'
+                    'callback': 'onClick'
                   }
                 ]
               }
@@ -81,47 +81,22 @@ class HG.ControlButtons
             new HG.Button @_hgInstance,
               {
                 'parentArea':   @_hgInstance.controlButtons,
-                'id':           'fullscreenButton',
+                'id':           'fullscreen',
                 'states': [
                   {
                     'id':       'normal',
                     'tooltip':  "Fullscreen",
                     'iconFA':   'expand',
-                    'callback': 'onEnterFullscreen'
+                    'callback': 'onEnter'
                   },
                   {
                     'id':       'fullscreen',
                     'tooltip':  "Leave Fullscreen",
                     'iconFA':   'compress',
-                    'callback': 'onLeaveFullscreen'
+                    'callback': 'onLeave'
                   }
                 ]
               }
-
-            # 2. set functionality
-            @_hgInstance.buttons.fullscreenButton.onEnterFullscreen @, (btn) =>
-              body = document.body
-              if (body.requestFullscreen)
-                body.requestFullscreen()
-              else if (body.msRequestFullscreen)
-                body.msRequestFullscreen()
-              else if (body.mozRequestFullScreen)
-                body.mozRequestFullScreen()
-              else if (body.webkitRequestFullscreen)
-                body.webkitRequestFullscreen()
-              btn.changeState 'fullscreen'
-
-            @_hgInstance.buttons.fullscreenButton.onLeaveFullscreen @, (btn) =>
-              body = document.body
-              if (body.requestFullscreen)
-                document.cancelFullScreen()
-              else if (body.msRequestFullscreen)
-                document.msExitFullscreen()
-              else if (body.mozRequestFullScreen)
-                document.mozCancelFullScreen()
-              else if (body.webkitRequestFullscreen)
-                document.webkitCancelFullScreen()
-              btn.changeState 'normal'
           )
 
           # high contrast mode
@@ -130,32 +105,22 @@ class HG.ControlButtons
             new HG.Button @_hgInstance,
               {
                 'parentArea':   @_hgInstance.controlButtons,
-                'id':           'highContrastButton',
+                'id':           'highContrast',
                 'states': [
                   {
                     'id':       'normal',
                     'tooltip':  "High-Contrast Mode",
                     'iconFA':   'adjust',
-                    'callback': 'onEnterHighContrast'
+                    'callback': 'onEnter'
                   },
                   {
                     'id':       'high-contrast',
                     'tooltip':  "Normal Color Mode",
                     'iconFA':   'adjust',
-                    'callback': 'onLeaveHighContrast'
+                    'callback': 'onLeave'
                   }
                 ]
               }
-
-            # 2. set functionality
-            @_hgInstance.buttons.highContrastButton.onEnterHighContrast @, (btn) =>
-              $(@_hgInstance._config.container).addClass 'highContrast'
-              btn.changeState 'high-contrast'
-
-            @_hgInstance.buttons.highContrastButton.onLeaveHighContrast @, (btn) =>
-              $(@_hgInstance._config.container).removeClass 'highContrast'
-              btn.changeState 'normal'
-
           )
 
           # minimal layout mode
@@ -197,31 +162,22 @@ class HG.ControlButtons
             new HG.Button @_hgInstance,
               {
                 'parentArea':   @_hgInstance.controlButtons,
-                'id':           'graphButton',
+                'id':           'graph',
                 'states': [
                   {
                     'id':       'normal',
                     'tooltip':  "Show Alliances",
                     'iconFA':   'share-alt',
-                    'callback': 'onShowGraph'
+                    'callback': 'onShow'
                   },
                   {
                     'id':       'graph',
                     'tooltip':  "Hide Alliances",
                     'iconFA':   'share-alt',
-                    'callback': 'onHideGraph'
+                    'callback': 'onHide'
                   }
                 ]
               }
-
-            # 2. set functionality
-            @_hgInstance.buttons.graphButton.onShowGraph @, (btn) =>
-              $(hgInstance._config.container).addClass 'minGUI'
-              btn.changeState 'min-layout'
-
-            @_hgInstance.buttons.graphButton.onHideGraph @, (btn) =>
-              $(hgInstance._config.container).removeClass 'minGUI'
-              btn.changeState 'normal'
           )
 
     # listen to show/hide of HistoGraph
