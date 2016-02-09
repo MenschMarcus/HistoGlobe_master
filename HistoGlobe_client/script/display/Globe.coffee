@@ -50,11 +50,11 @@ class HG.Globe extends HG.Display
         if hgInstance.buttons.zoomOut?
           hgInstance.buttons.zoomOut.onClick @, @_zoomOut
 
-        if hgInstance.buttons.highContrastButton?
-          hgInstance.buttons.highContrastButton.onEnterHighContrast @, () =>
+        if hgInstance.buttons.highContrast?
+          hgInstance.buttons.highContrast.onEnter @, () =>
             @_tile_path = hgInstance._config.tilesHighContrast
 
-          hgInstance.buttons.highContrastButton.onLeaveHighContrast @, () =>
+          hgInstance.buttons.highContrast.onLeavr @, () =>
             @_tile_path = hgInstance._config.tiles
 
 
