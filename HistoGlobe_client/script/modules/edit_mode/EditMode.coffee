@@ -3,7 +3,7 @@ window.HG ?= {}
 class HG.EditMode
 
   # ==============================================================================
-  # EditMode acts as an edit controller has several controlling tasks:
+  # EditMode acts as an edit CONTROLLER has several controlling tasks:
   #   register clicks on edit operation buttons -> init operation
   #   manage operation window (init, send data, get data)
   #   handle communication with backend (get data, send data)
@@ -20,7 +20,6 @@ class HG.EditMode
     # handle callbacks
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
-    # @addCallback
 
     # init config
     defaultConfig =
@@ -29,10 +28,10 @@ class HG.EditMode
 
     @_config = $.extend {}, defaultConfig, config
 
-    # init "current" object
+    # init variables
+    @_hgChangeOperations = null
     @_curr = {                      # object storing current state of workflow
-      op          : null            # object of current operation
-      opBtn       : null            # button of current operation
+      operation   : null            # object of current operation
       totalSteps  : null            # total number of steps of current operation
       stepIdx     : null            # number of current step in workflow [starting at 1!]
       step        : null            # object of current step in workflow
@@ -45,204 +44,84 @@ class HG.EditMode
     # add to HG instance
     @_hgInstance.editController = @   # N.B. edit mode = edit controller :)
 
-    @_changeOperationButtons = new HG.ObjectArray
-
-    # create transparent title bar (hidden)
-    @_titleBar = new HG.Div 'titlebar', null, true
-    @_hgInstance._top_area.appendChild @_titleBar.obj()
-
-    # create edit buttons area
-    @_editButtonArea = new HG.ButtonArea @_hgInstance,
-    {
-      'id':           'editButtons'
-      'positionX':    'right'
-      'positionY':    'top'
-      'orientation':  'horizontal'
-      'direction':    'prepend'
-    }
-
-    # create edit button (show)
-    @_editModeButton = new HG.Button @,
-      {
-        'parentArea':   @_editButtonArea,
-        'id':           'editMode',
-        'states': [
-          {
-            'id':       'normal',
-            'tooltip':  "Enter Edit Mode",
-            'iconFA':   'pencil',
-            'callback': 'onEnter'
-          },
-          {
-            'id':       'edit-mode',
-            'tooltip':  "Leave Edit Mode",
-            'iconFA':   'pencil',
-            'callback': 'onLeave'
-          }
-        ]
-      }
-
-    # create new hivent button (hidden)
-    @_newHiventButton = new HG.Button @,
-      {
-        'parentArea':   @_editButtonArea,
-        'id':           'newHivent',
-        'hide':         yes
-        'states': [
-          {
-            'id':       'normal',
-            'tooltip':  "Add New Hivent",
-            'iconOwn':  @_config.iconPath + 'new_hivent.svg',
-            'callback': 'onAdd'
-          }
-        ]
-      }
-
-    # load all historical geographic change operations
-    # and create their buttons (hidden)
     $.getJSON(@_config.changeOperationsPath, (ops) =>
 
-      # operations
       @_hgChangeOperations = new HG.ObjectArray ops # all possible operations
 
-      # setup operation buttons
-      @_hgChangeOperations.foreach (operation) =>
-        @_changeOperationButtons.push {
-          'id': operation.id,
-          'button': new HG.Button @_hgInstance,
-            {
-              'parentArea':   @_editButtonArea,
-              'groupName':    'changeOperations'
-              'id':           operation.id,
-              'hide':         yes,
-              'states': [
-                {
-                  'id':       'normal',
-                  'tooltip':  operation.title,
-                  'classes':  ['button-horizontal'],
-                  'iconOwn':  @_config.iconPath + operation.id + '.svg',
-                  'callback': 'onStart'
-                }
-              ]
-            }
-        }
-    )
-
-    # create title to be filled
-    @_title = new HG.Title @_hgInstance
+      @_editButtons = new HG.EditButtons @_hgInstance, @_hgChangeOperations, @_config.iconPath
+      @_editModeButton = @_editButtons.getEditButton()
+      @_title = new HG.Title @_hgInstance
 
 
-    # -------------------------------------------------------------
-    # INTERACTIVITY
-    # -------------------------------------------------------------
+      # listen to click on edit button => start edit mode
+      @_editModeButton.onEnter @, () ->
 
-    # listen to click on edit button => start edit mode
-    @_editModeButton.onEnter @, (editButton) ->
+        @_editButtons.activateEditButton()
+        @_editButtons.show()
+        @_title.resize()
+        @_title.set 'EDIT MODE'   # TODO internationalization
 
-      # activate edit button
-      editButton.changeState 'edit-mode'
-      editButton.activate()
+        # listen to click on edit operation buttons => start operation
+        @_hgChangeOperations.foreach (operation) =>
+          @_hgInstance.buttons[operation.id].onStart @, (btn) =>
 
-      # show titlebar, new hivent and change operation buttons
-      @_titleBar.dom().show()
-      @_newHiventButton.show()
-      @_changeOperationButtons.foreach (obj) =>
-        obj.button.show()
+            # update information about current state in workflow
+            opId = btn._config.id # to do: more elegant way to get id?
+            @_curr.operation = @_hgChangeOperations.getByPropVal 'id', opId
+            @_curr.totalSteps = @_curr.operation.steps.length
+            @_curr.stepIdx = 1
+            @_curr.step = @_curr.operation.steps[@_curr.stepIdx-1]
 
-      # update title
-      @_title.resize()
-      @_title.set 'EDIT MODE'   # TODO internationalization
+            # setup UI
+            @_editButtons.disable()
+            @_editButtons.activate @_curr.operation.id
+            @_title.clear()
+            @_coWindow?.destroy()
+            @_coWindow = new HG.ChangeOperationWindow @_hgInstance, @_curr.operation
 
-      # listen to click on edit operation buttons => start operation
-      # for operation in @_hgChangeOperations
-      @_hgChangeOperations.foreach (operation) =>
-        @_hgInstance.buttons[operation.id].onStart @, (btn) =>
-
-          # get operation [json object]
-          opId = btn._config.id # to do: more elegant way to get button?
-          @_curr.op = @_hgChangeOperations.getByPropVal 'id', opId
-          @_curr.opBtn = (@_changeOperationButtons.getById @_curr.op.id).button
-
-          # disable all edit buttons, activate current operation
-          @_newHiventButton.disable()
-          @_changeOperationButtons.foreach (obj) =>
-            obj.button.disable()
-          @_curr.opBtn.activate()
-
-          # disable title
-          @_title.clear()
-
-          # setup operation window
-          @_opWindow.destroy() if @_opWindow? # cleanup before
-          @_opWindow = new HG.ChangeOperationWorkflow @_hgInstance, @_curr.op
-
-          # update information about current state in workflow
-          @_curr.totalSteps = @_curr.op.steps.length
-          @_curr.stepIdx = 1
-          @_curr.step = @_curr.op.steps[@_curr.stepIdx-1]
-
-          # disable buttons
-          @_opWindow.disableNext()
-          @_opWindow.disableBack()
-
-
-          # listen to click on previous step button
-          @_hgInstance.buttons.backButton.onPrevStep @, () =>
-            # update information
-            unless @_curr.stepIdx is 1
-              @_curr.stepIdx--
-              @_curr.step = @_curr.op.steps[@_curr.stepIdx-1]
-            # change window
-            if @_curr.stepIdx is 1
-              @_opWindow.disableBack()
-            if @_curr.stepIdx is @_curr.totalSteps-1
-              @_opWindow.disableFinish()
-
-          # listen to click on next step button
-          @_hgInstance.buttons.nextButton.onNextStep @, () =>
+            # listen to click on previous step button
+            # TODO: implement actual "undo"
+            @_hgInstance.buttons.coBack.onBack @, () =>
               # update information
-              unless @_curr.stepIdx is @_curr.totalSteps
-                @_curr.stepIdx++
-                @_curr.step = @_curr.op.steps[@_curr.stepIdx-1]
+              unless @_curr.stepIdx is 1
+                @_curr.stepIdx--
+                @_curr.step = @_curr.operation.steps[@_curr.stepIdx-1]
               # change window
-              @_opWindow.enableBack()
-              if @_curr.stepIdx is @_curr.totalSteps
-                @_opWindow.enableFinish()
-
-          # listen to click on abort button
-          @_hgInstance.buttons.abort.onClick @, () =>
-              # remove window
-              @_opWindow.destroy()
-              # reset buttons
-              @_curr.opBtn.deactivate()
-              @_changeOperationButtons.foreach (obj) =>
-                obj.button.enable()
-              @_newHiventButton.enable()
-              # reset current operation
-              @_curr.op           = null
-              @_curr.opBtn        = null
-              @_curr.totalSteps   = null
-              @_curr.stepIdx      = null
-              @_curr.step         = null
+              @_coWindow.disableBack()          if @_curr.stepIdx is 1
+              @_coWindow.disableFinishButton()  if @_curr.stepIdx is @_curr.totalSteps-1
 
 
-    # listen to next click on edit button => leave edit mode
-    @_editModeButton.onLeave @, (editButton) ->
+            # listen to click on next step button
+            @_hgInstance.buttons.coNext.onNext @, () =>
+                # update information
+                unless @_curr.stepIdx is @_curr.totalSteps
+                  @_curr.stepIdx++
+                  @_curr.step = @_curr.operation.steps[@_curr.stepIdx-1]
+                # change window
+                @_coWindow.enableBack()
+                @_coWindow.enableFinishButton() if @_curr.stepIdx is @_curr.totalSteps
 
-      # reset edit button
-      editButton.changeState 'normal'
-      editButton.deactivate()
+            # listen to click on abort button
+            @_hgInstance.buttons.coAbort.onClick @, () =>
+                # reset UI
+                @_coWindow.destroy()
+                @_editButtons.deactivate @_curr.operation.id
+                @_editButtons.enable @_curr.operation.id
+                # reset current operation
+                @_curr.operation    = null
+                @_curr.totalSteps   = null
+                @_curr.stepIdx      = null
+                @_curr.step         = null
 
-      # hide titlebar new hivent and change operation buttons
-      @_titleBar.dom().hide()
-      @_newHiventButton.hide()
-      @_changeOperationButtons.foreach (obj) =>
-        obj.button.hide()
 
-      # update title
-      @_title.clear()
-      @_title.resize()
+      # listen to next click on edit button => leave edit mode and cleanup
+      @_editModeButton.onLeave @, () ->
+        @_coWindow?.destroy()
+        @_editButtons.deactivateEditButton()
+        @_editButtons.hide()
+        @_title.clear()
 
+    )
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #

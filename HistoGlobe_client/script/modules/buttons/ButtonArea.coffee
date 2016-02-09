@@ -52,6 +52,7 @@ class HG.ButtonArea
     @_direction.set @_config.direction
 
     @_groups = new HG.ObjectArray()
+    @_spacerCtr = 1
 
     # make button area
     classes = ['button-area']
@@ -95,6 +96,12 @@ class HG.ButtonArea
   removeButtonGroup: (name) ->
     @_removeGroup name
 
+  # ============================================================================
+  addSpace: () ->
+    group = @_addGroup 'spacer'+@_spacerCtr
+    spacer = new HG.Div null, ['spacer']
+    group.appendChild spacer.obj()
+    @_spacerCtr++
 
   # ============================================================================
   moveVertical: (dist) ->
