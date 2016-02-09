@@ -58,10 +58,16 @@ class HG.HistoGraph
     @_hgInstance.onAllModulesLoaded @, () =>
 
       # for test purpose: activate multiple selections (2)
-      # @_hgInstance.buttons.
+      # @_hgInstance.buttons.zoomOut.onClick @, () =>
+      #   @_multipleSelection = yes
+      #   @_hgInstance.areasOnMap.enableMultipleSelection 3
+
+      # @_hgInstance.buttons.zoomIn.onClick @, () =>
+      #   @_multipleSelection = no
+      #   @_hgInstance.areasOnMap.disableMultipleSelection()
 
       @_hgInstance.areasOnMap.onActivateArea @, (country) =>
-        @show() unless @_graphVisible
+        @show()
         if not @_multipleSelection          # single-selection mode
           @_showHistory country
         else                                # multiple-selection mode
@@ -77,16 +83,18 @@ class HG.HistoGraph
 
   # ============================================================================
   show: () ->
-    @_wrapper.dom().show()
-    @_line.dom().show()
-    @notifyAll 'onShow', @_wrapper.dom()
-    @_graphVisible = yes
+    if not @_graphVisible
+      @_wrapper.dom().show()
+      @_line.dom().show()
+      @notifyAll 'onShow', @_wrapper.dom()
+      @_graphVisible = yes
 
   hide: () ->
-    @_wrapper.dom().hide()
-    @_line.dom().hide()
-    @notifyAll 'onHide', @_wrapper.dom()
-    @_graphVisible = no
+    if @_graphVisible
+      @_wrapper.dom().hide()
+      @_line.dom().hide()
+      @notifyAll 'onHide', @_wrapper.dom()
+      @_graphVisible = no
 
 
   ##############################################################################

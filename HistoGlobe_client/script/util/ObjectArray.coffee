@@ -17,32 +17,19 @@ class HG.ObjectArray
     @_arr = [] unless @_arr
 
   # ============================================================================
-  length: () ->
-    @_arr.length
+  length: () ->         @_arr.length
+  num: () ->            @_arr.length
 
-  # ============================================================================
-  push: (obj) ->
-    @_arr.push obj
+  push: (obj) ->        @_arr.push obj
+  add: (obj) ->         @_arr.push obj
+  append: (obj) ->      @_arr.push obj
 
-  # ============================================================================
-  add: (obj) ->
-    @_arr.push obj
+  pushFront: (obj) ->   @_arr.unshift obj
+  addFront: (obj) ->    @_arr.unshift obj
+  prepend: (obj) ->     @_arr.unshift obj
 
-  # ============================================================================
-  append: (obj) ->
-    @_arr.push obj
-
-  # ============================================================================
-  pushFront: (obj) ->
-    @_arr.unshift obj
-
-  # ============================================================================
-  addFront: (obj) ->
-    @_arr.unshift obj
-
-  # ============================================================================
-  prepend: (obj) ->
-    @_arr.unshift obj
+  empty: () ->          @_arr = []
+  clear: () ->          @_arr = []
 
   # ============================================================================
   getByPropVal: (prop, val) ->
@@ -62,6 +49,8 @@ class HG.ObjectArray
     @_arr[id]
 
   # ============================================================================
+  # find element whose property has this value and deletes it
+  # usage: myObjArr.remove 'id', id
   remove: (prop, val) ->
     # get index of elem in arr
     idx = -1
@@ -74,6 +63,9 @@ class HG.ObjectArray
       i++
     # remove elem of array by index
     @_arr.splice idx, 1
+
+  delete: (prop, val) ->
+    @remove prop, val
 
   # ============================================================================
   foreach: (cb) ->
