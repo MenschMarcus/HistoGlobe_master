@@ -30,12 +30,8 @@ class HG.EditMode
 
     # init variables
     @_hgChangeOperations = null
-    @_curr = {                      # object storing current state of workflow
-      operation   : null            # object of current operation
-      totalSteps  : null            # total number of steps of current operation
-      stepIdx     : null            # number of current step in workflow [starting at 1!]
-      step        : null            # object of current step in workflow
-    }
+    @_currCO = {}                   # object of current change operation
+    @_currStep = {}                 # object of current step in workflow
 
 
   # ============================================================================
@@ -51,7 +47,8 @@ class HG.EditMode
       @_editButtons = new HG.EditButtons @_hgInstance, @_hgChangeOperations, @_config.iconPath
       @_editModeButton = @_editButtons.getEditButton()
       @_title = new HG.Title @_hgInstance
-
+      @_histoGraph = @_hgInstance.histoGraph
+      @_areasOnMap = @_hgInstance.areasOnMap
 
       # listen to click on edit button => start edit mode
       @_editModeButton.onEnter @, () ->
@@ -67,56 +64,106 @@ class HG.EditMode
 
             # update information about current state in workflow
             opId = btn._config.id # to do: more elegant way to get id?
-            @_curr.operation = @_hgChangeOperations.getByPropVal 'id', opId
-            @_curr.totalSteps = @_curr.operation.steps.length
-            @_curr.stepIdx = 1
-            @_curr.step = @_curr.operation.steps[@_curr.stepIdx-1]
+            @_currCO = @_hgChangeOperations.getByPropVal 'id', opId
+            @_currCO.totalSteps = @_currCO.steps.length
+            @_currCO.stepIdx = 0
+            @_currCO.finished = no
 
             # setup UI
             @_editButtons.disable()
-            @_editButtons.activate @_curr.operation.id
+            @_editButtons.activate @_currCO.id
             @_title.clear()
             @_coWindow?.destroy()
-            @_coWindow = new HG.ChangeOperationWindow @_hgInstance, @_curr.operation
+            @_coWindow = new HG.ChangeOperationWindow @_hgInstance, @_currCO
+            @_histoGraph.show()
+
+            while not @_currCO.finished
+              @_currStep = @_currCO.steps[@_currCO.stepIdx]
+              @_currStep.num = @_getRequiredNum @_currStep.num
+
+              console.log @_currStep
+
+              # determine required action for current step
+              switch @_currStep.id
+                when 'SEL_OLD' then (
+                  @_areasOnMap.enableMultipleSelection @_currStep.num.max
+                  @_selectedAreas = new HG.ObjectArray
+                  @_selectedAreas.push @_areasOnMap.getActiveArea() if @_areasOnMap.getActiveArea()?
+
+                  @_areasOnMap.onSelectArea @, (area) =>
+                    @_selectedAreas.push area
+                    @_histoGraph.addToSelection area
+
+                    # check if step is completed
+                    console.log @_selectedAreas.length(), @_currStep.num.min
+                    if @_selectedAreas.length() >= @_currStep.num.min
+                      @_coWindow.enableNext()
+
+                  @_areasOnMap.onDeselectArea @, (area) =>
+                    console.log @_selectedAreas
+                    @_selectedAreas.remove '_id', area._id
+                    @_histoGraph.removeFromSelection area
+
+                    # check if step is completed
+                    console.log @_selectedAreas.length(), @_currStep.num.min
+                    if @_selectedAreas.length() < @_currStep.num.min
+                      @_coWindow.disableNext()
+                )
+
+                # when 'SET_GEOM' then
+
+                # when 'SET_NAME' then
+
+                # when 'SET_CHNG' then
+
+
+              @_currCO.stepIdx++
+
+              if @_currCO.stepIdx is @_currCO.totalSteps
+                @_currCO.finished = yes
+
+              # DEBUG
+              break
+
+
 
             # listen to click on previous step button
             # TODO: implement actual "undo"
             @_hgInstance.buttons.coBack.onBack @, () =>
               # update information
-              unless @_curr.stepIdx is 1
-                @_curr.stepIdx--
-                @_curr.step = @_curr.operation.steps[@_curr.stepIdx-1]
+              unless @_currCO.stepIdx is 1
+                @_currCO.stepIdx--
+                @_currStep = @_currCO.steps[@_currCO.stepIdx-1]
               # change window
-              @_coWindow.disableBack()          if @_curr.stepIdx is 1
-              @_coWindow.disableFinishButton()  if @_curr.stepIdx is @_curr.totalSteps-1
-
+              @_coWindow.disableBack()          if @_currCO.stepIdx is 1
+              @_coWindow.disableFinishButton()  if @_currCO.stepIdx is @_curr.totalSteps-1
 
             # listen to click on next step button
             @_hgInstance.buttons.coNext.onNext @, () =>
                 # update information
-                unless @_curr.stepIdx is @_curr.totalSteps
-                  @_curr.stepIdx++
-                  @_curr.step = @_curr.operation.steps[@_curr.stepIdx-1]
+                unless @_currCO.stepIdx is @_curr.totalSteps
+                  @_currCO.stepIdx++
+                  @_currStep = @_currCO.steps[@_currCO.stepIdx-1]
                 # change window
                 @_coWindow.enableBack()
-                @_coWindow.enableFinishButton() if @_curr.stepIdx is @_curr.totalSteps
+                @_coWindow.enableFinishButton() if @_currCO.stepIdx is @_curr.totalSteps
 
             # listen to click on abort button
             @_hgInstance.buttons.coAbort.onClick @, () =>
                 # reset UI
                 @_coWindow.destroy()
-                @_editButtons.deactivate @_curr.operation.id
-                @_editButtons.enable @_curr.operation.id
+                @_editButtons.deactivate @_currCO.id
+                @_editButtons.enable @_currCO.id
                 # reset current operation
-                @_curr.operation    = null
-                @_curr.totalSteps   = null
-                @_curr.stepIdx      = null
-                @_curr.step         = null
+                @_currCO    = null
+                @_currStep  = null
 
 
       # listen to next click on edit button => leave edit mode and cleanup
       @_editModeButton.onLeave @, () ->
         @_coWindow?.destroy()
+        @_editButtons.deactivate @_currCO.id
+        @_editButtons.enable @_currCO.id
         @_editButtons.deactivateEditButton()
         @_editButtons.hide()
         @_title.clear()
@@ -128,3 +175,10 @@ class HG.EditMode
   ##############################################################################
 
   # ============================================================================
+  # possible inputs:  1   1+  2   2+
+  MAX_NUM = 25
+  _getRequiredNum: (exp) ->
+    lastChar = exp.substr(exp.length-1)
+    max = if lastChar is '+' then MAX_NUM else lastChar
+    min = (exp.substring 0,1)
+    {'min': parseInt(min), 'max': parseInt(max)}

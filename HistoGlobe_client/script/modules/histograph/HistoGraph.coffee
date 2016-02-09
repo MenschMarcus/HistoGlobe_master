@@ -68,17 +68,11 @@ class HG.HistoGraph
 
       @_hgInstance.areasOnMap.onActivateArea @, (country) =>
         @show()
-        if not @_multipleSelection          # single-selection mode
-          @_showHistory country
-        else                                # multiple-selection mode
-          @_selectedCountries.push country
+        @showHistory country
 
       # no active country => no graph
       @_hgInstance.areasOnMap.onDeactivateArea @, (country) =>
-        if not @_multipleSelection          # single-selection mode
-          @hide()
-        else                                # multiple-selection mode
-          # @_selectedCountries.push country
+        @hide()
 
 
   # ============================================================================
@@ -96,13 +90,8 @@ class HG.HistoGraph
       @notifyAll 'onHide', @_wrapper.dom()
       @_graphVisible = no
 
-
-  ##############################################################################
-  #                            PRIVATE INTERFACE                               #
-  ##############################################################################
-
   # ============================================================================
-  _showHistory: (area) ->
+  showHistory: (area) ->
 
     # data for each country
     countryData = [
@@ -123,17 +112,19 @@ class HG.HistoGraph
       @_updateLabels countryData
 
 
-    # put in event the center assuming history of country is "infinite"
-    @_canvas.append 'circle'
-      .classed 'graph-hivent', true
-      .attr 'r', 10
-      .attr 'cx', @_wrapper.dom().width()/2
-      .attr 'cy', @_wrapper.dom().height()/2
-      .on 'mouseover', () -> d3.select(@).style 'fill', HGConfig.color_highlight.val
-      .on 'mouseout', () -> d3.select(@).style 'fill', HGConfig.color_white.val
-      .on 'click', () -> d3.select(@).style 'fill', HGConfig.color_active.val
+  # ============================================================================
+  addToSelection: (area) ->
+    console.log "add " + area.getCommName()
+
+  removeFromSelection: (area) ->
+    console.log "remove " + area.getCommName()
 
 
+  ##############################################################################
+  #                            PRIVATE INTERFACE                               #
+  ##############################################################################
+
+  # ============================================================================
   _initLines: (d) ->
     @_canvas.selectAll 'line'
       .data d
@@ -169,6 +160,16 @@ class HG.HistoGraph
       .text (d) -> d.name
 
 
+    # _initCircles
+    # put in event the center assuming history of country is "infinite"
+    # @_canvas.append 'circle'
+    #   .classed 'graph-hivent', true
+    #   .attr 'r', 10
+    #   .attr 'cx', @_wrapper.dom().width()/2
+    #   .attr 'cy', @_wrapper.dom().height()/2
+    #   .on 'mouseover', () -> d3.select(@).style 'fill', HGConfig.color_highlight.val
+    #   .on 'mouseout', () -> d3.select(@).style 'fill', HGConfig.color_white.val
+    #   .on 'click', () -> d3.select(@).style 'fill', HGConfig.color_active.val
 
 
   # ============================================================================
