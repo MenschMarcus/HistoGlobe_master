@@ -23,7 +23,7 @@ class HG.Area
       (bbox[1]+bbox[3])/2
     ]
 
-    @
+    @_active = no
 
   # ============================================================================
   getId: () ->          @_id
@@ -32,6 +32,9 @@ class HG.Area
   getLabelName: () ->   @_labelName
   getLabelPos: () ->    @_labelPos
 
+  deactivate: () ->     @_active = no
+  activate: () ->       @_active = yes
+  isActive: () ->       @_active
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #

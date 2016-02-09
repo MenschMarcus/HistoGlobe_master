@@ -33,6 +33,13 @@ $button_diameter                    = 40px
 $button_abort_shrink_factor         = 0.75
 
 
+// MAP -------------------------------------------------------------
+
+$area_opacity                       = 0.25
+$border_width                       = 0.5px
+$border_opacity                     = 1
+
+
 // TIMELINE & NOW MARKER -------------------------------------------
 
 $timeline_height                    = 45px
@@ -89,10 +96,6 @@ $text_highlight_color               = #AE3030
 
 $background_color                   = #333333
 
-$border_width                       = 0px
-$border_color                       = #ffffff
-$border_color_bright                = #ffffff
-$border_color_dark                  = #000000
 
 // MAP OPTIONS -----------------------------------------------------
 
