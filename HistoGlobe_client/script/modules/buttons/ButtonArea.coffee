@@ -97,7 +97,7 @@ class HG.ButtonArea
     @_removeGroup name
 
   # ============================================================================
-  addSpace: () ->
+  addSpacer: () ->
     group = @_addGroup 'spacer'+@_spacerCtr
     spacer = new HG.Div null, ['spacer']
     group.appendChild spacer.obj()

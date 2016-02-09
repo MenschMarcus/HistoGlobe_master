@@ -48,7 +48,7 @@ class HG.EditButtons
         ]
       }
 
-    @_editButtonsArea.addSpace()
+    @_editButtonsArea.addSpacer()
 
     # create new hivent button (hidden)
     @_newHiventButton = new HG.Button @,
@@ -66,7 +66,7 @@ class HG.EditButtons
         ]
       }
 
-    @_editButtonsArea.addSpace()
+    @_editButtonsArea.addSpacer()
 
     # create change operation buttons (hidden)
     @_changeOperationButtons = new HG.ObjectArray

@@ -14,6 +14,7 @@ class HG.ObjectArray
 
   # ============================================================================
   constructor: (@_arr) ->
+    # todo: only accept array of objects as initial input, otherwise empty
     @_arr = [] unless @_arr
 
   # ============================================================================
