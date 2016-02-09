@@ -146,3 +146,42 @@ body {
   -ms-user-select: none;
   user-select: none;
 }
+
+
+// ----------------------- TOOLTIPS ------------------------
+
+.tooltip-inner {
+    border: none !important;
+    box-shadow: 1px 1px 2px 2px rgba(0,0,0,@shadow_intensity);
+    font-size: 1.1em;
+    color: #333;
+    opacity: 1 !important;
+}
+
+.tooltip {
+    opacity: 1 !important;
+
+    &.bottom {
+        .tooltip-arrow {
+            border-bottom-color: #fff;
+        }
+    }
+
+    &.top {
+        .tooltip-arrow {
+            border-top-color: #fff;
+        }
+    }
+
+    &.left {
+        .tooltip-arrow {
+            border-left-color: #fff;
+        }
+    }
+
+    &.right {
+        .tooltip-arrow {
+            border-right-color: #fff;
+        }
+    }
+}
