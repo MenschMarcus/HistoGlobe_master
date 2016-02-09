@@ -1,21 +1,21 @@
 .leaflet-label {
+  pointer-events: none;
+
   background-color: transparent;
   border-color: transparent;
-  font-size: @map_label_size !important;
-  pointer-events: none;
-  font-weight: lighter;
-  line-height: 0.8em;
-  font-family: @secondary_font_face;
-  text-align: center;
-
 
   color: #444;
-  // text-shadow: 0 0 15px #fff, 0 0 10px #fff, 0 0 5px #fff;
   text-shadow:
     -1px -1px 0 #fff,
     1px -1px 0 #fff,
     -1px 1px 0 #fff,
     1px 1px 0 #fff;
+
+  font-family: @secondary_font_face;
+  font-size: @map_label_size !important;
+  font-weight: lighter;
+  text-align: center;
+  line-height: 0.8em;
 
   .transition(opacity 0.5s ease-in-out);
 
@@ -34,4 +34,10 @@
 
 .tooltip-inner {
   z-index: 30 !important;
+}
+
+.highContrast .leaflet-label
+{
+  // font-size: 1.2em !important;
+  text-shadow: 0px 0px 1px white;
 }

@@ -19,8 +19,8 @@ $color_active                       = #d57d00
 $color_disabled                     = #dedede
 $color_disabled_active              = #848484
 
-$shadow_intensity                   = 0.5
-$shadow_radius                      = 15px
+$shadow_intensity                   = 0.2
+$shadow_radius                      = 10px
 
 
 // GENERAL UI -----------------------------------------------------
@@ -88,28 +88,33 @@ $imprint_height           = 600 px
 // TODO: cleanup from here on
 // ================================================================
 
+// FROM PROJECT STYLE.ROSE ----------------------------------------
+$border_color                       = #ffffff
+$border_color_bright                = #ffffff
+$border_color_dark                  = #333333
+
 
 // GLOBAL OPTIONS --------------------------------------------------
 
-$text_color                         = #666666
-$text_highlight_color               = #AE3030
+$text_color                         = #555555
+$text_highlight_color               = #58A84B
 
-$background_color                   = #333333
+$background_color                   = #43ca92
 
 
 // MAP OPTIONS -----------------------------------------------------
 
 $map_min_width                      = 300px
 $map_collapsed_width                = 50px
-$map_label_size                     = 1.7em
+$map_label_size                     = 1.2em
 
 
 // SIDEBAR OPTIONS -------------------------------------------------
 
 $sidebar_collapse_button_size       = 40px
 $sidebar_aimation_speed             = 0.3s
-$sidebar_width                      = 400px
-$sidebar_collapsed_width            = 45px
+$sidebar_width                      = 350px
+$sidebar_collapsed_width            = 50px
 $sidebar_scrollbar_width            = 10px
 $sidebar_background_color           = #666666
 
@@ -117,23 +122,24 @@ $sidebar_background_color           = #666666
 // WIDGET OPTIONS --------------------------------------------------
 
 $widget_aimation_speed                = 0.3s
-$widget_title_size                    = 30px
-$widget_title_background_color        = #ffcc00
+$widget_title_size                    = 35px
+$widget_title_background_color        = #ffffff
 $widget_title_text_color              = #333333
 $widget_background_color              = #ffffff
 
-$widget_margin                        = 10px
+$widget_margin                        = 15px
 $widget_body_padding                  = 15px
 
 
 $widget_title_gradient_effect         = 0%
 
-$widget_border_radius_top_left        = 5px
+$widget_border_radius_top_left        = 0px
 $widget_border_radius_top_right       = 0px
-$widget_border_radius_bottom_left     = 5px
+$widget_border_radius_bottom_left     = 0px
 $widget_border_radius_bottom_right    = 0px
 
-$widget_font_size_factor              = 0.8
+
+$widget_font_size_factor              = 0.6
 
 // GALLERY WIDGET
 $gallery_widget_pagination_size       = 20px
@@ -143,7 +149,7 @@ $picture_gallery_widget_image_height  = 200px
 
 // VIP WIDGET
 $vip_widget_size                     = 100px
-$vip_widget_image_height             = 50px
+$vip_widget_image_height             = 150px
 
 // LOGO WIDGET
 $logo_widget_image_height             = 100px
@@ -153,7 +159,7 @@ $statistics_widget_min_height         = 175px
 $statistics_widget_margin_top         = 10px
 $statistics_widget_margin_right       = 15px
 $statistics_widget_margin_bottom      = 20px
-$statistics_widget_margin_left        = 30px
+$statistics_widget_margin_left        = 40px
 
 $statistics_widget_axis_width         = 2px
 $statistics_widget_tooltip_size       = 1.0em

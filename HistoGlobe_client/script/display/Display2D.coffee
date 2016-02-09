@@ -149,11 +149,11 @@ class HG.Display2D extends HG.Display
         @_hgInstance.buttons.zoomOut.onClick @, () =>
           @_map.zoomOut()
 
-      if @_hgInstance.buttons.highContrastButton?
-        @_hgInstance.buttons.highContrastButton.onEnterHighContrast @, () =>
+      if @_hgInstance.buttons.highContrast?
+        @_hgInstance.buttons.highContrast.onEnter @, () =>
           tileLayer.setUrl @_hgInstance._config.tilesHighContrast + '/{z}/{x}/{y}.png'
 
-        @_hgInstance.buttons.highContrastButton.onLeaveHighContrast @, () =>
+        @_hgInstance.buttons.highContrast.onLeave @, () =>
           tileLayer.setUrl @_hgInstance._config.tiles + '/{z}/{x}/{y}.png'
 
     @overlayContainer = @_map.getPanes().mapPane
