@@ -1,10 +1,16 @@
 window.HG ?= {}
 
+# DEVEL OPTION: tooltips are annoying... take care of styling them later
+TOOLTIPS = no
+
 class HG.Button
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
   ##############################################################################
+
+  # TODO
+  # as parent div, accept HG.Div, jQuery object or normal JS object
 
   # ============================================================================
   # button object into constructor
@@ -60,6 +66,7 @@ class HG.Button
 
     # finally add button either to parent div or to button area
     if @_config.parentDiv
+      # TODO accept HG.Div, jQuery object or normal JS object
       @_config.parentDiv.appendChild @_button.obj()
     else if @_config.parentArea
       @_config.parentArea.addButton @_button, @_config.groupName
@@ -131,7 +138,7 @@ class HG.Button
 
   # ============================================================================
   _setTooltip: () ->
-    if @_state.tooltip
+    if @_state.tooltip and TOOLTIPS
       @_button.dom().tooltip {
         title: @_state.tooltip,
         placement: 'right',
@@ -166,10 +173,3 @@ class HG.Button
       # callback = tell everybody that state has changed
       # hand button itself (@) into callback so everybody can operate on the button (e.g. change state)
       @notifyAll @_state.callback, @
-
-      # tooltip
-      # if c? and c.icon? and c.tooltip?
-      #   c = $.extend {}, defaultConfig, c
-      #   config = c
-      #   icon.className = "fa " + config.icon
-      #   $(button).attr('title', config.tooltip).tooltip('fixTitle').tooltip('show');
