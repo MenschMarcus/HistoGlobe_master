@@ -24,8 +24,8 @@ class HG.EditMode
 
     # init config
     defaultConfig =
-      changeOperationsPath: 'HistoGlobe_client/config/common/operations.json'
-      iconPath:             'HistoGlobe_client/config/common/graphics/operations/'
+      changeOperationsPath: 'HistoGlobe_client/config/common/hgChangeOperations.json'
+      iconPath:             'HistoGlobe_client/config/common/graphics/hgChangeOperations/'
 
     @_config = $.extend {}, defaultConfig, config
 
@@ -33,17 +33,18 @@ class HG.EditMode
     @_curr = {                      # object storing current state of workflow
       op          : null            # object of current operation
       opBtn       : null            # button of current operation
-      stepNumTotal: null            # total number of steps of current operation
-      stepNum     : null            # number of current step in workflow [starting at 1!]
+      totalSteps  : null            # total number of steps of current operation
+      stepIdx     : null            # number of current step in workflow [starting at 1!]
       step        : null            # object of current step in workflow
     }
 
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
+
+    # add to HG instance
     @_hgInstance.editController = @   # N.B. edit mode = edit controller :)
 
-    @_container = @_hgInstance._config.container
     @_changeOperationButtons = new HG.ObjectArray
 
     # create transparent title bar (hidden)
@@ -53,29 +54,30 @@ class HG.EditMode
     # create edit buttons area
     @_editButtonArea = new HG.ButtonArea @_hgInstance,
     {
-      'id':           'editButtons',
-      'positionX':    'right',
-      'positionY':    'top',
+      'id':           'editButtons'
+      'positionX':    'right'
+      'positionY':    'top'
       'orientation':  'horizontal'
+      'direction':    'prepend'
     }
 
     # create edit button (show)
-    @_editButton = new HG.Button @,
+    @_editModeButton = new HG.Button @,
       {
         'parentArea':   @_editButtonArea,
-        'id':           'editButton',
+        'id':           'editMode',
         'states': [
           {
             'id':       'normal',
             'tooltip':  "Enter Edit Mode",
             'iconFA':   'pencil',
-            'callback': 'onEnterEditMode'
+            'callback': 'onEnter'
           },
           {
             'id':       'edit-mode',
             'tooltip':  "Leave Edit Mode",
             'iconFA':   'pencil',
-            'callback': 'onLeaveEditMode'
+            'callback': 'onLeave'
           }
         ]
       }
@@ -84,27 +86,27 @@ class HG.EditMode
     @_newHiventButton = new HG.Button @,
       {
         'parentArea':   @_editButtonArea,
-        'id':           'newHiventButton',
+        'id':           'newHivent',
         'hide':         yes
         'states': [
           {
             'id':       'normal',
             'tooltip':  "Add New Hivent",
             'iconOwn':  @_config.iconPath + 'new_hivent.svg',
-            'callback': 'onAddNewHivent'
+            'callback': 'onAdd'
           }
         ]
       }
 
     # load all historical geographic change operations
     # and create their buttons (hidden)
-    $.getJSON(@_config.changeOperationsPath, (operations) =>
+    $.getJSON(@_config.changeOperationsPath, (ops) =>
 
-      # operatoins
-      @_HGChangeOperations = new HG.ObjectArray operations # all possible operations
+      # operations
+      @_hgChangeOperations = new HG.ObjectArray ops # all possible operations
 
       # setup operation buttons
-      @_HGChangeOperations.foreach (operation) =>
+      @_hgChangeOperations.foreach (operation) =>
         @_changeOperationButtons.push {
           'id': operation.id,
           'button': new HG.Button @_hgInstance,
@@ -135,7 +137,7 @@ class HG.EditMode
     # -------------------------------------------------------------
 
     # listen to click on edit button => start edit mode
-    @_editButton.onEnterEditMode @, (editButton) ->
+    @_editModeButton.onEnter @, (editButton) ->
 
       # activate edit button
       editButton.changeState 'edit-mode'
@@ -149,16 +151,16 @@ class HG.EditMode
 
       # update title
       @_title.resize()
-      @_title.set 'EDIT MODE'
+      @_title.set 'EDIT MODE'   # TODO internationalization
 
       # listen to click on edit operation buttons => start operation
-      # for operation in @_HGChangeOperations
-      @_HGChangeOperations.foreach (operation) =>
+      # for operation in @_hgChangeOperations
+      @_hgChangeOperations.foreach (operation) =>
         @_hgInstance.buttons[operation.id].onStart @, (btn) =>
 
           # get operation [json object]
           opId = btn._config.id # to do: more elegant way to get button?
-          @_curr.op = @_HGChangeOperations.getByPropVal 'id', opId
+          @_curr.op = @_hgChangeOperations.getByPropVal 'id', opId
           @_curr.opBtn = (@_changeOperationButtons.getById @_curr.op.id).button
 
           # disable all edit buttons, activate current operation
@@ -167,14 +169,17 @@ class HG.EditMode
             obj.button.disable()
           @_curr.opBtn.activate()
 
+          # disable title
+          @_title.clear()
+
           # setup operation window
           @_opWindow.destroy() if @_opWindow? # cleanup before
-          @_opWindow = new HG.ChangeOperationWorkflow @_hgInstance, @_container, @_curr.op
+          @_opWindow = new HG.ChangeOperationWorkflow @_hgInstance, @_curr.op
 
           # update information about current state in workflow
-          @_curr.stepNumTotal = @_curr.op.steps.length
-          @_curr.stepNum = 1
-          @_curr.step = @_curr.op.steps[@_curr.stepNum-1]
+          @_curr.totalSteps = @_curr.op.steps.length
+          @_curr.stepIdx = 1
+          @_curr.step = @_curr.op.steps[@_curr.stepIdx-1]
 
           # disable buttons
           @_opWindow.disableNext()
@@ -184,28 +189,28 @@ class HG.EditMode
           # listen to click on previous step button
           @_hgInstance.buttons.backButton.onPrevStep @, () =>
             # update information
-            unless @_curr.stepNum is 1
-              @_curr.stepNum--
-              @_curr.step = @_curr.op.steps[@_curr.stepNum-1]
+            unless @_curr.stepIdx is 1
+              @_curr.stepIdx--
+              @_curr.step = @_curr.op.steps[@_curr.stepIdx-1]
             # change window
-            if @_curr.stepNum is 1
+            if @_curr.stepIdx is 1
               @_opWindow.disableBack()
-            if @_curr.stepNum is @_curr.stepNumTotal-1
+            if @_curr.stepIdx is @_curr.totalSteps-1
               @_opWindow.disableFinish()
 
           # listen to click on next step button
           @_hgInstance.buttons.nextButton.onNextStep @, () =>
               # update information
-              unless @_curr.stepNum is @_curr.stepNumTotal
-                @_curr.stepNum++
-                @_curr.step = @_curr.op.steps[@_curr.stepNum-1]
+              unless @_curr.stepIdx is @_curr.totalSteps
+                @_curr.stepIdx++
+                @_curr.step = @_curr.op.steps[@_curr.stepIdx-1]
               # change window
               @_opWindow.enableBack()
-              if @_curr.stepNum is @_curr.stepNumTotal
+              if @_curr.stepIdx is @_curr.totalSteps
                 @_opWindow.enableFinish()
 
           # listen to click on abort button
-          @_hgInstance.buttons.abortButton.onAbort @, () =>
+          @_hgInstance.buttons.abort.onClick @, () =>
               # remove window
               @_opWindow.destroy()
               # reset buttons
@@ -216,13 +221,13 @@ class HG.EditMode
               # reset current operation
               @_curr.op           = null
               @_curr.opBtn        = null
-              @_curr.stepNumTotal = null
-              @_curr.stepNum      = null
+              @_curr.totalSteps   = null
+              @_curr.stepIdx      = null
               @_curr.step         = null
 
 
     # listen to next click on edit button => leave edit mode
-    @_editButton.onLeaveEditMode @, (editButton) ->
+    @_editModeButton.onLeave @, (editButton) ->
 
       # reset edit button
       editButton.changeState 'normal'

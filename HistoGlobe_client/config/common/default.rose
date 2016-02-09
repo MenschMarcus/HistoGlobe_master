@@ -28,6 +28,7 @@ $shadow_radius                      = 10px
 $logo_height                        = 43px
 $logo_width                         = 100px
 $element_window_distance            = 15px
+$title_distance_horizontal          = 25px
 
 $button_diameter                    = 40px
 $button_abort_shrink_factor         = 0.75
@@ -62,14 +63,11 @@ $histograph_line_width              = 10px
 
 // EDIT OPERATION WINDOW -------------------------------------------
 
-$operation_window_border            = 5px
+$operation_window_height            = 120px
 $operation_step_width               = 250px
 $operation_entry_height             = 80px
 
-$operation_title_size               = 1.5em
-$operation_title_height             = 45px
 $operation_workflow_size            = 1.2em
-$operation_workflow_height          = 70px
 
 
 // HIVENT MARKERS --------------------------------------------------
