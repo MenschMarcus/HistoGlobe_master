@@ -1,127 +1,133 @@
 [
   {
-    "id":         "ADD",
-    "title":      "Add new country",
+    "id":           "ADD",
+    "title":        "Add new country",
     "steps":
     [
       {
-        "id":     "SET_GEOM",
-        "num":    "1",
-        "title":  "create territory <br/> of new country"
+        "id":       "SET_GEOM",
+        "startNew": true,
+        "reqNum":   "1",
+        "title":    "create territory <br/> of new country"
       },
       {
-        "id":     "SET_NAME",
-        "num":    "1",
-        "title":  "create name <br/> of new country"
+        "id":       "SET_NAME",
+        "reqNum":   "1",
+        "title":    "create name <br/> of new country"
       },
       {
-        "id":     "ADD_CHNG",
-        "title":  "add change <br /> to historical event"
+        "id":       "ADD_CHNG",
+        "title":    "add change <br /> to historical event"
       }
     ]
   },
   {
-    "id":         "UNI",
-    "title":      "Unite countries",
+    "id":           "UNI",
+    "title":        "Unite countries",
     "steps":
     [
       {
-        "id":     "SEL_OLD",
-        "num":    "2+",
-        "title":  "select all countries <br/> to be united"
+        "id":       "SEL_OLD",
+        "reqNum":   "2+",
+        "title":    "select all countries <br/> to be united"
       },
       {
-        "id":     "SET_NAME",
-        "num":    "1",
-        "title":  "create name <br/> of united country"
+        "id":       "SET_NAME",
+        "startNew": true,
+        "reqNum":   "1",
+        "title":    "create name <br/> of united country"
       },
       {
-        "id":     "ADD_CHNG",
-        "title":  "add change <br /> to historical event"
+        "id":       "ADD_CHNG",
+        "title":    "add change <br /> to historical event"
       }
     ]
   },
   {
-    "id":         "SEP",
-    "title":      "Separate country",
+    "id":           "SEP",
+    "title":        "Separate country",
     "steps":
     [
       {
-        "id":     "SEL_OLD",
-        "num":    "1",
-        "title":  "select country <br/> to be separated"
+        "id":       "SEL_OLD",
+        "reqNum":   "1",
+        "title":    "select country <br/> to be separated"
       },
       {
-        "id":     "SET_GEOM",
-        "num":    "2+",
-        "title":  "create territories <br/> of all separated countries"
+        "id":       "SET_GEOM",
+        "startNew": true,
+        "reqNum":   "2+",
+        "title":    "create territories <br/> of all separated countries"
       },
       {
-        "id":     "SET_NAME",
-        "num":    "2+",
-        "title":  "create names <br/> of all separated countries"
+        "id":       "SET_NAME",
+        "reqNum":   "2+",
+        "title":    "create names <br/> of all separated countries"
       },
       {
-        "id":     "ADD_CHNG",
-        "title":  "add change <br /> to historical event"
+        "id":       "ADD_CHNG",
+        "title":    "add change <br /> to historical event"
       }
     ]
   },
   {
-    "id":         "CHB",
-    "title":      "Change corders between countries",
+    "id":           "CHB",
+    "title":        "Change corders between countries",
     "steps":
     [
       {
-        "id":     "SEL_OLD",
-        "num":    "2",
-        "title":  "select two countries whose <br/> border is to be changed"
+        "id":       "SEL_OLD",
+        "reqNum":   "2",
+        "title":    "select two countries whose <br/> border is to be changed"
       },
       {
-        "id":     "SET_GEOM",
-        "num":    "2",
-        "title":  "create new geometries <br/> of the two countries"
+        "id":       "SET_GEOM",
+        "startNew": true,
+        "reqNum":   "2",
+        "title":    "create new geometries <br/> of the two countries"
       },
       {
-        "id":     "ADD_CHNG",
-        "title":  "add change <br /> to historical event"
+        "id":       "ADD_CHNG",
+        "title":    "add change <br /> to historical event"
       }
     ]
   },
   {
-    "id":         "CHN",
-    "title":      "Change name of country",
+    "id":           "CHN",
+    "title":        "Change name of country",
     "steps":
     [
       {
-        "id":     "SEL_OLD",
-        "num":    "1",
-        "title":  "select country whose <br/> name is to be changed"
+        "id":       "SEL_OLD",
+        "reqNum":   "1",
+        "title":    "select country whose <br/> name is to be changed"
       },
       {
-        "id":     "SET_NAME",
-        "num":    "1",
-        "title":  "create new name <br/> of the country"
+        "id":       "SET_NAME",
+        "startNew": true,
+        "reqNum":   "1",
+        "title":    "create new name <br/> of the country"
       },
       {
-        "id":     "ADD_CHNG",
-        "title":  "add change <br /> to historical event"
+        "id":       "ADD_CHNG",
+        "title":    "add change <br /> to historical event"
       }
     ]
   },
   {
-    "id":         "DEL",
-    "title":      "Delete country",
+    "id":           "DEL",
+    "title":        "Delete country",
     "steps":
     [
       {
-        "id":     "SEL_OLD",
-        "num":    "1+",
-        "title":  "select all countries to be deleted"
+        "id":       "SEL_OLD",
+        "reqNum":   "1+",
+        "title":    "select all countries to be deleted"
       },
       {
-        "id":     "ADD_CHNG",
-        "title":  "add change <br /> to historical event"
+        "id":       "ADD_CHNG",
+        "startNew": true,
+        "title":    "add change <br /> to historical event"
       }
     ]
   }

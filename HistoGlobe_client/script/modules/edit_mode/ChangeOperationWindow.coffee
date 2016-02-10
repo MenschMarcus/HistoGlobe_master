@@ -35,8 +35,8 @@ class HG.ChangeOperationWindow
     HG.CallbackContainer.call @
 
     # init variables
-    @_nextDisabled = yes
-    @_backDisabled = yes
+    @_nextDisabled = no
+    @_backDisabled = no
 
 
     ### divs ###
@@ -97,7 +97,6 @@ class HG.ChangeOperationWindow
           }
         ]
       }
-    @_backButton.disable()
 
     # next button ( = ok = go to next step, disabled)
     # -> changes to OK button / "finish" state in last step
@@ -120,7 +119,6 @@ class HG.ChangeOperationWindow
           },
         ]
       }
-    @_nextButton.disable()
 
     # abort button
     @_abortButton = new HG.Button @_hgInstance,
@@ -171,10 +169,10 @@ class HG.ChangeOperationWindow
       @_backButton.enable()
       @_backDisabled = no
 
-  enableFinishButton: () ->
+  enableFinish: () ->
     @_nextButton.changeState 'finish'
 
-  disableFinishButton: () ->
+  disableFinish: () ->
     @_nextButton.changeState 'normal'
 
 

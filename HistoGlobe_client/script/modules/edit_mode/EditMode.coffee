@@ -58,11 +58,15 @@ class HG.EditMode
         @_title.resize()
         @_title.set 'EDIT MODE'   # TODO internationalization
 
+
+        # workflow hierachy: operation -> step -> action
+
+        ### OPERATION ###
         # listen to click on edit operation buttons => start operation
         @_hgChangeOperations.foreach (operation) =>
           @_hgInstance.buttons[operation.id].onStart @, (btn) =>
 
-            # update information about current state in workflow
+            # update current operation in workflow
             opId = btn._config.id # to do: more elegant way to get id?
             @_currCO = @_hgChangeOperations.getByPropVal 'id', opId
             @_currCO.totalSteps = @_currCO.steps.length
@@ -75,78 +79,25 @@ class HG.EditMode
             @_title.clear()
             @_coWindow?.destroy()
             @_coWindow = new HG.ChangeOperationWindow @_hgInstance, @_currCO
+            @_coWindow.disableNext()
             @_histoGraph.show()
 
-            while not @_currCO.finished
-              @_currStep = @_currCO.steps[@_currCO.stepIdx]
-              @_currStep.num = @_getRequiredNum @_currStep.num
-
-              console.log @_currStep
-
-              # determine required action for current step
-              switch @_currStep.id
-                when 'SEL_OLD' then (
-                  @_areasOnMap.enableMultipleSelection @_currStep.num.max
-                  @_selectedAreas = new HG.ObjectArray
-                  @_selectedAreas.push @_areasOnMap.getActiveArea() if @_areasOnMap.getActiveArea()?
-
-                  @_areasOnMap.onSelectArea @, (area) =>
-                    @_selectedAreas.push area
-                    @_histoGraph.addToSelection area
-
-                    # check if step is completed
-                    console.log @_selectedAreas.length(), @_currStep.num.min
-                    if @_selectedAreas.length() >= @_currStep.num.min
-                      @_coWindow.enableNext()
-
-                  @_areasOnMap.onDeselectArea @, (area) =>
-                    console.log @_selectedAreas
-                    @_selectedAreas.remove '_id', area._id
-                    @_histoGraph.removeFromSelection area
-
-                    # check if step is completed
-                    console.log @_selectedAreas.length(), @_currStep.num.min
-                    if @_selectedAreas.length() < @_currStep.num.min
-                      @_coWindow.disableNext()
-                )
-
-                # when 'SET_GEOM' then
-
-                # when 'SET_NAME' then
-
-                # when 'SET_CHNG' then
-
-
-              @_currCO.stepIdx++
-
-              if @_currCO.stepIdx is @_currCO.totalSteps
-                @_currCO.finished = yes
-
-              # DEBUG
-              break
-
-
-
-            # listen to click on previous step button
-            # TODO: implement actual "undo"
-            @_hgInstance.buttons.coBack.onBack @, () =>
-              # update information
-              unless @_currCO.stepIdx is 1
-                @_currCO.stepIdx--
-                @_currStep = @_currCO.steps[@_currCO.stepIdx-1]
-              # change window
-              @_coWindow.disableBack()          if @_currCO.stepIdx is 1
-              @_coWindow.disableFinishButton()  if @_currCO.stepIdx is @_curr.totalSteps-1
-
-            # listen to click on next step button
+            # listen to click on next button
             @_hgInstance.buttons.coNext.onNext @, () =>
-                # update information
-                unless @_currCO.stepIdx is @_curr.totalSteps
-                  @_currCO.stepIdx++
-                  @_currStep = @_currCO.steps[@_currCO.stepIdx-1]
-                # change window
-                @_coWindow.enableBack()
-                @_coWindow.enableFinishButton() if @_currCO.stepIdx is @_curr.totalSteps
+              # send info to server
+              # receive new info from server
+
+              # go to next step
+              @_currCO.stepIdx++
+              @_currStep = null
+              @_makeStep()
+
+            @_hgInstance.buttons.coNext.onFinish @, () =>
+              console.log "Heureka!"
+
+            # listen to click on back button
+            @_hgInstance.buttons.coBack.onBack @, () =>
+              console.log "I do not work yet"
 
             # listen to click on abort button
             @_hgInstance.buttons.coAbort.onClick @, () =>
@@ -157,6 +108,9 @@ class HG.EditMode
                 # reset current operation
                 @_currCO    = null
                 @_currStep  = null
+
+            # start actual operation
+            @_makeStep()
 
 
       # listen to next click on edit button => leave edit mode and cleanup
@@ -175,9 +129,95 @@ class HG.EditMode
   ##############################################################################
 
   # ============================================================================
+  ### STEP ###
+  _makeStep: () ->
+
+    # update step information
+    @_currStep = @_currCO.steps[@_currCO.stepIdx]
+
+    # setup UI
+    console.log "make hivent in HistoGraph" if @_currStep.startNew
+    @_coWindow.disableNext()
+    @_areasOnMap.disableMultipleSelection()
+
+    # step requirement
+    switch @_currStep.id
+      when 'SEL_OLD' then (
+
+        # update step information
+        @_currStep.reqNum = @_getRequiredNum @_currStep.reqNum
+        @_selectedAreas = new HG.ObjectArray
+        @_selectedAreas.push @_areasOnMap.getActiveArea() if @_areasOnMap.getActiveArea()?
+
+        # setup UI
+        @_areasOnMap.enableMultipleSelection @_currStep.reqNum.max
+
+        ### ACTION ###
+
+        # listen to area selection from AreasOnMap
+        @_areasOnMap.onSelectArea @, (area) =>
+          @_selectedAreas.push area
+          @_histoGraph.addToSelection area
+
+          # check if step is completed
+          if @_selectedAreas.length() >= @_currStep.reqNum.min
+            @_coWindow.enableFinish() if @_currCO.stepIdx is @_currCO.totalSteps-1
+            @_coWindow.enableNext()
+
+        # listen to area deselection from AreasOnMap
+        @_areasOnMap.onDeselectArea @, (area) =>
+          @_selectedAreas.remove '_id', area._id
+          @_histoGraph.removeFromSelection area
+
+          # check if step is not completed anymore
+          if @_selectedAreas.length() < @_currStep.reqNum.min
+            @_coWindow.disableNext()
+      )
+
+      when 'SET_GEOM' then (
+
+        # update step information
+        @_currStep.reqNum = @_getRequiredNum @_currStep.reqNum
+
+        # setup UI
+
+        ### ACTION ###
+        @_coWindow.enableFinish() if @_currCO.stepIdx is @_currCO.totalSteps-1
+        @_coWindow.enableNext()
+
+      )
+
+      when 'SET_NAME' then (
+
+        # update step information
+        @_currStep.reqNum = @_getRequiredNum @_currStep.reqNum
+
+        # setup UI
+
+        ### ACTION ###
+        @_coWindow.enableFinish() if @_currCO.stepIdx is @_currCO.totalSteps-1
+        @_coWindow.enableNext()
+
+      )
+
+      when 'ADD_CHNG' then (
+
+        # update step information
+
+        # setup UI
+
+        ### ACTION ###
+        @_coWindow.enableFinish() if @_currCO.stepIdx is @_currCO.totalSteps-1
+        @_coWindow.enableNext()
+
+      )
+
+
+  # ============================================================================
   # possible inputs:  1   1+  2   2+
   MAX_NUM = 25
   _getRequiredNum: (exp) ->
+    return null if not exp?
     lastChar = exp.substr(exp.length-1)
     max = if lastChar is '+' then MAX_NUM else lastChar
     min = (exp.substring 0,1)
