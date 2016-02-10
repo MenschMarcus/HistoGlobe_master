@@ -66,22 +66,23 @@ class HG.HiventList
 
 
     $(@_alliances_option).click () =>
-      knopp = $(".toggle_on_off")
+      knopp = $(".toggle-on-off")
+      knopp.addClass 'knopp'
       display_knopp = $(".legend_table")
       # hivent list alliaces click
       if @theme == ''
         @theme = 'bipolarAlliances'
         knopp.removeClass "switch-off"
         knopp.addClass "switch-on"
-        display_knopp.removeClass "display_off"
-        display_knopp.addClass "display_on"
+        display_knopp.removeClass "display-off"
+        display_knopp.addClass "display-on"
         $(@_hivent_list).css({'max-height': ((window.innerHeight - 190 - 53 - 43 - 71)) + "px"})
       else
         @theme = ''
         knopp.removeClass "switch-on"
         knopp.addClass "switch-off"
-        display_knopp.removeClass "display_on"
-        display_knopp.addClass "display_off"
+        display_knopp.removeClass "display-on"
+        display_knopp.addClass "display-off"
         $(@_hivent_list).css({'max-height': ((window.innerHeight - 190 - 53 - 43)) + "px"})
 
       @notifyAll "onUpdateTheme", @theme
@@ -192,9 +193,9 @@ class HG.HiventList
         aktualleCath = topic.name
 
     headline = '<div>' + aktualleCath + '</div>'
-    #<i class="toggle_on_off fa fa-toggle-off fa-4"></i>
-    alliances = '<div class="alliances-content"><i class="shield_bipolar fa fa-shield"></i> Millitärbündnisse anzeigen <span class="toggle_on_off switch-off"></span>' +
-      '<br><table class="legend_table display_off">
+    #<i class="toggle-on-off fa fa-toggle-off fa-4"></i>
+    alliances = '<div class="alliances-content"><i class="shield_bipolar fa fa-shield"></i> Millitärbündnisse anzeigen <span class="toggle-on-off switch-off"></span>' +
+      '<br><table class="legend_table display-off">
         <tr><td><div id="nato"></div></td><td> NATO</td></tr>
         <tr><td><div id="natooM"></div></td><td> NATO (nicht im Millitärbündnis)</td></tr>
         <tr><td><div id="warschP"></div></td><td> Warschauer Pakt</td></tr>

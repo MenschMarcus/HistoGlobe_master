@@ -13,7 +13,9 @@ class HG.TerritoryTools
 
   constructor: (@_hgInstance) ->
 
-    ### init UI ###
+    iconPath = @_hgInstance._config.graphicsPath + 'buttons/'
+
+    ### INIT UI ###
 
     # moveable wrapper convering everything
     wrapper = new HG.Div 'tt-wrapper', null
@@ -21,7 +23,7 @@ class HG.TerritoryTools
 
 
     ## 1. line: title
-    title = new HG.Div null, ['tt-title', 'h1']
+    title = new HG.Div null, ['tt-title']
     title.jq().html "Territory Tools"
     wrapper.append title
 
@@ -35,7 +37,7 @@ class HG.TerritoryTools
       'absolutePosition':   false
     }
 
-    newTerrButton = new HG.Button @_hgInstance, {
+    new HG.Button @_hgInstance, {
       'id':                 'newTerritory'
       'parentArea':         terrEditButtons
       'groupName':          'tt-edit-buttons'
@@ -43,12 +45,12 @@ class HG.TerritoryTools
         {
           'id':             'normal'
           'tooltip':        "Add new territory"
-          'iconFA':         'plus'
+          'iconOwn':        iconPath + 'geom_add.svg'
           'callback':       'onClick'
         }
       ]
     }
-    reuseTerrButton = new HG.Button @_hgInstance, {
+    new HG.Button @_hgInstance, {
       'id':                 'reuseTerritory'
       'parentArea':         terrEditButtons
       'groupName':          'tt-edit-buttons'
@@ -56,12 +58,12 @@ class HG.TerritoryTools
         {
           'id':             'normal'
           'tooltip':        "Reuse territory from other times"
-          'iconFA':         'plus'
+          'iconOwn':        iconPath + 'geom_reuse.svg'
           'callback':       'onClick'
         }
       ]
     }
-    importTerrButton = new HG.Button @_hgInstance, {
+    new HG.Button @_hgInstance, {
       'id':                 'importTerritory'
       'parentArea':         terrEditButtons
       'groupName':          'tt-edit-buttons'
@@ -69,7 +71,7 @@ class HG.TerritoryTools
         {
           'id':             'normal'
           'tooltip':        "import territory from file"
-          'iconFA':         'plus'
+          'iconOwn':        iconPath + 'geom_import.svg'
           'callback':       'onClick'
         }
       ]
@@ -77,63 +79,54 @@ class HG.TerritoryTools
 
 
     ## 3. line: list of existing territories
-    @_listTitle = new HG.Div null, ['tt-title', 'h2']
-    @_listTitle.jq().html "Existing Territories"
-    wrapper.append @_listTitle
-
     @_listWrapper = new HG.Div 'tt-list', null
     wrapper.append @_listWrapper
 
     # fill with dummy data
-    @_addToList "this is a test territory"
+    @addToList "this is a test territory"
+    @addToList "this is another test territory"
 
 
     ## 4. line: snapping options
     # snap to points?, snap to lines? and snap tolerance
-    snapTitle = new HG.Div null, ['tt-title', 'h2']
-    snapTitle.jq().html "Snap Options"
-    wrapper.append snapTitle
 
     # horizontal wrapper containing all three options
-    snapOptionWrapper = new HG.Div 'tt-option-wrapper', null
+    snapOptionWrapper = new HG.Div 'tt-snap-option-wrapper-out', null
     wrapper.append snapOptionWrapper
 
     # wrapper for each option containing input box + description
-    snapToPointsWrapper = new HG.Div null, ['tt-snap-option-wrapper']
+    snapToPointsWrapper = new HG.Div null, ['tt-snap-option-wrapper-in']
     snapOptionWrapper.append snapToPointsWrapper
-    snapToLinesWrapper = new HG.Div null, ['tt-snap-option-wrapper']
+    snapToLinesWrapper = new HG.Div null, ['tt-snap-option-wrapper-in']
     snapOptionWrapper.append snapToLinesWrapper
-    snapToleranceWrapper = new HG.Div null, ['tt-snap-option-wrapper']
+    snapToleranceWrapper = new HG.Div null, ['tt-snap-option-wrapper-in']
     snapOptionWrapper.append snapToleranceWrapper
 
     # snap to points
-    snapToPointsCheckbox = new HG.Checkbox 'snapToPoints', ['tt-snap-option-checkbox']
-    snapToPointsWrapper.append snapToPointsCheckbox
+    snapToPointsSwitch = new HG.Switch @_hgInstance, 'snapToPoints', ['tt-snap-option-switch']
+    snapToPointsWrapper.append snapToPointsSwitch
     snapToPointsText = new HG.Div null, ['tt-snap-option-text']
-    snapToPointsText.jq().html "snap to border points"
+    snapToPointsText.jq().html "snap to <br/>border points"
     snapToPointsWrapper.append snapToPointsText
 
     # snap to lines
-    snapToLinesCheckbox = new HG.Checkbox 'snapToLines', ['tt-snap-option-checkbox']
-    snapToLinesWrapper.append snapToLinesCheckbox
+    snapToLinesSwitch = new HG.Switch @_hgInstance, 'snapToLines', ['tt-snap-option-switch']
+    snapToLinesWrapper.append snapToLinesSwitch
     snapToLinesText = new HG.Div null, ['tt-snap-option-text']
-    snapToLinesText.jq().html "snap to border lines"
+    snapToLinesText.jq().html "snap to <br/>border lines"
     snapToLinesWrapper.append snapToLinesText
 
     # snap tolerance
     snapToleranceInput = new HG.NumberInput 'snapTolerance', ['tt-snap-option-input']
-    snapToleranceInput.elem().setAttribute 'value', 9.3
+    snapToleranceInput.elem().setAttribute 'value', 5.0
     snapToleranceInput.elem().setAttribute 'maxlength', 3
     snapToleranceInput.elem().setAttribute 'step', 0.1
     snapToleranceInput.elem().setAttribute 'min', 0.0
     snapToleranceInput.elem().setAttribute 'max', 10.0
     snapToleranceWrapper.append snapToleranceInput
     snapToleranceText = new HG.Div null, ['tt-snap-option-text']
-    snapToleranceText.jq().html "snap tolerance [px]"
+    snapToleranceText.jq().html "snap <br/>tolerance [px]"
     snapToleranceWrapper.append snapToleranceText
-
-
-    # TODO: actual options
 
     ## 5. line: finish buttons
     # -> clip, use rest
@@ -144,7 +137,7 @@ class HG.TerritoryTools
       'absolutePosition':   false
     }
 
-    clipAreasButton = new HG.Button @_hgInstance, {
+    new HG.Button @_hgInstance, {
       'id':                 'clipAreas'
       'parentArea':         terrFinishButtons
       'groupName':          'tt-finish-buttons'
@@ -152,14 +145,14 @@ class HG.TerritoryTools
         {
           'id':             'normal'
           'tooltip':        "Clip Selected Areas"
-          'iconFA':         'check'
+          'iconOwn':        iconPath + 'polygon_cut.svg'
           'callback':       'onClick'
         }
       ]
     }
     terrFinishButtons.addSpacer 'tt-finish-buttons-group'
 
-    useRestButton = new HG.Button @_hgInstance, {
+    new HG.Button @_hgInstance, {
       'id':                 'useRest'
       'parentArea':         terrFinishButtons
       'groupName':          'tt-finish-buttons'
@@ -167,7 +160,7 @@ class HG.TerritoryTools
         {
           'id':             'normal'
           'tooltip':        "Use The Rest as Territory for this Country"
-          'iconFA':         'check'
+          'iconOwn':        iconPath + 'polygon_rest.svg'
           'callback':       'onClick'
         }
       ]
@@ -175,14 +168,17 @@ class HG.TerritoryTools
 
 
   # ============================================================================
+  addToList: (text) ->
+    newT = new HG.Div null, ['tt-list-entry']
+    newT.jq().html text
+    @_listWrapper.append newT
 
+  # ============================================================================
+  clearList: () ->
+    @_listWrapper.empty()
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
 
   # ============================================================================
-  _addToList: (text) ->
-    newT = new HG.Div null, ['tt-list-entry']
-    newT.jq().html text
-    @_listWrapper.append newT

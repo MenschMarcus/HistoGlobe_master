@@ -69,7 +69,7 @@ class HG.ChangeOperationWindow
     # next column
     @_abortButtonParent = new HG.Div null, ['co-workflow-row', 'co-button-col']
     @_workflowRow.append @_abortButtonParent
-    @_nextButtonParent = new HG.Div null, ['co-description-row', 'co-button-col']
+    @_nextButtonParent = new HG.Div 'next-button-parent', ['co-description-row', 'co-button-col']
     @_descriptionRow.append @_nextButtonParent
 
 
