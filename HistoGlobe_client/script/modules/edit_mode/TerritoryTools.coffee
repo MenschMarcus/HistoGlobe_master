@@ -82,10 +82,6 @@ class HG.TerritoryTools
     @_listWrapper = new HG.Div 'tt-list', null
     wrapper.append @_listWrapper
 
-    # fill with dummy data
-    @addToList "this is a test territory"
-    @addToList "this is another test territory"
-
 
     ## 4. line: snapping options
     # snap to points?, snap to lines? and snap tolerance
@@ -117,7 +113,7 @@ class HG.TerritoryTools
     snapToLinesWrapper.append snapToLinesText
 
     # snap tolerance
-    snapToleranceInput = new HG.NumberInput 'snapTolerance', ['tt-snap-option-input']
+    snapToleranceInput = new HG.NumberInput @_hgInstance, 'snapTolerance', ['tt-snap-option-input']
     snapToleranceInput.elem().setAttribute 'value', 5.0
     snapToleranceInput.elem().setAttribute 'maxlength', 3
     snapToleranceInput.elem().setAttribute 'step', 0.1
@@ -138,7 +134,7 @@ class HG.TerritoryTools
     }
 
     new HG.Button @_hgInstance, {
-      'id':                 'clipAreas'
+      'id':                 'clipTerritory'
       'parentArea':         terrFinishButtons
       'groupName':          'tt-finish-buttons'
       'states': [
@@ -165,6 +161,41 @@ class HG.TerritoryTools
         }
       ]
     }
+
+
+    ### DRAW FUNCTIONALITY ###
+    # using leaflet.draw
+    map = @_hgInstance.map._map
+    items = new L.FeatureGroup()
+    map.addLayer items
+
+    # draw control
+    # TODO: replace by own territory tools at some point
+    drawControl = new L.Control.Draw {
+      edit: {
+        featureGroup: items
+      }
+    }
+    map.addLayer drawControl
+
+    console.log map
+
+    # functionality (move to controller)
+    map.on 'draw:created', (e) ->
+      type = e.layerType
+      layer = e.layer
+      if type is 'marker'
+        # Do marker specific actions
+      else
+        # Do whatever else you need to. (save to db, add to map etc)
+      drawnItems.addLayer layer
+
+    map.on 'draw:edited', ->
+      console.log "update db to save latest changes"
+
+    map.on 'draw:deleted', ->
+      console.log "update db to save latest changes"
+
 
 
   # ============================================================================
