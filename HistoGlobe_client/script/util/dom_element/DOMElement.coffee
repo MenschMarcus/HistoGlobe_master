@@ -17,9 +17,9 @@ class HG.DOMElement
     @_j.hide() if hidden                           # hides element if given
 
   # ============================================================================
-  append: (child) ->    @_elem.appendChild child.obj()
-  prepend: (child) ->   @_elem.insertBefore child.obj(), @_elem.firstChild
+  append: (child) ->    @_elem.appendChild child.elem()
+  prepend: (child) ->   @_elem.insertBefore child.elem(), @_elem.firstChild
 
   # ============================================================================
-  obj: () -> @_elem
-  dom: () -> @_j
+  elem: () -> @_elem
+  jq: () ->   @_j

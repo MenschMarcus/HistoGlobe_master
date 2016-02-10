@@ -21,7 +21,7 @@ class HG.HiventInfoPopover
     body = new HG.Div null, "hivent-body"
 
     titleDiv = new HG.Div null, "guiPopoverTitle"
-    titleDiv.dom().html @_hiventHandle.getHivent().name
+    titleDiv.jq().html @_hiventHandle.getHivent().name
     body.append titleDiv
 
     text = new HG.Div null, "hivent-content"
@@ -64,7 +64,7 @@ class HG.HiventInfoPopover
       hgInstance: hgInstance
       hiventHandle: hiventHandle
       placement:  "top"
-      content:    body.obj()
+      content:    body.elem()
       title:      @_hiventHandle.getHivent().name
       container:  container
       showArrow:  showArrow

@@ -17,12 +17,12 @@ class HG.TerritoryTools
 
     # moveable wrapper convering everything
     wrapper = new HG.Div 'tt-wrapper', null
-    @_hgInstance._top_area.appendChild wrapper.obj()
+    @_hgInstance._top_area.appendChild wrapper.elem()
 
 
     ## 1. line: title
     title = new HG.Div null, ['tt-title', 'h1']
-    title.dom().html "Territory Tools"
+    title.jq().html "Territory Tools"
     wrapper.append title
 
 
@@ -31,7 +31,7 @@ class HG.TerritoryTools
     terrEditButtons = new HG.ButtonArea @_hgInstance, {
       'id':                 'tt-edit-buttons'
       'classes':            ['tt-button-area']
-      'parentDiv':          wrapper.obj()
+      'parentDiv':          wrapper.elem()
       'absolutePosition':   false
     }
 
@@ -78,7 +78,7 @@ class HG.TerritoryTools
 
     ## 3. line: list of existing territories
     @_listTitle = new HG.Div null, ['tt-title', 'h2']
-    @_listTitle.dom().html "Existing Territories"
+    @_listTitle.jq().html "Existing Territories"
     wrapper.append @_listTitle
 
     @_listWrapper = new HG.Div 'tt-list', null
@@ -91,7 +91,7 @@ class HG.TerritoryTools
     ## 4. line: snapping options
     # snap to points?, snap to lines? and snap tolerance
     snapTitle = new HG.Div null, ['tt-title', 'h2']
-    snapTitle.dom().html "Snap Options"
+    snapTitle.jq().html "Snap Options"
     wrapper.append snapTitle
 
     # horizontal wrapper containing all three options
@@ -110,26 +110,26 @@ class HG.TerritoryTools
     snapToPointsCheckbox = new HG.Checkbox 'snapToPoints', ['tt-snap-option-checkbox']
     snapToPointsWrapper.append snapToPointsCheckbox
     snapToPointsText = new HG.Div null, ['tt-snap-option-text']
-    snapToPointsText.dom().html "snap to border points"
+    snapToPointsText.jq().html "snap to border points"
     snapToPointsWrapper.append snapToPointsText
 
     # snap to lines
     snapToLinesCheckbox = new HG.Checkbox 'snapToLines', ['tt-snap-option-checkbox']
     snapToLinesWrapper.append snapToLinesCheckbox
     snapToLinesText = new HG.Div null, ['tt-snap-option-text']
-    snapToLinesText.dom().html "snap to border lines"
+    snapToLinesText.jq().html "snap to border lines"
     snapToLinesWrapper.append snapToLinesText
 
     # snap tolerance
     snapToleranceInput = new HG.NumberInput 'snapTolerance', ['tt-snap-option-input']
-    snapToleranceInput.obj().setAttribute 'value', 9.3
-    snapToleranceInput.obj().setAttribute 'maxlength', 3
-    snapToleranceInput.obj().setAttribute 'step', 0.1
-    snapToleranceInput.obj().setAttribute 'min', 0.0
-    snapToleranceInput.obj().setAttribute 'max', 10.0
+    snapToleranceInput.elem().setAttribute 'value', 9.3
+    snapToleranceInput.elem().setAttribute 'maxlength', 3
+    snapToleranceInput.elem().setAttribute 'step', 0.1
+    snapToleranceInput.elem().setAttribute 'min', 0.0
+    snapToleranceInput.elem().setAttribute 'max', 10.0
     snapToleranceWrapper.append snapToleranceInput
     snapToleranceText = new HG.Div null, ['tt-snap-option-text']
-    snapToleranceText.dom().html "snap tolerance [px]"
+    snapToleranceText.jq().html "snap tolerance [px]"
     snapToleranceWrapper.append snapToleranceText
 
 
@@ -140,7 +140,7 @@ class HG.TerritoryTools
     terrFinishButtons = new HG.ButtonArea @_hgInstance, {
       'id':                 'tt-finish-buttons'
       'classes':            ['tt-button-area']
-      'parentDiv':          wrapper.obj()
+      'parentDiv':          wrapper.elem()
       'absolutePosition':   false
     }
 
@@ -184,5 +184,5 @@ class HG.TerritoryTools
   # ============================================================================
   _addToList: (text) ->
     newT = new HG.Div null, ['tt-list-entry']
-    newT.dom().html text
+    newT.jq().html text
     @_listWrapper.append newT
