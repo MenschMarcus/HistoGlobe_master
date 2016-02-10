@@ -23,6 +23,8 @@ $color_disabled_active              = rgb(140,140,140)
 $shadow_intensity                   = 0.2
 $shadow_radius                      = 10px
 
+$border_radius                      = 15px
+
 
 // GENERAL UI -----------------------------------------------------
 

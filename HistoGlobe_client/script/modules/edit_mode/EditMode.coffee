@@ -23,8 +23,7 @@ class HG.EditMode
 
     # init config
     defaultConfig =
-      changeOperationsPath: 'HistoGlobe_client/config/common/hgChangeOperations.json'
-      iconPath:             'HistoGlobe_client/config/common/graphics/hgChangeOperations/'
+      changeOperationsPath:     'HistoGlobe_client/config/common/hgChangeOperations.json'
 
     @_config = $.extend {}, defaultConfig, config
 
@@ -44,7 +43,7 @@ class HG.EditMode
 
       @_hgChangeOperations = new HG.ObjectArray ops # all possible operations
 
-      @_editButtons = new HG.EditButtons @_hgInstance, @_hgChangeOperations, @_config.iconPath
+      @_editButtons = new HG.EditButtons @_hgInstance, @_hgChangeOperations
       @_editModeButton = @_editButtons.getEditButton()
       @_title = new HG.Title @_hgInstance
       @_histoGraph = @_hgInstance.histoGraph
@@ -180,9 +179,22 @@ class HG.EditMode
         @_currStep.reqNum = @_getRequiredNum @_currStep.reqNum
 
         # setup UI
-        @_tt = new HG.TerritoryTools @_hgInstance
+        @_tt = new HG.TerritoryTools @_hgInstance, @_config.iconPath
 
         ### ACTION ###
+        @_hgInstance.switches.snapToPoints.onSwitchOn @, () =>
+          console.log "turn switch to border points on!"
+
+        @_hgInstance.switches.snapToPoints.onSwitchOff @, () =>
+          console.log "turn switch to border points off!"
+
+        @_hgInstance.switches.snapToLines.onSwitchOn @, () =>
+          console.log "turn switch to border lines on!"
+
+        @_hgInstance.switches.snapToLines.onSwitchOff @, () =>
+          console.log "turn switch to border lines off!"
+
+
         @_coWindow.enableFinish() if @_currCO.stepIdx is @_currCO.totalSteps-1
         @_coWindow.enableNext()
 

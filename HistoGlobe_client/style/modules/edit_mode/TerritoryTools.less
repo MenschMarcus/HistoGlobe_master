@@ -6,6 +6,7 @@
   width: @territory_tools_width;
   background-color: @color_bg_medium;
   border: @territory_tools_border_width solid @color_bg_dark;
+  border-radius: @border_radius;
   color: @color_white;
 }
 
@@ -19,27 +20,10 @@
 .tt-title
 {
   text-align: center;
-}
-
-.h1
-{
   font-size: 1.5em;
   height: 1.6em;
   line-height: 1.6em;
 }
-.h2
-{
-  font-size: 1.3em;
-  height: 1.4em;
-  line-height: 1.4em;
-}
-.h3
-{
-  font-size: 1.1em;
-  height: 1.2em;
-  line-height: 1.2em;
-}
-
 
 .tt-button-area           /* outer div */
 {
@@ -68,7 +52,44 @@
 
 .tt-list-entry
 {
-  height: 25px;
+  height: 20px;
   margin-left: @element_window_distance;
   font-size: 0.9em;
+}
+
+#tt-snap-option-wrapper-out
+{
+  height: 48px;
+}
+
+.tt-snap-option-wrapper-in
+{
+  float: left;
+  width: (@territory_tools_width - 2*@territory_tools_border_width)/3;
+  height: 48px;
+  text-align: center;
+}
+
+.tt-snap-option-switch
+{
+  margin: 3.5px auto !important;
+}
+
+.tt-snap-option-input
+{
+  width: 55px;
+  text-align: right;
+  padding-right: 3px;
+  border-radius: 10px;
+}
+.tt-snap-option-text
+{
+  font-size: 0.8em;
+  line-height: 12px;
+  padding-top: 5px;
+}
+
+#tt-finish-buttons
+{
+  margin-top: 18px;
 }
