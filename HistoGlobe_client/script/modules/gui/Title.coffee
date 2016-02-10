@@ -10,7 +10,7 @@ class HG.Title
   constructor: (@_hgInstance, txt='') ->
 
     @_div = new HG.Div 'hg-title'
-    @_hgInstance._top_area.appendChild @_div.obj()
+    @_hgInstance._top_area.appendChild @_div.elem()
 
     # elements to calculate width of
     @_window = $(window)
@@ -22,11 +22,11 @@ class HG.Title
 
   # ============================================================================
   set: (txt) ->
-    @_div.dom().html txt
+    @_div.jq().html txt
 
   # ============================================================================
   clear: () ->
-    @_div.dom().html ''
+    @_div.jq().html ''
 
   # ============================================================================
   resize: () =>
@@ -36,6 +36,6 @@ class HG.Title
       HGConfig.logo_width.val -
       @_editButtons.width()
     # PAIN IN THE AAAAAAAAAAASS!
-    @_div.obj().style.width = width + 'px'
+    @_div.elem().style.width = width + 'px'
     @_hgInstance._onResize()
 

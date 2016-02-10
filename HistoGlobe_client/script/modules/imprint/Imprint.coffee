@@ -11,9 +11,9 @@ class HG.Imprint
 
     # create imprint link
     @_link = new HG.Div 'imprint-link', 'no-text-select'
-    @_link.dom().html "Impressum &nbsp; &copy; HistoGlobe   2010-" + new Date().getFullYear()
+    @_link.jq().html "Impressum &nbsp; &copy; HistoGlobe   2010-" + new Date().getFullYear()
 
-    @_link.dom().click () =>
+    @_link.jq().click () =>
       @showBox()
 
     # create imprint
@@ -21,10 +21,10 @@ class HG.Imprint
     @_imprintBox = new HG.Div 'imprint-box'
 
     @_imprintClose = new HG.Span null, 'close-button'
-    @_imprintClose.dom().html 'x'
+    @_imprintClose.jq().html 'x'
 
     @_imprintText = new HG.Div 'imprint-text'
-    @_imprintText.obj().innerHTML = '
+    @_imprintText.elem().innerHTML = '
       <h1>Impressum</h1>
       <p>Angaben gemäß § 5 TMG</p>
       <h2>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV:</h2>
@@ -58,24 +58,24 @@ class HG.Imprint
 
 
     # event handling
-    @_imprintClose.dom().click () =>
+    @_imprintClose.jq().click () =>
       @hideBox()
 
-    @_imprintOverlay.dom().fadeOut 0
+    @_imprintOverlay.jq().fadeOut 0
 
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
     parentDiv = @_hgInstance._config.container
-    parentDiv.appendChild @_link.obj()
-    parentDiv.appendChild @_imprintOverlay.obj()
+    parentDiv.appendChild @_link.elem()
+    parentDiv.appendChild @_imprintOverlay.elem()
 
 
   # ============================================================================
   showBox:() ->
-    @_imprintOverlay.dom().fadeIn()
+    @_imprintOverlay.jq().fadeIn()
 
   # ============================================================================
   hideBox:() ->
-    @_imprintOverlay.dom().fadeOut()
+    @_imprintOverlay.jq().fadeOut()
 

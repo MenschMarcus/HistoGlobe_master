@@ -15,7 +15,7 @@ class HG.EditButtons
 
     # create transparent title bar (hidden)
     @_titleBar = new HG.Div 'titlebar', null, true
-    @_hgInstance._top_area.appendChild @_titleBar.obj()
+    @_hgInstance._top_area.appendChild @_titleBar.elem()
 
     # create edit buttons area
     @_editButtonsArea = new HG.ButtonArea @_hgInstance,
@@ -106,7 +106,7 @@ class HG.EditButtons
 
   # ============================================================================
   show: () ->
-    @_titleBar.dom().show()
+    @_titleBar.jq().show()
     @_newHiventButton.show()
     @_changeOperationButtons.foreach (obj) =>
       obj.button.show()
@@ -115,7 +115,7 @@ class HG.EditButtons
     @_changeOperationButtons.foreach (obj) =>
       obj.button.hide()
     @_newHiventButton.hide()
-    @_titleBar.dom().hide()
+    @_titleBar.jq().hide()
 
   # ============================================================================
   disable: () ->

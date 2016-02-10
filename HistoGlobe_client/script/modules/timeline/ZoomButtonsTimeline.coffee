@@ -13,7 +13,7 @@ class HG.ZoomButtonsTimeline
     zoomButtonsArea = new HG.ButtonArea @_hgInstance,
     {
       'id':           'timeline-zoom-buttons',
-      'parentDiv':    @_hgInstance.timeline.getParentDiv().obj(),
+      'parentDiv':    @_hgInstance.timeline.getParentDiv().elem(),
       'positionX':    'left',
       'positionY':    'right',
       'orientation':  'horizontal'

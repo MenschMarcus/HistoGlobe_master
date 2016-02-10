@@ -136,7 +136,7 @@ class HG.TopicController
         topic.div = document.createElement("div")
         topic.div.id = "topic" + topic.id
         topic.div.className = "tl_topic tl_topic_row" + topic.row
-        @getSlider().obj().appendChild topic.div
+        @getSlider().elem().appendChild topic.div
 
         if topic.subtopics?
           subtopics_element = document.createElement("div")

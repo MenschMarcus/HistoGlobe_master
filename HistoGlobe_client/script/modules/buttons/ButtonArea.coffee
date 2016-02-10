@@ -48,14 +48,14 @@ class HG.ButtonArea
       classes.push c for c in @_config.classes
 
     @_div = new HG.Div @_config.id, classes
-    @_config.parentDiv.appendChild @_div.obj()
+    @_config.parentDiv.appendChild @_div.elem()
 
     # listen to slider
     @_hgInstance.onTopAreaSlide @, (t) =>
       if @_hgInstance.isInMobileMode()
-        @_div.obj().style.left = '#{t*0.5}px'
+        @_div.elem().style.left = '#{t*0.5}px'
       else
-        @_div.obj().style.left = '0px'
+        @_div.elem().style.left = '0px'
 
   # ============================================================================
   # add button solo: leave out groupName (null) => will be put in single unnamed group
@@ -68,11 +68,11 @@ class HG.ButtonArea
     if groupName        # takes group if group name given
       name = groupName + '-group'
     else                # sets group name manually if no group name
-      name = button.obj().id + '-group'
+      name = button.elem().id + '-group'
 
     # create button in group
     group = @_addGroup name
-    group.appendChild button.obj()
+    group.appendChild button.elem()
 
   # ============================================================================
   addButtonGroup: (name) ->
@@ -90,21 +90,21 @@ class HG.ButtonArea
     else
       group = @_addGroup 'spacer'+@_spacerCtr
     spacer = new HG.Div null, ['spacer']
-    group.appendChild spacer.obj()
+    group.appendChild spacer.elem()
     @_spacerCtr++
 
   # ============================================================================
   moveVertical: (dist) ->
     if @_positionY.get() is 'top'
-      @_div.dom().animate {'top': '+=' + dist}
+      @_div.jq().animate {'top': '+=' + dist}
     else if @_positionY.get() is 'bottom'
-      @_div.dom().animate {'bottom': '+=' + dist}
+      @_div.jq().animate {'bottom': '+=' + dist}
 
   moveHorizontal: (dist) ->
     if @_positionX.get() is 'left'
-      @_div.dom().animate {'left': '+=' + dist}
+      @_div.jq().animate {'left': '+=' + dist}
     else if @_positionX.get() is 'right'
-      @_div.dom().animate {'right': '+=' + dist}
+      @_div.jq().animate {'right': '+=' + dist}
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
@@ -126,14 +126,14 @@ class HG.ButtonArea
       # append or prepend button (given in configuration of ButtonArea)
       if @_direction.get() is 'append'
         @_div.append group
-        @_groups.append group.obj()
+        @_groups.append group.elem()
 
       else if @_direction.get() is 'prepend'
         @_div.prepend group
-        @_groups.prepend group.obj()
+        @_groups.prepend group.elem()
 
       # add to group list
-      return group.obj()
+      return group.elem()
 
   # ============================================================================
   _removeGroup: (id) ->
