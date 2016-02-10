@@ -1,6 +1,7 @@
 window.HG ?= {}
 
 ##############################################################################
+# MODULE
 # graph above the timeline that shows the history of countries
 # visualisation based on d3
 ##############################################################################
@@ -38,6 +39,7 @@ class HG.HistoGraph
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
+
     # add HistoGraph to HG instance
     @_hgInstance.histoGraph = @
 

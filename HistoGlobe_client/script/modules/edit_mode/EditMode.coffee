@@ -180,6 +180,7 @@ class HG.EditMode
         @_currStep.reqNum = @_getRequiredNum @_currStep.reqNum
 
         # setup UI
+        @_tt = new HG.TerritoryTools @_hgInstance
 
         ### ACTION ###
         @_coWindow.enableFinish() if @_currCO.stepIdx is @_currCO.totalSteps-1

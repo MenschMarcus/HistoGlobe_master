@@ -27,17 +27,9 @@ class HG.ChangeOperationWindow
   # ============================================================================
   constructor: (@_hgInstance, @_operation) ->
 
-    # add to HG instance
-    @_hgInstance.changeOperationWindow = @
-
-    # init callbacks
-    HG.mixin @, HG.CallbackContainer
-    HG.CallbackContainer.call @
-
     # init variables
     @_nextDisabled = no
     @_backDisabled = no
-
 
     ### divs ###
 
