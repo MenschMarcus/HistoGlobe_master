@@ -67,7 +67,7 @@ class HG.Button
     # finally add button either to parent div or to button area
     if @_config.parentDiv
       # TODO accept HG.Div, jQuery object or normal JS object
-      @_config.parentDiv.appendChild @_button.obj()
+      @_config.parentDiv.appendChild @_button.elem()
     else if @_config.parentArea
       @_config.parentArea.addButton @_button, @_config.groupName
 
@@ -83,33 +83,33 @@ class HG.Button
 
   # ============================================================================
   disable: () ->
-    @_button.dom().addClass 'button-disabled'
+    @_button.jq().addClass 'button-disabled'
     @_enabled = no
 
   enable: () ->
-    @_button.dom().removeClass 'button-disabled'
+    @_button.jq().removeClass 'button-disabled'
     @_enabled = yes
 
   activate: () ->
     if @_enabled    # case: button enabled and active
-      @_button.dom().addClass 'button-active'
+      @_button.jq().addClass 'button-active'
     else            # case: button disabled and active
-      @_button.dom().removeClass 'button-disabled'
-      @_button.dom().addClass 'button-disabled-active'
+      @_button.jq().removeClass 'button-disabled'
+      @_button.jq().addClass 'button-disabled-active'
 
   deactivate: () ->
     if @_enabled    # case: button enabled and active
-      @_button.dom().removeClass 'button-active'
+      @_button.jq().removeClass 'button-active'
     else            # case: button disabled and active
-      @_button.dom().removeClass 'button-disabled-active'
-      @_button.dom().addClass 'button-disabled'
+      @_button.jq().removeClass 'button-disabled-active'
+      @_button.jq().addClass 'button-disabled'
 
   # ============================================================================
-  show: () ->         @_button.dom().show()
-  hide: () ->         @_button.dom().hide()
+  show: () ->         @_button.jq().show()
+  hide: () ->         @_button.jq().hide()
 
   # ============================================================================
-  remove: () ->       @_button.dom().remove()
+  remove: () ->       @_button.jq().remove()
 
   ##############################################################################
   #                            PRIVATE INTERFACE                                #
@@ -128,18 +128,18 @@ class HG.Button
     # remove old class(es)
     if oldClasses
       for c in oldClasses
-        @_button.dom().removeClass c
+        @_button.jq().removeClass c
 
   # ============================================================================
   _setClasses: () ->
     if @_state.classes
       for c in @_state.classes
-        @_button.dom().addClass c
+        @_button.jq().addClass c
 
   # ============================================================================
   _setTooltip: () ->
     if @_state.tooltip and TOOLTIPS
-      @_button.dom().tooltip {
+      @_button.jq().tooltip {
         title: @_state.tooltip,
         placement: 'right',
         container: 'body'
@@ -148,7 +148,7 @@ class HG.Button
   # ============================================================================
   _setIcon: () ->
     # remove old icon
-    @_button.dom().empty()
+    @_button.jq().empty()
     icon = null
 
     # add new icon
@@ -157,7 +157,7 @@ class HG.Button
 
     else if @_state.iconOwn     # 2. own icon
       icon = new HG.Div '', 'own-button'
-      icon.dom().css 'background-image', 'url("' + @_state.iconOwn + '")'
+      icon.jq().css 'background-image', 'url("' + @_state.iconOwn + '")'
 
     else                # no icon
       console.error "No icon for button " + @_id + " set!"
@@ -167,9 +167,9 @@ class HG.Button
   # ============================================================================
   _setCallback: () ->
     # clear callbacks first to prevent multiple click handlers on same DOM element
-    @_button.dom().unbind 'click'
+    @_button.jq().unbind 'click'
     # define new callback
-    @_button.dom().click () =>
+    @_button.jq().click () =>
       # callback = tell everybody that state has changed
       # hand button itself (@) into callback so everybody can operate on the button (e.g. change state)
       @notifyAll @_state.callback, @

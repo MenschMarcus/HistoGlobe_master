@@ -29,15 +29,15 @@ class HG.Watermark
 
     if @_config.image?
       image = new HG.Img @_config.id, 'watermark', @_config.image
-      image.obj().style.top = @_config.top        if @_config.top?
-      image.obj().style.right = @_config.right    if @_config.right?
-      image.obj().style.bottom = @_config.bottom  if @_config.bottom?
-      image.obj().style.left = @_config.left      if @_config.left?
-      parentDiv.appendChild image.obj()
+      image.elem().style.top = @_config.top        if @_config.top?
+      image.elem().style.right = @_config.right    if @_config.right?
+      image.elem().style.bottom = @_config.bottom  if @_config.bottom?
+      image.elem().style.left = @_config.left      if @_config.left?
+      parentDiv.appendChild image.elem()
 
     else
       text = new HG.Div null, 'watermark'
-      text.dom().html @_config.text
+      text.jq().html @_config.text
 
       if @_config.top?
         text.style.top = @_config.top
@@ -48,4 +48,4 @@ class HG.Watermark
       if @_config.left?
         text.style.left = @_config.left
 
-      parentDiv.appendChild text.obj()
+      parentDiv.appendChild text.elem()

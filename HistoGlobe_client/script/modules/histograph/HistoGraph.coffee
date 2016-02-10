@@ -52,7 +52,7 @@ class HG.HistoGraph
     @_wrapper.append @_line
 
     # create canvas itself
-    @_canvas = d3.select @_wrapper.obj()
+    @_canvas = d3.select @_wrapper.elem()
       .append 'svg'
       .attr 'id', 'histograph-canvas'
 
@@ -80,16 +80,16 @@ class HG.HistoGraph
   # ============================================================================
   show: () ->
     if not @_graphVisible
-      @_wrapper.dom().show()
-      @_line.dom().show()
-      @notifyAll 'onShow', @_wrapper.dom()
+      @_wrapper.jq().show()
+      @_line.jq().show()
+      @notifyAll 'onShow', @_wrapper.jq()
       @_graphVisible = yes
 
   hide: () ->
     if @_graphVisible
-      @_wrapper.dom().hide()
-      @_line.dom().hide()
-      @notifyAll 'onHide', @_wrapper.dom()
+      @_wrapper.jq().hide()
+      @_line.jq().hide()
+      @notifyAll 'onHide', @_wrapper.jq()
       @_graphVisible = no
 
   # ============================================================================
@@ -135,8 +135,8 @@ class HG.HistoGraph
       .classed 'graph-country-line', true
       .attr 'x1', 0
       .attr 'x2', $(window).width()
-      .attr 'y1', @_wrapper.dom().height()/2
-      .attr 'y2', @_wrapper.dom().height()/2
+      .attr 'y1', @_wrapper.jq().height()/2
+      .attr 'y2', @_wrapper.jq().height()/2
       .on 'mouseover', () -> d3.select(@).style 'stroke', HGConfig.color_highlight.val
       .on 'mouseout', () -> d3.select(@).style 'stroke', HGConfig.color_white.val
       .on 'click', () -> d3.select(@).style 'stroke', HGConfig.color_active.val
@@ -148,7 +148,7 @@ class HG.HistoGraph
       .append 'text'
       .classed 'graph-country-label', true
       .attr 'x', 15
-      .attr 'y', @_wrapper.dom().height()/2 - 5
+      .attr 'y', @_wrapper.jq().height()/2 - 5
       .text (d) -> d.name
 
   _updateLines: (d) ->
@@ -167,8 +167,8 @@ class HG.HistoGraph
     # @_canvas.append 'circle'
     #   .classed 'graph-hivent', true
     #   .attr 'r', 10
-    #   .attr 'cx', @_wrapper.dom().width()/2
-    #   .attr 'cy', @_wrapper.dom().height()/2
+    #   .attr 'cx', @_wrapper.jq().width()/2
+    #   .attr 'cy', @_wrapper.jq().height()/2
     #   .on 'mouseover', () -> d3.select(@).style 'fill', HGConfig.color_highlight.val
     #   .on 'mouseout', () -> d3.select(@).style 'fill', HGConfig.color_white.val
     #   .on 'click', () -> d3.select(@).style 'fill', HGConfig.color_active.val

@@ -35,8 +35,8 @@ class HG.ChangeOperationWindow
 
     # main window sits on top of hg title, has more height (to account for extra space needed)
     @_mainWindow = new HG.Div 'change-operation-main-window'
-    @_mainWindow.obj().style.left = $('#hg-title').position().left + $('#hg-title').width()/2 + 'px'
-    @_hgInstance._top_area.appendChild @_mainWindow.obj()
+    @_mainWindow.elem().style.left = $('#hg-title').position().left + $('#hg-title').width()/2 + 'px'
+    @_hgInstance._top_area.appendChild @_mainWindow.elem()
 
     # table layout    |stepBack| step1 | step. | stepn |stepNext|
     # -------------------------------------------------------------------
@@ -62,7 +62,7 @@ class HG.ChangeOperationWindow
     for step in @_operation.steps
       @_workflowRow.append new HG.Div null, ['co-workflow-row', 'co-step-col']
       descr = new HG.Div null, ['co-description-row', 'co-step-col', 'co-description-cell']
-      descr.dom().html step.title
+      descr.jq().html step.title
       @_descriptionRow.append descr
       stepCols++
 
@@ -78,7 +78,7 @@ class HG.ChangeOperationWindow
     # back button (= undo, disabled)
     @_backButton = new HG.Button @_hgInstance,
       {
-        'parentDiv':  @_backButtonParent.obj()
+        'parentDiv':  @_backButtonParent.elem()
         'id':         'coBack'
         'states': [
           {
@@ -94,7 +94,7 @@ class HG.ChangeOperationWindow
     # -> changes to OK button / "finish" state in last step
     @_nextButton = new HG.Button @_hgInstance,
       {
-        'parentDiv':    @_nextButtonParent.obj()
+        'parentDiv':    @_nextButtonParent.elem()
         'id':           'coNext'
         'states': [
           {
@@ -115,7 +115,7 @@ class HG.ChangeOperationWindow
     # abort button
     @_abortButton = new HG.Button @_hgInstance,
       {
-        'parentDiv':    @_abortButtonParent.obj()
+        'parentDiv':    @_abortButtonParent.elem()
         'id':           'coAbort'
         'states': [
           {
@@ -129,14 +129,14 @@ class HG.ChangeOperationWindow
       }
 
     # recenter the window
-    width =  2        * @_backButtonParent.dom().width()     # 2 button columns
+    width =  2        * @_backButtonParent.jq().width()     # 2 button columns
     width += stepCols * HGConfig.operation_step_width.val    # n step columns
-    @_mainWindow.dom().css 'margin-left', -width/2    # recenters div
+    @_mainWindow.jq().css 'margin-left', -width/2    # recenters div
 
 
   # ============================================================================
   destroy: () ->
-    @_mainWindow?.dom().remove()
+    @_mainWindow?.jq().remove()
     delete @_mainWindow?
 
   # ============================================================================
