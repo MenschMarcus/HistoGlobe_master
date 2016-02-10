@@ -16,28 +16,28 @@ class HG.TerritoryTools
     ### init UI ###
 
     # moveable wrapper convering everything
-    @_wrapper = new HG.Div 'tt-wrapper', null
-    @_hgInstance._top_area.appendChild @_wrapper.obj()
+    wrapper = new HG.Div 'tt-wrapper', null
+    @_hgInstance._top_area.appendChild wrapper.obj()
 
 
     ## 1. line: title
-    @_title = new HG.Div null, ['tt-title', 'h1']
-    @_title.dom().html "Territory Tools"
-    @_wrapper.append @_title
+    title = new HG.Div null, ['tt-title', 'h1']
+    title.dom().html "Territory Tools"
+    wrapper.append title
 
 
     ## 2. line: 3 buttons in a button area
     # -> new territory, reuse territory, import territory)
-    @_terrEditButtons = new HG.ButtonArea @_hgInstance, {
+    terrEditButtons = new HG.ButtonArea @_hgInstance, {
       'id':                 'tt-edit-buttons'
       'classes':            ['tt-button-area']
-      'parentDiv':          @_wrapper.obj()
+      'parentDiv':          wrapper.obj()
       'absolutePosition':   false
     }
 
-    @_newTerrButton = new HG.Button @_hgInstance, {
+    newTerrButton = new HG.Button @_hgInstance, {
       'id':                 'newTerritory'
-      'parentArea':         @_terrEditButtons
+      'parentArea':         terrEditButtons
       'groupName':          'tt-edit-buttons'
       'states': [
         {
@@ -48,10 +48,9 @@ class HG.TerritoryTools
         }
       ]
     }
-
-    @_reuseTerrButton = new HG.Button @_hgInstance, {
+    reuseTerrButton = new HG.Button @_hgInstance, {
       'id':                 'reuseTerritory'
-      'parentArea':         @_terrEditButtons
+      'parentArea':         terrEditButtons
       'groupName':          'tt-edit-buttons'
       'states': [
         {
@@ -62,10 +61,9 @@ class HG.TerritoryTools
         }
       ]
     }
-
-    @_importTerrButton = new HG.Button @_hgInstance, {
+    importTerrButton = new HG.Button @_hgInstance, {
       'id':                 'importTerritory'
-      'parentArea':         @_terrEditButtons
+      'parentArea':         terrEditButtons
       'groupName':          'tt-edit-buttons'
       'states': [
         {
@@ -81,34 +79,74 @@ class HG.TerritoryTools
     ## 3. line: list of existing territories
     @_listTitle = new HG.Div null, ['tt-title', 'h2']
     @_listTitle.dom().html "Existing Territories"
-    @_wrapper.append @_listTitle
+    wrapper.append @_listTitle
 
     @_listWrapper = new HG.Div 'tt-list', null
-    @_wrapper.append @_listWrapper
+    wrapper.append @_listWrapper
 
     # fill with dummy data
-    @addToList "this is a test territory"
+    @_addToList "this is a test territory"
 
 
     ## 4. line: snapping options
-    @_snapTitle = new HG.Div null, ['tt-title', 'h2']
-    @_snapTitle.dom().html "Snap Options"
-    @_wrapper.append @_snapTitle
+    # snap to points?, snap to lines? and snap tolerance
+    snapTitle = new HG.Div null, ['tt-title', 'h2']
+    snapTitle.dom().html "Snap Options"
+    wrapper.append snapTitle
+
+    # horizontal wrapper containing all three options
+    snapOptionWrapper = new HG.Div 'tt-option-wrapper', null
+    wrapper.append snapOptionWrapper
+
+    # wrapper for each option containing input box + description
+    snapToPointsWrapper = new HG.Div null, ['tt-snap-option-wrapper']
+    snapOptionWrapper.append snapToPointsWrapper
+    snapToLinesWrapper = new HG.Div null, ['tt-snap-option-wrapper']
+    snapOptionWrapper.append snapToLinesWrapper
+    snapToleranceWrapper = new HG.Div null, ['tt-snap-option-wrapper']
+    snapOptionWrapper.append snapToleranceWrapper
+
+    # snap to points
+    snapToPointsCheckbox = new HG.Checkbox 'snapToPoints', ['tt-snap-option-checkbox']
+    snapToPointsWrapper.append snapToPointsCheckbox
+    snapToPointsText = new HG.Div null, ['tt-snap-option-text']
+    snapToPointsText.dom().html "snap to border points"
+    snapToPointsWrapper.append snapToPointsText
+
+    # snap to lines
+    snapToLinesCheckbox = new HG.Checkbox 'snapToLines', ['tt-snap-option-checkbox']
+    snapToLinesWrapper.append snapToLinesCheckbox
+    snapToLinesText = new HG.Div null, ['tt-snap-option-text']
+    snapToLinesText.dom().html "snap to border lines"
+    snapToLinesWrapper.append snapToLinesText
+
+    # snap tolerance
+    snapToleranceInput = new HG.NumberInput 'snapTolerance', ['tt-snap-option-input']
+    snapToleranceInput.obj().setAttribute 'value', 9.3
+    snapToleranceInput.obj().setAttribute 'maxlength', 3
+    snapToleranceInput.obj().setAttribute 'step', 0.1
+    snapToleranceInput.obj().setAttribute 'min', 0.0
+    snapToleranceInput.obj().setAttribute 'max', 10.0
+    snapToleranceWrapper.append snapToleranceInput
+    snapToleranceText = new HG.Div null, ['tt-snap-option-text']
+    snapToleranceText.dom().html "snap tolerance [px]"
+    snapToleranceWrapper.append snapToleranceText
+
 
     # TODO: actual options
 
     ## 5. line: finish buttons
     # -> clip, use rest
-    @_terrFinishButtons = new HG.ButtonArea @_hgInstance, {
+    terrFinishButtons = new HG.ButtonArea @_hgInstance, {
       'id':                 'tt-finish-buttons'
       'classes':            ['tt-button-area']
-      'parentDiv':          @_wrapper.obj()
+      'parentDiv':          wrapper.obj()
       'absolutePosition':   false
     }
 
-    @_clipAreasButton = new HG.Button @_hgInstance, {
+    clipAreasButton = new HG.Button @_hgInstance, {
       'id':                 'clipAreas'
-      'parentArea':         @_terrFinishButtons
+      'parentArea':         terrFinishButtons
       'groupName':          'tt-finish-buttons'
       'states': [
         {
@@ -119,11 +157,11 @@ class HG.TerritoryTools
         }
       ]
     }
-    @_terrFinishButtons.addSpacer 'tt-finish-buttons-group'
+    terrFinishButtons.addSpacer 'tt-finish-buttons-group'
 
-    @_useRestButton = new HG.Button @_hgInstance, {
+    useRestButton = new HG.Button @_hgInstance, {
       'id':                 'useRest'
-      'parentArea':         @_terrFinishButtons
+      'parentArea':         terrFinishButtons
       'groupName':          'tt-finish-buttons'
       'states': [
         {
@@ -137,10 +175,6 @@ class HG.TerritoryTools
 
 
   # ============================================================================
-  addToList: (text) ->
-    newT = new HG.Div null, ['tt-list-entry']
-    newT.dom().html text
-    @_listWrapper.append newT
 
 
   ##############################################################################
@@ -148,3 +182,7 @@ class HG.TerritoryTools
   ##############################################################################
 
   # ============================================================================
+  _addToList: (text) ->
+    newT = new HG.Div null, ['tt-list-entry']
+    newT.dom().html text
+    @_listWrapper.append newT
