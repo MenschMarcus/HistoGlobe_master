@@ -1,22 +1,5 @@
 window.HG ?= {}
 
-##############################################################################
-# creates a button area, requires a config with the following information:
-# {
-#   'id':           id of the DOM element (no underscore)
-#   'classes':      additional classes in ['className'] array
-#   'parentDiv':    div to which area will be added to
-#                   (default: top_area of HistoGlobe)
-#   'position':     'abs' or 'rel'
-#   'positionX':    'left', 'right' or 'center' (default)
-#   'positionY':    'top', bottom' or 'center' (default)
-#   'orientation':  'horizontal' (default) or 'vertical'
-#   'direction':    'append' (default) or 'prepend'
-#                   (next button added to the area will be
-#                   appended to the back or prepended to the front)
-# }
-
-
 class HG.ButtonArea
 
   ##############################################################################
@@ -28,14 +11,16 @@ class HG.ButtonArea
 
     # handle config
     defaultConfig =
-      id:                 null
-      classes:            null
-      parentDiv:          @_hgInstance._top_area
-      absolutePosition:   true
-      positionX:          'center'
-      positionY:          'center'
-      orientation:        'horizontal'
-      direction:          'append'
+      id:                 null                    # id of the DOM element (no underscore)
+      classes:            null                    # ['className'] array
+      parentDiv:          @_hgInstance._top_area  # div to which area will be added to
+      absolutePosition:   true                    # false = relative position
+      positionX:          'center'                # 'left', 'right' or 'center'
+      positionY:          'center'                # 'top', bottom' or 'center'
+      orientation:        'horizontal'            # 'horizontal' (default) or 'vertical'
+      direction:          'append'                # 'append' (to back) or 'prepend' (to front)
+                                                  #   (next button added to the area will be
+                                                  #   appended to the back or prepended to the front)
     @_config = $.extend {}, defaultConfig, config
 
     # variables (read from config)
@@ -60,7 +45,7 @@ class HG.ButtonArea
     classes.push 'button-area-' + @_positionY.get()
     classes.push 'button-area-' + @_positionX.get()
     if @_config.classes
-      classes.push c for c in @_config.c
+      classes.push c for c in @_config.classes
 
     @_div = new HG.Div @_config.id, classes
     @_config.parentDiv.appendChild @_div.obj()
@@ -97,8 +82,13 @@ class HG.ButtonArea
     @_removeGroup name
 
   # ============================================================================
-  addSpacer: () ->
-    group = @_addGroup 'spacer'+@_spacerCtr
+  # usage 1: I want a spacer between two button groups =>   myButtonArea.addSpacer()
+  # usage 2: I want a spacer inside a button group =>       myButtonArea.addSpacer 'group-name'
+  addSpacer: (groupName) ->
+    if groupName?
+      group = @_addGroup groupName
+    else
+      group = @_addGroup 'spacer'+@_spacerCtr
     spacer = new HG.Div null, ['spacer']
     group.appendChild spacer.obj()
     @_spacerCtr++
