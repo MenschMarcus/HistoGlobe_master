@@ -57,7 +57,6 @@ class HG.AreasOnMap
   disableMultipleSelection: () ->
     @_multipleSelections = no
     @_activeAreas = 0
-    @_deactivateAll()
 
   # ============================================================================
   getActiveArea: () -> @_activeTarget?.hgArea
