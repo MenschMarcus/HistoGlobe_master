@@ -8,10 +8,12 @@ window.HG ?= {}
 class HG.EditButtons
 
   # ============================================================================
-  constructor: (@_hgInstance, operations, iconPath) ->
+  constructor: (@_hgInstance, operations) ->
 
     # add to HG instance
     @_hgInstance.editButtons = @
+
+    iconPath = @_hgInstance._config.graphicsPath + 'buttons/'
 
     # create transparent title bar (hidden)
     @_titleBar = new HG.Div 'titlebar', null, true

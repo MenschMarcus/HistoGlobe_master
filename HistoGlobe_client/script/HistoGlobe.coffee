@@ -42,9 +42,11 @@ class HG.HistoGlobe
       startZoom: 4
       maxBounds: undefined
       startLatLong: [51.505, 10.09]
-      sidebarCollapsed: "auto"
+      tiles: '../HistoGlobe_client/config/common/tiles/tiles'
+      tilesHighContrast: '../HistoGlobe_client/config/common/tiles/tiles_high_contrast'
+      graphicsPath: '../HistoGlobe_client/config/common/graphics/'
       sidebarEnabled: "true"
-      tiles: 'data/tiles/'
+      sidebarCollapsed: "auto"
 
     # issue: HGConfig provides rose variables, but for colors it does not return
     # the hex code '#rrggbb', but an object with r, g, b, a and val attributes
