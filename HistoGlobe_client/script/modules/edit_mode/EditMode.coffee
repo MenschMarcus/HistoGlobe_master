@@ -44,7 +44,7 @@ class HG.EditMode
       @_hgChangeOperations = new HG.ObjectArray ops # all possible operations
 
       @_editButtons = new HG.EditButtons @_hgInstance, @_hgChangeOperations
-      @_editModeButton = @_editButtons.getEditButton()
+      @_editModeButton = @_editButtons.getEditButton()  # todo: get rid of that :/
       @_title = new HG.Title @_hgInstance
       @_histoGraph = @_hgInstance.histoGraph
       @_areasOnMap = @_hgInstance.areasOnMap
@@ -145,8 +145,8 @@ class HG.EditMode
 
         # update step information
         @_currStep.reqNum = @_getRequiredNum @_currStep.reqNum
-        @_selectedAreas = new HG.ObjectArray
-        @_selectedAreas.push @_areasOnMap.getActiveArea() if @_areasOnMap.getActiveArea()?
+        selectedAreas = new HG.ObjectArray
+        selectedAreas.push @_areasOnMap.getActiveArea() if @_areasOnMap.getActiveArea()?
 
         # setup UI
         @_areasOnMap.enableMultipleSelection @_currStep.reqNum.max
@@ -155,21 +155,21 @@ class HG.EditMode
 
         # listen to area selection from AreasOnMap
         @_areasOnMap.onSelectArea @, (area) =>
-          @_selectedAreas.push area
+          selectedAreas.push area
           @_histoGraph.addToSelection area
 
           # check if step is completed
-          if @_selectedAreas.length() >= @_currStep.reqNum.min
+          if selectedAreas.length() >= @_currStep.reqNum.min
             @_coWindow.enableFinish() if @_currCO.stepIdx is @_currCO.totalSteps-1
             @_coWindow.enableNext()
 
         # listen to area deselection from AreasOnMap
         @_areasOnMap.onDeselectArea @, (area) =>
-          @_selectedAreas.remove '_id', area._id
+          selectedAreas.remove '_id', area._id
           @_histoGraph.removeFromSelection area
 
           # check if step is not completed anymore
-          if @_selectedAreas.length() < @_currStep.reqNum.min
+          if selectedAreas.length() < @_currStep.reqNum.min
             @_coWindow.disableNext()
       )
 
@@ -177,24 +177,62 @@ class HG.EditMode
 
         # update step information
         @_currStep.reqNum = @_getRequiredNum @_currStep.reqNum
+        terrCtr = 0
 
         # setup UI
-        @_tt = new HG.TerritoryTools @_hgInstance, @_config.iconPath
+        tt = new HG.TerritoryTools @_hgInstance, @_config.iconPath
+        newTerrButton = @_hgInstance.buttons.newTerritory
+        reuseTerrButton = @_hgInstance.buttons.reuseTerritory
+        importTerrButton = @_hgInstance.buttons.importTerritory
+        snapToPointsSwitch = @_hgInstance.switches.snapToPoints
+        snapToLinesSwitch = @_hgInstance.switches.snapToLines
+        snapToleranceInput = @_hgInstance.inputs.snapTolerance
+        clipTerrButton = @_hgInstance.buttons.clipTerritory
+        useRestButton = @_hgInstance.buttons.useRest
+
+        clipTerrButton.disable()
+        useRestButton.disable()
 
         ### ACTION ###
-        @_hgInstance.switches.snapToPoints.onSwitchOn @, () =>
+
+        newTerrButton.onClick @, () =>
+          console.log 'init new territory on the map'
+          tt.addToList 'new territory # ' + terrCtr
+          terrCtr++
+
+        reuseTerrButton.onClick @, () =>
+          console.log 'reuse territory'
+          tt.addToList 'reused territory # ' + terrCtr
+          terrCtr++
+
+        importTerrButton.onClick @, () =>
+          console.log 'import new territory from file'
+          tt.addToList 'imported territory # ' + terrCtr
+          terrCtr++
+
+        snapToPointsSwitch.onSwitchOn @, () =>
           console.log "turn switch to border points on!"
 
-        @_hgInstance.switches.snapToPoints.onSwitchOff @, () =>
+        snapToPointsSwitch.onSwitchOff @, () =>
           console.log "turn switch to border points off!"
 
-        @_hgInstance.switches.snapToLines.onSwitchOn @, () =>
+        snapToLinesSwitch.onSwitchOn @, () =>
           console.log "turn switch to border lines on!"
 
-        @_hgInstance.switches.snapToLines.onSwitchOff @, () =>
+        snapToLinesSwitch.onSwitchOff @, () =>
           console.log "turn switch to border lines off!"
 
+        snapToleranceInput.onChange @, (val) =>
+          console.log "the new snap tolerance value is " + val
 
+        clipTerrButton.onClick @, () =>
+          console.log "clip the drawn territory to the existing territory"
+
+        useRestButton.onClick @, () =>
+          console.log "use the remaining territory for this new country"
+
+
+        # finish up
         @_coWindow.enableFinish() if @_currCO.stepIdx is @_currCO.totalSteps-1
         @_coWindow.enableNext()
 
