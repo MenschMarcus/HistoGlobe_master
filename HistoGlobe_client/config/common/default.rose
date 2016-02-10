@@ -68,6 +68,13 @@ $operation_window_height            = 120px
 $operation_step_width               = 175px
 
 
+// TERRITORY TOOLS WINDOW ------------------------------------------
+
+$territory_tools_width              = 250px
+$territory_tools_border_width       = 2px
+
+
+
 // HIVENT MARKERS --------------------------------------------------
 
 $hivent_marker_color                = rgb(37,121,191)
