@@ -16,19 +16,6 @@
   margin-top: 5px;
 }
 
-#tt-list
-{
-  min-height: 75px;
-}
-
-.tt-list-entry
-{
-  height: 25px;
-  margin-left: @element_window_distance;
-  font-size: 0.9em;
-}
-
-
 .tt-title
 {
   text-align: center;
@@ -54,14 +41,14 @@
 }
 
 
-.tt-button-area
+.tt-button-area           /* outer div */
 {
   height: @button_diameter + @element_window_distance;
   width: 100%;            /* center !!! */
   text-align: center;     /* center !!! */
 }
 #tt-edit-buttons-group,
-#tt-finish-buttons-group,
+#tt-finish-buttons-group  /* inner div */
 {
   /* center !!! = this is the f**** solution for centering a div in a div:
   the div needs to get the width of its content
@@ -71,4 +58,17 @@
   height: @button_diameter + @element_window_distance;
   margin-right: auto;     /* center !!! */
   margin-left: auto;      /* center !!! */
+}
+
+
+#tt-list
+{
+  min-height: 55px;
+}
+
+.tt-list-entry
+{
+  height: 25px;
+  margin-left: @element_window_distance;
+  font-size: 0.9em;
 }
