@@ -13,8 +13,9 @@ class HG.DOMElement
     @_elem.id = id if id                           # sets id
     @_elem.classList.add c for c in classes        # adds all classes
     @_elem.setAttribute a[0], a[1] for a in attr   # adds all attributes + values
-    @_jq = $(@_elem)                               # saves jQuery object
-    @_jq.hide() if hidden                          # hides element if given
+    $(@_elem).hide() if hidden                     # hides element if given
+
+    return @elem()
 
   # ============================================================================
   append: (child) ->    @_elem.appendChild child.elem()
@@ -22,4 +23,3 @@ class HG.DOMElement
 
   # ============================================================================
   elem: () -> @_elem
-  jq: () ->   @_jq

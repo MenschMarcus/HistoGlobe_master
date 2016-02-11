@@ -24,7 +24,7 @@ class HG.TerritoryTools
 
     ## 1. line: title
     title = new HG.Div null, ['tt-title']
-    title.jq().html "Territory Tools"
+    $(title.elem()).html "Territory Tools"
     @_wrapper.append title
 
 
@@ -102,14 +102,14 @@ class HG.TerritoryTools
     snapToPointsSwitch = new HG.Switch @_hgInstance, 'snapToPoints', ['tt-snap-option-switch']
     snapToPointsWrapper.append snapToPointsSwitch
     snapToPointsText = new HG.Div null, ['tt-snap-option-text']
-    snapToPointsText.jq().html "snap to <br/>border points"
+    $(snapToPointsText.elem()).html "snap to <br/>border points"
     snapToPointsWrapper.append snapToPointsText
 
     # snap to lines
     snapToLinesSwitch = new HG.Switch @_hgInstance, 'snapToLines', ['tt-snap-option-switch']
     snapToLinesWrapper.append snapToLinesSwitch
     snapToLinesText = new HG.Div null, ['tt-snap-option-text']
-    snapToLinesText.jq().html "snap to <br/>border lines"
+    $(snapToLinesText.elem()).html "snap to <br/>border lines"
     snapToLinesWrapper.append snapToLinesText
 
     # snap tolerance
@@ -121,7 +121,7 @@ class HG.TerritoryTools
     snapToleranceInput.elem().setAttribute 'max', 10.0
     snapToleranceWrapper.append snapToleranceInput
     snapToleranceText = new HG.Div null, ['tt-snap-option-text']
-    snapToleranceText.jq().html "snap <br/>tolerance [px]"
+    $(snapToleranceText.elem()).html "snap <br/>tolerance [px]"
     snapToleranceWrapper.append snapToleranceText
 
     ## 5. line: finish buttons
@@ -164,13 +164,13 @@ class HG.TerritoryTools
 
   # ============================================================================
   destroy: () ->
-    @_wrapper?.jq().remove()
+    $(@_wrapper?.elem()).remove()
     delete @_wrapper?
 
   # ============================================================================
   addToList: (text) ->
     newT = new HG.Div null, ['tt-list-entry']
-    newT.jq().html text
+    $(newT.elem()).html text
     @_listWrapper.append newT
 
   # ============================================================================

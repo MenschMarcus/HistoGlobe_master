@@ -18,7 +18,7 @@ class HG.NowMarker
 
   # ============================================================================
   upDate: (date) ->
-    @_nowMarker.jq().html date.toLocaleDateString DATE_LOCALE, DATE_OPTIONS
+    $(@_nowMarker.elem()).html date.toLocaleDateString DATE_LOCALE, DATE_OPTIONS
 
   resetPos: (pos) ->
     @_nowMarker.elem().style.left = pos

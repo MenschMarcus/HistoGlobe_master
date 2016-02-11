@@ -108,7 +108,7 @@ class HG.EditButtons
 
   # ============================================================================
   show: () ->
-    @_titleBar.jq().show()
+    $(@_titleBar.elem()).show()
     @_newHiventButton.show()
     @_changeOperationButtons.foreach (obj) =>
       obj.button.show()
@@ -117,7 +117,7 @@ class HG.EditButtons
     @_changeOperationButtons.foreach (obj) =>
       obj.button.hide()
     @_newHiventButton.hide()
-    @_titleBar.jq().hide()
+    $(@_titleBar.elem()).hide()
 
   # ============================================================================
   disable: () ->
