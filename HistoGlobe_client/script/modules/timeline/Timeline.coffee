@@ -77,11 +77,16 @@ class HG.Timeline
     @_hgContainer.appendChild @_parentDiv.elem()
 
     @_tl = new HG.Div 'tl', ['swiper-container', 'no-text-select']
-    @_tlWrapper = new HG.Div 'tl_wrapper', ['swiper-wrapper', 'no-text-select']
-    @_tlSlider = new HG.Div 'tl_slide', ['swiper-slide', 'no-text-select']
     @_parentDiv.append @_tl
+
+    @_tlWrapper = new HG.Div 'tl_wrapper', ['swiper-wrapper', 'no-text-select']
     @_tl.append @_tlWrapper
+
+    @_tlSlider = new HG.Div 'tl_slide', ['swiper-slide', 'no-text-select']
     @_tlWrapper.append @_tlSlider
+
+    console.log typeof @_tlSlider
+    console.log typeof @_tlSlider.elem()
 
     @_dateMarkers = []
 
@@ -359,9 +364,9 @@ class HG.Timeline
           # hide and delete months
           else
             for months in @_dateMarkers[i].months
-              month.div.jq().fadeOut(FADE_ANIMATION_TIME, `function() { $(this).remove(); }`)
+              $(month.div.elem()).fadeOut(FADE_ANIMATION_TIME, `function() { $(this).remove(); }`)
             @_dateMarkers[i].months.length = 0
-          @_dateMarkers[i].div.jq().fadeIn FADE_ANIMATION_TIME
+          $(@_dateMarkers[i].div.elem()).fadeIn FADE_ANIMATION_TIME
         else
 
           # update existing datemarker and his months
@@ -393,14 +398,14 @@ class HG.Timeline
           # hide and delete months
           else
             for month in @_dateMarkers[i].months
-              month.div.jq().fadeOut(FADE_ANIMATION_TIME, `function() { $(this).remove(); }`)
+              $(month.div.elem()).fadeOut(FADE_ANIMATION_TIME, `function() { $(this).remove(); }`)
             @_dateMarkers[i].months.length = 0
 
       # hide and delete datemarker and their months
       else
         if @_dateMarkers[i]?
           @_dateMarkers[i].div.elem().style.left = @_dateToPosition(@_yearToDate(year)) + "px"
-          @_dateMarkers[i].div.jq().remove()
+          $(@_dateMarkers[i].div.elem()).remove()
           @_dateMarkers[i] = null
 
 

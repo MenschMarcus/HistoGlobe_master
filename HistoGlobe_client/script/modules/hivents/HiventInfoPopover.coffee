@@ -21,7 +21,7 @@ class HG.HiventInfoPopover
     body = new HG.Div null, "hivent-body"
 
     titleDiv = new HG.Div null, "guiPopoverTitle"
-    titleDiv.jq().html @_hiventHandle.getHivent().name
+    $(titleDiv.elem()).html @_hiventHandle.getHivent().name
     body.append titleDiv
 
     text = new HG.Div null, "hivent-content"
