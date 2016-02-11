@@ -46,20 +46,19 @@ class HG.EditMode
       @_editButtons = new HG.EditButtons @_hgInstance, @_hgChangeOperations
       @_editModeButton = @_hgInstance.buttons.editMode
       @_title = new HG.Title @_hgInstance
+      @_coWindow =  new HG.ChangeOperationWindow @_hgInstance
+      @_backButton = @_hgInstance.buttons.coBack
+      @_nextButton = @_hgInstance.buttons.coNext
       @_histoGraph = @_hgInstance.histoGraph
       @_areasOnMap = @_hgInstance.areasOnMap
+
+      ### WORKFLOW ###
+      ## hierachy: edit mode -> operation -> step -> action
 
       # listen to click on edit button => start edit mode
       @_editModeButton.onEnter @, () ->
 
-        @_editModeButton.changeState 'edit-mode'
-        @_editModeButton.activate()
-        @_editButtons.show()
-        @_title.resize()
-        @_title.set 'EDIT MODE'   # TODO internationalization
-
-
-        # workflow hierachy: operation -> step -> action
+        @_setupEditMode()
 
         ### OPERATION ###
         # listen to click on edit operation buttons => start operation
@@ -72,21 +71,14 @@ class HG.EditMode
             @_currCO.totalSteps = @_currCO.steps.length
             @_currCO.stepIdx = 0
             @_currCO.finished = no
+
+            @_setupOperation()
+
+
+            # update current step in workflow
             @_currStep = @_currCO.steps[@_currCO.stepIdx]
 
-            # setup UI
-            @_editButtons.disable()
-            @_editButtons.activate @_currCO.id
-            @_title.clear()
-            @_coWindow?.destroy()
-            @_coWindow = new HG.ChangeOperationWindow @_hgInstance, @_currCO
-            @_backButton = @_hgInstance.buttons.coBack
-            @_nextButton = @_hgInstance.buttons.coNext
-            @_backButton.disable()
-            @_nextButton.disable()
-            @_histoGraph.show()
-
-            @_makeStep()
+            @_setupStep()
 
 
             # listen to click on next button
@@ -95,23 +87,18 @@ class HG.EditMode
               # send info to server
               # receive new info from server
 
-              @_cleanupStep()
+              @_cleanupStep() # old step
 
-              # update step information
+              # update current step in  workflow
               @_currCO.stepIdx++
               @_currStep = @_currCO.steps[@_currCO.stepIdx]
 
               # update UI
               @_coWindow.moveStepMarker @_currCO.stepIdx
               @_coWindow.highlightText @_currCO.stepIdx
-              @_backButton.enable()
-              @_nextButton.disable()
 
-              @_makeStep()
+              @_setupStep()
 
-
-            @_hgInstance.buttons.coNext.onFinish @, () =>
-              # TODO finish up
 
 
             # listen to click on back button
@@ -120,7 +107,7 @@ class HG.EditMode
               # send info to server
               # receive new info from server
 
-              @_cleanupStep()
+              @_cleanupStep() # old step
 
               # update step information
               @_currCO.stepIdx--
@@ -129,59 +116,99 @@ class HG.EditMode
               # update UI
               @_coWindow.moveStepMarker @_currCO.stepIdx
               @_coWindow.highlightText @_currCO.stepIdx
-              @_coWindow.disableFinish()
-              @_backButton.disable() if @_currCO.stepIdx is 0
-              @_nextButton.disable()
 
-              @_makeStep()
+              @_setupStep()
 
 
             # listen to click on abort button
             @_hgInstance.buttons.coAbort.onClick @, () =>
 
               @_cleanupStep()
-
-              # reset UI
-              @_coWindow.destroy()
-              @_editButtons.deactivate @_currCO.id
-              @_editButtons.enable @_currCO.id
+              @_cleanupOperation()
 
               # reset step information
               @_currCO    = {}
               @_currStep  = {}
 
 
+            @_hgInstance.buttons.coNext.onFinish @, () =>
+              # TODO finish up
+
 
       # listen to next click on edit button => leave edit mode and cleanup
       @_editModeButton.onLeave @, () ->
-        @_cleanupStep() unless @_currStep?
-
-        # reset UI
-        @_title?.clear()
-        @_coWindow?.destroy()
-        @_editButtons.deactivate @_currCO.id unless @_currStep?
-        @_editButtons.enable @_currCO.id unless @_currStep?
-        @_editModeButton.changeState 'normal'
-        @_editModeButton.deactivate()
-        @_editButtons.hide()
-
-        # reset step information
-        @_currCO    = {}
-        @_currStep  = {}
+        @_cleanupEditMode()
     )
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
 
+  ### EDIT MODE ###
+
   # ============================================================================
+  _setupEditMode: () ->
+    @_editModeButton.changeState 'edit-mode'
+    @_editModeButton.activate()
+    @_editButtons.show()
+    @_title.resize()
+    @_title.set 'EDIT MODE'   # TODO internationalization
+
+  # ============================================================================
+  _cleanupEditMode: () ->
+    @_title.clear()
+    @_editButtons.hide()
+    @_editModeButton.deactivate()
+    @_editModeButton.changeState 'normal'
+
+
+  ### OPERATION ###
+
+  # ============================================================================
+  _setupOperation: () ->
+    @_editModeButton.disable()
+    @_editButtons.disable()
+    @_editButtons.activate @_currCO.id
+    @_title.clear()
+    @_coWindow.show()
+    @_coWindow.setup @_currCO
+    @_backButton.disable()
+    @_nextButton.disable()
+    @_histoGraph.show()
+
+
+  # ============================================================================
+  _cleanupOperation: () ->
+    @_histoGraph.hide()
+    @_nextButton.enable()
+    @_backButton.enable()
+    @_coWindow.cleanup()
+    @_coWindow.hide()
+    @_title.set "EDIT MODE"
+    @_editButtons.deactivate @_currCO.id
+    @_editButtons.enable()
+    @_editModeButton.enable()
+
+
   ### STEP ###
-  _makeStep: () ->
+
+  # ============================================================================
+  _setupStep: () ->
+
+    # setup buttons
+    if @_currCO.stepIdx is 0
+      @_backButton.disable()
+    else
+      @_backButton.enable()
+    @_nextButton.changeState 'normal'
+    @_nextButton.disable()
+
 
     # TODO "make hivent in HistoGraph" if @_currStep.startNew
 
     switch @_currStep.id
 
+      ## SELECT OLD COUNTRY/-IES ##
       when 'SEL_OLD' then (
 
         # update step information
@@ -201,7 +228,7 @@ class HG.EditMode
 
           # check if step is completed
           if selectedAreas.length() >= @_currStep.reqNum.min
-            @_coWindow.enableFinish() if @_currCO.stepIdx is @_currCO.totalSteps-1
+            @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.totalSteps-1
             @_nextButton.enable()
 
         # listen to area deselection from AreasOnMap
@@ -214,6 +241,7 @@ class HG.EditMode
             @_nextButton.disable()
       )
 
+      ## SET GEOMETRY OF NEW COUNTRY/-IES ##
       when 'SET_GEOM' then (
 
         # TODO: take out
@@ -309,11 +337,12 @@ class HG.EditMode
 
 
         # finish up
-        @_coWindow.enableFinish() if @_currCO.stepIdx is @_currCO.totalSteps-1
+        @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.totalSteps-1
         @_nextButton.enable()
 
       )
 
+      ## SET NAME OF NEW COUNTRY/-IES ##
       when 'SET_NAME' then (
 
         # update step information
@@ -324,11 +353,12 @@ class HG.EditMode
         @_nextButton.enable()
 
         ### ACTION ###
-        @_coWindow.enableFinish() if @_currCO.stepIdx is @_currCO.totalSteps-1
+        @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.totalSteps-1
         @_nextButton.enable()
 
       )
 
+      ## ADD CHANGE TO HIVENT ##
       when 'ADD_CHNG' then (
 
         # update step information
@@ -338,7 +368,7 @@ class HG.EditMode
         @_nextButton.enable()
 
         ### ACTION ###
-        @_coWindow.enableFinish() if @_currCO.stepIdx is @_currCO.totalSteps-1
+        @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.totalSteps-1
         @_nextButton.enable()
 
       )

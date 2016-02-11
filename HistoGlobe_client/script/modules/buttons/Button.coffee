@@ -63,6 +63,7 @@ class HG.Button
     # init variables
     @_state = @_states.getById 'normal' # initially start with first (= 'normal') state
     @_enabled = yes
+    @_active = no
 
     # create button itself
     classes.unshift 'button'
@@ -83,29 +84,21 @@ class HG.Button
 
   # ============================================================================
   disable: () ->
-    if @_enabled
-      @_button.j().addClass 'button-disabled'
-      @_enabled = no
+    @_enabled = no
+    @_setActivateAbleClasses()
 
   enable: () ->
-    if not @_enabled
-      @_button.j().removeClass 'button-disabled'
-      @_enabled = yes
+    @_enabled = yes
+    @_setActivateAbleClasses()
 
   # ============================================================================
   activate: () ->
-    if @_enabled    # case: button enabled and active
-      @_button.j().addClass 'button-active'
-    else            # case: button disabled and active
-      @_button.j().removeClass 'button-disabled'
-      @_button.j().addClass 'button-disabled-active'
+    @_active = yes
+    @_setActivateAbleClasses()
 
   deactivate: () ->
-    if @_enabled    # case: button enabled and active
-      @_button.j().removeClass 'button-active'
-    else            # case: button disabled and active
-      @_button.j().removeClass 'button-disabled-active'
-      @_button.j().addClass 'button-disabled'
+    @_active = no
+    @_setActivateAbleClasses()
 
   # ============================================================================
   show: () ->           @_button.j().show()
@@ -119,6 +112,21 @@ class HG.Button
   ##############################################################################
   #                            PRIVATE INTERFACE                                #
   ##############################################################################
+
+  # ============================================================================
+  _setActivateAbleClasses: () ->
+    ## 4 cases: none, button-disabled, button-active, button-disable-active
+    # cleanup
+    @_button.j().removeClass 'button-disabled'
+    @_button.j().removeClass 'button-active'
+    @_button.j().removeClass 'button-disabled-active'
+    # setup
+    if not @_enabled and @_active
+      @_button.j().addClass 'button-disabled-active'
+    else if not @_enabled and not @_active
+      @_button.j().addClass 'button-disabled'
+    else if @_enabled and @_active
+      @_button.j().addClass 'button-active'
 
   # ============================================================================
   _updateState: (oldState) ->
