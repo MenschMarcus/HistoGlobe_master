@@ -17,8 +17,8 @@ class HG.EditButtons
 
     # create transparent title bar (hidden)
     @_titleBar = new HG.Div 'titlebar', null
-    $(@_titleBar.elem()).hide()
-    @_hgInstance._top_area.appendChild @_titleBar.elem()
+    @_titleBar.j().hide()
+    @_hgInstance._top_area.appendChild @_titleBar.dom()
 
     # create edit buttons area
     @_editButtonsArea = new HG.ButtonArea @_hgInstance,
@@ -30,44 +30,35 @@ class HG.EditButtons
       'direction':    'prepend'
     }
 
-    # create edit button (show)
-    @_editModeButton = new HG.Button @,
-      {
-        'parentArea':   @_editButtonsArea,
-        'id':           'editMode',
-        'states': [
-          {
-            'id':       'normal',
-            'tooltip':  "Enter Edit Mode",
-            'iconFA':   'pencil',
-            'callback': 'onEnter'
-          },
-          {
-            'id':       'edit-mode',
-            'tooltip':  "Leave Edit Mode",
-            'iconFA':   'pencil',
-            'callback': 'onLeave'
-          }
-        ]
-      }
+    # create edit button
+    @_editButtonsArea.addButton new HG.Button @_hgInstance, 'editMode', null, [
+        {
+          'id':       'normal',
+          'tooltip':  "Enter Edit Mode",
+          'iconFA':   'pencil',
+          'callback': 'onEnter'
+        },
+        {
+          'id':       'edit-mode',
+          'tooltip':  "Leave Edit Mode",
+          'iconFA':   'pencil',
+          'callback': 'onLeave'
+        }
+      ]
 
     @_editButtonsArea.addSpacer()
 
     # create new hivent button (hidden)
-    @_newHiventButton = new HG.Button @,
-      {
-        'parentArea':   @_editButtonsArea,
-        'id':           'newHivent',
-        'hide':         yes
-        'states': [
-          {
-            'id':       'normal',
-            'tooltip':  "Add New Hivent",
-            'iconOwn':  iconPath + 'new_hivent.svg',
-            'callback': 'onAdd'
-          }
-        ]
-      }
+    @_newHiventButton = new HG.Button @_hgInstance, 'newHivent', null,  [
+        {
+          'id':       'normal',
+          'tooltip':  "Add New Hivent",
+          'iconOwn':  iconPath + 'new_hivent.svg',
+          'callback': 'onAdd'
+        }
+      ]
+    @_newHiventButton.hide()
+    @_editButtonsArea.addButton @_newHiventButton
 
     @_editButtonsArea.addSpacer()
 
@@ -75,41 +66,26 @@ class HG.EditButtons
     @_changeOperationButtons = new HG.ObjectArray
 
     operations.foreach (operation) =>
-      @_changeOperationButtons.push {
-        'id': operation.id,
-        'button': new HG.Button @_hgInstance,
+      coButton = new HG.Button @_hgInstance, operation.id, ['button-horizontal'], [
           {
-            'parentArea':   @_editButtonsArea,
-            'groupName':    'changeOperations'
-            'id':           operation.id,
-            'hide':         yes,
-            'states': [
-              {
-                'id':       'normal',
-                'tooltip':  operation.title,
-                'classes':  ['button-horizontal'],
-                'iconOwn':  iconPath + operation.id + '.svg',
-                'callback': 'onStart'
-              }
-            ]
+            'id':       'normal',
+            'tooltip':  operation.title,
+            'iconOwn':  iconPath + operation.id + '.svg',
+            'callback': 'onStart'
           }
-      }
+        ]
+      coButton.hide()
+      @_editButtonsArea.addButton coButton, 'changeOperations-group'
 
+      @_changeOperationButtons.push {
+          'id': operation.id,
+          'button': coButton
+        }
 
-  getEditButton: () -> @_editModeButton
-
-  # ============================================================================
-  activateEditButton: () ->
-    @_editModeButton.changeState 'edit-mode'
-    @_editModeButton.activate()
-
-  deactivateEditButton: () ->
-    @_editModeButton.changeState 'normal'
-    @_editModeButton.deactivate()
 
   # ============================================================================
   show: () ->
-    $(@_titleBar.elem()).show()
+    @_titleBar.j().show()
     @_newHiventButton.show()
     @_changeOperationButtons.foreach (obj) =>
       obj.button.show()
@@ -118,7 +94,7 @@ class HG.EditButtons
     @_changeOperationButtons.foreach (obj) =>
       obj.button.hide()
     @_newHiventButton.hide()
-    $(@_titleBar.elem()).hide()
+    @_titleBar.j().hide()
 
   # ============================================================================
   disable: () ->

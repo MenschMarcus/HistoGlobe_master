@@ -18,10 +18,10 @@ class HG.NowMarker
 
   # ============================================================================
   upDate: (date) ->
-    $(@_nowMarker.elem()).html date.toLocaleDateString DATE_LOCALE, DATE_OPTIONS
+    @_nowMarker.j().html date.toLocaleDateString DATE_LOCALE, DATE_OPTIONS
 
   resetPos: (pos) ->
-    @_nowMarker.elem().style.left = pos
+    @_nowMarker.dom().style.left = pos
 
   ##############################################################################
   #                            STATIC CONSTANTS                                #

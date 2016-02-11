@@ -44,7 +44,7 @@ class HG.EditMode
       @_hgChangeOperations = new HG.ObjectArray ops # all possible operations
 
       @_editButtons = new HG.EditButtons @_hgInstance, @_hgChangeOperations
-      @_editModeButton = @_editButtons.getEditButton()  # todo: get rid of that :/
+      @_editModeButton = @_hgInstance.buttons.editMode
       @_title = new HG.Title @_hgInstance
       @_histoGraph = @_hgInstance.histoGraph
       @_areasOnMap = @_hgInstance.areasOnMap
@@ -52,7 +52,8 @@ class HG.EditMode
       # listen to click on edit button => start edit mode
       @_editModeButton.onEnter @, () ->
 
-        @_editButtons.activateEditButton()
+        @_editModeButton.changeState 'edit-mode'
+        @_editModeButton.activate()
         @_editButtons.show()
         @_title.resize()
         @_title.set 'EDIT MODE'   # TODO internationalization
@@ -66,7 +67,7 @@ class HG.EditMode
           @_hgInstance.buttons[operation.id].onStart @, (btn) =>
 
             # update current operation in workflow
-            opId = btn._config.id # to do: more elegant way to get id?
+            opId = btn.get().id
             @_currCO = @_hgChangeOperations.getByPropVal 'id', opId
             @_currCO.totalSteps = @_currCO.steps.length
             @_currCO.stepIdx = 0
@@ -146,26 +147,27 @@ class HG.EditMode
               @_editButtons.enable @_currCO.id
 
               # reset step information
-              @_currCO    = null
-              @_currStep  = null
+              @_currCO    = {}
+              @_currStep  = {}
 
 
 
       # listen to next click on edit button => leave edit mode and cleanup
       @_editModeButton.onLeave @, () ->
-        @_cleanupStep()
+        @_cleanupStep() unless @_currStep?
 
         # reset UI
-        @_title.clear()
-        @_coWindow.destroy()
-        @_editButtons.deactivate @_currCO.id
-        @_editButtons.enable @_currCO.id
-        @_editButtons.deactivateEditButton()
+        @_title?.clear()
+        @_coWindow?.destroy()
+        @_editButtons.deactivate @_currCO.id unless @_currStep?
+        @_editButtons.enable @_currCO.id unless @_currStep?
+        @_editModeButton.changeState 'normal'
+        @_editModeButton.deactivate()
         @_editButtons.hide()
 
         # reset step information
-        @_currCO    = null
-        @_currStep  = null
+        @_currCO    = {}
+        @_currStep  = {}
     )
 
   ##############################################################################
@@ -271,17 +273,17 @@ class HG.EditMode
 
         newTerrButton.onClick @, () =>
           # TODO: init new territory on the map
-          tt.addToList 'new territory # ' + terrCtr
+          @_tt.addToList 'new territory # ' + terrCtr
           terrCtr++
 
         reuseTerrButton.onClick @, () =>
           # TODO: reuse territory
-          tt.addToList 'reused territory # ' + terrCtr
+          @_tt.addToList 'reused territory # ' + terrCtr
           terrCtr++
 
         importTerrButton.onClick @, () =>
           # TODO: import new territory from file
-          tt.addToList 'imported territory # ' + terrCtr
+          @_tt.addToList 'imported territory # ' + terrCtr
           terrCtr++
 
         snapToPointsSwitch.onSwitchOn @, () =>

@@ -16,7 +16,7 @@ class HG.Help
 
     @_div = new HG.Div null, ['help-overlay']
 
-    $(@_div.elem()).click () =>
+    @_div.j().click () =>
       @hide()
       window.setTimeout () =>
         $(@_button).attr('title', "Hilfe wieder einblenden").tooltip('fixTitle').tooltip('show');
@@ -26,7 +26,7 @@ class HG.Help
       , 500
 
 
-    $(@_div.elem()).fadeOut 0
+    @_div.j().fadeOut 0
 
     for e in @_config.elements
       @addHelp e
@@ -35,7 +35,7 @@ class HG.Help
   hgInit: (@_hgInstance) ->
     @_hgInstance.help = @
 
-    @_hgInstance.getContainer().appendChild @_div.elem()
+    @_hgInstance.getContainer().appendChild @_div.dom()
 
     if @_config.autoShow
       @_hgInstance.onAllModulesLoaded @, () =>
@@ -58,34 +58,34 @@ class HG.Help
 
   # ============================================================================
   show:() ->
-    $(@_div.elem()).fadeIn()
+    @_div.j().fadeIn()
 
   # ============================================================================
   hide:() ->
-    $(@_div.elem()).fadeOut()
+    @_div.j().fadeOut()
 
   # ============================================================================
   addHelp:(element) ->
     image = new HG.Img null, 'help-image', element.image
     @_div.append image
 
-    $(image.elem()).load () =>
-      $(image.elem()).css {"max-width": image.naturalWidth + "px"}
-      $(image.elem()).css {"width": element.width}
+    image.j().load () =>
+      image.j().css {"max-width": image.naturalWidth + "px"}
+      image.j().css {"width": element.width}
 
     if element.anchorX is "left"
-      $(image.elem()).css {"left":element.offsetX + "px"}
+      image.j().css {"left":element.offsetX + "px"}
     else if element.anchorX is "right"
-      $(image.elem()).css {"right":element.offsetX + "px"}
+      image.j().css {"right":element.offsetX + "px"}
     else if element.anchorX is "center"
-      $(image.elem()).css {"left": element.offsetX + "px", "right": 0, "margin-right": "auto", "margin-left": "auto"}
+      image.j().css {"left": element.offsetX + "px", "right": 0, "margin-right": "auto", "margin-left": "auto"}
 
     if element.anchorY is "top"
-      $(image.elem()).css {"top":element.offsetY + "px"}
+      image.j().css {"top":element.offsetY + "px"}
     else if element.anchorY is "bottom"
-      $(image.elem()).css {"bottom":element.offsetY + "px"}
+      image.j().css {"bottom":element.offsetY + "px"}
     else if element.anchorY is "center"
-      $(image.elem()).css {"top": element.offsetY + "px", "bottom": 0, "margin-bottom": "auto", "margin-top": "auto"}
+      image.j().css {"top": element.offsetY + "px", "bottom": 0, "margin-bottom": "auto", "margin-top": "auto"}
 
 
 

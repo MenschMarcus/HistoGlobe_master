@@ -9,114 +9,112 @@ class HG.Button
   #                            PUBLIC INTERFACE                                #
   ##############################################################################
 
-  # TODO
-  # as parent div, accept HG.Div, jQuery object or normal JS object
-
   # ============================================================================
   # button object into constructor
   #   * = required, *A / *B = alternative -> either A or B have to be provided
   # {
-  #   *A  parentDiv:    $(DOM_element)
-  #   *B  parentArea:   name_of_button_area
-  #       groupName:    name_of_button_group_in_button_area
-  #   *   id:           buttonIdInCamelCase (!)
-  #       hide:         (yes = hidden, no = shown)
-  #       disable:      (yes, no)
-  #   *   states:
-  #       [
-  #         {
-  #           *   id:       id                must be unique
-  #               classes:  []                classes of DOM element
-  #               tooltip:  text
-  #           *A  iconFA:   name_of_fa_icon   https://fortawesome.github.io/Font-Awesome/icons/
-  #           *B  iconOwn:  path_to_own_file  (alternative to iconFA one of the two must be set = not null)
-  #           *   callback: onCallbackName
-  #         },
-  #       ]
+  #       hgInstance
+  #       id             buttonIdInCamelCase (!)
+  #       classes       ['className1', 'className2', ...]
+  #       stateConfigs:
+  #         [
+  #           {
+  #             *   id:       id                must be unique
+  #                 classes:  []                classes of DOM element
+  #                 tooltip:  text
+  #             *A  iconFA:   name_of_fa_icon   https://fortawesome.github.io/Font-Awesome/icons/
+  #            *B  iconOwn:  path_to_own_file  (alternative to iconFA one of the two must be set = not null)
+  #             *   callback: onCallbackName
+  #           },
+  #         ]
   # }
   #
   # usage
   #   @_hgInstance.buttons.buttonName.onCallbackName @, () =>
   # ============================================================================
-  constructor: (@_hgInstance, @_config) ->
+  constructor: (@_hgInstance, id, classes=[], states) ->
+    console.error 'no button id given' unless id?
+    console.error 'no states of button given' unless Array.isArray(states)
 
     # add button to button object in HG instance
-    unless @_hgInstance.buttons
-      @_hgInstance.buttons = {}  # initially add object to hgInstance
+    @_hgInstance.buttons = {} unless @_hgInstance.buttons
+    @_hgInstance.buttons[id] = @
 
-    @_hgInstance.buttons[@_config.id] = @
-
-    # init state
-    @_states = new HG.ObjectArray @_config.states
-    @_state = @_states.getByIdx 0 # initially start with first (= 'normal') state
-    @_enabled = yes
+    # init states (each state has a configuration file)
+    @_states = new HG.ObjectArray
+    for state in states
+      defaultConfig =
+        id:         'normal'
+        classes:    []
+        tooltip:    null
+        iconFA:     null
+        iconOwn:    null
+        callback:   'onClick'
+      @_states.push $.extend {}, defaultConfig, state
 
     # init callbacks
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    # add all callbacks of all states in the very beginning
-    for state in @_config.states
+    # add all callbacks of all states
+    @_states.foreach (state) =>
       @addCallback state.callback
 
+    # init variables
+    @_state = @_states.getById 'normal' # initially start with first (= 'normal') state
+    @_enabled = yes
+
     # create button itself
-    @_button = new HG.Div @_config.id, ['button']
+    classes.unshift 'button'
+    @_button = new HG.Div id, classes
 
     # set state-dependend properties of button
     @_updateState()
 
-    # hide / disable if given
-    $(@_button.elem()).hide() if @_config.hide
-    @disable() if @_config.disable
 
-    # finally add button either to parent div or to button area
-    if @_config.parentDiv
-      # TODO accept HG.Div, jQuery object or normal JS object
-      @_config.parentDiv.appendChild @_button.elem()
-    else if @_config.parentArea
-      @_config.parentArea.addButton @_button, @_config.groupName
-
+  # ============================================================================
+  get: () -> @_button.dom()
 
   # ============================================================================
   changeState: (stateId) ->
-    oldState = @_state
-    # find new state
-    @_state = @_states.getByPropVal 'id', stateId
-    # update old state to new state
-    @_updateState oldState
-
+    oldState = @_state                              # get old state
+    @_state = @_states.getByPropVal 'id', stateId   # get new state
+    @_updateState oldState                          # update new state
 
   # ============================================================================
   disable: () ->
     if @_enabled
-      $(@_button.elem()).addClass 'button-disabled'
+      @_button.j().addClass 'button-disabled'
       @_enabled = no
 
   enable: () ->
     if not @_enabled
-      $(@_button.elem()).removeClass 'button-disabled'
+      @_button.j().removeClass 'button-disabled'
       @_enabled = yes
 
+  # ============================================================================
   activate: () ->
     if @_enabled    # case: button enabled and active
-      $(@_button.elem()).addClass 'button-active'
+      @_button.j().addClass 'button-active'
     else            # case: button disabled and active
-      $(@_button.elem()).removeClass 'button-disabled'
-      $(@_button.elem()).addClass 'button-disabled-active'
+      @_button.j().removeClass 'button-disabled'
+      @_button.j().addClass 'button-disabled-active'
 
   deactivate: () ->
     if @_enabled    # case: button enabled and active
-      $(@_button.elem()).removeClass 'button-active'
+      @_button.j().removeClass 'button-active'
     else            # case: button disabled and active
-      $(@_button.elem()).removeClass 'button-disabled-active'
-      $(@_button.elem()).addClass 'button-disabled'
+      @_button.j().removeClass 'button-disabled-active'
+      @_button.j().addClass 'button-disabled'
 
   # ============================================================================
-  show: () ->         $(@_button.elem()).show()
-  hide: () ->         $(@_button.elem()).hide()
+  show: () ->           @_button.j().show()
+  hide: () ->           @_button.j().hide()
 
   # ============================================================================
-  remove: () ->       $(@_button.elem()).remove()
+  destroy: () ->        @_button.j().remove()
+  remove: () ->         @_button.j().remove()
+
 
   ##############################################################################
   #                            PRIVATE INTERFACE                                #
@@ -132,21 +130,17 @@ class HG.Button
 
   # ============================================================================
   _removeClasses: (oldClasses) ->
-    # remove old class(es)
     if oldClasses
-      for c in oldClasses
-        $(@_button.elem()).removeClass c
+      @_button.j().removeClass cl for cl in oldClasses
 
   # ============================================================================
   _setClasses: () ->
-    if @_state.classes
-      for c in @_state.classes
-        $(@_button.elem()).addClass c
+    @_button.j().addClass cl for cl in @_state.classes
 
   # ============================================================================
   _setTooltip: () ->
     if @_state.tooltip and TOOLTIPS
-      $(@_button.elem()).tooltip {
+      @_button.j().tooltip {
         title: @_state.tooltip,
         placement: 'right',
         container: 'body'
@@ -155,7 +149,7 @@ class HG.Button
   # ============================================================================
   _setIcon: () ->
     # remove old icon
-    $(@_button.elem()).empty()
+    @_button.j().empty()
     icon = null
 
     # add new icon
@@ -164,9 +158,9 @@ class HG.Button
 
     else if @_state.iconOwn     # 2. own icon
       icon = new HG.Div '', 'own-button'
-      $(icon.elem()).css 'background-image', 'url("' + @_state.iconOwn + '")'
+      icon.j().css 'background-image', 'url("' + @_state.iconOwn + '")'
 
-    else                # no icon
+    else                        # no icon
       console.error "No icon for button " + @_id + " set!"
 
     @_button.append icon if icon?
@@ -174,9 +168,9 @@ class HG.Button
   # ============================================================================
   _setCallback: () ->
     # clear callbacks first to prevent multiple click handlers on same DOM element
-    $(@_button.elem()).unbind 'click'
+    @_button.j().unbind 'click'
     # define new callback
-    $(@_button.elem()).click () =>
+    @_button.j().click () =>
       # callback = tell everybody that state has changed
       # hand button itself (@) into callback so everybody can operate on the button (e.g. change state)
       @notifyAll @_state.callback, @
