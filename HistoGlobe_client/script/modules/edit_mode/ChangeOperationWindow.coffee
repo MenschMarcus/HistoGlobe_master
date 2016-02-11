@@ -31,8 +31,8 @@ class HG.ChangeOperationWindow
 
     # main window sits on top of hg title, has more height (to account for extra space needed)
     @_mainWindow = new HG.Div 'change-operation-main-window'
-    @_mainWindow.elem().style.left = $('#hg-title').position().left + $('#hg-title').width()/2 + 'px'
-    @_hgInstance._top_area.appendChild @_mainWindow.elem()
+    @_mainWindow.dom().style.left = $('#hg-title').position().left + $('#hg-title').width()/2 + 'px'
+    @_hgInstance._top_area.appendChild @_mainWindow.dom()
 
     # table layout    |stepBack| step1 | step. | stepn |stepNext|
     # -------------------------------------------------------------------
@@ -59,9 +59,9 @@ class HG.ChangeOperationWindow
     for step in @_operation.steps
       workflowRow.append new HG.Div null, ['co-workflow-row', 'co-step-col']
       descr = new HG.Div null, ['co-description-row', 'co-step-col', 'co-description-cell']
-      $(descr.elem()).html step.title
+      descr.j().html step.title
       descriptionRow.append descr
-      @_stepDescr.push $(descr.elem())
+      @_stepDescr.push descr.j()
       stepCols++
 
     # next column
@@ -77,7 +77,7 @@ class HG.ChangeOperationWindow
     #   three disabled buttons indicating the steps
     #   one moving active marker stating the current step
 
-    cells = $(workflowRow.elem()).children().toArray()  # contains all workflow cells
+    cells = workflowRow.j().children().toArray()  # contains all workflow cells
     cells.shift()     # removes first element (empty)
     cells.pop()       # removes last element (abort)
 
@@ -98,7 +98,7 @@ class HG.ChangeOperationWindow
       maxY = $(cell).position().top + $(cell).height()
 
     # create canvas
-    @_workflowCanvas = d3.select workflowRow.elem()
+    @_workflowCanvas = d3.select workflowRow.dom()
       .append 'svg'
       .attr 'id', 'workflow-canvas'
       .style 'left', minX
@@ -140,67 +140,58 @@ class HG.ChangeOperationWindow
     ### buttons ###
 
     # back button (= undo, disabled)
-    @_backButton = new HG.Button @_hgInstance,
-      {
-        'parentDiv':  backButtonParent.elem()
-        'id':         'coBack'
-        'states': [
-          {
-            'id':       'normal'
-            'tooltip':  "Undo / Go Back"
-            'iconFA':   'chevron-left'
-            'callback': 'onBack'
-          }
-        ]
-      }
+    @_backButton = new HG.Button @_hgInstance, 'coBack', null, [
+        {
+          'id':       'normal'
+          'tooltip':  "Undo / Go Back"
+          'iconFA':   'chevron-left'
+          'callback': 'onBack'
+        }
+      ]
+
+    backButtonParent.dom().appendChild @_backButton.get()
 
     # next button ( = ok = go to next step, disabled)
     # -> changes to OK button / "finish" state in last step
-    @_nextButton = new HG.Button @_hgInstance,
-      {
-        'parentDiv':    nextButtonParent.elem()
-        'id':           'coNext'
-        'states': [
-          {
-            'id':       'normal'
-            'tooltip':  "Done / Next Step"
-            'iconFA':   'chevron-right'
-            'callback': 'onNext'
-          },
-          {
-            'id':       'finish'
-            'tooltip':  "Done / Next Step"
-            'iconFA':   'check'
-            'callback': 'onFinish'
-          },
-        ]
-      }
+    @_nextButton = new HG.Button @_hgInstance, 'coNext', null, [
+        {
+          'id':       'normal'
+          'tooltip':  "Done / Next Step"
+          'iconFA':   'chevron-right'
+          'callback': 'onNext'
+        },
+        {
+          'id':       'finish'
+          'tooltip':  "Done / Next Step"
+          'iconFA':   'check'
+          'callback': 'onFinish'
+        },
+      ]
+    nextButtonParent.dom().appendChild @_nextButton.get()
+
 
     # abort button
-    @_abortButton = new HG.Button @_hgInstance,
-      {
-        'parentDiv':    abortButtonParent.elem()
-        'id':           'coAbort'
-        'states': [
-          {
-            'id':       'normal'
-            'classes':  ['button-abort']
-            'tooltip':  "Abort Operation"
-            'iconFA':   'times'
-            'callback': 'onClick'
-          }
-        ]
-      }
+    @_abortButton = new HG.Button @_hgInstance, 'coAbort', ['button-abort'], [
+        {
+          'id':       'normal'
+          'tooltip':  "Abort Operation"
+          'iconFA':   'times'
+          'callback': 'onClick'
+        }
+      ]
+    abortButtonParent.dom().appendChild @_abortButton.get()
+
+
 
     # recenter the window
-    width =  2        * $(backButtonParent.elem()).width()         # 2 button columns
+    width =  2        * backButtonParent.j().width()    # 2 button columns
     width += stepCols * HGConfig.operation_step_width.val     # n step columns
-    $(@_mainWindow.elem()).css 'margin-left', -width/2
+    @_mainWindow.j().css 'margin-left', -width/2
 
 
   # ============================================================================
   destroy: () ->
-    $(@_mainWindow?.elem()).remove()
+    @_mainWindow?.j().remove()
     delete @_mainWindow?
 
   # ============================================================================

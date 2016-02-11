@@ -65,6 +65,15 @@ class HG.Display
         $(@_hgInstance._config.container).removeClass 'highContrast'
         btn.changeState 'normal'
 
+      # min layout mode
+      @_hgInstance.buttons.minLayoutButton?.onRemoveGUI @, (btn) =>
+        $(@_hgInstance._config.container).addClass 'minGUI'
+        btn.changeState 'min-layout'
+
+      @_hgInstance.buttons.minLayoutButton?.onOpenGUI @, (btn) =>
+        $(@_hgInstance._config.container).removeClass 'minGUI'
+        btn.changeState 'normal'
+
       # graph on globe
       @_hgInstance.buttons.graph?.onShow @, (btn) =>
         $(hgInstance._config.container).addClass 'minGUI'

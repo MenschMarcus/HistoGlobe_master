@@ -13,34 +13,27 @@ class HG.ZoomButtonsTimeline
     zoomButtonsArea = new HG.ButtonArea @_hgInstance,
     {
       'id':           'timeline-zoom-buttons',
-      'parentDiv':    @_hgInstance.timeline.getParentDiv().elem(),
+      'parentDiv':    @_hgInstance.timeline.getParentDiv().dom(),
       'positionX':    'left',
       'positionY':    'right',
       'orientation':  'horizontal'
     }
 
     # buttons itself
-    zoomOutButton = new HG.Button @_hgInstance,
-    {
-      'parentArea':   zoomButtonsArea,
-      'groupName':    'timelineZoom'
-      'id':           'timelineZoomOut',
-      'states': [
-        'id':         'normal',
-        'tooltip':    "Zoom Out Timeline",
-        'iconFA':     'minus'
-        'callback':   'onClick'
-      ]
-    }
-    zoomInButton = new HG.Button @_hgInstance,
-    {
-      'parentArea':   zoomButtonsArea,
-      'groupName':    'timelineZoom'
-      'id':           'timelineZoomIn',
-      'states': [
-        'id':         'normal',
-        'tooltip':    "Zoom In Timeline",
-        'iconFA':     'plus'
-        'callback':   'onClick'
-      ]
-    }
+    zoomButtonsArea.addButton new HG.Button @_hgInstance, 'timelineZoomOut', null, [
+        {
+          'id':         'normal',
+          'tooltip':    "Zoom Out Timeline",
+          'iconFA':     'minus'
+          'callback':   'onClick'
+        }
+      ], 'timelineZoom'
+
+    zoomButtonsArea.addButton new HG.Button @_hgInstance, 'timelineZoomIn', null, [
+        {
+          'id':         'normal',
+          'tooltip':    "Zoom In Timeline",
+          'iconFA':     'plus'
+          'callback':   'onClick'
+        }
+      ], 'timelineZoom'

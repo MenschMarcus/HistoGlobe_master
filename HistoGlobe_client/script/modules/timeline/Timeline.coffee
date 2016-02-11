@@ -74,7 +74,7 @@ class HG.Timeline
 
     # parent, wrapper, slider, date markers
     @_parentDiv = new HG.Div 'timeline-area', ['no-text-select']
-    @_hgContainer.appendChild @_parentDiv.elem()
+    @_hgContainer.appendChild @_parentDiv.dom()
 
     @_tl = new HG.Div 'tl', ['swiper-container', 'no-text-select']
     @_parentDiv.append @_tl
@@ -123,11 +123,11 @@ class HG.Timeline
         , d
 
     # zoom timeline
-    @_tl.elem().addEventListener "mousewheel", (e) =>
+    @_tl.dom().addEventListener "mousewheel", (e) =>
       e.preventDefault()
       @_zoom e.wheelDelta, e
 
-    @_tl.elem().addEventListener "DOMMouseScroll", (e) =>
+    @_tl.dom().addEventListener "DOMMouseScroll", (e) =>
       e.preventDefault()
       @_zoom -e.detail, e
 
@@ -162,12 +162,12 @@ class HG.Timeline
       @_moveToDate @_yearToDate(@_config.maxYear), delay, successCallback
     else
       dateDiff = @_yearToDate(@_config.minYear).getTime() - date.getTime()
-      @_tlWrapper.elem().style.transition =  delay + "s"
-      @_tlWrapper.elem().style.transform = "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
-      @_tlWrapper.elem().style.webkitTransform = "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
-      @_tlWrapper.elem().style.MozTransform = "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
-      @_tlWrapper.elem().style.MsTransform = "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
-      @_tlWrapper.elem().style.oTransform = "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
+      @_tlWrapper.dom().style.transition =  delay + "s"
+      @_tlWrapper.dom().style.transform = "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
+      @_tlWrapper.dom().style.webkitTransform = "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
+      @_tlWrapper.dom().style.MozTransform = "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
+      @_tlWrapper.dom().style.MsTransform = "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
+      @_tlWrapper.dom().style.oTransform = "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
 
       @_nowDate = @_cropDateToMinMax date
 
@@ -296,8 +296,8 @@ class HG.Timeline
   # ============================================================================
   # UI
   _updateLayout: ->
-    @_tl.elem().style.width = window.innerWidth + "px"
-    @_tlSlider.elem().style.width = (@_timelineLength() + window.innerWidth) + "px"
+    @_tl.dom().style.width = window.innerWidth + "px"
+    @_tlSlider.dom().style.width = (@_timelineLength() + window.innerWidth) + "px"
     @_nowMarker.resetPos (window.innerWidth / 2) + "px"
     @_moveToDate @_nowDate, 0
     @_timeline_swiper.reInit()
@@ -337,8 +337,8 @@ class HG.Timeline
             div: new HG.Div 'tl_year_' + year, 'tl_datemarker'
             year: year
             months: []
-          @_dateMarkers[i].div.elem().innerHTML = year + '<div class="tl_months"></div>'
-          @_dateMarkers[i].div.elem().style.left = @_dateToPosition(@_yearToDate(year)) + "px"
+          @_dateMarkers[i].div.dom().innerHTML = year + '<div class="tl_months"></div>'
+          @_dateMarkers[i].div.dom().style.left = @_dateToPosition(@_yearToDate(year)) + "px"
 
           @_tlSlider.append @_dateMarkers[i].div
 
@@ -352,22 +352,22 @@ class HG.Timeline
                 name: month_name
               month.startDate.setFullYear(year, key, 1)
               month.endDate.setFullYear(year, key + 1, 0)
-              month.div.elem().innerHTML = month.name
-              month.div.elem().style.left = ((month.startDate.getTime() - @_yearToDate(year).getTime()) / @_millisPerPixel()) + "px"
-              month.div.elem().style.width = (@_dateToPosition(month.endDate) - @_dateToPosition(month.startDate)) + "px"
-              $("#tl_year_" + year + " > .tl_months" ).append month.div.elem()
+              month.div.dom().innerHTML = month.name
+              month.div.dom().style.left = ((month.startDate.getTime() - @_yearToDate(year).getTime()) / @_millisPerPixel()) + "px"
+              month.div.dom().style.width = (@_dateToPosition(month.endDate) - @_dateToPosition(month.startDate)) + "px"
+              $("#tl_year_" + year + " > .tl_months" ).append month.div.dom()
               @_dateMarkers[i].months[key] = month
 
           # hide and delete months
           else
             for months in @_dateMarkers[i].months
-              $(month.div.elem()).fadeOut(FADE_ANIMATION_TIME, `function() { $(this).remove(); }`)
+              month.div.j().fadeOut(FADE_ANIMATION_TIME, `function() { $(this).remove(); }`)
             @_dateMarkers[i].months.length = 0
-          $(@_dateMarkers[i].div.elem()).fadeIn FADE_ANIMATION_TIME
+          @_dateMarkers[i].div.j().fadeIn FADE_ANIMATION_TIME
         else
 
           # update existing datemarker and his months
-          @_dateMarkers[i].div.elem().style.left = @_dateToPosition(@_yearToDate(year)) + "px"
+          @_dateMarkers[i].div.dom().style.left = @_dateToPosition(@_yearToDate(year)) + "px"
           if @_millisToYears(interval) == 1
 
             # show months, create new month divs
@@ -380,29 +380,29 @@ class HG.Timeline
                   name: month_name
                 month.startDate.setFullYear(year, key, 1)
                 month.endDate.setFullYear(year, key + 1, 0)
-                month.div.elem().innerHTML = month.name
-                month.div.elem().style.left = ((month.startDate.getTime() - @_yearToDate(year).getTime()) / @_millisPerPixel()) + "px"
-                month.div.elem().style.width = (@_dateToPosition(month.endDate) - @_dateToPosition(month.startDate)) + "px"
-                $("#tl_year_" + year + " > .tl_months" ).append month.div.elem()
+                month.div.dom().innerHTML = month.name
+                month.div.dom().style.left = ((month.startDate.getTime() - @_yearToDate(year).getTime()) / @_millisPerPixel()) + "px"
+                month.div.dom().style.width = (@_dateToPosition(month.endDate) - @_dateToPosition(month.startDate)) + "px"
+                $("#tl_year_" + year + " > .tl_months" ).append month.div.dom()
                 @_dateMarkers[i].months[key] = month
 
             # update existing month divs
             else
               for month in @_dateMarkers[i].months
-                month.div.elem().style.left = ((month.startDate.getTime() - @_yearToDate(year).getTime()) / @_millisPerPixel()) + "px"
-                month.div.elem().style.width = (@_dateToPosition(month.endDate) - @_dateToPosition(month.startDate)) + "px"
+                month.div.dom().style.left = ((month.startDate.getTime() - @_yearToDate(year).getTime()) / @_millisPerPixel()) + "px"
+                month.div.dom().style.width = (@_dateToPosition(month.endDate) - @_dateToPosition(month.startDate)) + "px"
 
           # hide and delete months
           else
             for month in @_dateMarkers[i].months
-              $(month.div.elem()).fadeOut(FADE_ANIMATION_TIME, `function() { $(this).remove(); }`)
+              month.div.j().fadeOut(FADE_ANIMATION_TIME, `function() { $(this).remove(); }`)
             @_dateMarkers[i].months.length = 0
 
       # hide and delete datemarker and their months
       else
         if @_dateMarkers[i]?
-          @_dateMarkers[i].div.elem().style.left = @_dateToPosition(@_yearToDate(year)) + "px"
-          $(@_dateMarkers[i].div.elem()).remove()
+          @_dateMarkers[i].div.dom().style.left = @_dateToPosition(@_yearToDate(year)) + "px"
+          @_dateMarkers[i].div.j().remove()
           @_dateMarkers[i] = null
 
 
