@@ -46,9 +46,10 @@ class HG.EditMode
       @_editButtons = new HG.EditButtons @_hgInstance, @_hgChangeOperations
       @_editModeButton = @_hgInstance.buttons.editMode
       @_title = new HG.Title @_hgInstance
-      @_coWindow =  new HG.ChangeOperationWindow @_hgInstance
-      @_backButton = @_hgInstance.buttons.coBack
-      @_nextButton = @_hgInstance.buttons.coNext
+      # @_coWindow =  new HG.ChangeOperationWindow @_hgInstance
+      # @_backButton = @_hgInstance.buttons.coBack
+      # @_nextButton = @_hgInstance.buttons.coNext
+      # @_abortButton = @_hgInstance.buttons.coAbort
       @_histoGraph = @_hgInstance.histoGraph
       @_areasOnMap = @_hgInstance.areasOnMap
 
@@ -60,7 +61,7 @@ class HG.EditMode
 
         @_setupEditMode()
 
-        ### OPERATION ###
+        ## OPERATION ##
         # listen to click on edit operation buttons => start operation
         @_hgChangeOperations.foreach (operation) =>
           @_hgInstance.buttons[operation.id].onStart @, (btn) =>
@@ -131,7 +132,8 @@ class HG.EditMode
               @_currStep  = {}
 
 
-            @_hgInstance.buttons.coNext.onFinish @, () =>
+            @_nextButton.onFinish @, () =>
+              console.log "HEUREKA"
               # TODO finish up
 
 
@@ -170,8 +172,12 @@ class HG.EditMode
     @_editButtons.disable()
     @_editButtons.activate @_currCO.id
     @_title.clear()
-    @_coWindow.show()
-    @_coWindow.setup @_currCO
+    # @_coWindow.show()
+    # @_coWindow.setup @_currCO
+    @_coWindow =  new HG.ChangeOperationWindow @_hgInstance, @_currCO
+    @_backButton = @_hgInstance.buttons.coBack
+    @_nextButton = @_hgInstance.buttons.coNext
+    @_abortButton = @_hgInstance.buttons.coAbort
     @_backButton.disable()
     @_nextButton.disable()
     @_histoGraph.show()
@@ -180,10 +186,12 @@ class HG.EditMode
   # ============================================================================
   _cleanupOperation: () ->
     @_histoGraph.hide()
-    @_nextButton.enable()
-    @_backButton.enable()
-    @_coWindow.cleanup()
-    @_coWindow.hide()
+    @_abortButton.destroy()
+    @_nextButton.destroy()
+    @_backButton.destroy()
+    @_coWindow.destroy()
+    # @_coWindow.cleanup()
+    # @_coWindow.hide()
     @_title.set "EDIT MODE"
     @_editButtons.deactivate @_currCO.id
     @_editButtons.enable()

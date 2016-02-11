@@ -25,14 +25,13 @@ class HG.ChangeOperationWindow
   #   newGeo:   set geometry of new country/-ies? (bool)
   #   newName:  set name of new country/-ies? (bool)
   # ============================================================================
-  constructor: (@_hgInstance) ->
+  constructor: (@_hgInstance, operation) ->
 
     ### MAIN WINDOW ###
 
     # main window sits on top of hg title, has more height (to account for extra space needed)
     @_mainWindow = new HG.Div 'change-operation-main-window'
-    @_mainWindow.dom().style.left = $('#hg-title').position().left + $('#hg-title').width()/2 + 'px'
-    @_mainWindow.j().hide()
+    # @_mainWindow.j().hide()
     @_hgInstance._top_area.appendChild @_mainWindow.dom()
 
 
@@ -92,8 +91,8 @@ class HG.ChangeOperationWindow
       ]
 
 
-  # ============================================================================
-  setup: (operation) ->
+  # # ============================================================================
+  # setup: (operation) ->
 
     ### WORKFLOW TABLE ###
 
@@ -116,7 +115,7 @@ class HG.ChangeOperationWindow
       stepCols++
 
     # next column
-    abortButtonParent = new HG.Div null, ['co-workflow-row', 'co-button-col']
+    abortButtonParent = new HG.Div 'abort-button-parent', ['co-workflow-row', 'co-button-col']
     @_workflowRow.append abortButtonParent
     nextButtonParent = new HG.Div 'next-button-parent', ['co-description-row', 'co-button-col']
     @_descriptionRow.append nextButtonParent
@@ -194,10 +193,10 @@ class HG.ChangeOperationWindow
 
 
     # recenter the window
-    # TODO: this does not really work :/
-    width =  2        * backButtonParent.j().width()    # 2 button columns
-    width += stepCols * HGConfig.operation_step_width.val     # n step columns
-    @_mainWindow.j().css 'margin-left', -width/2
+    posLeft = $('#hg-title').position().left + $('#hg-title').width()/2
+    marginLeft = -@_mainWindow.j().width()/2         # half of own window width
+    @_mainWindow.j().css 'left', posLeft
+    @_mainWindow.j().css 'margin-left', marginLeft
 
 
   # ============================================================================
