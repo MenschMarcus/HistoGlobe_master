@@ -69,7 +69,6 @@ $histograph_line_width              = 10px
 $operation_window_height            = 120px
 $operation_step_width               = 175px
 
-
 // TERRITORY TOOLS WINDOW ------------------------------------------
 
 $territory_tools_width              = 250px

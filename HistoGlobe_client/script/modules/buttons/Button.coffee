@@ -20,7 +20,8 @@ class HG.Button
   #   *B  parentArea:   name_of_button_area
   #       groupName:    name_of_button_group_in_button_area
   #   *   id:           buttonIdInCamelCase (!)
-  #       hide:         bool (yes = hidden, no = shown)
+  #       hide:         (yes = hidden, no = shown)
+  #       disable:      (yes, no)
   #   *   states:
   #       [
   #         {
@@ -64,6 +65,9 @@ class HG.Button
     # set state-dependend properties of button
     @_updateState()
 
+    # disable if given
+    @disable() if @_config.disable
+
     # finally add button either to parent div or to button area
     if @_config.parentDiv
       # TODO accept HG.Div, jQuery object or normal JS object
@@ -83,12 +87,14 @@ class HG.Button
 
   # ============================================================================
   disable: () ->
-    @_button.jq().addClass 'button-disabled'
-    @_enabled = no
+    if @_enabled
+      @_button.jq().addClass 'button-disabled'
+      @_enabled = no
 
   enable: () ->
-    @_button.jq().removeClass 'button-disabled'
-    @_enabled = yes
+    if not @_enabled
+      @_button.jq().removeClass 'button-disabled'
+      @_enabled = yes
 
   activate: () ->
     if @_enabled    # case: button enabled and active

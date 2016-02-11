@@ -116,10 +116,10 @@ class HG.HistoGraph
 
   # ============================================================================
   addToSelection: (area) ->
-    console.log "add " + area.getCommName()
+    # TODO "add " + area.getCommName()
 
   removeFromSelection: (area) ->
-    console.log "remove " + area.getCommName()
+    # TODO "remove " + area.getCommName()
 
 
   ##############################################################################

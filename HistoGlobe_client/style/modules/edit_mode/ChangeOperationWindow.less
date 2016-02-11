@@ -44,12 +44,44 @@
 
 .co-description-cell
 {
-  color: @color_white;
+  color: @color_disabled_active;
   text-align: center;
   vertical-align: bottom;
 }
+.co-current-description
+{
+  color: @color_white;
+}
+
+.activeText
 
 #next-button-parent
 {
   padding-left: 4px;
+}
+
+
+/* workflow bar */
+
+#workflow-canvas
+{
+  position: absolute;
+}
+
+#workflow-bar
+{
+  stroke-width: 5px;
+  stroke: @color_bg_dark;
+}
+
+#workflow-circle
+{
+  stroke: none;
+  fill: @color_bg_dark;
+}
+
+#workflow-step-marker
+{
+  stroke: none;
+  fill: @color_active;
 }
