@@ -85,9 +85,6 @@ class HG.Timeline
     @_tlSlider = new HG.Div 'tl_slide', ['swiper-slide', 'no-text-select']
     @_tlWrapper.append @_tlSlider
 
-    console.log typeof @_tlSlider
-    console.log typeof @_tlSlider.elem()
-
     @_dateMarkers = []
 
     # now marker

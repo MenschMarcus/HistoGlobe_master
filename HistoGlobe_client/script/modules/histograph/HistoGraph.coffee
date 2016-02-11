@@ -44,11 +44,13 @@ class HG.HistoGraph
     @_hgInstance.histoGraph = @
 
     # create wrapper (put above timeline, hidden)
-    @_wrapper = new HG.Div 'histograph-wrapper', null, true
+    @_wrapper = new HG.Div 'histograph-wrapper', null
+    $(@_wrapper.elem()).hide()
     @_hgInstance.timeline.getParentDiv().append @_wrapper
 
     # create transparent center line
-    @_line = new HG.Div 'histograph-line', null, true
+    @_line = new HG.Div 'histograph-line', null
+    $(@_line.elem()).hide()
     @_wrapper.append @_line
 
     # create canvas itself

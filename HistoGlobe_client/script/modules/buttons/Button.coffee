@@ -60,12 +60,13 @@ class HG.Button
       @addCallback state.callback
 
     # create button itself
-    @_button = new HG.Div @_config.id, ['button'], @_config.hide
+    @_button = new HG.Div @_config.id, ['button']
 
     # set state-dependend properties of button
     @_updateState()
 
-    # disable if given
+    # hide / disable if given
+    $(@_button.elem()).hide() if @_config.hide
     @disable() if @_config.disable
 
     # finally add button either to parent div or to button area

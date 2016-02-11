@@ -16,7 +16,8 @@ class HG.EditButtons
     iconPath = @_hgInstance._config.graphicsPath + 'buttons/'
 
     # create transparent title bar (hidden)
-    @_titleBar = new HG.Div 'titlebar', null, true
+    @_titleBar = new HG.Div 'titlebar', null
+    $(@_titleBar.elem()).hide()
     @_hgInstance._top_area.appendChild @_titleBar.elem()
 
     # create edit buttons area

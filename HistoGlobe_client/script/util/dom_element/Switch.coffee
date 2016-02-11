@@ -2,17 +2,11 @@ window.HG ?= {}
 
 # ============================================================================
 # <div> element representing an on/off switch (default: on)
-# its DOM element and its object counterpart inside code
-# arguments:
-#   hgInstance
-#   id        'id' in dom
-#   classes   ['className1', 'className2', ...] (if many)
-#   hidden    true (optional, if not stated, not hidden)
 
 class HG.Switch extends HG.DOMElement
 
   # ============================================================================
-  constructor: (@_hgInstance, id=null, classes=[], hidden=false) ->
+  constructor: (@_hgInstance, id=null, classes=[]) ->
 
     # add to switch object of HG instance
     @_hgInstance.switches = {} unless @_hgInstance.switches?
@@ -31,21 +25,21 @@ class HG.Switch extends HG.DOMElement
     # construct object of subclass with superclass
     classes.unshift 'toggle-on-off'
     classes.unshift 'switch-on'
-    super 'div', id, classes, [], hidden
+    super 'div', id, classes, []
 
     # toggle
-    @_jq.click () =>
+    $(@_elem).click () =>
 
       # switch off
       if state is on
-        @_jq.removeClass 'switch-on'
-        @_jq.addClass 'switch-off'
+        $(@_elem).removeClass 'switch-on'
+        $(@_elem).addClass 'switch-off'
         state = off
         @notifyAll 'onSwitchOff'
 
       # switch on
       else # state is off
-        @_jq.removeClass 'switch-off'
-        @_jq.addClass 'switch-on'
+        $(@_elem).removeClass 'switch-off'
+        $(@_elem).addClass 'switch-on'
         state = on
         @notifyAll 'onSwitchOn'
