@@ -1,17 +1,12 @@
 window.HG ?= {}
 
 # ============================================================================
-# <input type='checkbox'> element, its DOM element and its object counterpart inside code
-# arguments:
-#   hgInstance
-#   id        'id' in dom
-#   classes   ['className1', 'className2', ...] (if many)
-#   hidden    true (optional, if not stated, not hidden)
+# <input type='checkbox'>
 
 class HG.NumberInput extends HG.DOMElement
 
   # ============================================================================
-  constructor: (@_hgInstance, id=null, classes=[], hidden=false) ->
+  constructor: (@_hgInstance, id=null, classes=[]) ->
 
     # add to HG instance
     @_hgInstance.inputs = {} unless @_hgInstance.inputs?
@@ -24,9 +19,9 @@ class HG.NumberInput extends HG.DOMElement
     @addCallback 'onChange'
 
     # construct object of subclass with superclass
-    super 'input', id, classes, [['type', 'number'], ['name', id]], hidden
+    super 'input', id, classes, [['type', 'number'], ['name', id]]
 
     # change
-    @_jq.on 'keyup mouseup', (e) =>
+    $(@_elem).on 'keyup mouseup', (e) =>
       # tell everyone the new value
       @notifyAll 'onChange', e.currentTarget.value

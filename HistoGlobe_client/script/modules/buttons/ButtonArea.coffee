@@ -96,15 +96,15 @@ class HG.ButtonArea
   # ============================================================================
   moveVertical: (dist) ->
     if @_positionY.get() is 'top'
-      $(@_div).animate {'top': '+=' + dist}
+      $(@_div.elem()).animate {'top': '+=' + dist}
     else if @_positionY.get() is 'bottom'
-      $(@_div).animate {'bottom': '+=' + dist}
+      $(@_div.elem()).animate {'bottom': '+=' + dist}
 
   moveHorizontal: (dist) ->
     if @_positionX.get() is 'left'
-      $(@_div).animate {'left': '+=' + dist}
+      $(@_div.elem()).animate {'left': '+=' + dist}
     else if @_positionX.get() is 'right'
-      $(@_div).animate {'right': '+=' + dist}
+      $(@_div.elem()).animate {'right': '+=' + dist}
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
