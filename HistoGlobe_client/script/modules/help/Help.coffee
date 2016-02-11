@@ -14,7 +14,7 @@ class HG.Help
 
     @_config = $.extend {}, defaultConfig, config
 
-    @_div = new HG.Div null, "help-overlay"
+    @_div = new HG.Div null, ['help-overlay']
 
     $(@_div.elem()).click () =>
       @hide()

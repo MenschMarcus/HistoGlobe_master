@@ -1,14 +1,10 @@
 window.HG ?= {}
 
 # ============================================================================
-# <div> element, its DOM element and its object counterpart inside code
-# arguments:
-#   id        'id' in dom
-#   classes   ['className1', 'className2', ...] (if many)
-#   hidden    true (optional, if not stated, not hidden)
+# <div> element
 
 class HG.Div extends HG.DOMElement
 
   # ============================================================================
-  constructor: (id=null, classes=[], hidden=false) ->
-    super 'div', id, classes, [], hidden
+  constructor: (id=null, classes=[]) ->
+    super 'div', id, classes, []
