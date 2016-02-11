@@ -18,14 +18,14 @@ class HG.TerritoryTools
     ### INIT UI ###
 
     # moveable wrapper convering everything
-    wrapper = new HG.Div 'tt-wrapper', null
-    @_hgInstance._top_area.appendChild wrapper.elem()
+    @_wrapper = new HG.Div 'tt-wrapper', null
+    @_hgInstance._top_area.appendChild @_wrapper.elem()
 
 
     ## 1. line: title
     title = new HG.Div null, ['tt-title']
     title.jq().html "Territory Tools"
-    wrapper.append title
+    @_wrapper.append title
 
 
     ## 2. line: 3 buttons in a button area
@@ -33,7 +33,7 @@ class HG.TerritoryTools
     terrEditButtons = new HG.ButtonArea @_hgInstance, {
       'id':                 'tt-edit-buttons'
       'classes':            ['tt-button-area']
-      'parentDiv':          wrapper.elem()
+      'parentDiv':          @_wrapper.elem()
       'absolutePosition':   false
     }
 
@@ -80,7 +80,7 @@ class HG.TerritoryTools
 
     ## 3. line: list of existing territories
     @_listWrapper = new HG.Div 'tt-list', null
-    wrapper.append @_listWrapper
+    @_wrapper.append @_listWrapper
 
 
     ## 4. line: snapping options
@@ -88,7 +88,7 @@ class HG.TerritoryTools
 
     # horizontal wrapper containing all three options
     snapOptionWrapper = new HG.Div 'tt-snap-option-wrapper-out', null
-    wrapper.append snapOptionWrapper
+    @_wrapper.append snapOptionWrapper
 
     # wrapper for each option containing input box + description
     snapToPointsWrapper = new HG.Div null, ['tt-snap-option-wrapper-in']
@@ -129,7 +129,7 @@ class HG.TerritoryTools
     terrFinishButtons = new HG.ButtonArea @_hgInstance, {
       'id':                 'tt-finish-buttons'
       'classes':            ['tt-button-area']
-      'parentDiv':          wrapper.elem()
+      'parentDiv':          @_wrapper.elem()
       'absolutePosition':   false
     }
 
@@ -162,41 +162,10 @@ class HG.TerritoryTools
       ]
     }
 
-
-    ### DRAW FUNCTIONALITY ###
-    # using leaflet.draw
-    map = @_hgInstance.map._map
-    items = new L.FeatureGroup()
-    map.addLayer items
-
-    # draw control
-    # TODO: replace by own territory tools at some point
-    drawControl = new L.Control.Draw {
-      edit: {
-        featureGroup: items
-      }
-    }
-    map.addLayer drawControl
-
-    console.log map
-
-    # functionality (move to controller)
-    map.on 'draw:created', (e) ->
-      type = e.layerType
-      layer = e.layer
-      if type is 'marker'
-        # Do marker specific actions
-      else
-        # Do whatever else you need to. (save to db, add to map etc)
-      drawnItems.addLayer layer
-
-    map.on 'draw:edited', ->
-      console.log "update db to save latest changes"
-
-    map.on 'draw:deleted', ->
-      console.log "update db to save latest changes"
-
-
+  # ============================================================================
+  destroy: () ->
+    @_wrapper?.jq().remove()
+    delete @_wrapper?
 
   # ============================================================================
   addToList: (text) ->

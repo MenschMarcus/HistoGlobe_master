@@ -7,12 +7,12 @@
       {
         "id":       "SET_GEOM",
         "startNew": true,
-        "reqNum":   "1",
+        "num":      "1",
         "title":    "create territory <br/> of new country"
       },
       {
         "id":       "SET_NAME",
-        "reqNum":   "1",
+        "num":      "1",
         "title":    "create name <br/> of new country"
       },
       {
@@ -28,13 +28,13 @@
     [
       {
         "id":       "SEL_OLD",
-        "reqNum":   "2+",
+        "num":      "2+",
         "title":    "select all countries <br/> to be united"
       },
       {
         "id":       "SET_NAME",
         "startNew": true,
-        "reqNum":   "1",
+        "num":      "1",
         "title":    "create name <br/> of united country"
       },
       {
@@ -50,18 +50,18 @@
     [
       {
         "id":       "SEL_OLD",
-        "reqNum":   "1",
+        "num":      "1",
         "title":    "select country <br/> to be separated"
       },
       {
         "id":       "SET_GEOM",
         "startNew": true,
-        "reqNum":   "2+",
+        "num":      "2+",
         "title":    "create territories <br/> of all separated countries"
       },
       {
         "id":       "SET_NAME",
-        "reqNum":   "2+",
+        "num":      "2+",
         "title":    "create names <br/> of all separated countries"
       },
       {
@@ -77,13 +77,13 @@
     [
       {
         "id":       "SEL_OLD",
-        "reqNum":   "2",
+        "num":      "2",
         "title":    "select two countries whose <br/> border is to be changed"
       },
       {
         "id":       "SET_GEOM",
         "startNew": true,
-        "reqNum":   "2",
+        "num":      "2",
         "title":    "create new geometries <br/> of the two countries"
       },
       {
@@ -99,13 +99,13 @@
     [
       {
         "id":       "SEL_OLD",
-        "reqNum":   "1",
+        "num":      "1",
         "title":    "select country whose <br/> name is to be changed"
       },
       {
         "id":       "SET_NAME",
         "startNew": true,
-        "reqNum":   "1",
+        "num":      "1",
         "title":    "create new name <br/> of the country"
       },
       {
@@ -121,7 +121,7 @@
     [
       {
         "id":       "SEL_OLD",
-        "reqNum":   "1+",
+        "num":      "1+",
         "title":    "select all countries to be deleted"
       },
       {
