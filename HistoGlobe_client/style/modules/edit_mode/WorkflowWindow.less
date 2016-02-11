@@ -1,17 +1,17 @@
-#change-operation-main-window
+#ww-main-window
 {
   position: absolute;
   top: 0;
 }
 
-#change-operation-workflow-wrapper
+#ww-graph-wrapper
 {
   /* align with hg title (same height, no background) */
   width: 100%;
   height: 2*@element_window_distance + @logo_height;
 }
 
-#change-operation-description-wrapper
+#ww-description-wrapper
 {
   /* underneath hg title (take rest of height of main window, semi-transparent background) */
   width: 100%;
@@ -21,34 +21,34 @@
   border-radius: 0 0 @border_radius @border_radius;
 }
 
-.co-workflow-row
+.ww-graph-row
 {
   float:  left;
   height: 2*@element_window_distance + @logo_height;
 }
-.co-description-row
+.ww-description-row
 {
   float:  left;
   height: @operation_window_height - (2*@element_window_distance + @logo_height);
 }
 
-.co-button-col
+.ww-button-col
 {
   width: @button_diameter + @element_window_distance;
   margin-top: -5px;
 }
-.co-step-col
+.ww-step-col
 {
   width: @operation_step_width;
 }
 
-.co-description-cell
+.ww-description-cell
 {
   color: @color_disabled_active;
   text-align: center;
   vertical-align: bottom;
 }
-.co-current-description
+.ww-current-description
 {
   color: @color_white;
 }
@@ -64,26 +64,26 @@
 }
 
 
-/* workflow bar */
+/* graph bar */
 
-#workflow-canvas
+#graph-canvas
 {
   position: absolute;
 }
 
-#workflow-bar
+#graph-bar
 {
   stroke-width: 5px;
   stroke: @color_bg_dark;
 }
 
-#workflow-circle
+#graph-circle
 {
   stroke: none;
   fill: @color_bg_dark;
 }
 
-#workflow-step-marker
+#graph-step-marker
 {
   stroke: none;
   fill: @color_active;
