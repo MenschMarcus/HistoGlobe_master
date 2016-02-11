@@ -29,7 +29,7 @@ class HG.ControlButtons
   # ============================================================================
   hgInit: (@_hgInstance) ->
 
-    # idea: module "ControlButtons" is instance of class "ButtonArea"
+    # idea: module "ControlButtons" a "ButtonArea" consisting of buttons
     @_buttonArea = new HG.ButtonArea @_hgInstance,
     {
       'id':           'controlButtons',
@@ -44,140 +44,97 @@ class HG.ControlButtons
     for id, enable of @_config
       if enable
         switch id                 # selects class of required button
+
           when 'zoom' then (
-            new HG.Button @_hgInstance,
-              {
-                'parentArea':   @_hgInstance.controlButtons,
-                'groupName':    'zoom'
-                'id':           'zoomIn',
-                'states': [
-                  {
-                    'id':       'normal',
-                    'tooltip':  "Zoom In",
-                    'iconFA':   'plus',
-                    'callback': 'onClick'
-                  }
-                ]
-              }
-            new HG.Button @_hgInstance,
-              {
-                'parentArea':   @_hgInstance.controlButtons,
-                'groupName':    'zoom'
-                'id':           'zoomOut',
-                'states': [
-                  {
-                    'id':       'normal',
-                    'tooltip':  "Zoom Out",
-                    'iconFA':   'minus',
-                    'callback': 'onClick'
-                  }
-                ]
-              }
+            @_buttonArea.addButton new HG.Button(@_hgInstance, 'zoomIn', null, [
+                {
+                  'id':       'normal',
+                  'tooltip':  "Zoom In",
+                  'iconFA':   'plus',
+                  'callback': 'onClick'
+                }
+              ]), 'zoom-group'  # group name
+            @_buttonArea.addButton new HG.Button(@_hgInstance, 'zoomOut', null, [
+                {
+                  'id':       'normal',
+                  'tooltip':  "Zoom Out",
+                  'iconFA':   'minus',
+                  'callback': 'onClick'
+                }
+              ]), 'zoom-group' # group name
           )
 
           # fullscreen mode
           when 'fullscreen' then (
-            # 1. init button
-            new HG.Button @_hgInstance,
+            @_buttonArea.addButton new HG.Button @_hgInstance, 'fullscreen', null, [
               {
-                'parentArea':   @_hgInstance.controlButtons,
-                'id':           'fullscreen',
-                'states': [
-                  {
-                    'id':       'normal',
-                    'tooltip':  "Fullscreen",
-                    'iconFA':   'expand',
-                    'callback': 'onEnter'
-                  },
-                  {
-                    'id':       'fullscreen',
-                    'tooltip':  "Leave Fullscreen",
-                    'iconFA':   'compress',
-                    'callback': 'onLeave'
-                  }
-                ]
+                'id':       'normal',
+                'tooltip':  "Fullscreen",
+                'iconFA':   'expand',
+                'callback': 'onEnter'
+              },
+              {
+                'id':       'fullscreen',
+                'tooltip':  "Leave Fullscreen",
+                'iconFA':   'compress',
+                'callback': 'onLeave'
               }
+            ]
           )
 
           # high contrast mode
           when 'highContrast' then (
-            # 1. init button
-            new HG.Button @_hgInstance,
+            @_buttonArea.addButton new HG.Button @_hgInstance, 'highContrast', null, [
               {
-                'parentArea':   @_hgInstance.controlButtons,
-                'id':           'highContrast',
-                'states': [
-                  {
-                    'id':       'normal',
-                    'tooltip':  "High-Contrast Mode",
-                    'iconFA':   'adjust',
-                    'callback': 'onEnter'
-                  },
-                  {
-                    'id':       'high-contrast',
-                    'tooltip':  "Normal Color Mode",
-                    'iconFA':   'adjust',
-                    'callback': 'onLeave'
-                  }
-                ]
+                'id':       'normal',
+                'tooltip':  "High-Contrast Mode",
+                'iconFA':   'adjust',
+                'callback': 'onEnter'
+              },
+              {
+                'id':       'high-contrast',
+                'tooltip':  "Normal Color Mode",
+                'iconFA':   'adjust',
+                'callback': 'onLeave'
               }
+            ]
           )
 
           # minimal layout mode
           when 'minLayout' then (
-            # 1. init button
-            new HG.Button @_hgInstance,
+            @_buttonArea.addButton new HG.Button @_hgInstance, 'minLayoutButton', null, [
               {
-                'parentArea':   @_hgInstance.controlButtons,
-                'id':           'minLayoutButton',
-                'states': [
-                  {
-                    'id':       'normal',
-                    'tooltip':  "Simplify User Interface",
-                    'iconFA':   'sort-desc',
-                    'callback': 'onRemoveGUI'
-                  },
-                  {
-                    'id':       'min-layout',
-                    'tooltip':  "Restore Interface",
-                    'iconFA':   'sort-asc',
-                    'callback': 'onOpenGUI'
-                  }
-                ]
+                'id':       'normal',
+                'tooltip':  "Simplify User Interface",
+                'iconFA':   'sort-desc',
+                'callback': 'onRemoveGUI'
+              },
+              {
+                'id':       'min-layout',
+                'tooltip':  "Restore Interface",
+                'iconFA':   'sort-asc',
+                'callback': 'onOpenGUI'
               }
-
-            # 2. set functionality
-            @_hgInstance.buttons.minLayoutButton.onRemoveGUI @, (btn) =>
-              $(@_hgInstance._config.container).addClass 'minGUI'
-              btn.changeState 'min-layout'
-
-            @_hgInstance.buttons.minLayoutButton.onOpenGUI @, (btn) =>
-              $(@_hgInstance._config.container).removeClass 'minGUI'
-              btn.changeState 'normal'
+            ]
           )
 
           # graph mode
           when 'graph' then (
             # 1. init button
-            new HG.Button @_hgInstance,
+            @_buttonArea.addButton new HG.Button @_hgInstance, 'graph', null, [
               {
-                'parentArea':   @_hgInstance.controlButtons,
-                'id':           'graph',
-                'states': [
-                  {
-                    'id':       'normal',
-                    'tooltip':  "Show Alliances",
-                    'iconFA':   'share-alt',
-                    'callback': 'onShow'
-                  },
-                  {
-                    'id':       'graph',
-                    'tooltip':  "Hide Alliances",
-                    'iconFA':   'share-alt',
-                    'callback': 'onHide'
-                  }
-                ]
+                'id':       'normal',
+                'tooltip':  "Show Alliances",
+                'iconFA':   'share-alt',
+                'callback': 'onShow'
+              },
+              {
+                'id':       'graph',
+                'tooltip':  "Hide Alliances",
+                'iconFA':   'share-alt',
+                'callback': 'onHide'
               }
+            ]
           )
 
     # listen to show/hide of HistoGraph

@@ -17,18 +17,32 @@ class HG.ObjectArray
     # todo: only accept array of objects as initial input, otherwise empty
     @_arr = [] unless @_arr
 
+    @_ids = []  # contains all ids of objects in the array to ensure they are unique
+    @_ids.push o.id for o in @_arr
+
   # ============================================================================
   length: () ->         @_arr.length
   num: () ->            @_arr.length
 
-  push: (obj) ->        @_arr.push obj
-  add: (obj) ->         @_arr.push obj
-  append: (obj) ->      @_arr.push obj
+  # ============================================================================
+  push: (obj) ->
+    if @_check obj
+      @_ids.push obj.id
+      @_arr.push obj
 
-  pushFront: (obj) ->   @_arr.unshift obj
-  addFront: (obj) ->    @_arr.unshift obj
-  prepend: (obj) ->     @_arr.unshift obj
+  add: (obj) ->         @push obj
+  append: (obj) ->      @push obj
 
+  # ============================================================================
+  pushFront: (obj) ->
+    if @_check obj
+      @_ids.unshift obj.id
+      @_arr.unshift obj
+
+  addFront: (obj) ->    @pushFront obj
+  prepend: (obj) ->     @pushFront obj
+
+  # ============================================================================
   empty: () ->          @_arr = []
   clear: () ->          @_arr = []
 
@@ -42,12 +56,8 @@ class HG.ObjectArray
       return null
 
   # ============================================================================
-  getById: (val) ->
-    @getByPropVal 'id', val
-
-  # ============================================================================
-  getByIdx: (id) ->
-    @_arr[id]
+  getById: (val) ->     @getByPropVal 'id', val
+  getByIdx: (id) ->     @_arr[id]
 
   # ============================================================================
   # find element whose property has this value and deletes it
@@ -69,9 +79,23 @@ class HG.ObjectArray
     @remove prop, val
 
   # ============================================================================
+  # usage: arr.foreach (elem) => console.log elem
   foreach: (cb) ->
     cb el for el in @_arr
     # maaaagic!
     # executes given callback for each element in the array
     # hands element of array callback
-    # usage: arr.foreach (elem) => console.log elem
+
+
+  ##############################################################################
+  #                            PRIVATE INTERFACE                               #
+  ##############################################################################
+
+  # ============================================================================
+  # error handling: is id unique? returns yes / no
+  _check: (o) ->
+    if $.inArray o.id, @_ids is -1
+      true
+    else
+      console.error "id " + o.id + " is already given!"
+      false

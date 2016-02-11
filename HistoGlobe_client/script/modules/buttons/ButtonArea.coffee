@@ -48,14 +48,14 @@ class HG.ButtonArea
       classes.push c for c in @_config.classes
 
     @_div = new HG.Div @_config.id, classes
-    @_config.parentDiv.appendChild @_div.elem()
+    @_config.parentDiv.appendChild @_div.dom()
 
     # listen to slider
     @_hgInstance.onTopAreaSlide @, (t) =>
       if @_hgInstance.isInMobileMode()
-        @_div.elem().style.left = '#{t*0.5}px'
+        @_div.dom().style.left = '#{t*0.5}px'
       else
-        @_div.elem().style.left = '0px'
+        @_div.dom().style.left = '0px'
 
   # ============================================================================
   # add button solo: leave out groupName (null) => will be put in single unnamed group
@@ -63,16 +63,12 @@ class HG.ButtonArea
   # ============================================================================
 
   addButton: (button, groupName) ->
-    # select group name
-    name = null
-    if groupName        # takes group if group name given
-      name = groupName + '-group'
-    else                # sets group name manually if no group name
-      name = button.elem().id + '-group'
+    # select group (sets group name manually if no group name)
+    name = if groupName then groupName else button.get().id + '-group'
 
     # create button in group
     group = @_addGroup name
-    group.appendChild button.elem()
+    group.appendChild button.get()
 
   # ============================================================================
   addButtonGroup: (name) ->
@@ -90,21 +86,21 @@ class HG.ButtonArea
     else
       group = @_addGroup 'spacer'+@_spacerCtr
     spacer = new HG.Div null, ['spacer']
-    group.appendChild spacer.elem()
+    group.appendChild spacer.dom()
     @_spacerCtr++
 
   # ============================================================================
   moveVertical: (dist) ->
     if @_positionY.get() is 'top'
-      $(@_div.elem()).animate {'top': '+=' + dist}
+      @_div.j().animate {'top': '+=' + dist}
     else if @_positionY.get() is 'bottom'
-      $(@_div.elem()).animate {'bottom': '+=' + dist}
+      @_div.j().animate {'bottom': '+=' + dist}
 
   moveHorizontal: (dist) ->
     if @_positionX.get() is 'left'
-      $(@_div.elem()).animate {'left': '+=' + dist}
+      @_div.j().animate {'left': '+=' + dist}
     else if @_positionX.get() is 'right'
-      $(@_div.elem()).animate {'right': '+=' + dist}
+      @_div.j().animate {'right': '+=' + dist}
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
@@ -126,14 +122,14 @@ class HG.ButtonArea
       # append or prepend button (given in configuration of ButtonArea)
       if @_direction.get() is 'append'
         @_div.append group
-        @_groups.append group.elem()
+        @_groups.append group.dom()
 
       else if @_direction.get() is 'prepend'
         @_div.prepend group
-        @_groups.prepend group.elem()
+        @_groups.prepend group.dom()
 
       # add to group list
-      return group.elem()
+      return group.dom()
 
   # ============================================================================
   _removeGroup: (id) ->
