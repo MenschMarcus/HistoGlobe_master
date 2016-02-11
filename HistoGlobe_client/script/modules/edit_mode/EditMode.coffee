@@ -71,6 +71,7 @@ class HG.EditMode
             @_currCO.totalSteps = @_currCO.steps.length
             @_currCO.stepIdx = 0
             @_currCO.finished = no
+            @_currStep = @_currCO.steps[@_currCO.stepIdx]
 
             # setup UI
             @_editButtons.disable()
@@ -78,49 +79,93 @@ class HG.EditMode
             @_title.clear()
             @_coWindow?.destroy()
             @_coWindow = new HG.ChangeOperationWindow @_hgInstance, @_currCO
-            @_coWindow.disableNext()
+            @_backButton = @_hgInstance.buttons.coBack
+            @_nextButton = @_hgInstance.buttons.coNext
+            @_backButton.disable()
+            @_nextButton.disable()
             @_histoGraph.show()
+
+            @_makeStep()
+
 
             # listen to click on next button
             @_hgInstance.buttons.coNext.onNext @, () =>
+
               # send info to server
               # receive new info from server
 
-              # go to next step
+              @_cleanupStep()
+
+              # update step information
               @_currCO.stepIdx++
-              @_currStep = null
+              @_currStep = @_currCO.steps[@_currCO.stepIdx]
+
+              # update UI
+              @_coWindow.moveStepMarker @_currCO.stepIdx
+              @_coWindow.highlightText @_currCO.stepIdx
+              @_backButton.enable()
+              @_nextButton.disable()
+
               @_makeStep()
 
+
             @_hgInstance.buttons.coNext.onFinish @, () =>
-              console.log "Heureka!"
+              # TODO finish up
+
 
             # listen to click on back button
             @_hgInstance.buttons.coBack.onBack @, () =>
-              console.log "I do not work yet"
+
+              # send info to server
+              # receive new info from server
+
+              @_cleanupStep()
+
+              # update step information
+              @_currCO.stepIdx--
+              @_currStep = @_currCO.steps[@_currCO.stepIdx]
+
+              # update UI
+              @_coWindow.moveStepMarker @_currCO.stepIdx
+              @_coWindow.highlightText @_currCO.stepIdx
+              @_coWindow.disableFinish()
+              @_backButton.disable() if @_currCO.stepIdx is 0
+              @_nextButton.disable()
+
+              @_makeStep()
+
 
             # listen to click on abort button
             @_hgInstance.buttons.coAbort.onClick @, () =>
-                # reset UI
-                @_coWindow.destroy()
-                @_editButtons.deactivate @_currCO.id
-                @_editButtons.enable @_currCO.id
-                # reset current operation
-                @_currCO    = null
-                @_currStep  = null
 
-            # start actual operation
-            @_makeStep()
+              @_cleanupStep()
+
+              # reset UI
+              @_coWindow.destroy()
+              @_editButtons.deactivate @_currCO.id
+              @_editButtons.enable @_currCO.id
+
+              # reset step information
+              @_currCO    = null
+              @_currStep  = null
+
 
 
       # listen to next click on edit button => leave edit mode and cleanup
       @_editModeButton.onLeave @, () ->
-        @_coWindow?.destroy()
+        @_cleanupStep()
+
+        # reset UI
+        @_title.clear()
+        @_coWindow.destroy()
         @_editButtons.deactivate @_currCO.id
         @_editButtons.enable @_currCO.id
         @_editButtons.deactivateEditButton()
         @_editButtons.hide()
-        @_title.clear()
 
+        # reset step information
+        @_currCO    = null
+        @_currStep  = null
     )
 
   ##############################################################################
@@ -131,20 +176,14 @@ class HG.EditMode
   ### STEP ###
   _makeStep: () ->
 
-    # update step information
-    @_currStep = @_currCO.steps[@_currCO.stepIdx]
+    # TODO "make hivent in HistoGraph" if @_currStep.startNew
 
-    # setup UI
-    console.log "make hivent in HistoGraph" if @_currStep.startNew
-    @_coWindow.disableNext()
-    @_areasOnMap.disableMultipleSelection()
-
-    # step requirement
     switch @_currStep.id
+
       when 'SEL_OLD' then (
 
         # update step information
-        @_currStep.reqNum = @_getRequiredNum @_currStep.reqNum
+        @_currStep.reqNum = @_getRequiredNum @_currStep.num
         selectedAreas = new HG.ObjectArray
         selectedAreas.push @_areasOnMap.getActiveArea() if @_areasOnMap.getActiveArea()?
 
@@ -161,7 +200,7 @@ class HG.EditMode
           # check if step is completed
           if selectedAreas.length() >= @_currStep.reqNum.min
             @_coWindow.enableFinish() if @_currCO.stepIdx is @_currCO.totalSteps-1
-            @_coWindow.enableNext()
+            @_nextButton.enable()
 
         # listen to area deselection from AreasOnMap
         @_areasOnMap.onDeselectArea @, (area) =>
@@ -170,17 +209,52 @@ class HG.EditMode
 
           # check if step is not completed anymore
           if selectedAreas.length() < @_currStep.reqNum.min
-            @_coWindow.disableNext()
+            @_nextButton.disable()
       )
 
       when 'SET_GEOM' then (
 
+        # TODO: take out
+        @_nextButton.enable()
+
         # update step information
-        @_currStep.reqNum = @_getRequiredNum @_currStep.reqNum
+        @_currStep.reqNum = @_getRequiredNum @_currStep.num
         terrCtr = 0
 
+        # init draw functionality on the map -> using leaflet.draw
+        # TODO: get this to work
+        map = @_hgInstance.map._map
+        items = new L.FeatureGroup()
+        map.addLayer items
+
+        # draw control
+        # TODO: replace by own territory tools at some point
+        drawControl = new L.Control.Draw {
+          edit: {
+            featureGroup: items
+          }
+        }
+        map.addLayer drawControl
+
+        # functionality
+        map.on 'draw:created', (e) ->
+          type = e.layerType
+          layer = e.layer
+          if type is 'marker'
+            # Do marker specific actions
+          else
+            # Do whatever else you need to. (save to db, add to map etc)
+          drawnItems.addLayer layer
+
+        map.on 'draw:edited', ->
+          #TODO "update db to save latest changes"
+
+        map.on 'draw:deleted', ->
+          #TODO "update db to save latest changes"
+
+
         # setup UI
-        tt = new HG.TerritoryTools @_hgInstance, @_config.iconPath
+        @_tt = new HG.TerritoryTools @_hgInstance, @_config.iconPath
         newTerrButton = @_hgInstance.buttons.newTerritory
         reuseTerrButton = @_hgInstance.buttons.reuseTerritory
         importTerrButton = @_hgInstance.buttons.importTerritory
@@ -196,58 +270,60 @@ class HG.EditMode
         ### ACTION ###
 
         newTerrButton.onClick @, () =>
-          console.log 'init new territory on the map'
+          # TODO: init new territory on the map
           tt.addToList 'new territory # ' + terrCtr
           terrCtr++
 
         reuseTerrButton.onClick @, () =>
-          console.log 'reuse territory'
+          # TODO: reuse territory
           tt.addToList 'reused territory # ' + terrCtr
           terrCtr++
 
         importTerrButton.onClick @, () =>
-          console.log 'import new territory from file'
+          # TODO: import new territory from file
           tt.addToList 'imported territory # ' + terrCtr
           terrCtr++
 
         snapToPointsSwitch.onSwitchOn @, () =>
-          console.log "turn switch to border points on!"
+          # TODO: turn switch to border points on!
 
         snapToPointsSwitch.onSwitchOff @, () =>
-          console.log "turn switch to border points off!"
+          # TODO: turn switch to border points off!
 
         snapToLinesSwitch.onSwitchOn @, () =>
-          console.log "turn switch to border lines on!"
+          # TODO: turn switch to border lines on!
 
         snapToLinesSwitch.onSwitchOff @, () =>
-          console.log "turn switch to border lines off!"
+          # TODO: turn switch to border lines off!
 
         snapToleranceInput.onChange @, (val) =>
-          console.log "the new snap tolerance value is " + val
+          # TODO: the new snap tolerance value is " + va
 
         clipTerrButton.onClick @, () =>
-          console.log "clip the drawn territory to the existing territory"
+          # TODO: clip the drawn territory to the existing territory
 
         useRestButton.onClick @, () =>
-          console.log "use the remaining territory for this new country"
+          # TODO: use the remaining territory for this new country
 
 
         # finish up
         @_coWindow.enableFinish() if @_currCO.stepIdx is @_currCO.totalSteps-1
-        @_coWindow.enableNext()
+        @_nextButton.enable()
 
       )
 
       when 'SET_NAME' then (
 
         # update step information
-        @_currStep.reqNum = @_getRequiredNum @_currStep.reqNum
+        @_currStep.reqNum = @_getRequiredNum @_currStep.num
 
         # setup UI
+        # TODO: take out
+        @_nextButton.enable()
 
         ### ACTION ###
         @_coWindow.enableFinish() if @_currCO.stepIdx is @_currCO.totalSteps-1
-        @_coWindow.enableNext()
+        @_nextButton.enable()
 
       )
 
@@ -256,12 +332,33 @@ class HG.EditMode
         # update step information
 
         # setup UI
+        # TODO: take out
+        @_nextButton.enable()
 
         ### ACTION ###
         @_coWindow.enableFinish() if @_currCO.stepIdx is @_currCO.totalSteps-1
-        @_coWindow.enableNext()
+        @_nextButton.enable()
 
       )
+
+
+  # ============================================================================
+  _cleanupStep: () ->
+
+    switch @_currStep.id
+
+      when 'SEL_OLD' then (
+          #TODO: deselect active areas
+          @_areasOnMap.disableMultipleSelection()
+        )
+
+      when 'SET_GEOM' then (
+          @_tt.destroy()
+        )
+
+      when 'SET_NAME' then
+
+      when 'ADD_CHNG' then
 
 
   # ============================================================================
