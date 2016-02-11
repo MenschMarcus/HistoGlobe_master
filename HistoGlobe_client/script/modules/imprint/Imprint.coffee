@@ -11,9 +11,9 @@ class HG.Imprint
 
     # create imprint link
     @_link = new HG.Div 'imprint-link', 'no-text-select'
-    @_link.jq().html "Impressum &nbsp; &copy; HistoGlobe   2010-" + new Date().getFullYear()
+    $(@_link.elem()).html "Impressum &nbsp; &copy; HistoGlobe   2010-" + new Date().getFullYear()
 
-    @_link.jq().click () =>
+    $(@_link.elem()).click () =>
       @showBox()
 
     # create imprint
@@ -21,7 +21,7 @@ class HG.Imprint
     @_imprintBox = new HG.Div 'imprint-box'
 
     @_imprintClose = new HG.Span null, 'close-button'
-    @_imprintClose.jq().html 'x'
+    $(@_imprintClose.elem()).html 'x'
 
     @_imprintText = new HG.Div 'imprint-text'
     @_imprintText.elem().innerHTML = '
@@ -58,10 +58,10 @@ class HG.Imprint
 
 
     # event handling
-    @_imprintClose.jq().click () =>
+    $(@_imprintClose.elem()).click () =>
       @hideBox()
 
-    @_imprintOverlay.jq().fadeOut 0
+    $(@_imprintOverlay.elem()).fadeOut 0
 
 
   # ============================================================================
@@ -73,9 +73,9 @@ class HG.Imprint
 
   # ============================================================================
   showBox:() ->
-    @_imprintOverlay.jq().fadeIn()
+    $(@_imprintOverlay.elem()).fadeIn()
 
   # ============================================================================
   hideBox:() ->
-    @_imprintOverlay.jq().fadeOut()
+    $(@_imprintOverlay.elem()).fadeOut()
 

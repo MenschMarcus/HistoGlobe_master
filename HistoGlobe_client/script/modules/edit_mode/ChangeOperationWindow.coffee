@@ -59,9 +59,9 @@ class HG.ChangeOperationWindow
     for step in @_operation.steps
       workflowRow.append new HG.Div null, ['co-workflow-row', 'co-step-col']
       descr = new HG.Div null, ['co-description-row', 'co-step-col', 'co-description-cell']
-      descr.jq().html step.title
+      $(descr.elem()).html step.title
       descriptionRow.append descr
-      @_stepDescr.push descr.jq()
+      @_stepDescr.push $(descr.elem())
       stepCols++
 
     # next column
@@ -77,7 +77,7 @@ class HG.ChangeOperationWindow
     #   three disabled buttons indicating the steps
     #   one moving active marker stating the current step
 
-    cells = workflowRow.jq().children().toArray()  # contains all workflow cells
+    cells = $(workflowRow.elem()).children().toArray()  # contains all workflow cells
     cells.shift()     # removes first element (empty)
     cells.pop()       # removes last element (abort)
 
@@ -193,14 +193,14 @@ class HG.ChangeOperationWindow
       }
 
     # recenter the window
-    width =  2        * backButtonParent.jq().width()         # 2 button columns
+    width =  2        * $(backButtonParent.elem()).width()         # 2 button columns
     width += stepCols * HGConfig.operation_step_width.val     # n step columns
-    @_mainWindow.jq().css 'margin-left', -width/2
+    $(@_mainWindow.elem()).css 'margin-left', -width/2
 
 
   # ============================================================================
   destroy: () ->
-    @_mainWindow?.jq().remove()
+    $(@_mainWindow?.elem()).remove()
     delete @_mainWindow?
 
   # ============================================================================

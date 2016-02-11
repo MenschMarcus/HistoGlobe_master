@@ -88,34 +88,34 @@ class HG.Button
   # ============================================================================
   disable: () ->
     if @_enabled
-      @_button.jq().addClass 'button-disabled'
+      $(@_button.elem()).addClass 'button-disabled'
       @_enabled = no
 
   enable: () ->
     if not @_enabled
-      @_button.jq().removeClass 'button-disabled'
+      $(@_button.elem()).removeClass 'button-disabled'
       @_enabled = yes
 
   activate: () ->
     if @_enabled    # case: button enabled and active
-      @_button.jq().addClass 'button-active'
+      $(@_button.elem()).addClass 'button-active'
     else            # case: button disabled and active
-      @_button.jq().removeClass 'button-disabled'
-      @_button.jq().addClass 'button-disabled-active'
+      $(@_button.elem()).removeClass 'button-disabled'
+      $(@_button.elem()).addClass 'button-disabled-active'
 
   deactivate: () ->
     if @_enabled    # case: button enabled and active
-      @_button.jq().removeClass 'button-active'
+      $(@_button.elem()).removeClass 'button-active'
     else            # case: button disabled and active
-      @_button.jq().removeClass 'button-disabled-active'
-      @_button.jq().addClass 'button-disabled'
+      $(@_button.elem()).removeClass 'button-disabled-active'
+      $(@_button.elem()).addClass 'button-disabled'
 
   # ============================================================================
-  show: () ->         @_button.jq().show()
-  hide: () ->         @_button.jq().hide()
+  show: () ->         $(@_button.elem()).show()
+  hide: () ->         $(@_button.elem()).hide()
 
   # ============================================================================
-  remove: () ->       @_button.jq().remove()
+  remove: () ->       $(@_button.elem()).remove()
 
   ##############################################################################
   #                            PRIVATE INTERFACE                                #
@@ -134,18 +134,18 @@ class HG.Button
     # remove old class(es)
     if oldClasses
       for c in oldClasses
-        @_button.jq().removeClass c
+        $(@_button.elem()).removeClass c
 
   # ============================================================================
   _setClasses: () ->
     if @_state.classes
       for c in @_state.classes
-        @_button.jq().addClass c
+        $(@_button.elem()).addClass c
 
   # ============================================================================
   _setTooltip: () ->
     if @_state.tooltip and TOOLTIPS
-      @_button.jq().tooltip {
+      $(@_button.elem()).tooltip {
         title: @_state.tooltip,
         placement: 'right',
         container: 'body'
@@ -154,7 +154,7 @@ class HG.Button
   # ============================================================================
   _setIcon: () ->
     # remove old icon
-    @_button.jq().empty()
+    $(@_button.elem()).empty()
     icon = null
 
     # add new icon
@@ -163,7 +163,7 @@ class HG.Button
 
     else if @_state.iconOwn     # 2. own icon
       icon = new HG.Div '', 'own-button'
-      icon.jq().css 'background-image', 'url("' + @_state.iconOwn + '")'
+      $(icon.elem()).css 'background-image', 'url("' + @_state.iconOwn + '")'
 
     else                # no icon
       console.error "No icon for button " + @_id + " set!"
@@ -173,9 +173,9 @@ class HG.Button
   # ============================================================================
   _setCallback: () ->
     # clear callbacks first to prevent multiple click handlers on same DOM element
-    @_button.jq().unbind 'click'
+    $(@_button.elem()).unbind 'click'
     # define new callback
-    @_button.jq().click () =>
+    $(@_button.elem()).click () =>
       # callback = tell everybody that state has changed
       # hand button itself (@) into callback so everybody can operate on the button (e.g. change state)
       @notifyAll @_state.callback, @
