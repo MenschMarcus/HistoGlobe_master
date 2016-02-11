@@ -11,7 +11,7 @@ window.HG ?= {}
 #   4) add change to hivent
 # ==============================================================================
 
-class HG.ChangeOperationWindow
+class HG.WorkflowWindow
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
@@ -30,7 +30,7 @@ class HG.ChangeOperationWindow
     ### MAIN WINDOW ###
 
     # main window sits on top of hg title, has more height (to account for extra space needed)
-    @_mainWindow = new HG.Div 'change-operation-main-window'
+    @_mainWindow = new HG.Div 'ww-main-window'
     # @_mainWindow.j().hide()
     @_hgInstance._top_area.appendChild @_mainWindow.dom()
 
@@ -39,16 +39,105 @@ class HG.ChangeOperationWindow
 
     # table layout    |stepBack| step1 | step. | stepn |stepNext|
     # -------------------------------------------------------------------
-    # workflowRow     |        |  (O)--|--( )--|--( )  |    X   |   -> hg title
+    # graphRow        |        |  (O)--|--( )--|--( )  |    X   |   -> hg title
     # descriptionRow  |   (<)  | text1 | text. | textn |   (>)  |   + semi-transparent bg
 
     ## rows ##
-    # create workflow and description divs that dynamically adjust to their content
-    @_workflowRow = new HG.Div 'change-operation-workflow-wrapper'
-    @_mainWindow.append @_workflowRow
+    # create graph and description divs that dynamically adjust to their content
+    @_graphRow = new HG.Div 'ww-graph-wrapper'
+    @_mainWindow.append @_graphRow
 
-    @_descriptionRow = new HG.Div 'change-operation-description-wrapper'
+    @_descriptionRow = new HG.Div 'ww-description-wrapper'
     @_mainWindow.append @_descriptionRow
+
+    ## columns ##
+
+    # back column
+    @_graphRow.append new HG.Div null, ['ww-graph-row', 'ww-button-col']
+    backButtonParent = new HG.Div null, ['ww-description-row', 'ww-button-col']
+    @_descriptionRow.append backButtonParent
+
+    # step columns
+    stepCols = 0
+    @_stepDescr = []
+    for step in operation.steps
+      @_graphRow.append new HG.Div null, ['ww-graph-row', 'ww-step-col']
+      descr = new HG.Div null, ['ww-description-row', 'ww-step-col', 'ww-description-cell']
+      descr.j().html step.title
+      @_descriptionRow.append descr
+      @_stepDescr.push descr.j()
+      stepCols++
+
+    # next column
+    abortButtonParent = new HG.Div 'abort-button-parent', ['ww-graph-row', 'ww-button-col']
+    @_graphRow.append abortButtonParent
+    nextButtonParent = new HG.Div 'next-button-parent', ['ww-description-row', 'ww-button-col']
+    @_descriptionRow.append nextButtonParent
+
+    ## graph bar ##
+    # spans from first to last step
+    # consists of:
+    #   a horizontal bar spanning above the steps
+    #   three disabled buttons indicating the steps
+    #   one moving active marker stating the current step
+
+    cells = @_graphRow.j().children().toArray()  # contains all graph cells
+    cells.shift()     # removes first element (empty)
+    cells.pop()       # removes last element (abort)
+
+    # bounding box of svg canvas: spans all graph cells
+    minX = $(cells[0]).position().left
+    minY = $(cells[0]).position().top
+    maxX = 0
+    maxY = 0
+
+    # position of circles: central positions [x,y] of each graph cell
+    @_circlePos = []
+    for cell in cells
+      @_circlePos.push {
+        'x': $(cell).position().left + $(cell).width()/2 - minX,
+        'y': $(cell).position().top + $(cell).height()/2 - minY
+      }
+      maxX = $(cell).position().left + $(cell).width()
+      maxY = $(cell).position().top + $(cell).height()
+
+    # create canvas
+    @_graphCanvas = d3.select @_graphRow.dom()
+      .append 'svg'
+      .attr 'id', 'graph-canvas'
+      .style 'left', minX
+      .style 'top', minY
+      .style 'width', maxX-minX
+      .style 'height', maxY-minY
+
+    # draw horizontal line
+    @_graphCanvas
+      .append 'line'
+      .attr 'id', 'graph-bar'
+      .attr 'x1', @_circlePos[0].x
+      .attr 'x2', @_circlePos[@_circlePos.length-1].x
+      .attr 'y1', @_circlePos[0].y
+      .attr 'y2', @_circlePos[@_circlePos.length-1].y
+
+    # draw a circle for each cell
+    rad = HGConfig.button_diameter.val / 2
+    circles = @_graphCanvas.selectAll 'circle'
+      .data @_circlePos
+      .enter()
+      .append 'circle'
+      .classed 'graph-circle', true
+      .attr 'cx', (pos) -> pos.x
+      .attr 'cy', (pos) -> pos.y
+      .attr 'r', rad
+
+    ## identifying current step -> initially start with first step
+    @_stepMarker = @_graphCanvas
+      .append 'circle'
+      .attr 'id', 'graph-step-marker'
+      .attr 'cx', @_circlePos[0].x
+      .attr 'cy', @_circlePos[0].y
+      .attr 'r', rad*0.7
+    @_stepDescr[0].addClass 'ww-current-description'
 
 
     ### BUTTONS ###
@@ -62,6 +151,7 @@ class HG.ChangeOperationWindow
           'callback': 'onBack'
         }
       ]
+    backButtonParent.dom().appendChild @_backButton.get()
 
     # next button ( = ok = go to next step, disabled)
     # -> changes to OK button / "finish" state in last step
@@ -79,6 +169,7 @@ class HG.ChangeOperationWindow
           'callback': 'onFinish'
         },
       ]
+    nextButtonParent.dom().appendChild @_nextButton.get()
 
     # abort button
     @_abortButton = new HG.Button @_hgInstance, 'coAbort', ['button-abort'], [
@@ -89,140 +180,31 @@ class HG.ChangeOperationWindow
           'callback': 'onClick'
         }
       ]
-
-
-  # # ============================================================================
-  # setup: (operation) ->
-
-    ### WORKFLOW TABLE ###
-
-    ## columns ##
-
-    # back column
-    @_workflowRow.append new HG.Div null, ['co-workflow-row', 'co-button-col']
-    backButtonParent = new HG.Div null, ['co-description-row', 'co-button-col']
-    @_descriptionRow.append backButtonParent
-
-    # step columns
-    stepCols = 0
-    @_stepDescr = []
-    for step in operation.steps
-      @_workflowRow.append new HG.Div null, ['co-workflow-row', 'co-step-col']
-      descr = new HG.Div null, ['co-description-row', 'co-step-col', 'co-description-cell']
-      descr.j().html step.title
-      @_descriptionRow.append descr
-      @_stepDescr.push descr.j()
-      stepCols++
-
-    # next column
-    abortButtonParent = new HG.Div 'abort-button-parent', ['co-workflow-row', 'co-button-col']
-    @_workflowRow.append abortButtonParent
-    nextButtonParent = new HG.Div 'next-button-parent', ['co-description-row', 'co-button-col']
-    @_descriptionRow.append nextButtonParent
-
-    ## workflow bar ##
-    # spans from first to last step
-    # consists of:
-    #   a horizontal bar spanning above the steps
-    #   three disabled buttons indicating the steps
-    #   one moving active marker stating the current step
-
-    cells = @_workflowRow.j().children().toArray()  # contains all workflow cells
-    cells.shift()     # removes first element (empty)
-    cells.pop()       # removes last element (abort)
-
-    # bounding box of svg canvas: spans all workflow cells
-    minX = $(cells[0]).position().left
-    minY = $(cells[0]).position().top
-    maxX = 0
-    maxY = 0
-
-    # position of circles: central positions [x,y] of each workflow cell
-    @_circlePos = []
-    for cell in cells
-      @_circlePos.push {
-        'x': $(cell).position().left + $(cell).width()/2 - minX,
-        'y': $(cell).position().top + $(cell).height()/2 - minY
-      }
-      maxX = $(cell).position().left + $(cell).width()
-      maxY = $(cell).position().top + $(cell).height()
-
-    # create canvas
-    @_workflowCanvas = d3.select @_workflowRow.dom()
-      .append 'svg'
-      .attr 'id', 'workflow-canvas'
-      .style 'left', minX
-      .style 'top', minY
-      .style 'width', maxX-minX
-      .style 'height', maxY-minY
-
-    # draw horizontal line
-    @_workflowCanvas
-      .append 'line'
-      .attr 'id', 'workflow-bar'
-      .attr 'x1', @_circlePos[0].x
-      .attr 'x2', @_circlePos[@_circlePos.length-1].x
-      .attr 'y1', @_circlePos[0].y
-      .attr 'y2', @_circlePos[@_circlePos.length-1].y
-
-    # draw a circle for each cell
-    rad = HGConfig.button_diameter.val / 2
-    circles = @_workflowCanvas.selectAll 'circle'
-      .data @_circlePos
-      .enter()
-      .append 'circle'
-      .classed 'workflow-circle', true
-      .attr 'cx', (pos) -> pos.x
-      .attr 'cy', (pos) -> pos.y
-      .attr 'r', rad
-
-    ## identifying current step -> initially start with first step
-    @_stepMarker = @_workflowCanvas
-      .append 'circle'
-      .attr 'id', 'workflow-step-marker'
-      .attr 'cx', @_circlePos[0].x
-      .attr 'cy', @_circlePos[0].y
-      .attr 'r', rad*0.7
-    @_stepDescr[0].addClass 'co-current-description'
-
-
-    ### BUTTONS ###
-    backButtonParent.dom().appendChild @_backButton.get()
-    nextButtonParent.dom().appendChild @_nextButton.get()
     abortButtonParent.dom().appendChild @_abortButton.get()
 
-
     # recenter the window
-    posLeft = $('#hg-title').position().left + $('#hg-title').width()/2
+    posLeft = $('#title').position().left + $('#title').width()/2
     marginLeft = -@_mainWindow.j().width()/2         # half of own window width
     @_mainWindow.j().css 'left', posLeft
     @_mainWindow.j().css 'margin-left', marginLeft
 
 
   # ============================================================================
-  cleanup: () ->
-    @_workflowRow.j().empty()
-    @_descriptionRow.j().empty()
-
-  # ============================================================================
-  show: () ->  @_mainWindow?.j().show()
-  hide: () ->  @_mainWindow?.j().hide()
-
-  # ============================================================================
   destroy: () ->
+    @_mainWindow?.j().empty()
     @_mainWindow?.j().remove()
     delete @_mainWindow?
 
   # ============================================================================
-  # workflow manipulation
+  # graph manipulation
   moveStepMarker: (stepIdx) ->
     @_stepMarker
       .transition()
       .attr 'cx', @_circlePos[stepIdx].x
 
   highlightText: (stepIdx) ->
-    d.removeClass 'co-current-description' for d in @_stepDescr
-    @_stepDescr[stepIdx].addClass 'co-current-description'
+    d.removeClass 'ww-current-description' for d in @_stepDescr
+    @_stepDescr[stepIdx].addClass 'ww-current-description'
 
 
 

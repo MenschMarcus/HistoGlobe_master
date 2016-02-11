@@ -28,7 +28,6 @@ class HG.EditMode
     @_config = $.extend {}, defaultConfig, config
 
     # init variables
-    @_hgChangeOperations = null
     @_currCO = {}                   # object of current change operation
     @_currStep = {}                 # object of current step in workflow
 
@@ -39,43 +38,62 @@ class HG.EditMode
     # add to HG instance
     @_hgInstance.editController = @   # N.B. edit mode = edit controller :)
 
+    # init everything
     $.getJSON(@_config.changeOperationsPath, (ops) =>
 
-      @_hgChangeOperations = new HG.ObjectArray ops # all possible operations
+      # load operations
+      @_changeOperations = new HG.ObjectArray ops # all possible operations
 
-      @_editButtons = new HG.EditButtons @_hgInstance, @_hgChangeOperations
-      @_editModeButton = @_hgInstance.buttons.editMode
-      @_title = new HG.Title @_hgInstance
-      # @_coWindow =  new HG.ChangeOperationWindow @_hgInstance
-      # @_backButton = @_hgInstance.buttons.coBack
-      # @_nextButton = @_hgInstance.buttons.coNext
-      # @_abortButton = @_hgInstance.buttons.coAbort
-      @_histoGraph = @_hgInstance.histoGraph
-      @_areasOnMap = @_hgInstance.areasOnMap
+      # setup edit button area and add editButton to it
+      # is always there, never has to be destructed
+      @_editButtonArea = new HG.ButtonArea @_hgInstance,
+      {
+        'id':           'editButtons'
+        'positionX':    'right'
+        'positionY':    'top'
+        'orientation':  'horizontal'
+        'direction':    'prepend'
+      }
+      @_editButton = new HG.Button @_hgInstance, 'editMode', null, [
+          {
+            'id':       'normal',
+            'tooltip':  "Enter Edit Mode",
+            'iconFA':   'pencil',
+            'callback': 'onEnter'
+          },
+          {
+            'id':       'edit-mode',
+            'tooltip':  "Leave Edit Mode",
+            'iconFA':   'pencil',
+            'callback': 'onLeave'
+          }
+        ]
+      @_editButtonArea.addButton @_editButton
 
-      ### WORKFLOW ###
-      ## hierachy: edit mode -> operation -> step -> action
 
+      ### EDIT HIERACHY: EDIT MODE -> OPERATION -> STEP -> ACTION ###
+
+      ## (1) EDIT MODE ##
       # listen to click on edit button => start edit mode
-      @_editModeButton.onEnter @, () ->
+      @_editButton.onEnter @, () ->
 
         @_setupEditMode()
 
-        ## OPERATION ##
+        ## (2) OPERATION ##
         # listen to click on edit operation buttons => start operation
-        @_hgChangeOperations.foreach (operation) =>
-          @_hgInstance.buttons[operation.id].onStart @, (btn) =>
+        @_operationButtons.foreach (b) =>
+          b.button.onClick @, (btn) =>
 
             # update current operation in workflow
             opId = btn.get().id
-            @_currCO = @_hgChangeOperations.getByPropVal 'id', opId
+            @_currCO = @_changeOperations.getByPropVal 'id', opId
             @_currCO.totalSteps = @_currCO.steps.length
             @_currCO.stepIdx = 0
             @_currCO.finished = no
 
             @_setupOperation()
 
-
+            ## (3) STEP ##
             # update current step in workflow
             @_currStep = @_currCO.steps[@_currCO.stepIdx]
 
@@ -83,7 +101,7 @@ class HG.EditMode
 
 
             # listen to click on next button
-            @_hgInstance.buttons.coNext.onNext @, () =>
+            @_nextButton.onNext @, () =>
 
               # send info to server
               # receive new info from server
@@ -95,15 +113,15 @@ class HG.EditMode
               @_currStep = @_currCO.steps[@_currCO.stepIdx]
 
               # update UI
-              @_coWindow.moveStepMarker @_currCO.stepIdx
-              @_coWindow.highlightText @_currCO.stepIdx
+              @_wWindow.moveStepMarker @_currCO.stepIdx
+              @_wWindow.highlightText @_currCO.stepIdx
 
               @_setupStep()
 
 
 
             # listen to click on back button
-            @_hgInstance.buttons.coBack.onBack @, () =>
+            @_backButton.onBack @, () =>
 
               # send info to server
               # receive new info from server
@@ -115,14 +133,14 @@ class HG.EditMode
               @_currStep = @_currCO.steps[@_currCO.stepIdx]
 
               # update UI
-              @_coWindow.moveStepMarker @_currCO.stepIdx
-              @_coWindow.highlightText @_currCO.stepIdx
+              @_wWindow.moveStepMarker @_currCO.stepIdx
+              @_wWindow.highlightText @_currCO.stepIdx
 
               @_setupStep()
 
 
             # listen to click on abort button
-            @_hgInstance.buttons.coAbort.onClick @, () =>
+            @_abortButton.onClick @, () =>
 
               @_cleanupStep()
               @_cleanupOperation()
@@ -138,7 +156,7 @@ class HG.EditMode
 
 
       # listen to next click on edit button => leave edit mode and cleanup
-      @_editModeButton.onLeave @, () ->
+      @_editButton.onLeave @, () ->
         @_cleanupEditMode()
     )
 
@@ -146,59 +164,100 @@ class HG.EditMode
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
 
-  ### EDIT MODE ###
+  ## (1) EDIT MODE ##
 
   # ============================================================================
   _setupEditMode: () ->
-    @_editModeButton.changeState 'edit-mode'
-    @_editModeButton.activate()
-    @_editButtons.show()
-    @_title.resize()
-    @_title.set 'EDIT MODE'   # TODO internationalization
+    # activate edit button
+    @_editButton.changeState 'edit-mode'
+    @_editButton.activate()
+
+    # setup new hivent button
+    @_editButtonArea.addSpacer()
+    @_newHiventButton = new HG.Button @_hgInstance, 'newHivent', null,  [
+        {
+          'id':       'normal',
+          'tooltip':  "Add New Hivent",
+          'iconOwn':  @_hgInstance._config.graphicsPath + 'buttons/new_hivent.svg',
+          'callback': 'onAdd'
+        }
+      ]
+    @_editButtonArea.addButton @_newHiventButton
+
+    # setup operation buttons
+    @_editButtonArea.addSpacer()
+    @_operationButtons = new HG.ObjectArray
+    @_changeOperations.foreach (operation) =>
+      # add button to UI
+      coButton = new HG.Button @_hgInstance, operation.id, ['button-horizontal'], [
+          {
+            'id':       'normal',
+            'tooltip':  operation.title,
+            'iconOwn':  @_hgInstance._config.graphicsPath + 'buttons/' + operation.id + '.svg',
+            'callback': 'onClick'
+          }
+        ]
+      @_editButtonArea.addButton coButton, 'changeOperations-group'
+      # add button in object array to keep track of it
+      @_operationButtons.push {
+          'id': operation.id,
+          'button': coButton
+        }
+
+    # setup title
+    @_title = new HG.Title @_hgInstance, "EDIT MODE"  # TODO internationalization
 
   # ============================================================================
   _cleanupEditMode: () ->
-    @_title.clear()
-    @_editButtons.hide()
-    @_editModeButton.deactivate()
-    @_editModeButton.changeState 'normal'
+    @_title.destroy()
+    @_operationButtons.foreach (b) =>
+      b.button.destroy()
+    @_newHiventButton.destroy()
+    @_editButton.deactivate()
+    @_editButton.changeState 'normal'
 
 
-  ### OPERATION ###
+  ## (2) OPERATION ##
 
   # ============================================================================
   _setupOperation: () ->
-    @_editModeButton.disable()
-    @_editButtons.disable()
-    @_editButtons.activate @_currCO.id
+    # disable all buttons
+    @_editButton.disable()
+    @_newHiventButton.disable()
+    @_operationButtons.foreach (obj) =>
+      obj.button.disable()
+
+    # highlight button of current operation
+    (@_operationButtons.getById @_currCO.id).button.activate()
+
+    # setup workflow window
     @_title.clear()
-    # @_coWindow.show()
-    # @_coWindow.setup @_currCO
-    @_coWindow =  new HG.ChangeOperationWindow @_hgInstance, @_currCO
+    @_wWindow = new HG.WorkflowWindow @_hgInstance, @_currCO
     @_backButton = @_hgInstance.buttons.coBack
     @_nextButton = @_hgInstance.buttons.coNext
     @_abortButton = @_hgInstance.buttons.coAbort
     @_backButton.disable()
     @_nextButton.disable()
-    @_histoGraph.show()
 
+    # setup histograph for visualization of operation
+    @_hgInstance.histoGraph.show()
 
   # ============================================================================
   _cleanupOperation: () ->
-    @_histoGraph.hide()
+    @_hgInstance.histoGraph.hide()
     @_abortButton.destroy()
     @_nextButton.destroy()
     @_backButton.destroy()
-    @_coWindow.destroy()
-    # @_coWindow.cleanup()
-    # @_coWindow.hide()
+    @_wWindow.destroy()
     @_title.set "EDIT MODE"
-    @_editButtons.deactivate @_currCO.id
-    @_editButtons.enable()
-    @_editModeButton.enable()
+    (@_operationButtons.getById @_currCO.id).button.deactivate()
+    @_newHiventButton.enable()
+    @_operationButtons.foreach (obj) =>
+      obj.button.enable()
+    @_editButton.enable()
 
 
-  ### STEP ###
+  ## (3) STEP ###
 
   # ============================================================================
   _setupStep: () ->
@@ -222,17 +281,17 @@ class HG.EditMode
         # update step information
         @_currStep.reqNum = @_getRequiredNum @_currStep.num
         selectedAreas = new HG.ObjectArray
-        selectedAreas.push @_areasOnMap.getActiveArea() if @_areasOnMap.getActiveArea()?
+        selectedAreas.push @_hgInstance.areasOnMap.getActiveArea() if @_hgInstance.areasOnMap.getActiveArea()?
 
         # setup UI
-        @_areasOnMap.enableMultipleSelection @_currStep.reqNum.max
+        @_hgInstance.areasOnMap.enableMultipleSelection @_currStep.reqNum.max
 
         ### ACTION ###
 
         # listen to area selection from AreasOnMap
-        @_areasOnMap.onSelectArea @, (area) =>
+        @_hgInstance.areasOnMap.onSelectArea @, (area) =>
           selectedAreas.push area
-          @_histoGraph.addToSelection area
+          @_hgInstance.histoGraph.addToSelection area
 
           # check if step is completed
           if selectedAreas.length() >= @_currStep.reqNum.min
@@ -240,9 +299,9 @@ class HG.EditMode
             @_nextButton.enable()
 
         # listen to area deselection from AreasOnMap
-        @_areasOnMap.onDeselectArea @, (area) =>
+        @_hgInstance.areasOnMap.onDeselectArea @, (area) =>
           selectedAreas.remove '_id', area._id
-          @_histoGraph.removeFromSelection area
+          @_hgInstance.histoGraph.removeFromSelection area
 
           # check if step is not completed anymore
           if selectedAreas.length() < @_currStep.reqNum.min
@@ -389,7 +448,7 @@ class HG.EditMode
 
       when 'SEL_OLD' then (
           #TODO: deselect active areas
-          @_areasOnMap.disableMultipleSelection()
+          @_hgInstance.areasOnMap.disableMultipleSelection()
         )
 
       when 'SET_GEOM' then (
