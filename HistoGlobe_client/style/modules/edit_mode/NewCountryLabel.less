@@ -1,20 +1,26 @@
 #new-name-wrapper
 {
+  display: inline-block;
   position: absolute;
   left: 20%;
   top: 50%;
-  width: 220px;
-  height: 25px;
+  margin: 0;
+  padding: 0 @border_radius;
+  border: 0;
+  border-radius: @border_radius;
+  background: @color_bg_light;
 }
 
 #new-name-input
 {
   display: block;
   position: relative;
-  height: 25px;
+  height: @input_text_height;
   width: auto;
-  border: 3px solid @color_bg_medium;
-  background: transparent;
+  border: none;
+  margin: 0;
+  padding: 0;
+  background: none;
   font-size: 1.1em;
   text-align: center;
 }
@@ -22,11 +28,6 @@
 #newNameOK
 {
   position: absolute;
-  right: -15px;
-  bottom: -12px;
-}
-
-.draggable
-{
-
+  right: -(@button_diameter+@element_window_distance);
+  bottom: -(@input_text_height/2);
 }
