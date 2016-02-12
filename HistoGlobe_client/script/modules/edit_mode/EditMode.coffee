@@ -1,6 +1,6 @@
 window.HG ?= {}
 
-TEST_BUTTON = true    # DEBUG: take out if not needed anymore
+TEST_BUTTON = no    # DEBUG: take out if not needed anymore
 
 class HG.EditMode
 
@@ -51,9 +51,11 @@ class HG.EditMode
       $(testButton.get()).css 'position', 'absolute'
       $(testButton.get()).css 'bottom', '0'
       $(testButton.get()).css 'right', '0'
+      $(testButton.get()).css 'z-index', 100
       @_hgInstance._top_area.appendChild testButton.get()
-
-      @_hgInstance.buttons.test.onClick @, () =>
+      @_testButton = @_hgInstance.buttons.test
+      @_testButton.onClick @, () =>
+        console.log '============================================================'
         console.log "center   ", @_map.getCenter()
         console.log "zoom     ", @_map.getZoom()
         console.log "bounds   ", '[', @_map.getBounds()._northEast.lat, ',', @_map.getBounds()._northEast.lng, '], [', @_map.getBounds()._southWest.lat, ',', @_map.getBounds()._southWest.lng, ']'
@@ -466,28 +468,59 @@ class HG.EditMode
         # setup UI
         # for each required country, set up text input that has to be filled interactively
 
-        wrapper = new HG.Div 'new-name-wrapper', []
-        @_hgInstance._top_area.appendChild wrapper.dom()
-        input = new HG.TextInput @_hgInstance, 'new-name-input', []
-        wrapper.append input
+        @_newName = new HG.Div 'new-name-wrapper', ['draggable']
+        @_hgInstance._top_area.appendChild @_newName.dom()
+        input = new HG.TextInput @_hgInstance, 'new-name-input', null
+        input.j().attr 'size', 1 # starts with minimum size of 1
+        @_newName.append input
         okButton = new HG.Button @_hgInstance, 'newNameOK', ['confirm-button'], [
           {
             'iconFA':   'check'
           }
         ]
-        wrapper.dom().appendChild okButton.get()
+        @_newName.dom().appendChild okButton.get()
+
+        # make inout field draggable
+        # this code snippet does MAGIC !!!
+        # credits to: A. Wolff
+        # http://stackoverflow.com/questions/22814073/how-to-make-an-input-field-draggable
+        # http://jsfiddle.net/9SPvQ/2/
+        $('.draggable').draggable start: (event, ui) ->
+          $(this).data 'preventBehaviour', true
+        $('.draggable :input').on('mousedown', (e) ->
+          mdown = document.createEvent('MouseEvents')
+          mdown.initMouseEvent 'mousedown', true, true, window, 0, e.screenX, e.screenY, e.clientX,   e.clientY, true, false, false, true, 0, null
+          $(this).closest('.draggable')[0].dispatchEvent mdown
+          return
+        ).on 'click', (e) ->
+          $draggable = $(this).closest('.draggable')
+          if $draggable.data('preventBehaviour')
+            e.preventDefault()
+            $draggable.data 'preventBehaviour', false
+          return
 
         # resize textinput on almost anything you want ...
-        input.j().on 'keyup keydown mousedown each', (e) ->
-          $(@).attr 'size', $(@).val().length
-
-        # TODO
-        # make inout field draggable
-        wrapper.j().draggable()
-        input.j().draggable()
+        input.j().on 'keydown keydown click each', (e) ->
+          width = Math.max 1, ($(this).val().length)*1.2  # makes sure width is at least 1
+          # TODO: 1) set actual width, independent from font-size
+          #       2) animate to the new width -> works not with 'size' but only with 'width' (size is not a CSS property)
+          # width = Math.max 1, this.clientWidth
+          $(this).attr 'size', width
 
         # transform to leaflet coordinates
-        # resize nicely
+        okButton.onClick @, () =>
+          # get center coordinates
+          input = $('#new-name-input')
+          offset = input.offset()
+          width = input.width()
+          height = input.height()
+          center = L.point offset.left + width / 2, offset.top + height / 2
+          # center = L.point offset.top + height / 2, offset.left + width / 2
+          console.log 'name      :', input.val()
+          console.log 'pos (gps) :', @_map.containerPointToLatLng center
+
+        # TODO
+        # update position on zoom / pan of the map
         # style nicely
 
 

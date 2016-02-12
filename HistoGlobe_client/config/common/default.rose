@@ -6,6 +6,7 @@
 
 $primary_font_face                  = sans-serif
 $secondary_font_face                = sans-serif
+$input_text_height                  = 25px;
 
 $color_white                        = rgb(255,255,255)
 $color_bg_light                     = rgb(222,222,222)
@@ -17,6 +18,7 @@ $color_bg_hc                        = rgb(19,31,41)
 
 $color_highlight                    = rgb(213,201,0)
 $color_active                       = rgb(213,125,0)
+$color_active_semitransparent       = rgba(213,125,0,0.4)
 $color_disabled                     = rgb(222,222,222)
 $color_disabled_active              = rgb(140,140,140)
 
@@ -27,6 +29,9 @@ $border_radius                      = 15px
 
 
 // GENERAL UI -----------------------------------------------------
+
+
+
 
 $logo_height                        = 43px
 $logo_width                         = 100px
