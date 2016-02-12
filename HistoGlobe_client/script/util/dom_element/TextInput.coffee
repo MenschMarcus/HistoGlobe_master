@@ -1,14 +1,14 @@
 window.HG ?= {}
 
 # ============================================================================
-# <input type='number' name='id'>
+# <input type='text' name='id'>
 
-class HG.NumberInput extends HG.DOMElement
+class HG.TextInput extends HG.DOMElement
 
   # ============================================================================
   constructor: (@_hgInstance, id=null, classes=[]) ->
 
-    console.error "Please enter an id for the number input field, it is required" unless id?
+    console.error "Please enter an id for the text input field, it is required" unless id?
 
     # add to HG instance
     @_hgInstance.inputs = {} unless @_hgInstance.inputs?
@@ -21,7 +21,7 @@ class HG.NumberInput extends HG.DOMElement
     @addCallback 'onChange'
 
     # construct object of subclass with superclass
-    super 'input', id, classes, [['type', 'number'], ['name', id]]
+    super 'input', id, classes, [['type', 'text'], ['name', id]]
 
     # change
     $(@_elem).on 'keyup mouseup', (e) =>
