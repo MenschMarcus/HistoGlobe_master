@@ -38,6 +38,11 @@ class HG.EditMode
     # add to HG instance
     @_hgInstance.editController = @   # N.B. edit mode = edit controller :)
 
+    # init variables for convenience ;)
+    @_histoGraph = @_hgInstance.histoGraph
+    @_map = @_hgInstance.map._map
+    @_areasOnMap = @_hgInstance.areasOnMap
+
     # init everything
     $.getJSON(@_config.changeOperationsPath, (ops) =>
 
@@ -94,10 +99,16 @@ class HG.EditMode
             @_setupOperation()
 
             ## (3) STEP ##
-            # update current step in workflow
-            @_currStep = @_currCO.steps[@_currCO.stepIdx]
 
-            @_setupStep()
+            # 1. step comes automatically, without need to click on a button
+            while true
+
+              # update current step in workflow
+              @_currStep = @_currCO.steps[@_currCO.stepIdx]
+
+              @_setupStep()
+
+              break
 
 
             # listen to click on next button
@@ -240,11 +251,11 @@ class HG.EditMode
     @_nextButton.disable()
 
     # setup histograph for visualization of operation
-    @_hgInstance.histoGraph.show()
+    @_histoGraph.show()
 
   # ============================================================================
   _cleanupOperation: () ->
-    @_hgInstance.histoGraph.hide()
+    @_histoGraph.hide()
     @_abortButton.destroy()
     @_nextButton.destroy()
     @_backButton.destroy()
@@ -281,17 +292,17 @@ class HG.EditMode
         # update step information
         @_currStep.reqNum = @_getRequiredNum @_currStep.num
         selectedAreas = new HG.ObjectArray
-        selectedAreas.push @_hgInstance.areasOnMap.getActiveArea() if @_hgInstance.areasOnMap.getActiveArea()?
+        selectedAreas.push @_areasOnMap.getActiveArea() if @_areasOnMap.getActiveArea()?
 
         # setup UI
-        @_hgInstance.areasOnMap.enableMultipleSelection @_currStep.reqNum.max
+        @_areasOnMap.enableMultipleSelection @_currStep.reqNum.max
 
         ### ACTION ###
 
         # listen to area selection from AreasOnMap
-        @_hgInstance.areasOnMap.onSelectArea @, (area) =>
+        @_areasOnMap.onSelectArea @, (area) =>
           selectedAreas.push area
-          @_hgInstance.histoGraph.addToSelection area
+          @_histoGraph.addToSelection area
 
           # check if step is completed
           if selectedAreas.length() >= @_currStep.reqNum.min
@@ -299,9 +310,9 @@ class HG.EditMode
             @_nextButton.enable()
 
         # listen to area deselection from AreasOnMap
-        @_hgInstance.areasOnMap.onDeselectArea @, (area) =>
+        @_areasOnMap.onDeselectArea @, (area) =>
           selectedAreas.remove '_id', area._id
-          @_hgInstance.histoGraph.removeFromSelection area
+          @_histoGraph.removeFromSelection area
 
           # check if step is not completed anymore
           if selectedAreas.length() < @_currStep.reqNum.min
@@ -320,9 +331,8 @@ class HG.EditMode
 
         # init draw functionality on the map -> using leaflet.draw
         # TODO: get this to work
-        map = @_hgInstance.map._map
         items = new L.FeatureGroup()
-        map.addLayer items
+        @_map.addLayer items
 
         # draw control
         # TODO: replace by own territory tools at some point
@@ -331,10 +341,10 @@ class HG.EditMode
             featureGroup: items
           }
         }
-        map.addLayer drawControl
+        @_map.addLayer drawControl
 
         # functionality
-        map.on 'draw:created', (e) ->
+        @_map.on 'draw:created', (e) ->
           type = e.layerType
           layer = e.layer
           if type is 'marker'
@@ -343,10 +353,10 @@ class HG.EditMode
             # Do whatever else you need to. (save to db, add to map etc)
           drawnItems.addLayer layer
 
-        map.on 'draw:edited', ->
+        @_map.on 'draw:edited', ->
           #TODO "update db to save latest changes"
 
-        map.on 'draw:deleted', ->
+        @_map.on 'draw:deleted', ->
           #TODO "update db to save latest changes"
 
 
@@ -415,9 +425,16 @@ class HG.EditMode
         # update step information
         @_currStep.reqNum = @_getRequiredNum @_currStep.num
 
+        console.log @_currStep.reqNum.min, @_currStep.reqNum.max, @_currStep
+
         # setup UI
-        # TODO: take out
-        @_nextButton.enable()
+        # for each required country, set up text input that has to be filled interactively
+
+        initPos = [-37.7772, 175.2606]
+        label = new HG.NewCountryLabel @_hgInstance, initPos
+
+
+
 
         ### ACTION ###
         @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.totalSteps-1
@@ -448,7 +465,7 @@ class HG.EditMode
 
       when 'SEL_OLD' then (
           #TODO: deselect active areas
-          @_hgInstance.areasOnMap.disableMultipleSelection()
+          @_areasOnMap.disableMultipleSelection()
         )
 
       when 'SET_GEOM' then (
