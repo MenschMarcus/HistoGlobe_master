@@ -1,5 +1,7 @@
 window.HG ?= {}
 
+TEST_BUTTON = true    # DEBUG: take out if not needed anymore
+
 class HG.EditMode
 
   # ==============================================================================
@@ -42,6 +44,25 @@ class HG.EditMode
     @_histoGraph = @_hgInstance.histoGraph
     @_map = @_hgInstance.map._map
     @_areasOnMap = @_hgInstance.areasOnMap
+
+
+    if TEST_BUTTON
+      testButton = new HG.Button @_hgInstance, 'test', null, [{'iconFA': 'question','callback': 'onClick'}]
+      $(testButton.get()).css 'position', 'absolute'
+      $(testButton.get()).css 'bottom', '0'
+      $(testButton.get()).css 'right', '0'
+      @_hgInstance._top_area.appendChild testButton.get()
+
+      @_hgInstance.buttons.test.onClick @, () =>
+        console.log "center   ", @_map.getCenter()
+        console.log "zoom     ", @_map.getZoom()
+        console.log "bounds   ", '[', @_map.getBounds()._northEast.lat, ',', @_map.getBounds()._northEast.lng, '], [', @_map.getBounds()._southWest.lat, ',', @_map.getBounds()._southWest.lng, ']'
+        console.log "map size ", @_map.getSize()
+        console.log "px bounds", '[', @_map.getPixelBounds().min.x, ',', @_map.getPixelBounds().min.y, '], [', @_map.getPixelBounds().max.x, ',', @_map.getPixelBounds().max.y, ']'
+        console.log "px orig  ", @_map.getPixelOrigin()
+        console.log '============================================================'
+
+
 
     # init everything
     $.getJSON(@_config.changeOperationsPath, (ops) =>
@@ -425,14 +446,49 @@ class HG.EditMode
         # update step information
         @_currStep.reqNum = @_getRequiredNum @_currStep.num
 
-        console.log @_currStep.reqNum.min, @_currStep.reqNum.max, @_currStep
+        ## PROBLEM:
+        # I need a text field with the following three characterstics:
+        # 1. it needs to be in the coordinate system of the world
+        # 2. it needs to be draggable
+        # 3. its text needs to be editable
+
+        ## POSSIBLE SOLUTIONS:
+        # A) use Leaflet element
+        #   (+) in coordinate system
+        #   (-) no element is both draggable and editable
+        # => not possible without reimplementation of leaflet features!
+        # B) use HTML text input in the view point
+        #   (+) draggable and editable
+        #   (-) not in coordinate system
+        #   (-) position does not update on zoom / pan of the map
+        # => possible, but hard...
 
         # setup UI
         # for each required country, set up text input that has to be filled interactively
 
-        initPos = [-37.7772, 175.2606]
-        label = new HG.NewCountryLabel @_hgInstance, initPos
+        wrapper = new HG.Div 'new-name-wrapper', []
+        @_hgInstance._top_area.appendChild wrapper.dom()
+        input = new HG.TextInput @_hgInstance, 'new-name-input', []
+        wrapper.append input
+        okButton = new HG.Button @_hgInstance, 'newNameOK', ['confirm-button'], [
+          {
+            'iconFA':   'check'
+          }
+        ]
+        wrapper.dom().appendChild okButton.get()
 
+        # resize textinput on almost anything you want ...
+        input.j().on 'keyup keydown mousedown each', (e) ->
+          $(@).attr 'size', $(@).val().length
+
+        # TODO
+        # make inout field draggable
+        wrapper.j().draggable()
+        input.j().draggable()
+
+        # transform to leaflet coordinates
+        # resize nicely
+        # style nicely
 
 
 
