@@ -90,14 +90,14 @@ class HG.TerritoryTools
     snapToPointsSwitch = new HG.Switch @_hgInstance, 'snapToPoints', ['tt-snap-option-switch']
     snapToPointsWrapper.append snapToPointsSwitch
     snapToPointsText = new HG.Div null, ['tt-snap-option-text']
-    snapToPointsText.j().html "snap to <br/>border points"
+    snapToPointsText.j().html "snap to <br/>points"
     snapToPointsWrapper.append snapToPointsText
 
     # snap to lines
     snapToLinesSwitch = new HG.Switch @_hgInstance, 'snapToLines', ['tt-snap-option-switch']
     snapToLinesWrapper.append snapToLinesSwitch
     snapToLinesText = new HG.Div null, ['tt-snap-option-text']
-    snapToLinesText.j().html "snap to <br/>border lines"
+    snapToLinesText.j().html "snap to <br/>lines"
     snapToLinesWrapper.append snapToLinesText
 
     # snap tolerance
@@ -109,7 +109,7 @@ class HG.TerritoryTools
     snapToleranceInput.dom().setAttribute 'max', 10.0
     snapToleranceWrapper.append snapToleranceInput
     snapToleranceText = new HG.Div null, ['tt-snap-option-text']
-    snapToleranceText.j().html "snap <br/>tolerance [px]"
+    snapToleranceText.j().html "snap <br/>tolerance"
     snapToleranceWrapper.append snapToleranceText
 
     ## 5. line: finish buttons

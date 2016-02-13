@@ -30,9 +30,6 @@ $border_radius                      = 15px
 
 // GENERAL UI -----------------------------------------------------
 
-
-
-
 $logo_height                        = 43px
 $logo_width                         = 100px
 $element_window_distance            = 15px
@@ -76,7 +73,7 @@ $operation_step_width               = 175px
 
 // TERRITORY TOOLS WINDOW ------------------------------------------
 
-$territory_tools_width              = 250px
+$territory_tools_width              = 200px
 $territory_tools_border_width       = 2px
 
 
