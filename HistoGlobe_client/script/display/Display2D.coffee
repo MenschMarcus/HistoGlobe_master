@@ -140,6 +140,7 @@ class HG.Display2D extends HG.Display
     tileLayer = L.tileLayer(@_hgInstance._config.tiles + '/{z}/{x}/{y}.png')
     tileLayer.addTo @_map
 
+
     @_hgInstance.onAllModulesLoaded @, () =>
       if @_hgInstance.buttons.zoomIn?
         @_hgInstance.buttons.zoomIn.onClick @, () =>

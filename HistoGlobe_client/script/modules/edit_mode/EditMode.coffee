@@ -470,9 +470,9 @@ class HG.EditMode
 
         @_newName = new HG.Div 'new-name-wrapper', ['draggable']
         @_hgInstance._top_area.appendChild @_newName.dom()
-        input = new HG.TextInput @_hgInstance, 'new-name-input', null
-        input.j().attr 'size', 1 # starts with minimum size of 1
-        @_newName.append input
+        @_newNameInput = new HG.TextInput @_hgInstance, 'new-name-input', null
+        @_newNameInput.j().attr 'size', 1 # starts with minimum size of 1
+        @_newName.append @_newNameInput
         okButton = new HG.Button @_hgInstance, 'newNameOK', ['confirm-button'], [
           {
             'iconFA':   'check'
@@ -500,7 +500,7 @@ class HG.EditMode
           return
 
         # resize textinput on almost anything you want ...
-        input.j().on 'keydown keydown click each', (e) ->
+        @_newNameInput.j().on 'keydown keydown click each', (e) ->
           width = Math.max 1, ($(this).val().length)*1.2  # makes sure width is at least 1
           # TODO: 1) set actual width, independent from font-size
           #       2) animate to the new width -> works not with 'size' but only with 'width' (size is not a CSS property)
@@ -510,20 +510,60 @@ class HG.EditMode
         # transform to leaflet coordinates
         okButton.onClick @, () =>
           # get center coordinates
-          input = $('#new-name-input')
-          offset = input.offset()
-          width = input.width()
-          height = input.height()
+          offset = @_newNameInput.j().offset()
+          width = @_newNameInput.j().width()
+          height = @_newNameInput.j().height()
           center = L.point offset.left + width / 2, offset.top + height / 2
-          # center = L.point offset.top + height / 2, offset.left + width / 2
-          console.log 'name      :', input.val()
+          console.log 'name      :', @_newNameInput.j().val()
           console.log 'pos (gps) :', @_map.containerPointToLatLng center
 
         # TODO
-        # update position on zoom / pan of the map
+        # update position on zoom
+        # math: scaling
+        # @_map.on 'zoomend', (e) =>
+        #   zoomCenter = @_map.latLngToContainerPoint e.target._initialCenter
+        #   zoomFactor = @_map.getScaleZoom()
+        #   windowCenterStart = @_inputCenter
+
+        #   windowCenterEnd = L.point(
+        #     zoomCenter.x - ((zoomCenter.x - windowCenterStart.x) / zoomFactor),
+        #     zoomCenter.y - ((zoomCenter.y - windowCenterStart.y) / zoomFactor)
+        #   )
+
+        #   console.log e
+        #   console.log zoomCenter
+        #   console.log zoomFactor
+        #   console.log windowCenterStart
+        #   console.log windowCenterEnd
+
+
+        # update position on drag
+        # WHY DOES THAT NOT WORK ???
+        @_viewCenter = @_map.getCenter()
+        @_map.on 'drag', (e) =>
+          # get movement of center of the map
+          mapOld = @_viewCenter
+          mapNew = @_map.getCenter()
+          ctrOld = @_map.latLngToContainerPoint mapOld
+          ctrNew = @_map.latLngToContainerPoint mapNew
+          ctrDist = [
+            (ctrNew.x - ctrOld.x),
+            (ctrNew.y - ctrOld.y)
+          ]
+          # project movement to wrapper
+          inputOld = @_newName.j().position()
+          inputNew = L.point(
+            inputOld.left + ctrDist[0], # x
+            inputOld.top + ctrDist[1]  # y
+          )
+          @_newName.j().css 'left', inputNew[0]
+          @_newName.j().css 'top', inputNew[1]
+          # refresh
+          @_viewCenter = mapNew
+
+
+
         # style nicely
-
-
 
         ### ACTION ###
         @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.totalSteps-1
