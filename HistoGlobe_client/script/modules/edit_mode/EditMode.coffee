@@ -539,6 +539,7 @@ class HG.EditMode
 
         # update position on drag
         # WHY DOES THAT NOT WORK ???
+
         @_viewCenter = @_map.getCenter()
         @_map.on 'drag', (e) =>
           # get movement of center of the map
@@ -551,13 +552,13 @@ class HG.EditMode
             (ctrNew.y - ctrOld.y)
           ]
           # project movement to wrapper
-          inputOld = @_newName.j().position()
+          inputOld = @_newName.j()
           inputNew = L.point(
-            inputOld.left + ctrDist[0], # x
-            inputOld.top + ctrDist[1]  # y
+            (inputOld.position().left) - ctrDist[0], # x
+            (inputOld.position().top) - ctrDist[1]  # y
           )
-          @_newName.j().css 'left', inputNew[0]
-          @_newName.j().css 'top', inputNew[1]
+          @_newName.j().css 'left', inputNew.x
+          @_newName.j().css 'top', inputNew.y
           # refresh
           @_viewCenter = mapNew
 
