@@ -385,7 +385,7 @@ class HG.EditMode
 
 
         # setup UI
-        @_tt = new HG.TerritoryTools @_hgInstance, @_config.iconPath
+        @_terrTools = new HG.TerritoryTools @_hgInstance, @_config.iconPath
         newTerrButton = @_hgInstance.buttons.newTerritory
         reuseTerrButton = @_hgInstance.buttons.reuseTerritory
         importTerrButton = @_hgInstance.buttons.importTerritory
@@ -402,17 +402,17 @@ class HG.EditMode
 
         newTerrButton.onClick @, () =>
           # TODO: init new territory on the map
-          @_tt.addToList 'new territory # ' + terrCtr
+          @_terrTools.addToList 'new territory # ' + terrCtr
           terrCtr++
 
         reuseTerrButton.onClick @, () =>
           # TODO: reuse territory
-          @_tt.addToList 'reused territory # ' + terrCtr
+          @_terrTools.addToList 'reused territory # ' + terrCtr
           terrCtr++
 
         importTerrButton.onClick @, () =>
           # TODO: import new territory from file
-          @_tt.addToList 'imported territory # ' + terrCtr
+          @_terrTools.addToList 'imported territory # ' + terrCtr
           terrCtr++
 
         snapToPointsSwitch.onSwitchOn @, () =>
@@ -488,7 +488,7 @@ class HG.EditMode
         )
 
       when 'SET_GEOM' then (
-          @_tt.destroy()
+          @_terrTools.destroy()
         )
 
       when 'SET_NAME' then (

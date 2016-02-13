@@ -3,7 +3,7 @@
   display: inline-block;
   position: absolute;
   margin: 0;
-  padding: 0 @border_radius;
+  padding: 0;
   border: 0;
   border-radius: @border_radius;
   background: @color_bg_light;
@@ -21,6 +21,10 @@
   background: none;
   font-size: 1.1em;
   text-align: center;
+}
+#new-name-wrapper:focus, #new-name-input:focus
+{ /* prevent outline on active input element */
+  outline: none;
 }
 
 #newNameOK

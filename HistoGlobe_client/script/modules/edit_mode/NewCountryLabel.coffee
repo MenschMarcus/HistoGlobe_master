@@ -127,7 +127,7 @@ class HG.NewCountryLabel
 
   _enableAutoResize: (e) =>
     #       ensures width >= 1                magic factor to scale width with increasing size
-    width = Math.max 1, (@_inputField.j().val().length)*1.2
+    width = Math.max 1, (@_inputField.j().val().length)*1.15
     @_inputField.j().attr 'size', width
     # TODO: set actual width, independent from font-size
     # TODO: animate to the new width -> works not with 'size' but only with 'width' (size is not a CSS property)
