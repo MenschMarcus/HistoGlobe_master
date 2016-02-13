@@ -66,8 +66,7 @@ class HG.NewCountryLabel
 
     # seamless interaction
     @_makeDraggable()
-    @_inputField.j().on 'keydown keydown click each', (e) =>
-      @_enableAutoResize e
+    @_inputField.j().on 'keydown keydown click each', @_enableAutoResize
     @_map.on 'drag',    @_respondToMapDrag
     @_map.on 'zoomend', @_respondToMapZoom
 
@@ -126,7 +125,7 @@ class HG.NewCountryLabel
         @_wrapper.j().data 'preventBehaviour', false
       return # for some reason this has to be there ?!?
 
-  _enableAutoResize: (e) ->
+  _enableAutoResize: (e) =>
     #       ensures width >= 1                magic factor to scale width with increasing size
     width = Math.max 1, (@_inputField.j().val().length)*1.2
     @_inputField.j().attr 'size', width
@@ -154,9 +153,9 @@ class HG.NewCountryLabel
     @_wrapper.j().css 'top', inputNew.y
     # refresh
     @_viewCenter = mapNew
-    console.log 'MÖÖÖP'
 
   _respondToMapZoom: (e) =>
+    @_viewCenter = @_map.getCenter() # to prevent jumping label on drag after zoom
     # TODO: get to work
     # zoomCenter = @_map.latLngToContainerPoint e.target._initialCenter
     # zoomFactor = @_map.getScaleZoom()
