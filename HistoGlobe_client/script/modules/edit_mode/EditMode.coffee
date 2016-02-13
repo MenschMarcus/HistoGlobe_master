@@ -450,9 +450,10 @@ class HG.EditMode
         @_currStep.reqNum = @_getRequiredNum @_currStep.num
 
         # for each required country, set up text input that has to be filled interactively
-        ctrLabel = new HG.NewCountryLabel @_hgInstance, [500, 200]
-        ctrLabel.onSubmitName @, (name) => console.log name
-        ctrLabel.onSubmitPos @, (pos) => console.log pos
+        # TODO: handle number of countries + interaction with database
+        @_ctrLabel = new HG.NewCountryLabel @_hgInstance, [500, 200]
+        @_ctrLabel.onSubmitName @, (name) => console.log name
+        @_ctrLabel.onSubmitPos @, (pos) => console.log pos
 
         ### ACTION ###
         @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.totalSteps-1
@@ -490,7 +491,9 @@ class HG.EditMode
           @_tt.destroy()
         )
 
-      when 'SET_NAME' then
+      when 'SET_NAME' then (
+          @_ctrLabel.destroy()
+        )
 
       when 'ADD_CHNG' then
 
