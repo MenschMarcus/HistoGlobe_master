@@ -77,7 +77,7 @@
 
 .tt-snap-option-input
 {
-  width: 55px;
+  width: 48px;
   text-align: right;
   padding-right: 3px;
   border-radius: 10px;
@@ -87,6 +87,10 @@
   font-size: 0.8em;
   line-height: 12px;
   padding-top: 5px;
+}
+.tt-snap-option-input:focus, .tt-snap-option-text:focus
+{ /* prevent outline on active input element */
+  outline: none;
 }
 
 #tt-finish-buttons
