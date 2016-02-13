@@ -68,8 +68,8 @@ class HG.NewCountryLabel
     @_makeDraggable()
     @_inputField.j().on 'keydown keydown click each', (e) =>
       @_enableAutoResize e
-    @_map.on 'drag', (e) =>     @_respondToMapDrag e
-    @_map.on 'zoomend', (e) =>  @_respondToMapZoom e
+    @_map.on 'drag',    @_respondToMapDrag
+    @_map.on 'zoomend', @_respondToMapZoom
 
     # type name => change name
     @_inputField.j().on 'keyup mouseup', (e) =>
@@ -90,8 +90,8 @@ class HG.NewCountryLabel
   # ============================================================================
   destroy: () ->
     # detach event handlers from map
-    @_map.off 'zoomend', (e) => @_respondToMapZoom e
-    @_map.off 'drag', (e) =>    @_respondToMapDrag e
+    @_map.off 'zoomend', @_respondToMapZoom
+    @_map.off 'drag',    @_respondToMapDrag
     # remove UI elements + their interaction
     @_okButton.remove()
     @_inputField.remove()
@@ -133,7 +133,7 @@ class HG.NewCountryLabel
     # TODO: set actual width, independent from font-size
     # TODO: animate to the new width -> works not with 'size' but only with 'width' (size is not a CSS property)
 
-  _respondToMapDrag: (e) ->
+  _respondToMapDrag: (e) =>
     # this is probably more complicated than necessary - but it works :)
     # get movement of center of the map (as reference)
     mapOld = @_viewCenter
@@ -154,8 +154,9 @@ class HG.NewCountryLabel
     @_wrapper.j().css 'top', inputNew.y
     # refresh
     @_viewCenter = mapNew
+    console.log 'MÖÖÖP'
 
-  _respondToMapZoom: (e) ->
+  _respondToMapZoom: (e) =>
     # TODO: get to work
     # zoomCenter = @_map.latLngToContainerPoint e.target._initialCenter
     # zoomFactor = @_map.getScaleZoom()
