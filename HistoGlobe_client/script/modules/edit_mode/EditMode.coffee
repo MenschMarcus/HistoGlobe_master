@@ -194,6 +194,7 @@ class HG.EditMode
         @_cleanupEditMode()
     )
 
+
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
@@ -448,123 +449,10 @@ class HG.EditMode
         # update step information
         @_currStep.reqNum = @_getRequiredNum @_currStep.num
 
-        ## PROBLEM:
-        # I need a text field with the following three characterstics:
-        # 1. it needs to be in the coordinate system of the world
-        # 2. it needs to be draggable
-        # 3. its text needs to be editable
-
-        ## POSSIBLE SOLUTIONS:
-        # A) use Leaflet element
-        #   (+) in coordinate system
-        #   (-) no element is both draggable and editable
-        # => not possible without reimplementation of leaflet features!
-        # B) use HTML text input in the view point
-        #   (+) draggable and editable
-        #   (-) not in coordinate system
-        #   (-) position does not update on zoom / pan of the map
-        # => possible, but hard...
-
-        # setup UI
         # for each required country, set up text input that has to be filled interactively
-
-        @_newName = new HG.Div 'new-name-wrapper', ['draggable']
-        @_hgInstance._top_area.appendChild @_newName.dom()
-        @_newNameInput = new HG.TextInput @_hgInstance, 'new-name-input', null
-        @_newNameInput.j().attr 'size', 1 # starts with minimum size of 1
-        @_newName.append @_newNameInput
-        okButton = new HG.Button @_hgInstance, 'newNameOK', ['confirm-button'], [
-          {
-            'iconFA':   'check'
-          }
-        ]
-        @_newName.dom().appendChild okButton.get()
-
-        # make inout field draggable
-        # this code snippet does MAGIC !!!
-        # credits to: A. Wolff
-        # http://stackoverflow.com/questions/22814073/how-to-make-an-input-field-draggable
-        # http://jsfiddle.net/9SPvQ/2/
-        $('.draggable').draggable start: (event, ui) ->
-          $(this).data 'preventBehaviour', true
-        $('.draggable :input').on('mousedown', (e) ->
-          mdown = document.createEvent('MouseEvents')
-          mdown.initMouseEvent 'mousedown', true, true, window, 0, e.screenX, e.screenY, e.clientX,   e.clientY, true, false, false, true, 0, null
-          $(this).closest('.draggable')[0].dispatchEvent mdown
-          return
-        ).on 'click', (e) ->
-          $draggable = $(this).closest('.draggable')
-          if $draggable.data('preventBehaviour')
-            e.preventDefault()
-            $draggable.data 'preventBehaviour', false
-          return
-
-        # resize textinput on almost anything you want ...
-        @_newNameInput.j().on 'keydown keydown click each', (e) ->
-          width = Math.max 1, ($(this).val().length)*1.2  # makes sure width is at least 1
-          # TODO: 1) set actual width, independent from font-size
-          #       2) animate to the new width -> works not with 'size' but only with 'width' (size is not a CSS property)
-          # width = Math.max 1, this.clientWidth
-          $(this).attr 'size', width
-
-        # transform to leaflet coordinates
-        okButton.onClick @, () =>
-          # get center coordinates
-          offset = @_newNameInput.j().offset()
-          width = @_newNameInput.j().width()
-          height = @_newNameInput.j().height()
-          center = L.point offset.left + width / 2, offset.top + height / 2
-          console.log 'name      :', @_newNameInput.j().val()
-          console.log 'pos (gps) :', @_map.containerPointToLatLng center
-
-        # TODO
-        # update position on zoom
-        # math: scaling
-        # @_map.on 'zoomend', (e) =>
-        #   zoomCenter = @_map.latLngToContainerPoint e.target._initialCenter
-        #   zoomFactor = @_map.getScaleZoom()
-        #   windowCenterStart = @_inputCenter
-
-        #   windowCenterEnd = L.point(
-        #     zoomCenter.x - ((zoomCenter.x - windowCenterStart.x) / zoomFactor),
-        #     zoomCenter.y - ((zoomCenter.y - windowCenterStart.y) / zoomFactor)
-        #   )
-
-        #   console.log e
-        #   console.log zoomCenter
-        #   console.log zoomFactor
-        #   console.log windowCenterStart
-        #   console.log windowCenterEnd
-
-
-        # update position on drag
-        # WHY DOES THAT NOT WORK ???
-
-        @_viewCenter = @_map.getCenter()
-        @_map.on 'drag', (e) =>
-          # get movement of center of the map
-          mapOld = @_viewCenter
-          mapNew = @_map.getCenter()
-          ctrOld = @_map.latLngToContainerPoint mapOld
-          ctrNew = @_map.latLngToContainerPoint mapNew
-          ctrDist = [
-            (ctrNew.x - ctrOld.x),
-            (ctrNew.y - ctrOld.y)
-          ]
-          # project movement to wrapper
-          inputOld = @_newName.j()
-          inputNew = L.point(
-            (inputOld.position().left) - ctrDist[0], # x
-            (inputOld.position().top) - ctrDist[1]  # y
-          )
-          @_newName.j().css 'left', inputNew.x
-          @_newName.j().css 'top', inputNew.y
-          # refresh
-          @_viewCenter = mapNew
-
-
-
-        # style nicely
+        ctrLabel = new HG.NewCountryLabel @_hgInstance, [500, 200]
+        ctrLabel.onSubmitName @, (name) => console.log name
+        ctrLabel.onSubmitPos @, (pos) => console.log pos
 
         ### ACTION ###
         @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.totalSteps-1
