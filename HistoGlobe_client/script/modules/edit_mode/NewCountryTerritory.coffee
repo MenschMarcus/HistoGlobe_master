@@ -161,31 +161,6 @@ class HG.NewCountryTerritory
       ]), 'new-territory-finish-group'
 
 
-
-    ## styling = remove leaflet classes and append own class :P
-    # 1. level (2 divs)
-    # lev1 = $('.leaflet-draw').children()
-    # $(lev1[0]).removeClass()
-    # $(lev1[1]).removeClass()
-    # lev20 = $(lev1[0]).children()[0]
-    # lev21 = $(lev1[1]).children()[0]
-    # # 2. level (1 div)
-    # $(lev20).removeClass()
-    # $(lev21).removeClass()
-    # newPoly = $(lev20).children()[0]
-    # editPoly = $(lev21).children()[0]
-    # delPoly = $(lev21).children()[1]
-    # # 3. level (3 a) -> actual buttons
-    # $(newPoly).removeClass()
-    # $(editPoly).removeClass()
-    # $(delPoly).removeClass()
-    # $(newPoly).attr 'id', 'newTerritory'
-    # $(newPoly).addClass 'button leaflet-button'
-    # $(newPoly).attr 'id', 'edit'
-    # $(editPoly).addClass 'button leaflet-button'
-    # $(delPoly).addClass 'button leaflet-button'
-
-
     ### INTERACTION ###
 
     # handle newly added polygons
@@ -199,6 +174,7 @@ class HG.NewCountryTerritory
     @_map.off 'draw:created', @_finishTerritory
 
     # UI
+    @_buttonArea.destroy()
     @_map.removeControl @_drawControl
     delete @_drawControl
     @_map.removeLayer @_territories
