@@ -1,3 +1,5 @@
+/*** OLD CODE
+
 #tt-wrapper
 {
   position: absolute;
@@ -10,7 +12,6 @@
   color: @color_white;
 }
 
-/*all direct children of wrapper*/
 #tt-wrapper > *
 {
   width: @territory_tools_width - 2*@territory_tools_border_width;
@@ -25,23 +26,23 @@
   line-height: 1.6em;
 }
 
-.tt-button-area           /* outer div */
+.tt-button-area           /* outer div
 {
   height: @button_diameter + @element_window_distance;
-  width: 100%;            /* center !!! */
-  text-align: center;     /* center !!! */
+  width: 100%;            /* center !!!
+  text-align: center;     /* center !!!
 }
 #tt-edit-buttons-group,
-#tt-finish-buttons-group  /* inner div */
+#tt-finish-buttons-group  /* inner div
 {
   /* center !!! = this is the f**** solution for centering a div in a div:
   the div needs to get the width of its content
-  -> that is why display has to be inline-block*/
-  display: inline-block;  /* center !!! */
+  -> that is why display has to be inline-block
+  display: inline-block;  /* center !!!
   float: none;
   height: @button_diameter + @element_window_distance;
-  margin-right: auto;     /* center !!! */
-  margin-left: auto;      /* center !!! */
+  margin-right: auto;     /* center !!!
+  margin-left: auto;      /* center !!!
 }
 
 
@@ -89,7 +90,7 @@
   padding-top: 5px;
 }
 .tt-snap-option-input:focus, .tt-snap-option-text:focus
-{ /* prevent outline on active input element */
+{
   outline: none;
 }
 
@@ -97,3 +98,4 @@
 {
   margin-top: 18px;
 }
+***/

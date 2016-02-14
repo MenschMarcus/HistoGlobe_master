@@ -351,75 +351,70 @@ class HG.EditMode
 
         # update step information
         @_currStep.reqNum = @_getRequiredNum @_currStep.num
-        terrCtr = 0
 
-        ## setup controls
-        @_terrTools = new HG.TerritoryTools @_hgInstance, @_config.iconPath
-        newTerrButton =       @_hgInstance.buttons.newTerritory
-        reuseTerrButton =     @_hgInstance.buttons.reuseTerritory
-        importTerrButton =    @_hgInstance.buttons.importTerritory
-        snapToPointsSwitch =  @_hgInstance.switches.snapToPoints
-        snapToLinesSwitch =   @_hgInstance.switches.snapToLines
-        snapToleranceInput =  @_hgInstance.inputs.snapTolerance
-        clipTerrButton =      @_hgInstance.buttons.clipTerritory
-        useRestButton =       @_hgInstance.buttons.useRest
+        @_ctrTerritory = new HG.NewCountryTerritory @_hgInstance
 
-        clipTerrButton.disable()
-        useRestButton.disable()
 
-        ### ACTION ###
 
-        # TODO: setup leaflet draw to work
-        @_polygonDrawer = new L.Draw.Polygon @_map
+        # ## setup controls
+        # @_terrTools = new HG.TerritoryTools @_hgInstance, @_config.iconPath
+        # newTerrButton =       @_hgInstance.buttons.newTerritory
+        # reuseTerrButton =     @_hgInstance.buttons.reuseTerritory
+        # importTerrButton =    @_hgInstance.buttons.importTerritory
+        # snapToPointsSwitch =  @_hgInstance.switches.snapToPoints
+        # snapToLinesSwitch =   @_hgInstance.switches.snapToLines
+        # snapToleranceInput =  @_hgInstance.inputs.snapTolerance
+        # clipTerrButton =      @_hgInstance.buttons.clipTerritory
+        # useRestButton =       @_hgInstance.buttons.useRest
 
-        @_map.on 'draw:created', (e) =>
-          type = e.layerType
-          layer = e.layer
-          console.log type
-          console.log layer._latlngs
-          layer.addTo @_map
+        # clipTerrButton.disable()
+        # useRestButton.disable()
 
-        newTerrButton.onClick @, () =>
-          @_polygonDrawer.enable()
+        # ### ACTION ###
 
-          # add to list in territory tools
-          @_terrTools.addToList 'new territory # ' + terrCtr
-          terrCtr++
+        # # TODO: setup leaflet draw to work
+        # @_polygonDrawer = new L.Draw.Polygon @_map
+        # @_polygonEditor = new L.Edit.Poly
 
-        reuseTerrButton.onClick @, () =>
-          # TODO: reuse territory
+        # @_map.on 'draw:created', (e) =>
+        #   type = e.layerType
+        #   layer = e.layer
+        #   console.log e
+        #   console.log layer._latlngs
+        #   layer.addTo @_map
+        #   @_terrTools.addToList e.layer._leaflet_id
 
-          # add to list in territory tools
-          @_terrTools.addToList 'reused territory # ' + terrCtr
-          terrCtr++
+        # newTerrButton.onClick @, () =>
+        #   @_polygonDrawer.enable()
+        #   # add to list in territory tools
 
-        importTerrButton.onClick @, () =>
-          # TODO: import new territory from file
+        # reuseTerrButton.onClick @, () =>
+        #   @_polygonEditor.addHooks()
+        #   # TODO: reuse territory
 
-          # add to list in territory tools
-          @_terrTools.addToList 'imported territory # ' + terrCtr
-          terrCtr++
+        # importTerrButton.onClick @, () =>
+        #   # TODO: import new territory from file
 
-        snapToPointsSwitch.onSwitchOn @, () =>
-          # TODO: turn switch to border points on!
+        # snapToPointsSwitch.onSwitchOn @, () =>
+        #   # TODO: turn switch to border points on!
 
-        snapToPointsSwitch.onSwitchOff @, () =>
-          # TODO: turn switch to border points off!
+        # snapToPointsSwitch.onSwitchOff @, () =>
+        #   # TODO: turn switch to border points off!
 
-        snapToLinesSwitch.onSwitchOn @, () =>
-          # TODO: turn switch to border lines on!
+        # snapToLinesSwitch.onSwitchOn @, () =>
+        #   # TODO: turn switch to border lines on!
 
-        snapToLinesSwitch.onSwitchOff @, () =>
-          # TODO: turn switch to border lines off!
+        # snapToLinesSwitch.onSwitchOff @, () =>
+        #   # TODO: turn switch to border lines off!
 
-        snapToleranceInput.onChange @, (val) =>
-          # TODO: the new snap tolerance value is " + va
+        # snapToleranceInput.onChange @, (val) =>
+        #   # TODO: the new snap tolerance value is " + va
 
-        clipTerrButton.onClick @, () =>
-          # TODO: clip the drawn territory to the existing territory
+        # clipTerrButton.onClick @, () =>
+        #   # TODO: clip the drawn territory to the existing territory
 
-        useRestButton.onClick @, () =>
-          # TODO: use the remaining territory for this new country
+        # useRestButton.onClick @, () =>
+        #   # TODO: use the remaining territory for this new country
 
 
         # finish up
@@ -473,7 +468,7 @@ class HG.EditMode
         )
 
       when 'SET_GEOM' then (
-          @_terrTools.destroy()
+          @_ctrTerritory.destroy()
         )
 
       when 'SET_NAME' then (
