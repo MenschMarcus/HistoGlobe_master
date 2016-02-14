@@ -1,5 +1,6 @@
 .button
 {
+  display: block;
   padding: 4px;
   margin: 5px;
   width: @button_diameter;
@@ -11,6 +12,10 @@
   color: #fff;
   text-shadow: 0px 0px 3px rgba(0,0,0,0.3);
   cursor: pointer;
+}
+.button:hover
+{
+  color: @color_active;
 }
 
 .button-disabled, .button-disabled-active
