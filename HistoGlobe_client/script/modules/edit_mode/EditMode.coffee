@@ -353,65 +353,50 @@ class HG.EditMode
         @_currStep.reqNum = @_getRequiredNum @_currStep.num
         terrCtr = 0
 
-        # init draw functionality on the map -> using leaflet.draw
-        # TODO: get this to work
-        items = new L.FeatureGroup()
-        @_map.addLayer items
-
-        # draw control
-        # TODO: replace by own territory tools at some point
-        drawControl = new L.Control.Draw {
-          edit: {
-            featureGroup: items
-          }
-        }
-        @_map.addLayer drawControl
-
-        # functionality
-        @_map.on 'draw:created', (e) ->
-          type = e.layerType
-          layer = e.layer
-          if type is 'marker'
-            # Do marker specific actions
-          else
-            # Do whatever else you need to. (save to db, add to map etc)
-          drawnItems.addLayer layer
-
-        @_map.on 'draw:edited', ->
-          #TODO "update db to save latest changes"
-
-        @_map.on 'draw:deleted', ->
-          #TODO "update db to save latest changes"
-
-
-        # setup UI
+        ## setup controls
         @_terrTools = new HG.TerritoryTools @_hgInstance, @_config.iconPath
-        newTerrButton = @_hgInstance.buttons.newTerritory
-        reuseTerrButton = @_hgInstance.buttons.reuseTerritory
-        importTerrButton = @_hgInstance.buttons.importTerritory
-        snapToPointsSwitch = @_hgInstance.switches.snapToPoints
-        snapToLinesSwitch = @_hgInstance.switches.snapToLines
-        snapToleranceInput = @_hgInstance.inputs.snapTolerance
-        clipTerrButton = @_hgInstance.buttons.clipTerritory
-        useRestButton = @_hgInstance.buttons.useRest
+        newTerrButton =       @_hgInstance.buttons.newTerritory
+        reuseTerrButton =     @_hgInstance.buttons.reuseTerritory
+        importTerrButton =    @_hgInstance.buttons.importTerritory
+        snapToPointsSwitch =  @_hgInstance.switches.snapToPoints
+        snapToLinesSwitch =   @_hgInstance.switches.snapToLines
+        snapToleranceInput =  @_hgInstance.inputs.snapTolerance
+        clipTerrButton =      @_hgInstance.buttons.clipTerritory
+        useRestButton =       @_hgInstance.buttons.useRest
 
         clipTerrButton.disable()
         useRestButton.disable()
 
         ### ACTION ###
 
+        # TODO: setup leaflet draw to work
+        @_polygonDrawer = new L.Draw.Polygon @_map
+
+        @_map.on 'draw:created', (e) =>
+          type = e.layerType
+          layer = e.layer
+          console.log type
+          console.log layer._latlngs
+          layer.addTo @_map
+
         newTerrButton.onClick @, () =>
-          # TODO: init new territory on the map
+          @_polygonDrawer.enable()
+
+          # add to list in territory tools
           @_terrTools.addToList 'new territory # ' + terrCtr
           terrCtr++
 
         reuseTerrButton.onClick @, () =>
           # TODO: reuse territory
+
+          # add to list in territory tools
           @_terrTools.addToList 'reused territory # ' + terrCtr
           terrCtr++
 
         importTerrButton.onClick @, () =>
           # TODO: import new territory from file
+
+          # add to list in territory tools
           @_terrTools.addToList 'imported territory # ' + terrCtr
           terrCtr++
 
