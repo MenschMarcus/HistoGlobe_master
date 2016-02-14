@@ -60,8 +60,6 @@ class HG.ButtonArea
   # ============================================================================
   # add button solo: leave out groupName (null) => will be put in single unnamed group
   # add button to group: set groupName
-  # ============================================================================
-
   addButton: (button, groupName) ->
     # select group (sets group name manually if no group name)
     name = if groupName then groupName else button.get().id + '-group'
@@ -101,6 +99,9 @@ class HG.ButtonArea
       @_div.j().animate {'left': '+=' + dist}
     else if @_positionX.get() is 'right'
       @_div.j().animate {'right': '+=' + dist}
+
+  # ============================================================================
+  getDiv: () -> @_div
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #

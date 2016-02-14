@@ -38,8 +38,6 @@ class HG.ControlButtons
       'orientation':  'vertical'
     }
 
-    @_hgInstance.controlButtons = @_buttonArea
-
     # init predefined buttons
     for id, enable of @_config
       if enable
