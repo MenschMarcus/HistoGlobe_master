@@ -3,7 +3,9 @@ window.HG ?= {}
 # ==============================================================================
 # VIEW class
 # set up and handle manipulating the geometry of one area
-# approach: use only leaflet draw and style the buttons
+# approach:
+#   use only leaflet draw and style the buttons
+#   set up my own ButtonArea and move leaflet buttons in there
 # ==============================================================================
 
 class HG.NewCountryTerritory
@@ -27,6 +29,7 @@ class HG.NewCountryTerritory
     # setup variables
     @_map = @_hgInstance.map._map
     @_histoGraph = @_hgInstance.histoGraph
+    iconPath = @_hgInstance._config.graphicsPath + 'buttons/'
 
 
     ### SETUP LEAFLET DRAW ###
@@ -54,6 +57,133 @@ class HG.NewCountryTerritory
         }
       }
     @_map.addControl @_drawControl
+
+    # PROBLEM:
+    # leaflet already has buttons to control the draw action
+    # but I want them to behave just like any other HG Button
+    # SOLUTION:
+    # 1. extend the HG.DOMElement -> HG.Anchor class to also accept existing
+    # dom elements and transform then into HG.DOMElements
+    # 2. extend the HG.Button class to also accept existing HG.DOMElements as
+    # parent divs for the button
+    # -> very hacky, but elegant solution ;)
+
+    # get the three leaflet control buttons
+    # [0]: new polygon
+    # [1]: edit polygon
+    # [2]: delete polygon
+    leafletButtons = $('.leaflet-draw a')
+
+    # get the action tooltips from the control to align them to the new buttons
+    # -> this is actually really really hacky hacky hacky
+    $($('.leaflet-draw ul')[0]).attr 'id', 'leaflet-new-button-action'
+    $($('.leaflet-draw ul')[1]).attr 'id', 'leaflet-edit-button-action'
+
+
+    ## button area
+    # -> leaflet buttons to be moved in there
+
+    @_buttonArea = new HG.ButtonArea @_hgInstance, {
+      'id':           'newTerritoryButtons'
+      'positionX':    'right'
+      'positionY':    'top'
+      'orientation':  'vertical'
+    }
+
+    @_buttonArea.addButton new HG.Button(@_hgInstance, 'newTerritory', null, [
+          {
+            'id':             'normal'
+            'tooltip':        "Add new territory"
+            'iconOwn':        iconPath + 'geom_add.svg'
+            'callback':       'onClick'
+          }
+        ], @_transformToHGDOMElement leafletButtons[0])   # use existing leaflet "new polygon" button
+      ,'new-territory-add-group'
+
+    @_buttonArea.addButton new HG.Button(@_hgInstance, 'reuseTerritory', null, [
+        {
+          'id':             'normal'
+          'tooltip':        "Reuse territory from other times"
+          'iconOwn':        iconPath + 'geom_reuse.svg'
+          'callback':       'onClick'
+        }
+      ]), 'new-territory-add-group'
+
+    @_buttonArea.addButton new HG.Button(@_hgInstance, 'importTerritory', null, [
+        {
+          'id':             'normal'
+          'tooltip':        "import territory from file"
+          'iconOwn':        iconPath + 'geom_import.svg'
+          'callback':       'onClick'
+        }
+      ]), 'new-territory-add-group'
+
+    @_buttonArea.addSpacer()
+
+    @_buttonArea.addButton new HG.Button(@_hgInstance, 'editTerritory', null, [
+          {
+            'id':             'normal'
+            'tooltip':        "edit territory on the map"
+            'iconFA':         'edit'
+            'callback':       'onClick'
+          }
+        ], @_transformToHGDOMElement leafletButtons[1])  # use existing leaflet "edit polygon" button
+      ,'new-territory-edit-group'
+
+    @_buttonArea.addButton new HG.Button(@_hgInstance, 'deleteTerritory', null, [
+          {
+            'id':             'normal'
+            'tooltip':        "delete territory on the map"
+            'iconFA':         'trash-o'
+            'callback':       'onClick'
+          }
+        ], @_transformToHGDOMElement leafletButtons[2])  # use existing leaflet "delete polygon" button
+      ,'new-territory-edit-group'
+
+    @_buttonArea.addSpacer()
+
+    @_buttonArea.addButton new HG.Button(@_hgInstance, 'clipTerritory', null, [
+        {
+          'id':             'normal'
+          'tooltip':        "Clip Selected Areas"
+          'iconOwn':        iconPath + 'polygon_cut.svg'
+          'callback':       'onClick'
+        }
+      ]), 'new-territory-finish-group'
+
+    @_buttonArea.addButton new HG.Button(@_hgInstance, 'useRest', null, [
+        {
+          'id':             'normal'
+          'tooltip':        "Use The Rest as Territory for this Country"
+          'iconOwn':        iconPath + 'polygon_rest.svg'
+          'callback':       'onClick'
+        }
+      ]), 'new-territory-finish-group'
+
+
+
+    ## styling = remove leaflet classes and append own class :P
+    # 1. level (2 divs)
+    # lev1 = $('.leaflet-draw').children()
+    # $(lev1[0]).removeClass()
+    # $(lev1[1]).removeClass()
+    # lev20 = $(lev1[0]).children()[0]
+    # lev21 = $(lev1[1]).children()[0]
+    # # 2. level (1 div)
+    # $(lev20).removeClass()
+    # $(lev21).removeClass()
+    # newPoly = $(lev20).children()[0]
+    # editPoly = $(lev21).children()[0]
+    # delPoly = $(lev21).children()[1]
+    # # 3. level (3 a) -> actual buttons
+    # $(newPoly).removeClass()
+    # $(editPoly).removeClass()
+    # $(delPoly).removeClass()
+    # $(newPoly).attr 'id', 'newTerritory'
+    # $(newPoly).addClass 'button leaflet-button'
+    # $(newPoly).attr 'id', 'edit'
+    # $(editPoly).addClass 'button leaflet-button'
+    # $(delPoly).addClass 'button leaflet-button'
 
 
     ### INTERACTION ###
@@ -83,7 +213,6 @@ class HG.NewCountryTerritory
   ##############################################################################
 
   # ============================================================================
-
   _finishTerritory: (e) =>
     type = e.layerType
     layer = e.layer
@@ -92,12 +221,23 @@ class HG.NewCountryTerritory
     @_territories.addLayer layer
     layer.addTo @_map
 
+  # ============================================================================
+  _transformToHGDOMElement: (inButton) ->
+    $(inButton).removeClass()
+    $(inButton).detach()
+    $(inButton).addClass 'button'
+    new HG.Anchor null, null, null, inButton
 
+    # # add button to button obAnject in HG instance
+    # @_hgInstance.buttons[id] = @
 
-
-
-
-
+    # # init states (each state has a configuration file)
+    # stateConfig =
+    #   id:         'normal'
+    #   tooltip:    null
+    #   iconFA:     null
+    #   iconOwn:    null
+    #   callback:   'onClick'
 
 
 

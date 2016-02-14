@@ -32,7 +32,7 @@ class HG.Button
   # usage
   #   @_hgInstance.buttons.buttonName.onCallbackName @, () =>
   # ============================================================================
-  constructor: (@_hgInstance, id, classes=[], states) ->
+  constructor: (@_hgInstance, id, classes=[], states, existParent=null) ->
     console.error 'no button id given' unless id?
     console.error 'no states of button given' unless Array.isArray(states)
 
@@ -66,8 +66,11 @@ class HG.Button
     @_active = no
 
     # create button itself
-    classes.unshift 'button'
-    @_button = new HG.Div id, classes
+    unless existParent
+      classes.unshift 'button'
+      @_button = new HG.Div id, classes
+    else  # if parent div already given, take it
+      @_button = existParent
 
     # set state-dependend properties of button
     @_updateState()
@@ -167,6 +170,13 @@ class HG.Button
     else if @_state.iconOwn     # 2. own icon
       icon = new HG.Div '', 'own-button'
       icon.j().css 'background-image', 'url("' + @_state.iconOwn + '")'
+      icon.j().hover ((e) =>
+          a = @_state.iconOwn
+          b = '-hover'
+          pos = (@_state.iconOwn.length)-4
+          $(e.target).css 'background-image', 'url("' + [a.slice(0,pos), b, a.slice(pos)].join('') + '")'
+        ), (e) =>
+          $(e.target).css 'background-image', 'url("' + @_state.iconOwn + '")'
 
     else                        # no icon
       console.error "No icon for button " + @_id + " set!"
