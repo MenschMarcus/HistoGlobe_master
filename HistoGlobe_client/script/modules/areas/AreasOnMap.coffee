@@ -1,6 +1,6 @@
 window.HG ?= {}
 
-DEBUG = yes
+DEBUG = no
 FOCUS = no
 
 class HG.AreasOnMap
@@ -22,10 +22,10 @@ class HG.AreasOnMap
     @addCallback 'onDeselectArea'
 
     # init variables
-    @_focusMode = yes                     # can areas be focused (onHover)?
-    @_numSelections = 1                   # 1 = single-selection mode, 2..n = multiple-selection mode (maximum number of selections)
-    @_selectedAreas = new HG.ObjectArray  # for multiple-selection mode: save array of selected areas [{id, target, area}]
-                                          # in single-selection mode this array has only one object -> the 1 selected area
+    @_focusMode = yes         # can areas be focused (onHover)?
+    @_numSelections = 1       # 1 = single-selection mode, 2..n = multiple-selection mode (maximum number of selections)
+    @_selectedAreas = []      # for multiple-selection mode: save array of selected areas [{id, target, area}]
+                              # in single-selection mode this array has only one object -> the 1 selected area
   # ============================================================================
   hgInit: (@_hgInstance) ->
 
@@ -63,38 +63,33 @@ class HG.AreasOnMap
       # = areas are not highlighted and can not be selected
       @_hgInstance.editController.onEnterNewGeometrySelection @, () =>
         @_focusMode = no
-        @_selectedAreas.foreach (obj) =>
-          @_colorArea obj
+        @_colorArea a for a in @_selectedAreas
 
       # switch to focus mode
       # = areas are highlighted on hover and can be selected
       @_hgInstance.editController.onFinishNewGeometrySelection @, () =>
         @_focusMode = yes
-        @_selectedAreas.foreach (obj) =>
-          @_colorArea obj
+        @_colorArea a for a in @_selectedAreas
 
       # add new areas
-      @_hgInstance.editController.onAddGeometry @, (obj) =>
-        @_addGeom obj.area
+      @_hgInstance.editController.onAddGeometry @, (area) =>
+        @_addGeom area
 
       # remove new areas
-      @_hgInstance.editController.onRemoveGeometry @, (obj) =>
-        @_removeGeom obj.area
+      @_hgInstance.editController.onRemoveGeometry @, (area) =>
+        @_removeGeom area
 
       # add new areas
-      @_hgInstance.editController.onAddName @, (obj) =>
-        @_addGeom obj.area
+      @_hgInstance.editController.onAddName @, (area) =>
+        @_addGeom area
 
       # remove new areas
-      @_hgInstance.editController.onRemoveName @, (obj) =>
-        @_removeGeom obj.area
+      @_hgInstance.editController.onRemoveName @, (area) =>
+        @_removeGeom area
 
 
   # ============================================================================
-  getSelectedAreas: () ->
-    areas = []
-    areas.push obj.area for obj in @_selectedAreas
-    areas
+  getSelectedAreas: () ->  @_selectedAreas
 
 
   ##############################################################################
@@ -150,8 +145,8 @@ class HG.AreasOnMap
 
       # create label with name and position
       area.nameLayer = new L.Label()
-      area.nameLayer.setContent @_addLinebreaks area.getCommonName()
-      area.nameLayer.setLatLng area.getLabelPos()
+      area.nameLayer.setContent @_addLinebreaks area.getNames().commonName
+      area.nameLayer.setLatLng area.getNames().pos
 
       # create double-link: leaflet label knows HG area and HG area knows leaflet label
       area.nameLayer.hgArea = area
@@ -187,74 +182,76 @@ class HG.AreasOnMap
 
   ### EVENTS ###
   # DEBUG OUTPUT:
-  # console.log obj.area.getCommName(), ' focusMode? ', @_focusMode, ' selected? ', obj.area.isSelected(), ' focused? ', obj.area.isFocused(), ' treated? ', obj.area.isTreated()
+  # console.log area.getCommName(), ' focusMode? ', @_focusMode, ' selected? ', area.isSelected(), ' focused? ', area.isFocused(), ' treated? ', area.isTreated()
 
   # ============================================================================
   _onFocus: (evt) =>
     if @_focusMode is on
-      obj = @_evtToAreaObj evt
-      obj.area.focus()
-      @_colorArea obj
+      area = evt.target.hgArea
+      area.focus()
+      @_colorArea area
 
   # ============================================================================
   _onUnfocus: (evt) =>
-    obj = @_evtToAreaObj evt
-    obj.area.unfocus()
-    @_colorArea obj
+    area = evt.target.hgArea
+    area.unfocus()
+    @_colorArea area
 
   # ============================================================================
   _onClick: (evt) =>
     if @_focusMode is on
-      obj = @_evtToAreaObj evt
+      area = evt.target.hgArea
 
       # area is selected => deselect
-      if obj.area.isSelected()
-        @_deselect obj
+      if area.isSelected()
+        @_deselect area
 
       # area is deselected => select
       else
         # single-selection mode: only one area can be activated it and deactivate currently active area
-        @_deselect @_selectedAreas.getByIdx 0 if @_numSelections is 1
+        @_deselect @_selectedAreas[0] if @_numSelections is 1
         # multiple-selection mode: just select another one -> if there is still space for one more
-        @_select obj if @_selectedAreas.num() < @_numSelections
+        @_select area if @_selectedAreas.length < @_numSelections
 
       # bug: after clicking, it is assumed to be still focused
       # fix: unfocus afterwards
       @_onUnfocus evt
 
   # ============================================================================
-  _select: (obj) =>
+  _select: (area) =>
     # change in model
-    obj.area.select()
-    @_selectedAreas.push obj
+    area.select()
+    @_selectedAreas.push area
     # change in view
-    @_colorArea obj
-    @_map.fitBounds obj.target.getBounds() if FOCUS
+    @_colorArea area
+    @_map.fitBounds area.geomLayer.getBounds() if FOCUS
     # tell everyone
-    @notifyAll 'onSelectArea', obj
+    @notifyAll 'onSelectArea', area
 
   # ============================================================================
-  _deselect: (obj) =>
-    if obj?  # accounts for the case that there is no active area
+  _deselect: (area) =>
+    if area?  # accounts for the case that there is no active area
       # change in model
-      obj.area.deselect()
-      @_selectedAreas.removeById obj.id
+      area.deselect()
+      for area, idx in @_selectedAreas  # remove Area from array
+        @_selectedAreas.splice idx, 1
+        break
       # change in view
-      @_colorArea obj
-      @_map.fitBounds obj.target.getBounds() if FOCUS
+      @_colorArea area
+      @_map.fitBounds area.geomLayer.getBounds() if FOCUS
       # tell everyone
-      @notifyAll 'onDeselectArea', obj.id
+      @notifyAll 'onDeselectArea', area
 
   # ============================================================================
   _clearSelectedAreas: () ->
-    for obj in @_selectedAreas    # deactivate all areas from multiple selection mode
-      obj.area.deselect()
-      @_colorArea obj
-    @_selectedAreas.clear()       # => no area selected. TODO: Is that right?
+    for area in @_selectedAreas    # deactivate all areas from multiple selection mode
+      area.deselect()
+      @_colorArea area
+    @_selectedAreas = []           # => no area selected. TODO: Is that right?
 
   # ============================================================================
   # one function does all the coloring depending on the state of the area
-  _colorArea: (obj) =>
+  _colorArea: (area) =>
     # decision tree:  focusMode?
     #               1/          \0
     #        selected?          selected?
@@ -263,68 +260,59 @@ class HG.AreasOnMap
     #    1/  \0    1/  \0    1/  \0    |
 
     if @_focusMode
-      console.log obj if DEBUG
+      console.log area if DEBUG
       console.log 'focusMode on'  if DEBUG
-      if obj.area.isSelected()
+      if area.isSelected()
         console.log '  area selected'  if DEBUG
-        if obj.area.isFocused()
+        if area.isFocused()
           console.log '    area focused'  if DEBUG
-          @_animate obj.target, {
+          @_animate area.geomLayer, {
             'fill':         HGConfig.color_highlight.val
             'fill-opacity': HGConfig.area_full_opacity.val
           }, HGConfig.animation_time.val
         else
           console.log '    area not focused'  if DEBUG
-          @_animate obj.target, {
+          @_animate area.geomLayer, {
             'fill':         HGConfig.color_active.val
             'fill-opacity': HGConfig.area_half_opacity.val
           }, HGConfig.animation_time.val
       else
         console.log '  area not selected'  if DEBUG
-        if obj.area.isFocused()
+        if area.isFocused()
           console.log '    area focused'  if DEBUG
-          @_animate obj.target, {
+          @_animate area.geomLayer, {
             'fill':         HGConfig.color_highlight.val
             'fill-opacity': HGConfig.area_half_opacity.val
           }, HGConfig.animation_time.val
         else
           console.log '    area not focused'  if DEBUG
-          @_animate obj.target, {
+          @_animate area.geomLayer, {
             'fill':         HGConfig.color_white.val
             'fill-opacity': HGConfig.area_full_opacity.val
           }, HGConfig.animation_time.val
     else
       console.log 'focusMode off'  if DEBUG
-      if obj.area.isSelected()
+      if area.isSelected()
         console.log '  area selected'  if DEBUG
-        if obj.area.isTreated()
+        if area.isTreated()
           console.log '    area treated'  if DEBUG
-          @_animate obj.target, {
+          @_animate area.geomLayer, {
             'fill':         HGConfig.color_bg_medium.val
             'fill-opacity': HGConfig.area_full_opacity.val
           }, HGConfig.animation_time.val
         else
           console.log '    area not treated'  if DEBUG
-          @_animate obj.target, {
+          @_animate area.geomLayer, {
             'fill':         HGConfig.color_bg_medium.val
             'fill-opacity': HGConfig.area_half_opacity.val
           }, HGConfig.animation_time.val
       else
         console.log '  area not selected'  if DEBUG
-        @_animate obj.target, {
+        @_animate area.geomLayer, {
           'fill':         HGConfig.color_white.val
           'fill-opacity': HGConfig.area_full_opacity.val
         }, HGConfig.animation_time.val
 
-
-
-  # ============================================================================
-  _evtToAreaObj: (evt) =>
-    return {
-      id:     evt.target.hgArea.getId()
-      area:   evt.target.hgArea
-      target: evt.target
-    }
 
 
   # ============================================================================

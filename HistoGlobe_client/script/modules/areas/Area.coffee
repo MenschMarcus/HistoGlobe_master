@@ -38,9 +38,9 @@ class HG.Area
   isFocused: () ->        @_focused
 
   # ============================================================================
-  treat: () ->          @_treated = yes
-  untreat: () ->        @_treated = no
-  isTreated: () ->      @_treated
+  treat: () ->            @_treated = yes
+  untreat: () ->          @_treated = no
+  isTreated: () ->        @_treated
 
 
   ##############################################################################
