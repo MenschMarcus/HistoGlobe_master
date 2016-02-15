@@ -52,9 +52,9 @@ class HG.Imprint
         <p>Der Nutzung von im Rahmen der Impressumspflicht veröffentlichten Kontaktdaten durch Dritte zur Übersendung von nicht ausdrücklich angeforderter Werbung und Informationsmaterialien wird hiermit ausdrücklich widersprochen. Die Betreiber der Seiten behalten sich ausdrücklich rechtliche Schritte im Falle der unverlangten Zusendung von Werbeinformationen, etwa durch Spam-Mails, vor.</p>
     '
 
-    @_imprintBox.append @_imprintClose
-    @_imprintBox.append @_imprintText
-    @_imprintOverlay.append @_imprintBox
+    @_imprintBox.appendChild @_imprintClose
+    @_imprintBox.appendChild @_imprintText
+    @_imprintOverlay.appendChild @_imprintBox
 
 
     # event handling
