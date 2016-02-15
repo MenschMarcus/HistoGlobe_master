@@ -64,10 +64,6 @@ class HG.ButtonArea
 
     # create button in group
     group = @_addGroup name
-
-    console.log group
-    console.log button
-
     group.appendChild button.getDom()
 
   # ============================================================================
