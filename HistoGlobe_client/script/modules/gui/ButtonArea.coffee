@@ -23,11 +23,11 @@ class HG.ButtonArea
     @_config = $.extend {}, defaultConfig, config
 
     # variables (read from config)
-    @_positionX = new HG.StateVar ['center', 'right', 'left']
-    @_positionX.set @_config.positionX
+    @_posX = new HG.StateVar ['center', 'right', 'left']
+    @_posX.set @_config.posX
 
-    @_positionY = new HG.StateVar ['center', 'top', 'bottom']
-    @_positionY.set @_config.positionY
+    @_posY = new HG.StateVar ['center', 'top', 'bottom']
+    @_posY.set @_config.posY
 
     @_orientation = new HG.StateVar ['horizontal', 'vertical']
     @_orientation.set @_config.orientation
@@ -40,9 +40,9 @@ class HG.ButtonArea
 
     # make button area
     classes = ['button-area']
-    classes.push 'button-area-abs' if @_config.absolutePosition
-    classes.push 'button-area-' + @_positionY.get()
-    classes.push 'button-area-' + @_positionX.get()
+    classes.push 'button-area-abs' if @_config.absPos
+    classes.push 'button-area-' + @_posY.get()
+    classes.push 'button-area-' + @_posX.get()
     if @_config.classes
       classes.push c for c in @_config.classes
 
@@ -91,15 +91,15 @@ class HG.ButtonArea
 
   # ============================================================================
   moveVertical: (dist) ->
-    if @_positionY.get() is 'top'
+    if @_posY.get() is 'top'
       @_div.j().animate {'top': '+=' + dist}
-    else if @_positionY.get() is 'bottom'
+    else if @_posY.get() is 'bottom'
       @_div.j().animate {'bottom': '+=' + dist}
 
   moveHorizontal: (dist) ->
-    if @_positionX.get() is 'left'
+    if @_posX.get() is 'left'
       @_div.j().animate {'left': '+=' + dist}
-    else if @_positionX.get() is 'right'
+    else if @_posX.get() is 'right'
       @_div.j().animate {'right': '+=' + dist}
 
   # ============================================================================
