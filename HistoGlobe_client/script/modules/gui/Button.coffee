@@ -77,7 +77,7 @@ class HG.Button
 
 
   # ============================================================================
-  get: () -> @_button.dom()
+  getDom: () -> @_button.dom()
 
   # ============================================================================
   changeState: (stateId) ->
@@ -181,7 +181,7 @@ class HG.Button
     else                        # no icon
       console.error "No icon for button " + @_id + " set!"
 
-    @_button.append icon if icon?
+    @_button.appendChild icon if icon?
 
   # ============================================================================
   _setCallback: () ->

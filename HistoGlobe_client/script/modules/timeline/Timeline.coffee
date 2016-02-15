@@ -77,13 +77,13 @@ class HG.Timeline
     @_hgContainer.appendChild @_parentDiv.dom()
 
     @_tl = new HG.Div 'tl', ['swiper-container', 'no-text-select']
-    @_parentDiv.append @_tl
+    @_parentDiv.appendChild @_tl
 
     @_tlWrapper = new HG.Div 'tl_wrapper', ['swiper-wrapper', 'no-text-select']
-    @_tl.append @_tlWrapper
+    @_tl.appendChild @_tlWrapper
 
     @_tlSlider = new HG.Div 'tl_slide', ['swiper-slide', 'no-text-select']
-    @_tlWrapper.append @_tlSlider
+    @_tlWrapper.appendChild @_tlSlider
 
     @_dateMarkers = []
 
@@ -96,11 +96,11 @@ class HG.Timeline
       zoomButtonsArea = new HG.ButtonArea @_hgInstance,
       {
         'id':           'timeline-zoom-buttons',
-        'parentDiv':    @_hgInstance.timeline.getParentDiv().dom(),
-        'positionX':    'left',
-        'positionY':    'right',
+        'posX':         'left',
+        'posY':         'right',
         'orientation':  'horizontal'
       }
+      @_parentDiv.appendChild zoomButtonsArea.getDom()
 
       # buttons itself
       zoomButtonsArea.addButton new HG.Button(@_hgInstance, 'timelineZoomOut', null, [
@@ -367,7 +367,7 @@ class HG.Timeline
           @_dateMarkers[i].div.dom().innerHTML = year + '<div class="tl_months"></div>'
           @_dateMarkers[i].div.dom().style.left = @_dateToPosition(@_yearToDate(year)) + "px"
 
-          @_tlSlider.append @_dateMarkers[i].div
+          @_tlSlider.appendChild @_dateMarkers[i].div
 
           # show and create months
           if @_millisToYears(interval) == 1

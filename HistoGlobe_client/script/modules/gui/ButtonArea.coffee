@@ -11,16 +11,15 @@ class HG.ButtonArea
 
     # handle config
     defaultConfig =
-      id:                 null                    # id of the DOM element (no underscore)
-      classes:            null                    # ['className'] array
-      parentDiv:          @_hgInstance._top_area  # div to which area will be added to
-      absolutePosition:   true                    # false = relative position
-      positionX:          'center'                # 'left', 'right' or 'center'
-      positionY:          'center'                # 'top', bottom' or 'center'
-      orientation:        'horizontal'            # 'horizontal' (default) or 'vertical'
-      direction:          'append'                # 'append' (to back) or 'prepend' (to front)
-                                                  #   (next button added to the area will be
-                                                  #   appended to the back or prepended to the front)
+      id:           null                    # id of the DOM element (no underscore)
+      classes:      null                    # ['className'] array
+      absPos:       true                    # false = relative position
+      posX:         'center'                # 'left', 'right' or 'center'
+      posY:         'center'                # 'top', bottom' or 'center'
+      orientation:  'horizontal'            # 'horizontal' (default) or 'vertical'
+      direction:    'append'                # 'append' (to back) or 'prepend' (to front)
+                                            #   (next button added to the area will be
+                                            #   appended to the back or prepended to the front)
     @_config = $.extend {}, defaultConfig, config
 
     # variables (read from config)
@@ -36,7 +35,7 @@ class HG.ButtonArea
     @_direction = new HG.StateVar ['append', 'prepend']
     @_direction.set @_config.direction
 
-    @_groups = new HG.ObjectArray()
+    @_groups = new HG.ObjectArray
     @_spacerCtr = 1
 
     # make button area
@@ -48,7 +47,6 @@ class HG.ButtonArea
       classes.push c for c in @_config.classes
 
     @_div = new HG.Div @_config.id, classes
-    @_config.parentDiv.appendChild @_div.dom()
 
     # listen to slider
     @_hgInstance.onTopAreaSlide @, (t) =>
@@ -62,11 +60,15 @@ class HG.ButtonArea
   # add button to group: set groupName
   addButton: (button, groupName) ->
     # select group (sets group name manually if no group name)
-    name = if groupName then groupName else button.get().id + '-group'
+    name = if groupName then groupName else button.getDom().id + '-group'
 
     # create button in group
     group = @_addGroup name
-    group.appendChild button.get()
+
+    console.log group
+    console.log button
+
+    group.appendChild button.getDom()
 
   # ============================================================================
   addButtonGroup: (name) ->
@@ -101,7 +103,7 @@ class HG.ButtonArea
       @_div.j().animate {'right': '+=' + dist}
 
   # ============================================================================
-  getDiv: () -> @_div
+  getDom: ()  -> @_div.dom()
   destroy: () -> @_div.destroy()
 
   ##############################################################################
@@ -110,8 +112,8 @@ class HG.ButtonArea
 
   # ============================================================================
   _addGroup: (id) ->
+    group = @_groups.getById id
     # if group exists, take it
-    group = (@_groups.getByPropVal 'id', id)
     if group
       return group
     # if group does not exist, create it
@@ -123,12 +125,12 @@ class HG.ButtonArea
 
       # append or prepend button (given in configuration of ButtonArea)
       if @_direction.get() is 'append'
-        @_div.append group
-        @_groups.append group.dom()
+        @_div.appendChild group
+        @_groups.push group.dom()
 
       else if @_direction.get() is 'prepend'
-        @_div.prepend group
-        @_groups.prepend group.dom()
+        @_div.prependChild group
+        @_groups.pushFront group.dom()
 
       # add to group list
       return group.dom()
@@ -136,6 +138,6 @@ class HG.ButtonArea
   # ============================================================================
   _removeGroup: (id) ->
     # remove from group list
-    @_groups.remove 'id', id
+    @_groups.removeById id
     # remove from UI
     $('#'+id+'-group').remove()

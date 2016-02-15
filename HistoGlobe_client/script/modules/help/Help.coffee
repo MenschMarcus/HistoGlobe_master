@@ -67,7 +67,7 @@ class HG.Help
   # ============================================================================
   addHelp:(element) ->
     image = new HG.Img null, 'help-image', element.image
-    @_div.append image
+    @_div.appendChild image
 
     image.j().load () =>
       image.j().css {"max-width": image.naturalWidth + "px"}

@@ -48,11 +48,11 @@ class HG.EditMode
 
     if TEST_BUTTON
       testButton = new HG.Button @_hgInstance, 'test', null, [{'iconFA': 'question','callback': 'onClick'}]
-      $(testButton.get()).css 'position', 'absolute'
-      $(testButton.get()).css 'bottom', '0'
-      $(testButton.get()).css 'right', '0'
-      $(testButton.get()).css 'z-index', 100
-      @_hgInstance._top_area.appendChild testButton.get()
+      $(testButton.getDom()).css 'position', 'absolute'
+      $(testButton.getDom()).css 'bottom', '0'
+      $(testButton.getDom()).css 'right', '0'
+      $(testButton.getDom()).css 'z-index', 100
+      @_hgInstance._top_area.appendChild testButton.getDom()
       @_testButton = @_hgInstance.buttons.test
       @_testButton.onClick @, () =>
         console.log '============================================================'
@@ -77,11 +77,13 @@ class HG.EditMode
       @_editButtonArea = new HG.ButtonArea @_hgInstance,
       {
         'id':           'editButtons'
-        'positionX':    'right'
-        'positionY':    'top'
+        'posX':         'right'
+        'posY':         'top'
         'orientation':  'horizontal'
         'direction':    'prepend'
       }
+      @_hgInstance._top_area.appendChild @_editButtonArea.getDom()
+
       @_editButton = new HG.Button @_hgInstance, 'editMode', null, [
           {
             'id':       'normal',
@@ -113,7 +115,7 @@ class HG.EditMode
           b.button.onClick @, (btn) =>
 
             # update current operation in workflow
-            opId = btn.get().id
+            opId = btn.getDom().id
             @_currCO = @_changeOperations.getByPropVal 'id', opId
             @_currCO.oldAreas = new HG.ObjectArray      # areas that are subject to change (old)
             @_currCO.newAreas = new HG.ObjectArray      # areas that replace old areas (new)

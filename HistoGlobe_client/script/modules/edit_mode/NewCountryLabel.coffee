@@ -52,14 +52,14 @@ class HG.NewCountryLabel
 
     @_inputField = new HG.TextInput @_hgInstance, 'new-name-input', null
     @_inputField.j().attr 'size', 1 # starts with minimum size of 1
-    @_wrapper.append @_inputField
+    @_wrapper.appendChild @_inputField
 
     @_okButton = new HG.Button @_hgInstance, 'newNameOK', ['confirm-button'], [
       {
         'iconFA':   'check'
       }
     ]
-    @_wrapper.dom().appendChild @_okButton.get()
+    @_wrapper.dom().appendChild @_okButton.getDOM()
 
 
     ### INTERACTION ###

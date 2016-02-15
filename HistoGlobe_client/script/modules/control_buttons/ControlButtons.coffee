@@ -33,10 +33,11 @@ class HG.ControlButtons
     @_buttonArea = new HG.ButtonArea @_hgInstance,
     {
       'id':           'controlButtons',
-      'positionX':    'left',
-      'positionY':    'bottom',
+      'posX':         'left',
+      'posY':         'bottom',
       'orientation':  'vertical'
     }
+    @_hgInstance._top_area.appendChild @_buttonArea.getDom()
 
     # init predefined buttons
     for id, enable of @_config
