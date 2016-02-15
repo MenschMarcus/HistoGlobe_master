@@ -124,8 +124,8 @@ class HG.EditMode
             # update current operation in workflow
             opId = btn.getDom().id
             @_currCO = @_changeOperations.getByPropVal 'id', opId
-            @_currCO.oldAreas = new HG.ObjectArray      # areas that are subject to change (old)
-            @_currCO.newAreas = new HG.ObjectArray      # areas that replace old areas (new)
+            @_currCO.oldAreas = []                      # areas that are subject to change (old)
+            @_currCO.newAreas = []                      # areas that replace old areas (new)
             @_currCO.numSteps = @_currCO.steps.length   # total number of steps in the operation
             @_currCO.stepIdx = 0                        # current step number [0 .. numSteps-1]
             @_currCO.finished = no                      # operation successfully finished # TODO: necessary?
@@ -332,22 +332,22 @@ class HG.EditMode
         ### ACTION ###
 
         # listen to area selection from AreasOnMap
-        @_areasOnMap.onSelectArea @, (obj) =>
-          @_currCO.oldAreas.push obj
-          @_histoGraph.addToSelection obj
+        @_areasOnMap.onSelectArea @, (area) =>
+          @_currCO.oldAreas.push area
+          @_histoGraph.addToSelection area
 
           # check if step is completed
-          if @_currCO.oldAreas.length() >= @_currStep.reqNum.min
+          if @_currCO.oldAreas.length >= @_currStep.reqNum.min
             @_nextButton.enable()
             @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.numSteps-1
 
         # listen to area deselection from AreasOnMap
-        @_areasOnMap.onDeselectArea @, (id) =>
-          @_currCO.oldAreas.removeById id
-          @_histoGraph.removeFromSelection id
+        @_areasOnMap.onDeselectArea @, (area) =>
+          @_currCO.oldAreas.splice @_currCO.oldAreas.indexOf area, 1 # remove Area from array
+          @_histoGraph.removeFromSelection area
 
           # check if step is not completed anymore
-          if @_currCO.oldAreas.length() < @_currStep.reqNum.min
+          if @_currCO.oldAreas.length < @_currStep.reqNum.min
             @_nextButton.disable()
       )
 
@@ -432,9 +432,7 @@ class HG.EditMode
 
         # setup UI
         @notifyAll 'onEnterNewAreaSelection'
-        @_currCO.oldAreas.foreach (obj) =>
-          @_areasOnMap.treatArea obj
-
+        a.treat() for a in @_currCO.newAreas  # all new areas are treated
 
         # for each required country, set up text input that has to be filled interactively
         # TODO: handle number of countries + interaction with database

@@ -36,56 +36,57 @@ class HG.AreasOnMap
     @_map = @_hgInstance.map._map
 
     # event handling
-    if @_hgInstance.areaController
+    @_hgInstance.onAllModulesLoaded @, () =>
 
-      # change of areas
-      @_hgInstance.areaController.onAddArea @, (area) =>
-        @_addGeom area
-        @_addName area
-      # @_areaController.onRemoveArea @, (id) =>    @_removeArea id
+      if @_hgInstance.areaController
 
-    else
-      console.error "Unable to show areas on Map: AreaController module not detected in HistoGlobe instance!"
+        # change of areas
+        @_hgInstance.areaController.onAddArea @, (area) =>
+          @_addGeom area
+          @_addName area
+        # @_areaController.onRemoveArea @, (id) =>    @_removeArea id
 
+      else
+        console.error "Unable to show areas on Map: AreaController module not detected in HistoGlobe instance!"
 
-    if @_hgInstance.editController
+      if @_hgInstance.editController
 
-      # switch to multiple-selection mode
-      @_hgInstance.editController.onEnterOldAreaSelection @, (num) =>
-        @_numSelections = num     # can receive a number (1, 2, 3, ... , MAX_NUM)
+        # switch to multiple-selection mode
+        @_hgInstance.editController.onEnterOldAreaSelection @, (num) =>
+          @_numSelections = num     # can receive a number (1, 2, 3, ... , MAX_NUM)
 
-      # switch to single-selection mode
-      @_hgInstance.editController.onFinishOldAreaSelection @, () =>
-        @_numSelections = 1       # 1 = single selection
-        @_clearSelectedAreas()
+        # switch to single-selection mode
+        @_hgInstance.editController.onFinishOldAreaSelection @, () =>
+          @_numSelections = 1       # 1 = single selection
+          @_clearSelectedAreas()
 
-      # switch to no-focus mode
-      # = areas are not highlighted and can not be selected
-      @_hgInstance.editController.onEnterNewGeometrySelection @, () =>
-        @_focusMode = no
-        @_colorArea a for a in @_selectedAreas
+        # switch to no-focus mode
+        # = areas are not highlighted and can not be selected
+        @_hgInstance.editController.onEnterNewAreaSelection @, () =>
+          @_focusMode = no
+          @_colorArea a for a in @_selectedAreas
 
-      # switch to focus mode
-      # = areas are highlighted on hover and can be selected
-      @_hgInstance.editController.onFinishNewGeometrySelection @, () =>
-        @_focusMode = yes
-        @_colorArea a for a in @_selectedAreas
+        # switch to focus mode
+        # = areas are highlighted on hover and can be selected
+        @_hgInstance.editController.onFinishNewAreaSelection @, () =>
+          @_focusMode = yes
+          @_colorArea a for a in @_selectedAreas
 
-      # add new areas
-      @_hgInstance.editController.onAddGeometry @, (area) =>
-        @_addGeom area
+        # add new areas
+        # @_hgInstance.editController.onAddGeometry @, (area) =>
+        #   @_addGeom area
 
-      # remove new areas
-      @_hgInstance.editController.onRemoveGeometry @, (area) =>
-        @_removeGeom area
+        # remove new areas
+        # @_hgInstance.editController.onRemoveGeometry @, (area) =>
+        #   @_removeGeom area
 
-      # add new areas
-      @_hgInstance.editController.onAddName @, (area) =>
-        @_addGeom area
+        # add new areas
+        # @_hgInstance.editController.onAddName @, (area) =>
+        #   @_addGeom area
 
-      # remove new areas
-      @_hgInstance.editController.onRemoveName @, (area) =>
-        @_removeGeom area
+        # remove new areas
+        # @_hgInstance.editController.onRemoveName @, (area) =>
+        #   @_removeGeom area
 
 
   # ============================================================================
@@ -233,9 +234,7 @@ class HG.AreasOnMap
     if area?  # accounts for the case that there is no active area
       # change in model
       area.deselect()
-      for area, idx in @_selectedAreas  # remove Area from array
-        @_selectedAreas.splice idx, 1
-        break
+      @_selectedAreas.splice @_selectedAreas.indexOf area, 1 # remove Area from array
       # change in view
       @_colorArea area
       @_map.fitBounds area.geomLayer.getBounds() if FOCUS
