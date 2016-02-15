@@ -90,75 +90,96 @@ class HG.NewCountryTerritory
       'orientation':  'vertical'
     }
 
-    @_buttonArea.addButton new HG.Button(@_hgInstance, 'newTerritory', null, [
-          {
-            'id':             'normal'
-            'tooltip':        "Add new territory"
-            'iconOwn':        iconPath + 'geom_add.svg'
-            'callback':       'onClick'
-          }
-        ], @_transformToHGDOMElement leafletButtons[0])   # use existing leaflet "new polygon" button
+    @_buttonArea.addButton new HG.Button(@_hgInstance,
+      'newTerritory', null,
+        [
+            {
+              'id':             'normal'
+              'tooltip':        "Add new territory"
+              'iconOwn':        iconPath + 'geom_add.svg'
+              'callback':       'onClick'
+            }
+          ]
+        , @_transformToHGDOMElement leafletButtons[0])   # use existing leaflet "new polygon" button
       ,'new-territory-add-group'
 
-    @_buttonArea.addButton new HG.Button(@_hgInstance, 'reuseTerritory', null, [
-        {
-          'id':             'normal'
-          'tooltip':        "Reuse territory from other times"
-          'iconOwn':        iconPath + 'geom_reuse.svg'
-          'callback':       'onClick'
-        }
-      ]), 'new-territory-add-group'
+    @_buttonArea.addButton new HG.Button(@_hgInstance,
+      'reuseTerritory', null,
+        [
+          {
+            'id':             'normal'
+            'tooltip':        "Reuse territory from other times"
+            'iconOwn':        iconPath + 'geom_reuse.svg'
+            'callback':       'onClick'
+          }
+        ]
+      ), 'new-territory-add-group'
 
-    @_buttonArea.addButton new HG.Button(@_hgInstance, 'importTerritory', null, [
-        {
-          'id':             'normal'
-          'tooltip':        "import territory from file"
-          'iconOwn':        iconPath + 'geom_import.svg'
-          'callback':       'onClick'
-        }
-      ]), 'new-territory-add-group'
+    @_buttonArea.addButton new HG.Button(@_hgInstance,
+      'importTerritory', null,
+        [
+          {
+            'id':             'normal'
+            'tooltip':        "import territory from file"
+            'iconOwn':        iconPath + 'geom_import.svg'
+            'callback':       'onClick'
+          }
+        ]
+      ), 'new-territory-add-group'
 
     @_buttonArea.addSpacer()
 
-    @_buttonArea.addButton new HG.Button(@_hgInstance, 'editTerritory', null, [
-          {
-            'id':             'normal'
-            'tooltip':        "edit territory on the map"
-            'iconFA':         'edit'
-            'callback':       'onClick'
-          }
-        ], @_transformToHGDOMElement leafletButtons[1])  # use existing leaflet "edit polygon" button
+    @_buttonArea.addButton new HG.Button(@_hgInstance,
+      'editTerritory', null,
+        [
+            {
+              'id':             'normal'
+              'tooltip':        "edit territory on the map"
+              'iconFA':         'edit'
+              'callback':       'onClick'
+            }
+          ]
+        , @_transformToHGDOMElement leafletButtons[1])  # use existing leaflet "edit polygon" button
       ,'new-territory-edit-group'
 
-    @_buttonArea.addButton new HG.Button(@_hgInstance, 'deleteTerritory', null, [
-          {
-            'id':             'normal'
-            'tooltip':        "delete territory on the map"
-            'iconFA':         'trash-o'
-            'callback':       'onClick'
-          }
-        ], @_transformToHGDOMElement leafletButtons[2])  # use existing leaflet "delete polygon" button
+    @_buttonArea.addButton new HG.Button(@_hgInstance,
+      'deleteTerritory', null,
+        [
+            {
+              'id':             'normal'
+              'tooltip':        "delete territory on the map"
+              'iconFA':         'trash-o'
+              'callback':       'onClick'
+            }
+          ]
+        , @_transformToHGDOMElement leafletButtons[2])  # use existing leaflet "delete polygon" button
       ,'new-territory-edit-group'
 
     @_buttonArea.addSpacer()
 
-    @_buttonArea.addButton new HG.Button(@_hgInstance, 'clipTerritory', null, [
-        {
-          'id':             'normal'
-          'tooltip':        "Clip Selected Areas"
-          'iconOwn':        iconPath + 'polygon_cut.svg'
-          'callback':       'onClick'
-        }
-      ]), 'new-territory-finish-group'
+    @_buttonArea.addButton new HG.Button(@_hgInstance,
+      'clipTerritory', null,
+        [
+          {
+            'id':             'normal'
+            'tooltip':        "Clip Selected Areas"
+            'iconOwn':        iconPath + 'polygon_cut.svg'
+            'callback':       'onClick'
+          }
+        ]
+      ), 'new-territory-finish-group'
 
-    @_buttonArea.addButton new HG.Button(@_hgInstance, 'useRest', null, [
-        {
-          'id':             'normal'
-          'tooltip':        "Use The Rest as Territory for this Country"
-          'iconOwn':        iconPath + 'polygon_rest.svg'
-          'callback':       'onClick'
-        }
-      ]), 'new-territory-finish-group'
+    @_buttonArea.addButton new HG.Button(@_hgInstance,
+      'useRest', null,
+        [
+          {
+            'id':             'normal'
+            'tooltip':        "Use The Rest as Territory for this Country"
+            'iconOwn':        iconPath + 'polygon_rest.svg'
+            'callback':       'onClick'
+          }
+        ]
+      ), 'new-territory-finish-group'
 
 
     ### INTERACTION ###
@@ -260,7 +281,7 @@ class HG.NewCountryTerritory
   #     'absolutePosition':   false
   #   }
 
-  #   terrEditButtons.addButton new HG.Button(@_hgInstance, 'newTerritory', null, [
+  #   terrEditButtons.addButton new HG.Button(@_hgInstance,'newTerritory', null, [
   #       {
   #         'id':             'normal'
   #         'tooltip':        "Add new territory"
@@ -269,7 +290,7 @@ class HG.NewCountryTerritory
   #       }
   #     ]), 'tt-edit-buttons-group'
 
-  #   terrEditButtons.addButton new HG.Button(@_hgInstance, 'reuseTerritory', null, [
+  #   terrEditButtons.addButton new HG.Button(@_hgInstance,'reuseTerritory', null, [
   #       {
   #         'id':             'normal'
   #         'tooltip':        "Reuse territory from other times"
@@ -278,7 +299,7 @@ class HG.NewCountryTerritory
   #       }
   #     ]), 'tt-edit-buttons-group'
 
-  #   terrEditButtons.addButton new HG.Button(@_hgInstance, 'importTerritory', null, [
+  #   terrEditButtons.addButton new HG.Button(@_hgInstance,'importTerritory', null, [
   #       {
   #         'id':             'normal'
   #         'tooltip':        "import territory from file"
@@ -344,7 +365,7 @@ class HG.NewCountryTerritory
   #     'absolutePosition':   false
   #   }
 
-  #   terrFinishButtons.addButton new HG.Button(@_hgInstance, 'clipTerritory', null, [
+  #   terrFinishButtons.addButton new HG.Button(@_hgInstance,'clipTerritory', null, [
   #       {
   #         'id':             'normal'
   #         'tooltip':        "Clip Selected Areas"
@@ -355,7 +376,7 @@ class HG.NewCountryTerritory
 
   #   terrFinishButtons.addSpacer 'tt-finish-buttons-group'
 
-  #   terrFinishButtons.addButton new HG.Button(@_hgInstance, 'useRest', null, [
+  #   terrFinishButtons.addButton new HG.Button(@_hgInstance,'useRest', null, [
   #       {
   #         'id':             'normal'
   #         'tooltip':        "Use The Rest as Territory for this Country"

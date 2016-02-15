@@ -61,7 +61,7 @@ class HG.ObjectArray
 
   # ============================================================================
   # find element whose property has this value and deletes it
-  # usage: myObjArr.remove 'id', id
+  # usage: myObjArr.remove 'name', name
   remove: (prop, val) ->
     # get index of elem in arr
     idx = -1
@@ -77,6 +77,12 @@ class HG.ObjectArray
 
   delete: (prop, val) ->
     @remove prop, val
+
+  # ============================================================================
+  # delete element by its id
+  # usage: myObjArr.removeById, id
+  removeById: (val) ->  @remove 'id', val
+  deleteById: (val) ->  @remove 'id', val
 
   # ============================================================================
   # usage: arr.foreach (elem) => console.log elem
