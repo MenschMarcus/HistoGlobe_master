@@ -22,7 +22,7 @@ class HG.HiventInfoPopover
 
     titleDiv = new HG.Div null, "guiPopoverTitle"
     titleDiv.j().html @_hiventHandle.getHivent().name
-    body.append titleDiv
+    body.appendChild titleDiv
 
     text = new HG.Div null, "hivent-content"
 
@@ -33,7 +33,7 @@ class HG.HiventInfoPopover
     else
       text.innerHTML = description
 
-    body.append text
+    body.appendChild text
 
     # ============================================================================
 

@@ -46,12 +46,12 @@ class HG.HistoGraph
     # create wrapper (put above timeline, hidden)
     @_wrapper = new HG.Div 'histograph-wrapper', null
     @_wrapper.j().hide()
-    @_hgInstance.timeline.getParentDiv().append @_wrapper
+    @_hgInstance.timeline.getParentDiv().appendChild @_wrapper
 
     # create transparent center line
     @_line = new HG.Div 'histograph-line', null
     @_line.j().hide()
-    @_wrapper.append @_line
+    @_wrapper.appendChild @_line
 
     # create canvas itself
     @_canvas = d3.select @_wrapper.dom()

@@ -14,7 +14,7 @@ class HG.NowMarker
 
     # create now marker
     @_nowMarker = new HG.Div 'nowMarker', 'no-text-select'
-    @_parent.append @_nowMarker
+    @_parent.appendChild @_nowMarker
 
   # ============================================================================
   upDate: (date) ->

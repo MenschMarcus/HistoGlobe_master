@@ -45,34 +45,34 @@ class HG.WorkflowWindow
     ## rows ##
     # create graph and description divs that dynamically adjust to their content
     @_graphRow = new HG.Div 'ww-graph-wrapper'
-    @_mainWindow.append @_graphRow
+    @_mainWindow.appendChild @_graphRow
 
     @_descriptionRow = new HG.Div 'ww-description-wrapper'
-    @_mainWindow.append @_descriptionRow
+    @_mainWindow.appendChild @_descriptionRow
 
     ## columns ##
 
     # back column
-    @_graphRow.append new HG.Div null, ['ww-graph-row', 'ww-button-col']
+    @_graphRow.appendChild new HG.Div null, ['ww-graph-row', 'ww-button-col']
     backButtonParent = new HG.Div null, ['ww-description-row', 'ww-button-col']
-    @_descriptionRow.append backButtonParent
+    @_descriptionRow.appendChild backButtonParent
 
     # step columns
     stepCols = 0
     @_stepDescr = []
     for step in operation.steps
-      @_graphRow.append new HG.Div null, ['ww-graph-row', 'ww-step-col']
+      @_graphRow.appendChild new HG.Div null, ['ww-graph-row', 'ww-step-col']
       descr = new HG.Div null, ['ww-description-row', 'ww-step-col', 'ww-description-cell']
       descr.j().html step.title
-      @_descriptionRow.append descr
+      @_descriptionRow.appendChild descr
       @_stepDescr.push descr.j()
       stepCols++
 
     # next column
     abortButtonParent = new HG.Div 'abort-button-parent', ['ww-graph-row', 'ww-button-col']
-    @_graphRow.append abortButtonParent
+    @_graphRow.appendChild abortButtonParent
     nextButtonParent = new HG.Div 'next-button-parent', ['ww-description-row', 'ww-button-col']
-    @_descriptionRow.append nextButtonParent
+    @_descriptionRow.appendChild nextButtonParent
 
     ## graph bar ##
     # spans from first to last step
@@ -151,7 +151,7 @@ class HG.WorkflowWindow
           'callback': 'onBack'
         }
       ]
-    backButtonParent.dom().appendChild @_backButton.get()
+    backButtonParent.dom().appendChild @_backButton.getDom()
 
     # next button ( = ok = go to next step, disabled)
     # -> changes to OK button / "finish" state in last step
@@ -169,7 +169,7 @@ class HG.WorkflowWindow
           'callback': 'onFinish'
         },
       ]
-    nextButtonParent.dom().appendChild @_nextButton.get()
+    nextButtonParent.dom().appendChild @_nextButton.getDom()
 
     # abort button
     @_abortButton = new HG.Button @_hgInstance, 'coAbort', ['button-abort'], [
@@ -180,7 +180,7 @@ class HG.WorkflowWindow
           'callback': 'onClick'
         }
       ]
-    abortButtonParent.dom().appendChild @_abortButton.get()
+    abortButtonParent.dom().appendChild @_abortButton.getDom()
 
     # recenter the window
     posLeft = $('#title').position().left + $('#title').width()/2
