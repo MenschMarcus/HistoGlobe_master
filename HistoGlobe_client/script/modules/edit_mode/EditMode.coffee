@@ -23,6 +23,13 @@ class HG.EditMode
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
+    @addCallback 'onEnterOldAreaSelection'
+    @addCallback 'onFinishOldAreaSelection'
+    @addCallback 'onEnterNewAreaSelection'
+    @addCallback 'onFinishNewAreaSelection'
+    @addCallback 'onFnterHiventSelection'
+    @addCallback 'onFfinishHiventSelection'
+
     # init config
     defaultConfig =
       changeOperationsPath:     'HistoGlobe_client/config/common/hgChangeOperations.json'
@@ -320,7 +327,7 @@ class HG.EditMode
         @_currStep.reqNum = @_getRequiredNum @_currStep.num
 
         # setup UI
-        @_areasOnMap.enableMultipleSelectionMode @_currStep.reqNum.max
+        @notifyAll 'onEnterOldAreaSelection', @_currStep.reqNum.max
 
         ### ACTION ###
 
@@ -350,9 +357,8 @@ class HG.EditMode
         # update step information
         @_currStep.reqNum = @_getRequiredNum @_currStep.num
 
-        # setup ui
-        @_areasOnMap.leaveFocusMode() if @_currStep.startNew # only if this is the first step in "start new"
-        @_areasOnMap.enterNewGeomMode()
+        # setup UI
+        @notifyAll 'onEnterNewAreaSelection'
 
         # init new country territory dialoge
         @_ctrTerritory = new HG.NewCountryTerritory @_hgInstance
@@ -425,7 +431,10 @@ class HG.EditMode
         @_currStep.reqNum = @_getRequiredNum @_currStep.num
 
         # setup UI
-        @_areasOnMap.leaveFocusMode() if @_currStep.startNew # only if this is the first step in "start new"
+        @notifyAll 'onEnterNewAreaSelection'
+        @_currCO.oldAreas.foreach (obj) =>
+          @_areasOnMap.treatArea obj
+
 
         # for each required country, set up text input that has to be filled interactively
         # TODO: handle number of countries + interaction with database
@@ -461,14 +470,14 @@ class HG.EditMode
     # for some reason, switch @_currStep.id when '...' then () does not work here ?!?
 
     if @_currStep.id is 'SEL_OLD'
-      @_areasOnMap.disableMultipleSelectionMode()
-      if aborted
-        @_areasOnMap.clearSelectedAreas()
+      @notifyAll 'onFinishOldAreaSelection'
 
     else if @_currStep.id is 'SET_GEOM'
+      @notifyAll 'onFinishNewAreaSelection'
       @_ctrTerritory.destroy()
 
     else if @_currStep.id is 'SET_NAME'
+      @notifyAll 'onFinishNewAreaSelection'
       @_ctrLabel.destroy()
 
     else if @_currStep.id is 'ADD_CHNG'

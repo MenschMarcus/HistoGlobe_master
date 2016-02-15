@@ -1,6 +1,7 @@
 window.HG ?= {}
 
 DEBUG = yes
+FOCUS = no
 
 class HG.AreasOnMap
 
@@ -33,40 +34,61 @@ class HG.AreasOnMap
 
     # init variables
     @_map = @_hgInstance.map._map
-    @_areaController = @_hgInstance.areaController
-    @_zoomLevel = @_map.getZoom()
 
     # event handling
-    if @_areaController
+    if @_hgInstance.areaController
 
       # change of areas
-      @_areaController.onAddArea @, (area) =>
-        @_addArea area
-        @_addLabel area
+      @_hgInstance.areaController.onAddArea @, (area) =>
+        @_addGeom area
+        @_addName area
+      # @_areaController.onRemoveArea @, (id) =>    @_removeArea id
 
     else
       console.error "Unable to show areas on Map: AreaController module not detected in HistoGlobe instance!"
 
-  # ============================================================================
-  # handle multiple selections mode (and state number of possible selections)
-  enableMultipleSelectionMode: (num) ->  # can receive a number (1, 2, 3, ... , MAX_NUM)
-    @_numSelections = num
 
-  disableMultipleSelectionMode: () ->
-    @_numSelections = 1
+    if @_hgInstance.editController
 
-  # ============================================================================
-  # focus mode: on = areas are highlighted on hover and can be selected
-  #             off = areas are not highlighted and can not be selected
-  enterFocusMode: () ->
-    @_focusMode = yes
-    @_selectedAreas.foreach (obj) =>
-      @_colorArea obj
+      # switch to multiple-selection mode
+      @_hgInstance.editController.onEnterOldAreaSelection @, (num) =>
+        @_numSelections = num     # can receive a number (1, 2, 3, ... , MAX_NUM)
 
-  leaveFocusMode: () ->
-    @_focusMode = no
-    @_selectedAreas.foreach (obj) =>
-      @_colorArea obj
+      # switch to single-selection mode
+      @_hgInstance.editController.onFinishOldAreaSelection @, () =>
+        @_numSelections = 1       # 1 = single selection
+        @_clearSelectedAreas()
+
+      # switch to no-focus mode
+      # = areas are not highlighted and can not be selected
+      @_hgInstance.editController.onEnterNewGeometrySelection @, () =>
+        @_focusMode = no
+        @_selectedAreas.foreach (obj) =>
+          @_colorArea obj
+
+      # switch to focus mode
+      # = areas are highlighted on hover and can be selected
+      @_hgInstance.editController.onFinishNewGeometrySelection @, () =>
+        @_focusMode = yes
+        @_selectedAreas.foreach (obj) =>
+          @_colorArea obj
+
+      # add new areas
+      @_hgInstance.editController.onAddGeometry @, (obj) =>
+        @_addGeom obj.area
+
+      # remove new areas
+      @_hgInstance.editController.onRemoveGeometry @, (obj) =>
+        @_removeGeom obj.area
+
+      # add new areas
+      @_hgInstance.editController.onAddName @, (obj) =>
+        @_addGeom obj.area
+
+      # remove new areas
+      @_hgInstance.editController.onRemoveName @, (obj) =>
+        @_removeGeom obj.area
+
 
   # ============================================================================
   getSelectedAreas: () ->
@@ -74,12 +96,6 @@ class HG.AreasOnMap
     areas.push obj.area for obj in @_selectedAreas
     areas
 
-  # ============================================================================
-  clearSelectedAreas: () ->
-    for obj in @_selectedAreas    # deactivate all areas from multiple selection mode
-      obj.area.deselect()
-      @_colorArea obj
-    @_selectedAreas.clear()       # => no area selected. TODO: Is that right?
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
@@ -88,8 +104,9 @@ class HG.AreasOnMap
 
   # ============================================================================
   # physically adds area to the map, but makes it invisible
-  _addArea: (area) ->
-    if not area.myLeafletLayer?
+  _addGeom: (area) ->
+    # setup territory
+    if not area.geomLayer?
 
       # create area as leaflet layer -> clickable and class name to style it in css
       # setting class to area and style it with css is a bad idea,
@@ -111,35 +128,61 @@ class HG.AreasOnMap
         'opacity':      HGConfig.border_opacity.val
         'weight':       HGConfig.border_width.val
       }
-      area.myLeafletLayer = L.multiPolygon area.getGeometry(), options
+
+      area.geomLayer = L.multiPolygon area.getGeometry(), options
 
       # interaction
-      area.myLeafletLayer.on 'mouseover', @_onFocus
-      area.myLeafletLayer.on 'mouseout', @_onUnfocus
-      area.myLeafletLayer.on 'click', @_onClick
+      area.geomLayer.on 'mouseover', @_onFocus
+      area.geomLayer.on 'mouseout', @_onUnfocus
+      area.geomLayer.on 'click', @_onClick
 
       # create double-link: leaflet layer knows HG area and HG area knows leaflet layer
-      area.myLeafletLayer.hgArea = area
-      area.myLeafletLayer.addTo @_map
+      area.geomLayer.hgArea = area
+      area.geomLayer.addTo @_map
+
+      @_colorArea area
 
 
   # ============================================================================
-  _addLabel: (label) ->
-    if not label.myLeafletLabel?
-      # create invisible label with name and position
-      label.myLeafletLabel = new L.Label()
-      label.myLeafletLabel.setContent @_addLinebreaks label.getLabelName()
-      label.myLeafletLabel.setLatLng label.getLabelPos()
-      # add label to map
-      @_map.showLabel label.myLeafletLabel
-      label.myLeafletLabelIsVisible = true
+  # physically adds label to the map, but makes it invisible
+  _addName: (area) ->
+    if not area.nameLayer?
 
-      # put in center of label
-      label.myLeafletLabel.options.offset = [
-        -label.myLeafletLabel._container.offsetWidth/2,
-        -label.myLeafletLabel._container.offsetHeight/2
+      # create label with name and position
+      area.nameLayer = new L.Label()
+      area.nameLayer.setContent @_addLinebreaks area.getCommonName()
+      area.nameLayer.setLatLng area.getLabelPos()
+
+      # create double-link: leaflet label knows HG area and HG area knows leaflet label
+      area.nameLayer.hgArea = area
+      @_map.showLabel area.nameLayer
+
+      # make label invisible
+      # TODO: reimplment label visibility algorithm
+      # area.nameLayerIsVisible = true
+
+      # put text in center of label
+      area.nameLayer.options.offset = [
+        -area.nameLayer._container.offsetWidth/2,
+        -area.nameLayer._container.offsetHeight/2
       ]
-      label.myLeafletLabel._updatePosition()
+      area.nameLayer._updatePosition()
+
+  # ============================================================================
+  # remove geometry from map
+  _removeGeom: (id) ->
+    if area.geomLayer?
+      # remove double-link: leaflet layer from area and area from leaflet layer
+      @_map.removeLayer area.geomLayer
+      area.geomLayer = null
+
+
+  # ============================================================================
+  _removeName: (id) ->
+    if area.nameLayer?
+      # remove double-link: leaflet layer from area and area from leaflet layer
+      @_map.removeLayer area.nameLayer
+      area.nameLayer = null
 
 
   ### EVENTS ###
@@ -186,7 +229,7 @@ class HG.AreasOnMap
     @_selectedAreas.push obj
     # change in view
     @_colorArea obj
-    @_map.fitBounds obj.target.getBounds() unless DEBUG
+    @_map.fitBounds obj.target.getBounds() if FOCUS
     # tell everyone
     @notifyAll 'onSelectArea', obj
 
@@ -198,9 +241,16 @@ class HG.AreasOnMap
       @_selectedAreas.removeById obj.id
       # change in view
       @_colorArea obj
-      @_map.fitBounds obj.target.getBounds() unless DEBUG
+      @_map.fitBounds obj.target.getBounds() if FOCUS
       # tell everyone
       @notifyAll 'onDeselectArea', obj.id
+
+  # ============================================================================
+  _clearSelectedAreas: () ->
+    for obj in @_selectedAreas    # deactivate all areas from multiple selection mode
+      obj.area.deselect()
+      @_colorArea obj
+    @_selectedAreas.clear()       # => no area selected. TODO: Is that right?
 
   # ============================================================================
   # one function does all the coloring depending on the state of the area

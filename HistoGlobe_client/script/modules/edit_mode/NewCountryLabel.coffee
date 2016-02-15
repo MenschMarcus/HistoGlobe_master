@@ -59,7 +59,7 @@ class HG.NewCountryLabel
         'iconFA':   'check'
       }
     ]
-    @_wrapper.dom().appendChild @_okButton.getDOM()
+    @_wrapper.appendChild @_okButton.getDom()
 
 
     ### INTERACTION ###
