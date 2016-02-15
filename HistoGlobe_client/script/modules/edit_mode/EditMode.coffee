@@ -115,14 +115,15 @@ class HG.EditMode
             # update current operation in workflow
             opId = btn.get().id
             @_currCO = @_changeOperations.getByPropVal 'id', opId
-            @_currCO.totalSteps = @_currCO.steps.length
-            @_currCO.stepIdx = 0
-            @_currCO.finished = no
+            @_currCO.oldAreas = new HG.ObjectArray      # areas that are subject to change (old)
+            @_currCO.newAreas = new HG.ObjectArray      # areas that replace old areas (new)
+            @_currCO.numSteps = @_currCO.steps.length   # total number of steps in the operation
+            @_currCO.stepIdx = 0                        # current step number [0 .. numSteps-1]
+            @_currCO.finished = no                      # operation successfully finished # TODO: necessary?
 
             @_setupOperation()
 
             ## (3) STEP ##
-
             # 1. step comes automatically, without need to click on a button
             while true
 
@@ -140,7 +141,7 @@ class HG.EditMode
               # send info to server
               # receive new info from server
 
-              @_cleanupStep() # old step
+              @_cleanupStep false # old step
 
               # update current step in  workflow
               @_currCO.stepIdx++
@@ -160,7 +161,7 @@ class HG.EditMode
               # send info to server
               # receive new info from server
 
-              @_cleanupStep() # old step
+              @_cleanupStep true # old step
 
               # update step information
               @_currCO.stepIdx--
@@ -176,8 +177,8 @@ class HG.EditMode
             # listen to click on abort button
             @_abortButton.onClick @, () =>
 
-              @_cleanupStep()
-              @_cleanupOperation()
+              @_cleanupStep true
+              @_cleanupOperation true
 
               # reset step information
               @_currCO    = {}
@@ -315,111 +316,103 @@ class HG.EditMode
 
         # update step information
         @_currStep.reqNum = @_getRequiredNum @_currStep.num
-        selectedAreas = new HG.ObjectArray
-        selectedAreas.push @_areasOnMap.getActiveArea() if @_areasOnMap.getActiveArea()?
 
         # setup UI
-        @_areasOnMap.enableMultipleSelection @_currStep.reqNum.max
+        @_areasOnMap.enableMultipleSelectionMode @_currStep.reqNum.max
 
         ### ACTION ###
 
         # listen to area selection from AreasOnMap
-        @_areasOnMap.onSelectArea @, (area) =>
-          selectedAreas.push area
-          @_histoGraph.addToSelection area
+        @_areasOnMap.onSelectArea @, (obj) =>
+          @_currCO.oldAreas.push obj
+          @_histoGraph.addToSelection obj
 
           # check if step is completed
-          if selectedAreas.length() >= @_currStep.reqNum.min
-            @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.totalSteps-1
+          if @_currCO.oldAreas.length() >= @_currStep.reqNum.min
             @_nextButton.enable()
+            @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.numSteps-1
 
         # listen to area deselection from AreasOnMap
-        @_areasOnMap.onDeselectArea @, (area) =>
-          selectedAreas.remove '_id', area._id
-          @_histoGraph.removeFromSelection area
+        @_areasOnMap.onDeselectArea @, (id) =>
+          @_currCO.oldAreas.removeById id
+          @_histoGraph.removeFromSelection id
 
           # check if step is not completed anymore
-          if selectedAreas.length() < @_currStep.reqNum.min
+          if @_currCO.oldAreas.length() < @_currStep.reqNum.min
             @_nextButton.disable()
       )
 
       ## SET GEOMETRY OF NEW COUNTRY/-IES ##
       when 'SET_GEOM' then (
 
-        # TODO: take out
-        @_nextButton.enable()
-
         # update step information
         @_currStep.reqNum = @_getRequiredNum @_currStep.num
 
+        # setup ui
+        @_areasOnMap.leaveFocusMode() if @_currStep.startNew # only if this is the first step in "start new"
+        @_areasOnMap.enterNewGeomMode()
+
+        # init new country territory dialoge
         @_ctrTerritory = new HG.NewCountryTerritory @_hgInstance
 
-
-
-        # ## setup controls
-        # @_terrTools = new HG.TerritoryTools @_hgInstance, @_config.iconPath
-        # newTerrButton =       @_hgInstance.buttons.newTerritory
-        # reuseTerrButton =     @_hgInstance.buttons.reuseTerritory
-        # importTerrButton =    @_hgInstance.buttons.importTerritory
+        newTerrButton =       @_hgInstance.buttons.newTerritory
+        reuseTerrButton =     @_hgInstance.buttons.reuseTerritory
+        importTerrButton =    @_hgInstance.buttons.importTerritory
+        editTerrButton =      @_hgInstance.buttons.editTerritory
+        deleteTerrButton =    @_hgInstance.buttons.deleteTerritory
         # snapToPointsSwitch =  @_hgInstance.switches.snapToPoints
         # snapToLinesSwitch =   @_hgInstance.switches.snapToLines
         # snapToleranceInput =  @_hgInstance.inputs.snapTolerance
-        # clipTerrButton =      @_hgInstance.buttons.clipTerritory
-        # useRestButton =       @_hgInstance.buttons.useRest
+        clipTerrButton =      @_hgInstance.buttons.clipTerritory
+        useRestButton =       @_hgInstance.buttons.useRest
 
-        # clipTerrButton.disable()
-        # useRestButton.disable()
+        editTerrButton.disable()
+        deleteTerrButton.disable()
+        clipTerrButton.disable()
+        useRestButton.disable()
 
         # ### ACTION ###
 
-        # # TODO: setup leaflet draw to work
-        # @_polygonDrawer = new L.Draw.Polygon @_map
-        # @_polygonEditor = new L.Edit.Poly
+        newTerrButton.onClick @, () =>
+          # TODO: what to do on add territory?
 
-        # @_map.on 'draw:created', (e) =>
-        #   type = e.layerType
-        #   layer = e.layer
-        #   console.log e
-        #   console.log layer._latlngs
-        #   layer.addTo @_map
-        #   @_terrTools.addToList e.layer._leaflet_id
+        reuseTerrButton.onClick @, () =>
+          # TODO: what to do on reuse territory?
 
-        # newTerrButton.onClick @, () =>
-        #   @_polygonDrawer.enable()
-        #   # add to list in territory tools
+        importTerrButton.onClick @, () =>
+          # TODO: what to do on import new territory from file?
 
-        # reuseTerrButton.onClick @, () =>
-        #   @_polygonEditor.addHooks()
-        #   # TODO: reuse territory
+        editTerrButton.onClick @, () =>
+          # TODO: what to do on edit territory?
 
-        # importTerrButton.onClick @, () =>
-        #   # TODO: import new territory from file
+        deleteTerrButton.onClick @, () =>
+          # TODO: what to do on delete territory?
 
         # snapToPointsSwitch.onSwitchOn @, () =>
-        #   # TODO: turn switch to border points on!
+          # TODO: what to do on turn switch to border points on!?
 
         # snapToPointsSwitch.onSwitchOff @, () =>
-        #   # TODO: turn switch to border points off!
+          # TODO: what to do on turn switch to border points off!?
 
         # snapToLinesSwitch.onSwitchOn @, () =>
-        #   # TODO: turn switch to border lines on!
+          # TODO: what to do on turn switch to border lines on!?
 
         # snapToLinesSwitch.onSwitchOff @, () =>
-        #   # TODO: turn switch to border lines off!
+          # TODO: what to do on turn switch to border lines off!?
 
         # snapToleranceInput.onChange @, (val) =>
-        #   # TODO: the new snap tolerance value is " + va
+          # TODO: what to do on the new snap tolerance value is " + va?
 
-        # clipTerrButton.onClick @, () =>
-        #   # TODO: clip the drawn territory to the existing territory
+        clipTerrButton.onClick @, () =>
+          # TODO: what to do on clip the drawn territory to the existing territory?
 
-        # useRestButton.onClick @, () =>
-        #   # TODO: use the remaining territory for this new country
+        useRestButton.onClick @, () =>
+          # TODO: what to do on use the remaining territory for this new country?
 
 
         # finish up
-        @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.totalSteps-1
         @_nextButton.enable()
+        @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.numSteps-1
 
       )
 
@@ -429,6 +422,9 @@ class HG.EditMode
         # update step information
         @_currStep.reqNum = @_getRequiredNum @_currStep.num
 
+        # setup UI
+        @_areasOnMap.leaveFocusMode() if @_currStep.startNew # only if this is the first step in "start new"
+
         # for each required country, set up text input that has to be filled interactively
         # TODO: handle number of countries + interaction with database
         @_ctrLabel = new HG.NewCountryLabel @_hgInstance, [500, 200]
@@ -436,8 +432,8 @@ class HG.EditMode
         @_ctrLabel.onSubmitPos @, (pos) => console.log pos
 
         ### ACTION ###
-        @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.totalSteps-1
         @_nextButton.enable()
+        @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.numSteps-1
 
       )
 
@@ -451,31 +447,30 @@ class HG.EditMode
         @_nextButton.enable()
 
         ### ACTION ###
-        @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.totalSteps-1
         @_nextButton.enable()
+        @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.numSteps-1
 
       )
 
 
   # ============================================================================
-  _cleanupStep: () ->
+  _cleanupStep: (aborted=false) ->
 
-    switch @_currStep.id
+    # for some reason, switch @_currStep.id when '...' then () does not work here ?!?
 
-      when 'SEL_OLD' then (
-          #TODO: deselect active areas
-          @_areasOnMap.disableMultipleSelection()
-        )
+    if @_currStep.id is 'SEL_OLD'
+      @_areasOnMap.disableMultipleSelectionMode()
+      if aborted
+        @_areasOnMap.clearSelectedAreas()
 
-      when 'SET_GEOM' then (
-          @_ctrTerritory.destroy()
-        )
+    else if @_currStep.id is 'SET_GEOM'
+      @_ctrTerritory.destroy()
 
-      when 'SET_NAME' then (
-          @_ctrLabel.destroy()
-        )
+    else if @_currStep.id is 'SET_NAME'
+      @_ctrLabel.destroy()
 
-      when 'ADD_CHNG' then
+    else if @_currStep.id is 'ADD_CHNG'
+      console.log 'OUT'
 
 
   # ============================================================================
