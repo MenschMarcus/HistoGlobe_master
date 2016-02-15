@@ -8,7 +8,7 @@ $primary_font_face                  = sans-serif
 $secondary_font_face                = sans-serif
 $input_text_height                  = 25px;
 
-$color_white                        = rgb(255,255,255)
+$color_white                        = rgb(250,250,250)
 $color_bg_light                     = rgb(222,222,222)
 $color_bg_medium                    = rgb(47,59,70)
 $color_bg_medium_semitransparent    = rgba(47,59,70,0.65)
@@ -41,9 +41,11 @@ $button_abort_shrink_factor         = 0.75
 
 // MAP -------------------------------------------------------------
 
-$area_opacity                       = 0.25
+$area_full_opacity                  = 0.75
+$area_half_opacity                  = 0.5
+$border_opacity                     = 0.6
 $border_width                       = 0.5px
-$border_opacity                     = 1
+$animation_time                     = 150  // [ms]
 
 
 // TIMELINE & NOW MARKER -------------------------------------------

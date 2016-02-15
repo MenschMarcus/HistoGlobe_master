@@ -1,5 +1,9 @@
 window.HG ?= {}
 
+# ============================================================================
+# MODEL class
+# contains data about each Area in the system
+
 class HG.Area
 
   ##############################################################################
@@ -23,7 +27,9 @@ class HG.Area
       (bbox[1]+bbox[3])/2
     ]
 
-    @_active = no
+    @_focused = no    # is area currently in focus (hovered)?
+    @_selected = no   # is area currently selected?
+    @_treated = no    # for edit mode: area has already been treated?
 
   # ============================================================================
   getId: () ->          @_id
@@ -32,9 +38,18 @@ class HG.Area
   getLabelName: () ->   @_labelName
   getLabelPos: () ->    @_labelPos
 
-  deactivate: () ->     @_active = no
-  activate: () ->       @_active = yes
-  isActive: () ->       @_active
+  deselect: () ->       @_selected = no
+  select: () ->         @_selected = yes
+  isSelected: () ->     @_selected
+
+  unfocus: () ->        @_focused = no
+  focus: () ->          @_focused = yes
+  isFocused: () ->      @_focused
+
+  treat: () ->          @_treated = yes
+  untreat: () ->        @_treated = no
+  isTreated: () ->      @_treated
+
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
