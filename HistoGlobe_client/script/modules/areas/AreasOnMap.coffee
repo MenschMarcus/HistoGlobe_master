@@ -42,6 +42,7 @@ class HG.AreasOnMap
         @_hgInstance.areaController.onAddArea @, (area) =>
           @_addGeom area
           @_addName area
+          @_colorArea area
         # @_areaController.onRemoveArea @, (id) =>    @_removeArea id
 
       else
@@ -49,7 +50,6 @@ class HG.AreasOnMap
 
       # switch to multiple-selection mode
       @_hgInstance.editController?.onStartAreaSelection @, (num) =>
-        console.log "start selecting max. ", num, " areas"
         @_numSelections = num     # can receive a number (1, 2, 3, ... , MAX_NUM)
 
       # switch to single-selection mode
@@ -69,10 +69,21 @@ class HG.AreasOnMap
         @_removeSelectedAreas()
 
 
-      @_hgInstance.editController?.onStartGeometrySetting @, () =>
+      @_hgInstance.editController?.onAddArea @, (area) =>
+        @_addGeom area
+        @_addName area
+        @_colorArea area
 
-      @_hgInstance.editController?.onFinishGeometrySetting @, () =>
+      @_hgInstance.editController?.onUpdateArea @, (area) =>
+        @_removeName area
+        @_removeGeom area
+        @_addGeom area
+        @_addName area
+        @_colorArea area
 
+      @_hgInstance.editController?.onRemoveArea @, (area) =>
+        @_removeGeom area
+        @_removeName area
 
 
 
@@ -90,7 +101,7 @@ class HG.AreasOnMap
   # physically adds area to the map, but makes it invisible
   _addGeom: (area) ->
     # setup territory
-    if not area.geomLayer?
+    unless area.geomLayer?
 
       # create area as leaflet layer -> clickable and class name to style it in css
       # setting class to area and style it with css is a bad idea,
@@ -124,13 +135,11 @@ class HG.AreasOnMap
       area.geomLayer.hgArea = area
       area.geomLayer.addTo @_map
 
-      @_colorArea area
-
 
   # ============================================================================
   # physically adds label to the map, but makes it invisible
   _addName: (area) ->
-    if not area.nameLayer?
+    if not area.nameLayer? and not $.isEmptyObject(area.getNames())
 
       # create label with name and position
       area.nameLayer = new L.Label()
@@ -154,7 +163,7 @@ class HG.AreasOnMap
 
   # ============================================================================
   # remove geometry from map
-  _removeGeom: (id) ->
+  _removeGeom: (area) ->
     if area.geomLayer?
       # remove double-link: leaflet layer from area and area from leaflet layer
       @_map.removeLayer area.geomLayer
@@ -162,7 +171,7 @@ class HG.AreasOnMap
 
 
   # ============================================================================
-  _removeName: (id) ->
+  _removeName: (area) ->
     if area.nameLayer?
       # remove double-link: leaflet layer from area and area from leaflet layer
       @_map.removeLayer area.nameLayer
@@ -215,7 +224,6 @@ class HG.AreasOnMap
     @_colorArea area
     @_map.fitBounds area.geomLayer.getBounds() if FOCUS
     # tell everyone
-    console.log "select ", area.getId()
     @notifyAll 'onSelectArea', area
 
   # ============================================================================
@@ -223,12 +231,11 @@ class HG.AreasOnMap
     if area?  # accounts for the case that there is no active area
       # change in model
       area.deselect()
-      @_selectedAreas.splice @_selectedAreas.indexOf area, 1 # remove Area from array
+      @_selectedAreas.splice (@_selectedAreas.indexOf area), 1 # remove Area from array
       # change in view
       @_colorArea area
       @_map.fitBounds area.geomLayer.getBounds() if FOCUS
       # tell everyone
-      console.log "deselect ", area.getId()
       @notifyAll 'onDeselectArea', area
 
   # ============================================================================
@@ -240,7 +247,6 @@ class HG.AreasOnMap
 
   # ============================================================================
   _removeSelectedAreas: () ->
-    console.log @_selectedAreas
     for area in @_selectedAreas
       @_removeGeom area
       @_removeName area
