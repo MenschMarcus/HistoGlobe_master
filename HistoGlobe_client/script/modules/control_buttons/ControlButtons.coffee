@@ -137,10 +137,10 @@ class HG.ControlButtons
           )
 
     # listen to show/hide of HistoGraph
-    @_hgInstance.histoGraph.onShow @, (elem) =>
+    @_hgInstance.histoGraph?.onShow @, (elem) =>
       @moveUp elem.height()
 
-    @_hgInstance.histoGraph.onHide @, (elem) =>
+    @_hgInstance.histoGraph?.onHide @, (elem) =>
       @moveDown elem.height()
 
   # ============================================================================
