@@ -62,31 +62,28 @@ class HG.AreasOnMap
 
         # switch to no-focus mode
         # = areas are not highlighted and can not be selected
-        @_hgInstance.editController.onEnterNewAreaSelection @, () =>
+        @_hgInstance.editController.onEnterNewAreaSelection @, (oldAreas=[], newAreas=[]) =>
           @_focusMode = no
-          @_colorArea a for a in @_selectedAreas
+          @_setSelectedAreas oldAreas, newAreas
 
         # switch to focus mode
         # = areas are highlighted on hover and can be selected
-        @_hgInstance.editController.onFinishNewAreaSelection @, () =>
+        @_hgInstance.editController.onFinishNewAreaSelection @, (oldAreas=[], newAreas=[]) =>
           @_focusMode = yes
-          @_colorArea a for a in @_selectedAreas
+          @_setSelectedAreas oldAreas, newAreas
 
-        # add new areas
-        # @_hgInstance.editController.onAddGeometry @, (area) =>
-        #   @_addGeom area
+        # handle new areas
+        @_hgInstance.editController.onAddNewGeometry @, (area) =>
+          @_addGeom area
 
-        # remove new areas
-        # @_hgInstance.editController.onRemoveGeometry @, (area) =>
-        #   @_removeGeom area
+        @_hgInstance.editController.onRemoveNewGeometry @, (area) =>
+          @_removeGeom area
 
-        # add new areas
-        # @_hgInstance.editController.onAddName @, (area) =>
-        #   @_addGeom area
+        @_hgInstance.editController.onAddNewName @, (area) =>
+          @_addGeom area
 
-        # remove new areas
-        # @_hgInstance.editController.onRemoveName @, (area) =>
-        #   @_removeGeom area
+        @_hgInstance.editController.onRemoveNewName @, (area) =>
+          @_removeGeom area
 
 
   # ============================================================================
@@ -242,11 +239,28 @@ class HG.AreasOnMap
       @notifyAll 'onDeselectArea', area
 
   # ============================================================================
+  _setSelectedAreas: (areas) ->
+    @_clearSelectedAreas()
+    for area in areas
+      area.select()
+      @_colorArea area
+      @_selectedAreas.push area
+
+  # ============================================================================
   _clearSelectedAreas: () ->
     for area in @_selectedAreas    # deactivate all areas from multiple selection mode
       area.deselect()
       @_colorArea area
     @_selectedAreas = []           # => no area selected. TODO: Is that right?
+
+  # ============================================================================
+  _removeSelectedAreas: () ->
+    console.log @_selectedAreas
+    for area in @_selectedAreas
+      @_removeGeom area
+      @_removeName area
+    @_selectedAreas = []           # => no area selected. TODO: Is that right?
+
 
   # ============================================================================
   # one function does all the coloring depending on the state of the area
