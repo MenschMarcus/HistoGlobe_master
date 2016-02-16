@@ -28,28 +28,12 @@ class HG.Title
     # resize automatically
     $(window).on 'resize', @resize
 
-    # interaction
-    @_hgInstance.onAllModulesLoaded @, () =>
-
-      if @_hgInstance.editController
-
-        @_hgInstance.editController.onLeaveEditMode @, () =>
-          @set 'EDIT MODE'  # TODO: internationalization
-
-        @_hgInstance.editController.onLeaveEditMode @, () =>
-          @_destroy()
-
-        @_hgInstance.editController.onStartOperation @, () =>
-          @clear()
-
-        @_hgInstance.editController.onEndOperation @, () =>
-          @set 'EDIT MODE'  # TODO: internationalization
-
   # ============================================================================
   set: (txt) ->   @_title.j().html txt
   clear: () ->    @_title.j().html ''
 
   # ============================================================================
+  # TODO: make independent from edit mode
   resize: () =>
     width = $(window).width() -
       2 * HGConfig.element_window_distance.val -
@@ -62,7 +46,7 @@ class HG.Title
 
 
   # ============================================================================
-  _destroy: () ->
+  destroy: () ->
     @_titleBar?.j().empty()
     @_titleBar?.j().remove()
     delete @_titleBar?

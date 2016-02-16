@@ -34,29 +34,19 @@ class HG.EditMode
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @addCallback 'onEnterEditMode'
-    @addCallback 'onLeaveEditMode'
-
-    @addCallback 'onStartOperation'
-    @addCallback 'onEndOperation'
-
-    @addCallback 'onStepComplete'
-    @addCallback 'onStepIncomplete'
-    @addCallback 'onOperationComplete'
-    @addCallback 'onOperationIncomplete'
-
-    # TODO: check which ones are necessary
-    @addCallback 'onEnterOldAreaSelection'
-    @addCallback 'onFinishOldAreaSelection'
-    @addCallback 'onEnterNewAreaSelection'
-    @addCallback 'onFinishNewAreaSelection'
-    @addCallback 'onEnterHiventSelection'
+    @addCallback 'onStartAreaSelection'
+    @addCallback 'onFinishAreaSelection'
+    @addCallback 'onStartGeometrySetting'
+    @addCallback 'onFinishGeometrySetting'
+    @addCallback 'onStartNameSetting'
+    @addCallback 'onFinishNameSetting'
+    @addCallback 'onStartHiventSelection'
     @addCallback 'onFinishHiventSelection'
 
-    @addCallback 'onAddNewGeometry'
-    @addCallback 'onRemoveNewGeometry'
-    @addCallback 'onAddNewName'
-    @addCallback 'onRemoveNewName'
+    # @addCallback 'onAddNewGeometry'
+    # @addCallback 'onRemoveNewGeometry'
+    # @addCallback 'onAddNewName'
+    # @addCallback 'onRemoveNewName'
 
 
     # init config
@@ -72,10 +62,21 @@ class HG.EditMode
     # add to HG instance
     @_hgInstance.editController = @   # N.B. edit mode = edit controller :)
 
-    # init variables for convenience ;)
-    @_histoGraph = @_hgInstance.histoGraph
-    @_map = @_hgInstance.map._map
-    @_areasOnMap = @_hgInstance.areasOnMap
+    # loading dependencies + error handling
+    if @_hgInstance.map._map?
+      @_map = @_hgInstance.map._map
+    else
+      console.error "Unable to load Edit Mode: There is no map, you idiot! Why would you want to have HistoGlobe without a map ?!?"
+
+    if @_hgInstance.areasOnMap?
+      @_areasOnMap = @_hgInstance.areasOnMap
+    else
+      console.error "Unable to load Edit Mode: AreasOnMap module is not included in the current hg instance (has to be loaded before EditMode)"
+
+    # if @_hgInstance.histoGraph?
+    #   @_histoGraph = @_hgInstance.histoGraph
+    # else
+    #   console.error "Unable to load Edit Mode: HistoGraph module is not included in the current hg instance (has to be loaded before EditMode)"
 
 
     if TEST_BUTTON
@@ -116,7 +117,8 @@ class HG.EditMode
       }
       @_hgInstance._top_area.appendChild @_editButtonArea.getDom()
 
-      @_editButton = new HG.Button @_hgInstance, 'editMode', null, [
+      @_editButton = new HG.Button @_hgInstance, 'editMode', null,
+        [
           {
             'id':       'normal',
             'tooltip':  "Enter Edit Mode",
@@ -153,7 +155,7 @@ class HG.EditMode
               {
                 id:       inCO.id
                 title:    inCO.title
-                stepIdx:  0
+                stepIdx:  -1            # start index -1 = no step
                 steps: [
                   {
                     id:         'SEL_OLD_AREA'
@@ -201,11 +203,7 @@ class HG.EditMode
 
             console.log @_currCO
 
-            # start operation
-            @_setupOperation()
-
-            ## (3) STEP ##
-            @_makeStep()
+            @_nextStep()
 
 
       # listen to next click on edit button => leave edit mode and cleanup
@@ -259,14 +257,11 @@ class HG.EditMode
         }
 
     # setup title
-    @_title = new HG.Title @_hgInstance
-
-    @notifyAll 'onEnterEditMode'
+    @_title = new HG.Title @_hgInstance, "EDIT MODE" # TODO: internationalization
 
   # ============================================================================
   _cleanupEditMode: () ->
-    @notifyAll 'onLeaveEditMode'
-
+    @_title.destroy()
     @_operationButtons.foreach (b) =>
       b.button.destroy()
     @_newHiventButton.destroy()
@@ -274,58 +269,17 @@ class HG.EditMode
     @_editButton.changeState 'normal'
 
 
-  ## (2) OPERATION ##
-
-  # ============================================================================
-  _setupOperation: () ->
-
-    # disable all buttons
-    @_editButton.disable()
-    @_newHiventButton.disable()
-    @_operationButtons.foreach (obj) =>
-      obj.button.disable()
-
-    # highlight button of current operation
-    (@_operationButtons.getById @_currCO.id).button.activate()
-
-    # setup workflow window
-    @_wWindow = new HG.WorkflowWindow @_hgInstance, @_currCO
-
-    # listen to click on buttons in workflow window
-    @_hgInstance.buttons.wwNext.onNext @, () =>   @_nextStep()
-    @_hgInstance.buttons.wwBack.onBack @, () =>   @_prevStep()
-
-    @_hgInstance.buttons.wwBack.onClick @, () =>
-      # abort = back to the very beginning
-      currStep = @_currCO.stepIdx
-      while currStep > 0
-        @_makeTransition currStep, currStep-1
-        currStep--
-      @_cleanupOperation()
-
-    @_hgInstance.buttons.wwFinish.onFinish @, () =>
-      console.log "HEUREKA"
-      @_cleanupOperation()
-
-    @notifyAll 'onStartOperation', @_currCO.id
-
-
-  # ============================================================================
-  _cleanupOperation: () ->
-    @notifyAll 'onEndOperation', @_currCO.id
-
-    # own UI
-    (@_operationButtons.getById @_currCO.id).button.deactivate()
-    @_newHiventButton.enable()
-    @_operationButtons.foreach (obj) =>
-      obj.button.enable()
-    @_editButton.enable()
-
-
   ## (3) STEP ###
+  ## differentiate between a step
+  ##  -> waiting for the users input
+  ## and a transition from step i to i+1 (forward) or i-1 (backward)
+  ##  -> preparing UI, doing interaction with the server
+  ## each operation iterates through each step, but only for the ones where
+  ## there is user input required
 
   # ============================================================================
   # waiting for user input in each step or automatically process information
+  # => listening to other modules
   _makeStep: () ->
 
     ## SELECT OLD COUNTRY/-IES ##
@@ -338,16 +292,19 @@ class HG.EditMode
       ## user input for certain operations
       else
         @_areasOnMap.onSelectArea @, (area) =>
+          console.log 'HORST'
           @_currCO.steps[0].selAreas.push area
+          console.log @_currCO.steps[0].selAreas
           # is step complete?
           if @_currCO.steps[0].selAreas.length >= @_currCO.steps[0].minNum
-            @notifyAll 'onStepComplete'
+            @_wWindow.stepComplete()
 
         @_areasOnMap.onDeselectArea @, (area) =>
-          @_currCO.selAreas.splice @_currCO.selAreas.indexOf area, 1 # remove Area from array
+          @_currCO.steps[0].selAreas.splice @_currCO.steps[0].selAreas.indexOf area, 1 # remove Area from array
+          console.log @_currCO.steps[0].selAreas
           # is step incomplete?
-          if @_currCO.selAreas.length < xxx.reqNum.min
-            @notifyAll 'onStepIncomplete'
+          if @_currCO.steps[0].selAreas.length < @_currCO.steps[0].minNum
+            @_wWindow.stepIncomplete()
 
 
     ## SET GEOMETRY OF NEW COUNTRY/-IES ##
@@ -397,7 +354,7 @@ class HG.EditMode
 
         ## finish up
         # TODO: check if complete
-        @notifyAll 'onStepComplete'
+        @_wWindow.stepComplete()
         # TODO: check if incomplete
 
 
@@ -411,7 +368,9 @@ class HG.EditMode
       ## user input for certain operations
       else
         # for each required country, set up text input that has to be filled interactively
-        # TODO: handle number of countries + interaction with database
+        console.log @_currCO.step[2].minNumber
+        console.log @_currCO.step[2].maxNumber
+
         @_ctrLabel.onSubmitName @, (name) =>
           console.log name
 
@@ -420,7 +379,7 @@ class HG.EditMode
 
         ## finish up
         # TODO: check if complete
-        @notifyAll 'onStepComplete'
+        @_wWindow.stepComplete()
         # TODO: check if incomplete
 
 
@@ -432,35 +391,100 @@ class HG.EditMode
       ### ACTION ###
       ## finish up
       # TODO: check if complete
-      @notifyAll 'onOperationComplete'
+      @_wWindow.operationComplete()
       # TODO: check if incomplete
 
 
   # ============================================================================
   _makeTransition: (oldStep, newStep) ->
-    console.log 'HORST'
 
-    # setup buttons
-    if @_currCO.stepIdx is 0
-      @_backButton.disable()
-    else
-      @_backButton.enable()
-    @_nextButton.changeState 'normal'
-    @_nextButton.disable()
+    # 'START' -> 'SEL_OLD_AREA'
+    if oldStep is -1 and newStep is 0
+      console.log "'START' -> 'SEL_OLD_AREA'"
+
+      ## send info to server
+
+      ## get info from server
+
+      ## treat special cases
+
+      ## cleanup UI
+      # nothing to do, because it is the first step
+
+      ## setup UI
+      # = setup operation
+      # disable all buttons
+      @_editButton.disable()
+      @_newHiventButton.disable()
+      @_operationButtons.foreach (obj) =>
+        obj.button.disable()
+
+      # highlight button of current operation
+      (@_operationButtons.getById @_currCO.id).button.activate()
+
+      # setup workflow window (in the space of the title)
+      @_title.clear()
+      @_wWindow = new HG.WorkflowWindow @_hgInstance, @_currCO
+
+      # listen to click on buttons in workflow window
+      @_hgInstance.buttons.wwNext.onNext @, () =>   @_nextStep()
+      @_hgInstance.buttons.wwBack.onBack @, () =>   @_prevStep()
+
+      @_hgInstance.buttons.wwAbort.onAbort @, () =>
+        # abort = back to the very beginning
+        currStep = @_currCO.stepIdx
+        while currStep > -1
+          @_makeTransition currStep, currStep-1
+          currStep--
+
+      @_hgInstance.buttons.wwNext.onFinish @, () =>
+        console.log "HEUREKA"
+
+      # tell AreasOnMap to start selecting [minNum .. maxNum] of areas
+      @notifyAll 'onStartAreaSelection', @_currCO.steps[0].maxNum
+
+
+    # 'START' <- 'SEL_OLD_AREA'
+    else if oldStep is 0 and newStep is -1
+      console.log "'START' <- 'SEL_OLD_AREA'"
+
+      ## send info to server
+
+      ## get info from server
+
+      ## treat special cases
+      # unless @_currCO.id is 'NEW'
+
+      ## cleanup UI
+      # = cleanup operation
+      @_wWindow.destroy()
+      @_title.set "EDIT MODE"   # TODO: internationalization
+      (@_operationButtons.getById @_currCO.id).button.deactivate()
+      @_newHiventButton.enable()
+      @_operationButtons.foreach (obj) =>
+        obj.button.enable()
+      @_editButton.enable()
+
+      ## setup UI
+      # nothing to set up, because it is abort
+
 
     # 'SEL_OLD_AREA' -> 'SET_NEW_GEOM'
-    if oldStep is 0 and newStep is 1
+    else if oldStep is 0 and newStep is 1
+      console.log "'SEL_OLD_AREA' -> 'SET_NEW_GEOM'"
 
-      # cleanup UI
-      @notifyAll 'onFinishOldAreaSelection'
+      ## send info to server
 
+      ## get info from server
+
+      ## cleanup UI
+      @notifyAll 'onFinishAreaSelection'
+
+      ## treat special cases
       if @_currCO.id is 'UNI'   # unify old areas
-        @_currCO.steps[1].newAreas = [] # TODO: unify @_currCO.steps[0].selAreas
         # DEBUG: create new country
-        # na = new HG.Area 'Horst', TEST_GEOM, null
-        # na.select()
-        # @notifyAll 'onAddNewGeometry', na
-
+        test = new HG.Area 'Horst', TEST_GEOM, null
+        @_currCO.steps[1].newAreas = [test] # TODO: unify @_currCO.steps[0].selAreas
 
       else if @_currCO.id is 'DEL'   # delete old area
         @notifyAll 'onRemoveArea', @_currCO.steps[0].oldAreas[0]
@@ -468,40 +492,106 @@ class HG.EditMode
       else if @_currCO.id is 'CHN'
         console.log "do nothing ;)"
 
-      # setup UI
+      ## setup UI
       else
-        @_ctrTerritory = new HG.NewCountryTerritory @_hgInstance
+        @_newGeomTool = new HG.NewGeometryTool @_hgInstance
+        @notifyAll 'onStartGeometrySetting'
+
 
     # 'SEL_OLD_AREA' <- 'SET_NEW_GEOM'
-    # else if oldStep is 1 and newStep is 0
+    else if oldStep is 1 and newStep is 0
+      console.log "'SEL_OLD_AREA' <- 'SET_NEW_GEOM'"
+
+      ## send info to server
+
+      ## get info from server
+
+      ## treat special cases
+
+      ## cleanup UI
+
+      ## setup UI
+      # @notifyAll 'onStartAreaSelection', @_currCO.steps[0].maxNum
+
 
     # 'SET_NEW_GEOM' -> 'SET_NEW_NAME'
-    # else if oldStep is 1 and newStep is 2
+    else if oldStep is 1 and newStep is 2
+      console.log "'SET_NEW_GEOM' -> 'SET_NEW_NAME'"
+
+      ## send info to server
+
+      ## get info from server
+
+      ## cleanup UI
+      @notifyAll 'onFinishGeometrySetting'
+
+      ## treat special cases
+      unless @_currCO.id is 'CHB' or @_currCO.id is 'DEL'
+
+      ## setup UI
+        @_newNameTool = new HG.NewNameTool @_hgInstance, [500, 200]  # TODO: real position
+        @notifyAll 'onStartNameSetting'
+
 
     # 'SET_NEW_GEOM' <- 'SET_NEW_NAME'
     else if oldStep is 2 and newStep is 1
-      @_ctrLabel = new HG.NewCountryLabel @_hgInstance, [500, 200]  # TODO: real position
+      console.log "'SET_NEW_GEOM' <- 'SET_NEW_NAME'"
+
+      ## send info to server
+
+      ## get info from server
+
+      ## treat special cases
+
+      ## cleanup UI
+
+      ## setup UI
 
 
     # 'SET_NEW_NAME' -> 'ADD_CHNG'
-    # else if oldStep is 2 and newStep is 3
+    else if oldStep is 2 and newStep is 3
+      console.log "'SET_NEW_NAME' -> 'ADD_CHNG'"
+
+      ## send info to server
+
+      ## get info from server
+
+      ## cleanup UI
+      @notifyAll 'onFinishNameSetting'
+
+      ## treat special cases
+      # no special cases, because each operation ends with adding the change to an hivent
+
+      ## setup UI
+      console.log 'add change to an hivent'
+
 
     # 'SET_NEW_NAME' <- 'ADD_CHNG'
     else if oldStep is 3 and newStep is 2
-      @_ctrLabel = new HG.NewCountryLabel @_hgInstance, [500, 200]  # TODO: real position
+      console.log "'SET_NEW_NAME' <- 'ADD_CHNG'"
 
+      ## send info to server
+
+      ## get info from server
+
+      ## treat special cases
+
+      ## cleanup UI
+
+      ## setup UI
+      # @_ctrLabel = new HG.NewNameTool @_hgInstance, [500, 200]  # TODO: real position
+
+
+    @_makeStep()
 
 
   # ============================================================================
   _nextStep: () ->
-    @_makeTransition @_currCO.stepIdx, @_currCO.stepIdx+1
     @_currCO.stepIdx++
-    @_makeStep()
+    @_makeTransition @_currCO.stepIdx-1, @_currCO.stepIdx
   _prevStep: () ->
-    @_makeTransition @_currCO.stepIdx, @_currCO.stepIdx-1
     @_currCO.stepIdx--
-    @_makeStep()
-
+    @_makeTransition @_currCO.stepIdx+1, @_currCO.stepIdx
 
   # ============================================================================
   # possible inputs:  1   1+  2   2+

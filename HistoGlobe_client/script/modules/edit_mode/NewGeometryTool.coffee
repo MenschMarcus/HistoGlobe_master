@@ -8,7 +8,7 @@ window.HG ?= {}
 #   set up my own ButtonArea and move leaflet buttons in there
 # ==============================================================================
 
-class HG.NewCountryTerritory
+class HG.NewGeometryTool
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
@@ -201,8 +201,6 @@ class HG.NewCountryTerritory
     delete @_drawControl
     @_map.removeLayer @_territories
     delete @_territories
-
-
 
 
 

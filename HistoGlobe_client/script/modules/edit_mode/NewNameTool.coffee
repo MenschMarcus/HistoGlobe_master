@@ -1,6 +1,6 @@
 window.HG ?= {}
 
-class HG.NewCountryLabel
+class HG.NewNameTool
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
@@ -63,6 +63,7 @@ class HG.NewCountryLabel
 
 
     ### INTERACTION ###
+    ## to other modules
 
     # seamless interaction
     @_makeDraggable()
@@ -86,15 +87,16 @@ class HG.NewCountryLabel
       @notifyAll 'onSubmitPos', @_map.containerPointToLatLng center
 
 
-  # ============================================================================
-  destroy: () ->
-    # detach event handlers from map
-    @_map.off 'zoomend', @_respondToMapZoom
-    @_map.off 'drag',    @_respondToMapDrag
-    # remove UI elements + their interaction
-    @_okButton.remove()
-    @_inputField.remove()
-    @_wrapper.remove()
+    ## from other modules
+
+    @_hgInstance.onAllModulesLoaded @, () =>
+
+      @_hgInstance.editController.onStartNameSetting @, () =>
+
+      @_hgInstance.editController.onFinishNameSetting @, () =>
+        @_destroy()
+
+
 
 
   ##############################################################################
@@ -171,3 +173,13 @@ class HG.NewCountryLabel
     # console.log zoomFactor
     # console.log windowCenterStart
     # console.log windowCenterEnd
+
+  # ============================================================================
+  _destroy: () ->
+    # detach event handlers from map
+    @_map.off 'zoomend', @_respondToMapZoom
+    @_map.off 'drag',    @_respondToMapDrag
+    # remove UI elements + their interaction
+    @_okButton.remove()
+    @_inputField.remove()
+    @_wrapper.remove()
