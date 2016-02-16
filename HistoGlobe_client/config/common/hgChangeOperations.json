@@ -5,19 +5,14 @@
     "steps":
     [
       {
-        "id":       "SET_GEOM",
-        "startNew": true,
+        "id":       "SET_NEW_GEOM",
         "num":      "1",
         "title":    "create territory <br/> of new country"
       },
       {
-        "id":       "SET_NAME",
+        "id":       "SET_NEW_NAME",
         "num":      "1",
         "title":    "create name <br/> of new country"
-      },
-      {
-        "id":       "ADD_CHNG",
-        "title":    "add change <br /> to historical event"
       }
     ]
   },
@@ -27,19 +22,14 @@
     "steps":
     [
       {
-        "id":       "SEL_OLD",
+        "id":       "SEL_OLD_AREA",
         "num":      "2+",
         "title":    "select all countries <br/> to be united"
       },
       {
-        "id":       "SET_NAME",
-        "startNew": true,
+        "id":       "SET_NEW_NAME",
         "num":      "1",
         "title":    "create name <br/> of united country"
-      },
-      {
-        "id":       "ADD_CHNG",
-        "title":    "add change <br /> to historical event"
       }
     ]
   },
@@ -49,24 +39,19 @@
     "steps":
     [
       {
-        "id":       "SEL_OLD",
+        "id":       "SEL_OLD_AREA",
         "num":      "1",
         "title":    "select country <br/> to be separated"
       },
       {
-        "id":       "SET_GEOM",
-        "startNew": true,
+        "id":       "SET_NEW_GEOM",
         "num":      "2+",
         "title":    "create territories <br/> of all separated countries"
       },
       {
-        "id":       "SET_NAME",
+        "id":       "SET_NEW_NAME",
         "num":      "2+",
         "title":    "create names <br/> of all separated countries"
-      },
-      {
-        "id":       "ADD_CHNG",
-        "title":    "add change <br /> to historical event"
       }
     ]
   },
@@ -76,19 +61,14 @@
     "steps":
     [
       {
-        "id":       "SEL_OLD",
+        "id":       "SEL_OLD_AREA",
         "num":      "2",
         "title":    "select two countries whose <br/> border is to be changed"
       },
       {
-        "id":       "SET_GEOM",
-        "startNew": true,
+        "id":       "SET_NEW_GEOM",
         "num":      "2",
         "title":    "create new geometries <br/> of the two countries"
-      },
-      {
-        "id":       "ADD_CHNG",
-        "title":    "add change <br /> to historical event"
       }
     ]
   },
@@ -98,19 +78,14 @@
     "steps":
     [
       {
-        "id":       "SEL_OLD",
+        "id":       "SEL_OLD_AREA",
         "num":      "1",
         "title":    "select country whose <br/> name is to be changed"
       },
       {
-        "id":       "SET_NAME",
-        "startNew": true,
+        "id":       "SET_NEW_NAME",
         "num":      "1",
         "title":    "create new name <br/> of the country"
-      },
-      {
-        "id":       "ADD_CHNG",
-        "title":    "add change <br /> to historical event"
       }
     ]
   },
@@ -120,14 +95,9 @@
     "steps":
     [
       {
-        "id":       "SEL_OLD",
+        "id":       "SEL_OLD_AREA",
         "num":      "1+",
         "title":    "select all countries to be deleted"
-      },
-      {
-        "id":       "ADD_CHNG",
-        "startNew": true,
-        "title":    "add change <br /> to historical event"
       }
     ]
   }
