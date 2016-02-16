@@ -28,7 +28,7 @@ class HG.AreaController
           area.geometry = @_geometryFromGeoJSONToLeaflet area.geometry
           names = {
             'commonName': area.properties.name
-            'pos': @_calcNamePos area.geometry
+            'pos':        @_calcNamePos area.geometry
           }
           newArea = new HG.Area area.id, area.geometry, names
           @_areas.push newArea

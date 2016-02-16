@@ -3,6 +3,10 @@ window.HG ?= {}
 # ============================================================================
 # MODEL class (DTO)
 # contains data about each Area in the system
+# names = {
+#   'commonName': string,
+#   'pos':        {'lat': float, 'lng': float}
+# }
 
 class HG.Area
 

@@ -43,10 +43,9 @@ class HG.EditMode
     @addCallback 'onStartHiventSelection'
     @addCallback 'onFinishHiventSelection'
 
-    # @addCallback 'onAddNewGeometry'
-    # @addCallback 'onRemoveNewGeometry'
-    # @addCallback 'onAddNewName'
-    # @addCallback 'onRemoveNewName'
+    @addCallback 'onAddArea'
+    @addCallback 'onUpdateArea'
+    @addCallback 'onRemoveArea'
 
 
     # init config
@@ -159,28 +158,32 @@ class HG.EditMode
                 steps: [
                   {
                     id:         'SEL_OLD_AREA'
+                    title:      null
                     userInput:  no
                     minNum:     0
                     maxNum:     0
-                    title:      null
-                    selAreas:   []
+                    outAreas:   []
                   },
                   {
                     id:         'SET_NEW_GEOM'
+                    title:      null
                     userInput:  no
                     minNum:     0
                     maxNum:     0
-                    title:      null
+                    areaIdx:    0
+                    inAreas:    []
                     clipAreas:  []
-                    newAreas:   []
+                    outAreas:   []
                   },
                   {
                     id:         'SET_NEW_NAME'
+                    title:      null
                     userInput:  no
                     minNum:     0
                     maxNum:     0
-                    title:      null
-                    newAreas:   []
+                    areaIdx:    0
+                    inAreas:    []
+                    outAreas:   []
                   },
                   {
                     id:         'ADD_CHNG'
@@ -292,18 +295,17 @@ class HG.EditMode
       ## user input for certain operations
       else
         @_areasOnMap.onSelectArea @, (area) =>
-          console.log 'HORST'
-          @_currCO.steps[0].selAreas.push area
-          console.log @_currCO.steps[0].selAreas
+          @_currCO.steps[0].outAreas.push area
+          console.log @_currCO.steps[0].outAreas
           # is step complete?
-          if @_currCO.steps[0].selAreas.length >= @_currCO.steps[0].minNum
+          if @_currCO.steps[0].outAreas.length >= @_currCO.steps[0].minNum
             @_wWindow.stepComplete()
 
         @_areasOnMap.onDeselectArea @, (area) =>
-          @_currCO.steps[0].selAreas.splice @_currCO.steps[0].selAreas.indexOf area, 1 # remove Area from array
-          console.log @_currCO.steps[0].selAreas
+          @_currCO.steps[0].outAreas.splice (@_currCO.steps[0].outAreas.indexOf area), 1 # remove Area from array
+          console.log @_currCO.steps[0].outAreas
           # is step incomplete?
-          if @_currCO.steps[0].selAreas.length < @_currCO.steps[0].minNum
+          if @_currCO.steps[0].outAreas.length < @_currCO.steps[0].minNum
             @_wWindow.stepIncomplete()
 
 
@@ -316,6 +318,8 @@ class HG.EditMode
 
       ## user input for certain operations
       else
+        @_newGeomTool = new HG.NewGeometryTool @_hgInstance
+
         @_hgInstance.buttons.newTerritory.onClick @, () =>
           # TODO: what to do on add territory?
 
@@ -367,20 +371,41 @@ class HG.EditMode
 
       ## user input for certain operations
       else
-        # for each required country, set up text input that has to be filled interactively
-        console.log @_currCO.step[2].minNumber
-        console.log @_currCO.step[2].maxNumber
+        # for each required area
+        @_currCO.steps[2].areaIdx = 0
 
-        @_ctrLabel.onSubmitName @, (name) =>
-          console.log name
+        @_newNameToolLoop = () =>
+          # set up NewNameTool to set name and pos of area interactively
+          @_newNameTool = new HG.NewNameTool @_hgInstance, [500, 200]  # TODO: real position
+          @_newNameTool.onSubmit @, (name, pos) =>
 
-        @_ctrLabel.onSubmitPos @, (pos) =>
-          console.log pos
+            # copy area from input array, write name to it and save in output array
+            idx = @_currCO.steps[2].areaIdx
+            area = @_currCO.steps[2].inAreas[idx]
+            area.setNames {
+                'commonName': name
+                'pos':        pos
+              }
+            area.treat()
 
-        ## finish up
-        # TODO: check if complete
-        @_wWindow.stepComplete()
-        # TODO: check if incomplete
+            # update model
+            @_currCO.steps[2].outAreas[idx] = area
+
+            # update view
+            @_newNameTool.destroy()
+            @notifyAll 'onUpdateArea', area
+
+            console.log @_currCO.steps[2].inAreas[idx]
+            console.log @_currCO.steps[2].outAreas[idx]
+
+            # go to next area
+            @_currCO.steps[2].areaIdx++
+            if @_currCO.steps[2].areaIdx < @_currCO.steps[2].maxNum
+              @_newNameToolLoop()
+            else # = loop completed = required areas named => step complete
+              @_wWindow.stepComplete()
+
+        @_newNameToolLoop()
 
 
     ## ADD CHANGE TO HIVENT ##
@@ -425,10 +450,11 @@ class HG.EditMode
       # setup workflow window (in the space of the title)
       @_title.clear()
       @_wWindow = new HG.WorkflowWindow @_hgInstance, @_currCO
+      @_wWindow.stepIncomplete()
 
       # listen to click on buttons in workflow window
-      @_hgInstance.buttons.wwNext.onNext @, () =>   @_nextStep()
-      @_hgInstance.buttons.wwBack.onBack @, () =>   @_prevStep()
+      @_hgInstance.buttons.wwNext.onNext @, () => @_nextStep()
+      @_hgInstance.buttons.wwBack.onBack @, () => @_prevStep()
 
       @_hgInstance.buttons.wwAbort.onAbort @, () =>
         # abort = back to the very beginning
@@ -473,6 +499,9 @@ class HG.EditMode
     else if oldStep is 0 and newStep is 1
       console.log "'SEL_OLD_AREA' -> 'SET_NEW_GEOM'"
 
+      ## knowledge transfer
+      @_currCO.steps[newStep].inAreas = @_currCO.steps[oldStep].outAreas
+
       ## send info to server
 
       ## get info from server
@@ -482,9 +511,15 @@ class HG.EditMode
 
       ## treat special cases
       if @_currCO.id is 'UNI'   # unify old areas
+
+        # delete all old areas
+        for area in @_currCO.steps[1].inAreas
+          @notifyAll 'onRemoveArea', area
+
         # DEBUG: create new country
         test = new HG.Area 'Horst', TEST_GEOM, null
-        @_currCO.steps[1].newAreas = [test] # TODO: unify @_currCO.steps[0].selAreas
+        @notifyAll 'onAddArea', test
+        @_currCO.steps[1].outAreas = [test] # TODO: unify @_currCO.steps[0].outAreas
 
       else if @_currCO.id is 'DEL'   # delete old area
         @notifyAll 'onRemoveArea', @_currCO.steps[0].oldAreas[0]
@@ -494,7 +529,7 @@ class HG.EditMode
 
       ## setup UI
       else
-        @_newGeomTool = new HG.NewGeometryTool @_hgInstance
+        @_wWindow.stepIncomplete()
         @notifyAll 'onStartGeometrySetting'
 
 
@@ -518,6 +553,9 @@ class HG.EditMode
     else if oldStep is 1 and newStep is 2
       console.log "'SET_NEW_GEOM' -> 'SET_NEW_NAME'"
 
+      ## knowledge transfer
+      @_currCO.steps[newStep].inAreas = @_currCO.steps[oldStep].outAreas
+
       ## send info to server
 
       ## get info from server
@@ -529,7 +567,7 @@ class HG.EditMode
       unless @_currCO.id is 'CHB' or @_currCO.id is 'DEL'
 
       ## setup UI
-        @_newNameTool = new HG.NewNameTool @_hgInstance, [500, 200]  # TODO: real position
+        @_wWindow.stepIncomplete()
         @notifyAll 'onStartNameSetting'
 
 
@@ -579,7 +617,6 @@ class HG.EditMode
       ## cleanup UI
 
       ## setup UI
-      # @_ctrLabel = new HG.NewNameTool @_hgInstance, [500, 200]  # TODO: real position
 
 
     @_makeStep()
