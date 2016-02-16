@@ -27,20 +27,21 @@ class HG.WorkflowWindow
   # ============================================================================
   constructor: (@_hgInstance, operation) ->
 
+    @_currStep = 0
+
     ### MAIN WINDOW ###
 
     # main window sits on top of hg title, has more height (to account for extra space needed)
     @_mainWindow = new HG.Div 'ww-main-window'
-    # @_mainWindow.j().hide()
     @_hgInstance._top_area.appendChild @_mainWindow.dom()
 
 
     ### WORKFLOW TABLE ###
 
-    # table layout    |stepBack| step1 | step. | stepn |stepNext|
+    # table layout    |stepBack| step1 | step..| stepn |stepNext|
     # -------------------------------------------------------------------
     # graphRow        |        |  (O)--|--( )--|--( )  |    X   |   -> hg title
-    # descriptionRow  |   (<)  | text1 | text. | textn |   (>)  |   + semi-transparent bg
+    # descriptionRow  |   (<)  | text1 | text..| textn |   (>)  |   + semi-transparent bg
 
     ## rows ##
     # create graph and description divs that dynamically adjust to their content
@@ -61,12 +62,13 @@ class HG.WorkflowWindow
     stepCols = 0
     @_stepDescr = []
     for step in operation.steps
-      @_graphRow.appendChild new HG.Div null, ['ww-graph-row', 'ww-step-col']
-      descr = new HG.Div null, ['ww-description-row', 'ww-step-col', 'ww-description-cell']
-      descr.j().html step.title
-      @_descriptionRow.appendChild descr
-      @_stepDescr.push descr.j()
-      stepCols++
+      if step.userInput
+        @_graphRow.appendChild new HG.Div null, ['ww-graph-row', 'ww-step-col']
+        descr = new HG.Div null, ['ww-description-row', 'ww-step-col', 'ww-description-cell']
+        descr.j().html step.title
+        @_descriptionRow.appendChild descr
+        @_stepDescr.push descr.j()
+        stepCols++
 
     # next column
     abortButtonParent = new HG.Div 'abort-button-parent', ['ww-graph-row', 'ww-button-col']
@@ -143,7 +145,7 @@ class HG.WorkflowWindow
     ### BUTTONS ###
 
     # back button (= undo, disabled)
-    @_backButton = new HG.Button @_hgInstance, 'coBack', null, [
+    @_backButton = new HG.Button @_hgInstance, 'wwBack', null, [
         {
           'id':       'normal'
           'tooltip':  "Undo / Go Back"
@@ -155,7 +157,7 @@ class HG.WorkflowWindow
 
     # next button ( = ok = go to next step, disabled)
     # -> changes to OK button / "finish" state in last step
-    @_nextButton = new HG.Button @_hgInstance, 'coNext', null, [
+    @_nextButton = new HG.Button @_hgInstance, 'wwNext', null, [
         {
           'id':       'normal'
           'tooltip':  "Done / Next Step"
@@ -172,7 +174,7 @@ class HG.WorkflowWindow
     nextButtonParent.appendChild @_nextButton.getDom()
 
     # abort button
-    @_abortButton = new HG.Button @_hgInstance, 'coAbort', ['button-abort'], [
+    @_abortButton = new HG.Button @_hgInstance, 'wwAbort', ['button-abort'], [
         {
           'id':       'normal'
           'tooltip':  "Abort Operation"
@@ -188,26 +190,64 @@ class HG.WorkflowWindow
     @_mainWindow.j().css 'left', posLeft
     @_mainWindow.j().css 'margin-left', marginLeft
 
+    # interaction with Edit Mode
+    @_hgInstance.onAllModulesLoaded @, () =>
 
-  # ============================================================================
-  destroy: () ->
-    @_mainWindow?.j().empty()
-    @_mainWindow?.j().remove()
-    delete @_mainWindow?
+      if @_hgInstance.editController
 
-  # ============================================================================
-  # graph manipulation
-  moveStepMarker: (stepIdx) ->
-    @_stepMarker
-      .transition()
-      .attr 'cx', @_circlePos[stepIdx].x
+        @_hgInstance.editController.onStartOperation @, () =>
+          @_nextButton.disable()
 
-  highlightText: (stepIdx) ->
-    d.removeClass 'ww-current-description' for d in @_stepDescr
-    @_stepDescr[stepIdx].addClass 'ww-current-description'
+        @_hgInstance.editController.onEndOperation @, () =>
+          @_destroy()
+
+        @_hgInstance.editController.onStepComplete @, () =>
+          @_nextButton.enable()
+
+        @_hgInstance.editController.onStepIncomplete @, () =>
+          @_nextButton.disable()
+
+        @_hgInstance.editController.onOperationComplete @, () =>
+          @_nextButton.enable()
+          @_nextButton.changeState 'finish'
+
+        @_hgInstance.editController.onOperationIncomplete @, () =>
+          @_nextButton.disable()
+          @_nextButton.changeState 'normal'
+
+        @_hgInstance.editController.onNextStep @, () =>
+          @_currStep++
+          @_moveStepMarker()
+          @_highlightText()
+
+        @_hgInstance.editController.onPrevStep @, () =>
+          @_currStep++
+          @_moveStepMarker()
+          @_highlightText()
+
 
 
 
   ##############################################################################
   #                            PRIVATE INTERFACE                                #
   ##############################################################################
+
+  # ============================================================================
+  # graph manipulation
+  _moveStepMarker: () ->
+    @_stepMarker
+      .transition()
+      .attr 'cx', @_circlePos[@_currStep]
+
+  _highlightText: () ->
+    d.removeClass 'ww-current-description' for d in @_stepDescr
+    @_stepDescr[@_currStep].addClass 'ww-current-description'
+
+  # ============================================================================
+  _destroy: () ->
+    @_abortButton.destroy()
+    @_nextButton.destroy()
+    @_backButton.destroy()
+    @_mainWindow?.j().empty()
+    @_mainWindow?.j().remove()
+    delete @_mainWindow?

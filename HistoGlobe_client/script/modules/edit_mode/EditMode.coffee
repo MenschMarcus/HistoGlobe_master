@@ -1,6 +1,17 @@
 window.HG ?= {}
 
-TEST_BUTTON = no    # DEBUG: take out if not needed anymore
+# DEBUG: take out if not needed anymore
+TEST_BUTTON = no
+TEST_GEOM = [[
+  [49.32512, -45.43945],
+  [55.52863, -37.44140],
+  [52.16045, -16.61132],
+  [46.67959, -32.69531]
+]]
+TEST_NAME = {
+  'commonName': 'Testland'
+  'pos':        [50.5, -27.5]
+}
 
 class HG.EditMode
 
@@ -23,22 +34,36 @@ class HG.EditMode
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
+    @addCallback 'onEnterEditMode'
+    @addCallback 'onLeaveEditMode'
+
+    @addCallback 'onStartOperation'
+    @addCallback 'onEndOperation'
+
+    @addCallback 'onStepComplete'
+    @addCallback 'onStepIncomplete'
+    @addCallback 'onOperationComplete'
+    @addCallback 'onOperationIncomplete'
+
+    # TODO: check which ones are necessary
     @addCallback 'onEnterOldAreaSelection'
     @addCallback 'onFinishOldAreaSelection'
     @addCallback 'onEnterNewAreaSelection'
     @addCallback 'onFinishNewAreaSelection'
-    @addCallback 'onFnterHiventSelection'
-    @addCallback 'onFfinishHiventSelection'
+    @addCallback 'onEnterHiventSelection'
+    @addCallback 'onFinishHiventSelection'
+
+    @addCallback 'onAddNewGeometry'
+    @addCallback 'onRemoveNewGeometry'
+    @addCallback 'onAddNewName'
+    @addCallback 'onRemoveNewName'
+
 
     # init config
     defaultConfig =
       changeOperationsPath:     'HistoGlobe_client/config/common/hgChangeOperations.json'
 
     @_config = $.extend {}, defaultConfig, config
-
-    # init variables
-    @_currCO = {}                   # object of current change operation
-    @_currStep = {}                 # object of current step in workflow
 
 
   # ============================================================================
@@ -118,85 +143,69 @@ class HG.EditMode
 
         ## (2) OPERATION ##
         # listen to click on edit operation buttons => start operation
-        @_operationButtons.foreach (b) =>
-          b.button.onClick @, (btn) =>
+        @_operationButtons.foreach (btn) =>
+          btn.button.onClick @, (btn) =>
 
-            # update current operation in workflow
-            opId = btn.getDom().id
-            @_currCO = @_changeOperations.getByPropVal 'id', opId
-            @_currCO.oldAreas = []                      # areas that are subject to change (old)
-            @_currCO.newAreas = []                      # areas that replace old areas (new)
-            @_currCO.numSteps = @_currCO.steps.length   # total number of steps in the operation
-            @_currCO.stepIdx = 0                        # current step number [0 .. numSteps-1]
-            @_currCO.finished = no                      # operation successfully finished # TODO: necessary?
+            # get current operation
+            inCO = @_changeOperations.getByPropVal 'id', btn.getDom().id
 
+            @_currCO =
+              {
+                id:       inCO.id
+                title:    inCO.title
+                stepIdx:  0
+                steps: [
+                  {
+                    id:         'SEL_OLD_AREA'
+                    userInput:  no
+                    minNum:     0
+                    maxNum:     0
+                    title:      null
+                    selAreas:   []
+                  },
+                  {
+                    id:         'SET_NEW_GEOM'
+                    userInput:  no
+                    minNum:     0
+                    maxNum:     0
+                    title:      null
+                    clipAreas:  []
+                    newAreas:   []
+                  },
+                  {
+                    id:         'SET_NEW_NAME'
+                    userInput:  no
+                    minNum:     0
+                    maxNum:     0
+                    title:      null
+                    newAreas:   []
+                  },
+                  {
+                    id:         'ADD_CHNG'
+                    userInput:  yes
+                    title:      "add change <br /> to historical event"
+                  },
+                ]
+              }
+
+            # fill up default information with information of loaded change operation
+            for inStep in inCO.steps
+              for defStep in @_currCO.steps
+                if defStep.id is inStep.id
+                  defStep.userInput = yes
+                  defStep.title = inStep.title
+                  num = @_getRequiredNum inStep.num
+                  defStep.minNum = num[0]
+                  defStep.maxNum = num[1]
+                  break
+
+            console.log @_currCO
+
+            # start operation
             @_setupOperation()
 
             ## (3) STEP ##
-            # 1. step comes automatically, without need to click on a button
-            while true
-
-              # update current step in workflow
-              @_currStep = @_currCO.steps[@_currCO.stepIdx]
-
-              @_setupStep()
-
-              break
-
-
-            # listen to click on next button
-            @_nextButton.onNext @, () =>
-
-              # send info to server
-              # receive new info from server
-
-              @_cleanupStep false # old step
-
-              # update current step in  workflow
-              @_currCO.stepIdx++
-              @_currStep = @_currCO.steps[@_currCO.stepIdx]
-
-              # update UI
-              @_wWindow.moveStepMarker @_currCO.stepIdx
-              @_wWindow.highlightText @_currCO.stepIdx
-
-              @_setupStep()
-
-
-
-            # listen to click on back button
-            @_backButton.onBack @, () =>
-
-              # send info to server
-              # receive new info from server
-
-              @_cleanupStep true # old step
-
-              # update step information
-              @_currCO.stepIdx--
-              @_currStep = @_currCO.steps[@_currCO.stepIdx]
-
-              # update UI
-              @_wWindow.moveStepMarker @_currCO.stepIdx
-              @_wWindow.highlightText @_currCO.stepIdx
-
-              @_setupStep()
-
-
-            # listen to click on abort button
-            @_abortButton.onClick @, () =>
-
-              @_cleanupStep true
-              @_cleanupOperation true
-
-              # reset step information
-              @_currCO    = {}
-              @_currStep  = {}
-
-
-            @_nextButton.onFinish @, () =>
-              console.log "HEUREKA"
-              # TODO finish up
+            @_makeStep()
 
 
       # listen to next click on edit button => leave edit mode and cleanup
@@ -250,11 +259,14 @@ class HG.EditMode
         }
 
     # setup title
-    @_title = new HG.Title @_hgInstance, "EDIT MODE"  # TODO internationalization
+    @_title = new HG.Title @_hgInstance
+
+    @notifyAll 'onEnterEditMode'
 
   # ============================================================================
   _cleanupEditMode: () ->
-    @_title.destroy()
+    @notifyAll 'onLeaveEditMode'
+
     @_operationButtons.foreach (b) =>
       b.button.destroy()
     @_newHiventButton.destroy()
@@ -266,6 +278,7 @@ class HG.EditMode
 
   # ============================================================================
   _setupOperation: () ->
+
     # disable all buttons
     @_editButton.disable()
     @_newHiventButton.disable()
@@ -276,25 +289,32 @@ class HG.EditMode
     (@_operationButtons.getById @_currCO.id).button.activate()
 
     # setup workflow window
-    @_title.clear()
     @_wWindow = new HG.WorkflowWindow @_hgInstance, @_currCO
-    @_backButton = @_hgInstance.buttons.coBack
-    @_nextButton = @_hgInstance.buttons.coNext
-    @_abortButton = @_hgInstance.buttons.coAbort
-    @_backButton.disable()
-    @_nextButton.disable()
 
-    # setup histograph for visualization of operation
-    @_histoGraph.show()
+    # listen to click on buttons in workflow window
+    @_hgInstance.buttons.wwNext.onNext @, () =>   @_nextStep()
+    @_hgInstance.buttons.wwBack.onBack @, () =>   @_prevStep()
+
+    @_hgInstance.buttons.wwBack.onClick @, () =>
+      # abort = back to the very beginning
+      currStep = @_currCO.stepIdx
+      while currStep > 0
+        @_makeTransition currStep, currStep-1
+        currStep--
+      @_cleanupOperation()
+
+    @_hgInstance.buttons.wwFinish.onFinish @, () =>
+      console.log "HEUREKA"
+      @_cleanupOperation()
+
+    @notifyAll 'onStartOperation', @_currCO.id
+
 
   # ============================================================================
   _cleanupOperation: () ->
-    @_histoGraph.hide()
-    @_abortButton.destroy()
-    @_nextButton.destroy()
-    @_backButton.destroy()
-    @_wWindow.destroy()
-    @_title.set "EDIT MODE"
+    @notifyAll 'onEndOperation', @_currCO.id
+
+    # own UI
     (@_operationButtons.getById @_currCO.id).button.deactivate()
     @_newHiventButton.enable()
     @_operationButtons.foreach (obj) =>
@@ -305,7 +325,120 @@ class HG.EditMode
   ## (3) STEP ###
 
   # ============================================================================
-  _setupStep: () ->
+  # waiting for user input in each step or automatically process information
+  _makeStep: () ->
+
+    ## SELECT OLD COUNTRY/-IES ##
+    if @_currCO.stepIdx is 0
+
+      ## skip step for certain operations
+      if @_currCO.id is 'NEW'
+        @_nextStep()
+
+      ## user input for certain operations
+      else
+        @_areasOnMap.onSelectArea @, (area) =>
+          @_currCO.steps[0].selAreas.push area
+          # is step complete?
+          if @_currCO.steps[0].selAreas.length >= @_currCO.steps[0].minNum
+            @notifyAll 'onStepComplete'
+
+        @_areasOnMap.onDeselectArea @, (area) =>
+          @_currCO.selAreas.splice @_currCO.selAreas.indexOf area, 1 # remove Area from array
+          # is step incomplete?
+          if @_currCO.selAreas.length < xxx.reqNum.min
+            @notifyAll 'onStepIncomplete'
+
+
+    ## SET GEOMETRY OF NEW COUNTRY/-IES ##
+    else if @_currCO.stepIdx is 1
+
+      ## skip step for certain operations
+      if @_currCO.id is 'UNI' or @_currCO.id is 'CHN' or @_currCO.id is 'DEL'
+        @_nextStep()
+
+      ## user input for certain operations
+      else
+        @_hgInstance.buttons.newTerritory.onClick @, () =>
+          # TODO: what to do on add territory?
+
+        @_hgInstance.buttons.reuseTerritory.onClick @, () =>
+          # TODO: what to do on reuse territory?
+
+        @_hgInstance.buttons.importTerritory.onClick @, () =>
+          # TODO: what to do on import new territory from file?
+
+        @_hgInstance.buttons.editTerritory.onClick @, () =>
+          # TODO: what to do on edit territory?
+
+        @_hgInstance.buttons.deleteTerritory.onClick @, () =>
+          # TODO: what to do on delete territory?
+
+        # @_hgInstance.switches.snapToPoints.onSwitchOn @, () =>
+          # TODO: what to do on turn switch to border points on!?
+
+        # @_hgInstance.switches.snapToPoints.onSwitchOff @, () =>
+          # TODO: what to do on turn switch to border points off!?
+
+        # @_hgInstance.switches.snapToLines.onSwitchOn @, () =>
+          # TODO: what to do on turn switch to border lines on!?
+
+        # @_hgInstance.switches.snapToLines.onSwitchOff @, () =>
+          # TODO: what to do on turn switch to border lines off!?
+
+        # @_hgInstance.inputs.snapTolerance.onChange @, (val) =>
+          # TODO: what to do on the new snap tolerance value is " + va?
+
+        @_hgInstance.buttons.clipTerritory.onClick @, () =>
+          # TODO: what to do on clip the drawn territory to the existing territory?
+
+        @_hgInstance.buttons.useRest.onClick @, () =>
+          # TODO: what to do on use the remaining territory for this new country?
+
+        ## finish up
+        # TODO: check if complete
+        @notifyAll 'onStepComplete'
+        # TODO: check if incomplete
+
+
+    ## SET NAME OF NEW COUNTRY/-IES ##
+    else if @_currCO.stepIdx is 2
+
+      ## skip step for certain operations
+      if @_currCO.id is 'CHB' or @_currCO.id is 'DEL'
+        @_nextStep()
+
+      ## user input for certain operations
+      else
+        # for each required country, set up text input that has to be filled interactively
+        # TODO: handle number of countries + interaction with database
+        @_ctrLabel.onSubmitName @, (name) =>
+          console.log name
+
+        @_ctrLabel.onSubmitPos @, (pos) =>
+          console.log pos
+
+        ## finish up
+        # TODO: check if complete
+        @notifyAll 'onStepComplete'
+        # TODO: check if incomplete
+
+
+    ## ADD CHANGE TO HIVENT ##
+    else if @_currCO.stepIdx is 3
+
+      ## TODO: Hivent window
+
+      ### ACTION ###
+      ## finish up
+      # TODO: check if complete
+      @notifyAll 'onOperationComplete'
+      # TODO: check if incomplete
+
+
+  # ============================================================================
+  _makeTransition: (oldStep, newStep) ->
+    console.log 'HORST'
 
     # setup buttons
     if @_currCO.stepIdx is 0
@@ -315,179 +448,67 @@ class HG.EditMode
     @_nextButton.changeState 'normal'
     @_nextButton.disable()
 
+    # 'SEL_OLD_AREA' -> 'SET_NEW_GEOM'
+    if oldStep is 0 and newStep is 1
 
-    # TODO "make hivent in HistoGraph" if @_currStep.startNew
+      # cleanup UI
+      @notifyAll 'onFinishOldAreaSelection'
 
-    switch @_currStep.id
+      if @_currCO.id is 'UNI'   # unify old areas
+        @_currCO.steps[1].newAreas = [] # TODO: unify @_currCO.steps[0].selAreas
+        # DEBUG: create new country
+        # na = new HG.Area 'Horst', TEST_GEOM, null
+        # na.select()
+        # @notifyAll 'onAddNewGeometry', na
 
-      ## SELECT OLD COUNTRY/-IES ##
-      when 'SEL_OLD' then (
 
-        # update step information
-        @_currStep.reqNum = @_getRequiredNum @_currStep.num
+      else if @_currCO.id is 'DEL'   # delete old area
+        @notifyAll 'onRemoveArea', @_currCO.steps[0].oldAreas[0]
 
-        # setup UI
-        @notifyAll 'onEnterOldAreaSelection', @_currStep.reqNum.max
+      else if @_currCO.id is 'CHN'
+        console.log "do nothing ;)"
 
-        ### ACTION ###
-
-        # listen to area selection from AreasOnMap
-        @_areasOnMap.onSelectArea @, (area) =>
-          @_currCO.oldAreas.push area
-          @_histoGraph.addToSelection area
-
-          # check if step is completed
-          if @_currCO.oldAreas.length >= @_currStep.reqNum.min
-            @_nextButton.enable()
-            @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.numSteps-1
-
-        # listen to area deselection from AreasOnMap
-        @_areasOnMap.onDeselectArea @, (area) =>
-          @_currCO.oldAreas.splice @_currCO.oldAreas.indexOf area, 1 # remove Area from array
-          @_histoGraph.removeFromSelection area
-
-          # check if step is not completed anymore
-          if @_currCO.oldAreas.length < @_currStep.reqNum.min
-            @_nextButton.disable()
-      )
-
-      ## SET GEOMETRY OF NEW COUNTRY/-IES ##
-      when 'SET_GEOM' then (
-
-        # update step information
-        @_currStep.reqNum = @_getRequiredNum @_currStep.num
-
-        # setup UI
-        @notifyAll 'onEnterNewAreaSelection'
-
-        # init new country territory dialoge
+      # setup UI
+      else
         @_ctrTerritory = new HG.NewCountryTerritory @_hgInstance
 
-        newTerrButton =       @_hgInstance.buttons.newTerritory
-        reuseTerrButton =     @_hgInstance.buttons.reuseTerritory
-        importTerrButton =    @_hgInstance.buttons.importTerritory
-        editTerrButton =      @_hgInstance.buttons.editTerritory
-        deleteTerrButton =    @_hgInstance.buttons.deleteTerritory
-        # snapToPointsSwitch =  @_hgInstance.switches.snapToPoints
-        # snapToLinesSwitch =   @_hgInstance.switches.snapToLines
-        # snapToleranceInput =  @_hgInstance.inputs.snapTolerance
-        clipTerrButton =      @_hgInstance.buttons.clipTerritory
-        useRestButton =       @_hgInstance.buttons.useRest
+    # 'SEL_OLD_AREA' <- 'SET_NEW_GEOM'
+    # else if oldStep is 1 and newStep is 0
 
-        editTerrButton.disable()
-        deleteTerrButton.disable()
-        clipTerrButton.disable()
-        useRestButton.disable()
+    # 'SET_NEW_GEOM' -> 'SET_NEW_NAME'
+    # else if oldStep is 1 and newStep is 2
 
-        # ### ACTION ###
-
-        newTerrButton.onClick @, () =>
-          # TODO: what to do on add territory?
-
-        reuseTerrButton.onClick @, () =>
-          # TODO: what to do on reuse territory?
-
-        importTerrButton.onClick @, () =>
-          # TODO: what to do on import new territory from file?
-
-        editTerrButton.onClick @, () =>
-          # TODO: what to do on edit territory?
-
-        deleteTerrButton.onClick @, () =>
-          # TODO: what to do on delete territory?
-
-        # snapToPointsSwitch.onSwitchOn @, () =>
-          # TODO: what to do on turn switch to border points on!?
-
-        # snapToPointsSwitch.onSwitchOff @, () =>
-          # TODO: what to do on turn switch to border points off!?
-
-        # snapToLinesSwitch.onSwitchOn @, () =>
-          # TODO: what to do on turn switch to border lines on!?
-
-        # snapToLinesSwitch.onSwitchOff @, () =>
-          # TODO: what to do on turn switch to border lines off!?
-
-        # snapToleranceInput.onChange @, (val) =>
-          # TODO: what to do on the new snap tolerance value is " + va?
-
-        clipTerrButton.onClick @, () =>
-          # TODO: what to do on clip the drawn territory to the existing territory?
-
-        useRestButton.onClick @, () =>
-          # TODO: what to do on use the remaining territory for this new country?
+    # 'SET_NEW_GEOM' <- 'SET_NEW_NAME'
+    else if oldStep is 2 and newStep is 1
+      @_ctrLabel = new HG.NewCountryLabel @_hgInstance, [500, 200]  # TODO: real position
 
 
-        # finish up
-        @_nextButton.enable()
-        @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.numSteps-1
+    # 'SET_NEW_NAME' -> 'ADD_CHNG'
+    # else if oldStep is 2 and newStep is 3
 
-      )
+    # 'SET_NEW_NAME' <- 'ADD_CHNG'
+    else if oldStep is 3 and newStep is 2
+      @_ctrLabel = new HG.NewCountryLabel @_hgInstance, [500, 200]  # TODO: real position
 
-      ## SET NAME OF NEW COUNTRY/-IES ##
-      when 'SET_NAME' then (
-
-        # update step information
-        @_currStep.reqNum = @_getRequiredNum @_currStep.num
-
-        # setup UI
-        @notifyAll 'onEnterNewAreaSelection'
-        a.treat() for a in @_currCO.newAreas  # all new areas are treated
-
-        # for each required country, set up text input that has to be filled interactively
-        # TODO: handle number of countries + interaction with database
-        @_ctrLabel = new HG.NewCountryLabel @_hgInstance, [500, 200]
-        @_ctrLabel.onSubmitName @, (name) => console.log name
-        @_ctrLabel.onSubmitPos @, (pos) => console.log pos
-
-        ### ACTION ###
-        @_nextButton.enable()
-        @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.numSteps-1
-
-      )
-
-      ## ADD CHANGE TO HIVENT ##
-      when 'ADD_CHNG' then (
-
-        # update step information
-
-        # setup UI
-        # TODO: take out
-        @_nextButton.enable()
-
-        ### ACTION ###
-        @_nextButton.enable()
-        @_nextButton.changeState 'finish' if @_currCO.stepIdx is @_currCO.numSteps-1
-
-      )
 
 
   # ============================================================================
-  _cleanupStep: (aborted=false) ->
-
-    # for some reason, switch @_currStep.id when '...' then () does not work here ?!?
-
-    if @_currStep.id is 'SEL_OLD'
-      @notifyAll 'onFinishOldAreaSelection'
-
-    else if @_currStep.id is 'SET_GEOM'
-      @notifyAll 'onFinishNewAreaSelection'
-      @_ctrTerritory.destroy()
-
-    else if @_currStep.id is 'SET_NAME'
-      @notifyAll 'onFinishNewAreaSelection'
-      @_ctrLabel.destroy()
-
-    else if @_currStep.id is 'ADD_CHNG'
-      console.log 'OUT'
+  _nextStep: () ->
+    @_makeTransition @_currCO.stepIdx, @_currCO.stepIdx+1
+    @_currCO.stepIdx++
+    @_makeStep()
+  _prevStep: () ->
+    @_makeTransition @_currCO.stepIdx, @_currCO.stepIdx-1
+    @_currCO.stepIdx--
+    @_makeStep()
 
 
   # ============================================================================
   # possible inputs:  1   1+  2   2+
   MAX_NUM = 25
-  _getRequiredNum: (exp) ->
-    return null if not exp?
-    lastChar = exp.substr(exp.length-1)
+  _getRequiredNum: (expr) ->
+    return 0 if not expr?
+    lastChar = expr.substr(expr.length-1)
     max = if lastChar is '+' then MAX_NUM else lastChar
-    min = (exp.substring 0,1)
-    {'min': parseInt(min), 'max': parseInt(max)}
+    min = (expr.substring 0,1)
+    [parseInt(min), parseInt(max)]
