@@ -24,7 +24,6 @@ class HG.WorkflowWindow
   #   numNew:   number of new countries created (null, '1', '2', '1+', '2+')
   #   newGeo:   set geometry of new country/-ies? (bool)
   #   newName:  set name of new country/-ies? (bool)
-  # ============================================================================
   constructor: (@_hgInstance, operation) ->
 
     @_currStep = 0
@@ -179,7 +178,7 @@ class HG.WorkflowWindow
           'id':       'normal'
           'tooltip':  "Abort Operation"
           'iconFA':   'times'
-          'callback': 'onClick'
+          'callback': 'onAbort'
         }
       ]
     abortButtonParent.appendChild @_abortButton.getDom()
@@ -190,42 +189,45 @@ class HG.WorkflowWindow
     @_mainWindow.j().css 'left', posLeft
     @_mainWindow.j().css 'margin-left', marginLeft
 
-    # interaction with Edit Mode
-    @_hgInstance.onAllModulesLoaded @, () =>
+    # initially no next button (will be enabled if step is complete)
+    @_nextButton.disable()
 
-      if @_hgInstance.editController
-
-        @_hgInstance.editController.onStartOperation @, () =>
-          @_nextButton.disable()
-
-        @_hgInstance.editController.onEndOperation @, () =>
-          @_destroy()
-
-        @_hgInstance.editController.onStepComplete @, () =>
-          @_nextButton.enable()
-
-        @_hgInstance.editController.onStepIncomplete @, () =>
-          @_nextButton.disable()
-
-        @_hgInstance.editController.onOperationComplete @, () =>
-          @_nextButton.enable()
-          @_nextButton.changeState 'finish'
-
-        @_hgInstance.editController.onOperationIncomplete @, () =>
-          @_nextButton.disable()
-          @_nextButton.changeState 'normal'
-
-        @_hgInstance.editController.onNextStep @, () =>
-          @_currStep++
-          @_moveStepMarker()
-          @_highlightText()
-
-        @_hgInstance.editController.onPrevStep @, () =>
-          @_currStep++
-          @_moveStepMarker()
-          @_highlightText()
+  # ============================================================================
+  destroy: () ->
+    @_abortButton.destroy()
+    @_nextButton.destroy()
+    @_backButton.destroy()
+    @_mainWindow?.j().empty()
+    @_mainWindow?.j().remove()
+    delete @_mainWindow?
 
 
+  # ============================================================================
+  ### interaction from Edit Mode ###
+
+  stepComplete: () ->
+    @_nextButton.enable()
+
+  stepIncomplete: () ->
+    @_nextButton.disable()
+
+  operationComplete: () ->
+    @_nextButton.enable()
+    @_nextButton.changeState 'finish'
+
+  operationIncomplete: () ->
+    @_nextButton.disable()
+    @_nextButton.changeState 'normal'
+
+  nextStep: () ->
+    @_currStep++
+    @_moveStepMarker()
+    @_highlightText()
+
+  prevStep: () ->
+    @_currStep++
+    @_moveStepMarker()
+    @_highlightText()
 
 
   ##############################################################################
@@ -242,12 +244,3 @@ class HG.WorkflowWindow
   _highlightText: () ->
     d.removeClass 'ww-current-description' for d in @_stepDescr
     @_stepDescr[@_currStep].addClass 'ww-current-description'
-
-  # ============================================================================
-  _destroy: () ->
-    @_abortButton.destroy()
-    @_nextButton.destroy()
-    @_backButton.destroy()
-    @_mainWindow?.j().empty()
-    @_mainWindow?.j().remove()
-    delete @_mainWindow?

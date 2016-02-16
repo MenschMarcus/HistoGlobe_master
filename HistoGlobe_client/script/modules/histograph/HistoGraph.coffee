@@ -70,12 +70,12 @@ class HG.HistoGraph
       #   @_multipleSelection = no
       #   @_hgInstance.areasOnMap.disableMultipleSelection()
 
-      @_hgInstance.areasOnMap.onActivateArea @, (country) =>
+      @_hgInstance.areasOnMap.onSelectArea @, (country) =>
         @show()
         @showHistory country
 
       # no active country => no graph
-      @_hgInstance.areasOnMap.onDeactivateArea @, (country) =>
+      @_hgInstance.areasOnMap.onSelectArea @, (country) =>
         @hide()
 
 

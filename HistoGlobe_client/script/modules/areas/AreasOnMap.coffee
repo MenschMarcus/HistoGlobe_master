@@ -16,8 +16,6 @@ class HG.AreasOnMap
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @addCallback 'onActivateArea'
-    @addCallback 'onDeactivateArea'
     @addCallback 'onSelectArea'
     @addCallback 'onDeselectArea'
 
@@ -49,41 +47,34 @@ class HG.AreasOnMap
       else
         console.error "Unable to show areas on Map: AreaController module not detected in HistoGlobe instance!"
 
-      if @_hgInstance.editController
+      # switch to multiple-selection mode
+      @_hgInstance.editController?.onStartAreaSelection @, (num) =>
+        console.log "start selecting max. ", num, " areas"
+        @_numSelections = num     # can receive a number (1, 2, 3, ... , MAX_NUM)
 
-        # switch to multiple-selection mode
-        @_hgInstance.editController.onEnterOldAreaSelection @, (num) =>
-          @_numSelections = num     # can receive a number (1, 2, 3, ... , MAX_NUM)
+      # switch to single-selection mode
+      @_hgInstance.editController?.onFinishAreaSelection @, () =>
+        @_numSelections = 1       # 1 = single selection
+        @_clearSelectedAreas()
 
-        # switch to single-selection mode
-        @_hgInstance.editController.onFinishOldAreaSelection @, () =>
-          @_numSelections = 1       # 1 = single selection
-          @_clearSelectedAreas()
+      # switch to focus mode
+      # = areas are highlighted on hover and can be selected
+      @_hgInstance.editController?.onStartGeometrySetting @, () =>
+        @_focusMode = yes
 
-        # switch to no-focus mode
-        # = areas are not highlighted and can not be selected
-        @_hgInstance.editController.onEnterNewAreaSelection @, (oldAreas=[], newAreas=[]) =>
-          @_focusMode = no
-          @_setSelectedAreas oldAreas, newAreas
+      # switch to no-focus mode
+      # = areas are not highlighted and can not be selected
+      @_hgInstance.editController?.onFinishGeometrySetting @, () =>
+        @_focusMode = no
+        @_removeSelectedAreas()
 
-        # switch to focus mode
-        # = areas are highlighted on hover and can be selected
-        @_hgInstance.editController.onFinishNewAreaSelection @, (oldAreas=[], newAreas=[]) =>
-          @_focusMode = yes
-          @_setSelectedAreas oldAreas, newAreas
 
-        # handle new areas
-        @_hgInstance.editController.onAddNewGeometry @, (area) =>
-          @_addGeom area
+      @_hgInstance.editController?.onStartGeometrySetting @, () =>
 
-        @_hgInstance.editController.onRemoveNewGeometry @, (area) =>
-          @_removeGeom area
+      @_hgInstance.editController?.onFinishGeometrySetting @, () =>
 
-        @_hgInstance.editController.onAddNewName @, (area) =>
-          @_addGeom area
 
-        @_hgInstance.editController.onRemoveNewName @, (area) =>
-          @_removeGeom area
+
 
 
   # ============================================================================
@@ -224,6 +215,7 @@ class HG.AreasOnMap
     @_colorArea area
     @_map.fitBounds area.geomLayer.getBounds() if FOCUS
     # tell everyone
+    console.log "select ", area.getId()
     @notifyAll 'onSelectArea', area
 
   # ============================================================================
@@ -236,15 +228,8 @@ class HG.AreasOnMap
       @_colorArea area
       @_map.fitBounds area.geomLayer.getBounds() if FOCUS
       # tell everyone
+      console.log "deselect ", area.getId()
       @notifyAll 'onDeselectArea', area
-
-  # ============================================================================
-  _setSelectedAreas: (areas) ->
-    @_clearSelectedAreas()
-    for area in areas
-      area.select()
-      @_colorArea area
-      @_selectedAreas.push area
 
   # ============================================================================
   _clearSelectedAreas: () ->
