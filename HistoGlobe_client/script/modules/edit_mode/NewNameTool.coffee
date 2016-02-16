@@ -17,8 +17,7 @@ class HG.NewNameTool
     HG.CallbackContainer.call @
 
     @addCallback 'onChangeName'
-    @addCallback 'onSubmitName'
-    @addCallback 'onSubmitPos'
+    @addCallback 'onSubmit'
 
     # setup variables
     @_map = @_hgInstance.map._map
@@ -83,21 +82,23 @@ class HG.NewNameTool
       width = @_inputField.j().width()
       height = @_inputField.j().height()
       center = L.point offset.left + width / 2, offset.top + height / 2
-      @notifyAll 'onSubmitName', @_inputField.j().val()
-      @notifyAll 'onSubmitPos', @_map.containerPointToLatLng center
+      # submit               common name             label position
+      @notifyAll 'onSubmit', @_inputField.j().val(), @_map.containerPointToLatLng center
 
 
     ## from other modules
 
-    @_hgInstance.onAllModulesLoaded @, () =>
-
-      @_hgInstance.editController.onStartNameSetting @, () =>
-
-      @_hgInstance.editController.onFinishNameSetting @, () =>
-        @_destroy()
 
 
-
+  # ============================================================================
+  destroy: () ->
+    # detach event handlers from map
+    @_map.off 'zoomend', @_respondToMapZoom
+    @_map.off 'drag',    @_respondToMapDrag
+    # remove UI elements + their interaction
+    @_okButton.remove()
+    @_inputField.remove()
+    @_wrapper.remove()
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
@@ -173,13 +174,3 @@ class HG.NewNameTool
     # console.log zoomFactor
     # console.log windowCenterStart
     # console.log windowCenterEnd
-
-  # ============================================================================
-  _destroy: () ->
-    # detach event handlers from map
-    @_map.off 'zoomend', @_respondToMapZoom
-    @_map.off 'drag',    @_respondToMapDrag
-    # remove UI elements + their interaction
-    @_okButton.remove()
-    @_inputField.remove()
-    @_wrapper.remove()

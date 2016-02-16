@@ -189,8 +189,6 @@ class HG.WorkflowWindow
     @_mainWindow.j().css 'left', posLeft
     @_mainWindow.j().css 'margin-left', marginLeft
 
-    # initially no next button (will be enabled if step is complete)
-    @_nextButton.disable()
 
   # ============================================================================
   destroy: () ->
