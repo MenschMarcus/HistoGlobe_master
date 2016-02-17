@@ -204,8 +204,6 @@ class HG.EditMode
                   defStep.maxNum = num[1]
                   break
 
-            console.log @_currCO
-
             @_nextStep()
 
 
@@ -296,14 +294,12 @@ class HG.EditMode
       else
         @_areasOnMap.onSelectArea @, (area) =>
           @_currCO.steps[0].outAreas.push area
-          console.log @_currCO.steps[0].outAreas
           # is step complete?
           if @_currCO.steps[0].outAreas.length >= @_currCO.steps[0].minNum
             @_wWindow.stepComplete()
 
         @_areasOnMap.onDeselectArea @, (area) =>
           @_currCO.steps[0].outAreas.splice (@_currCO.steps[0].outAreas.indexOf area), 1 # remove Area from array
-          console.log @_currCO.steps[0].outAreas
           # is step incomplete?
           if @_currCO.steps[0].outAreas.length < @_currCO.steps[0].minNum
             @_wWindow.stepIncomplete()
@@ -516,10 +512,24 @@ class HG.EditMode
         for area in @_currCO.steps[1].inAreas
           @notifyAll 'onRemoveArea', area
 
-        # DEBUG: create new country
-        test = new HG.Area 'Horst', TEST_GEOM, null
-        @notifyAll 'onAddArea', test
-        @_currCO.steps[1].outAreas = [test] # TODO: unify @_currCO.steps[0].outAreas
+        # unify @_currCO.steps[0].outAreas
+        # TODO: how to get this to work ?!?
+        geom1 = {
+            '_latlngs': @_currCO.steps[1].inAreas[0].getGeometry()[0]
+          }
+        geom2 = {
+            '_latlngs': @_currCO.steps[1].inAreas[1].getGeometry()[0]
+          }
+        geomTemp = greinerHormann.union geom1, geom2
+        geomOut = [[]]
+        geomOut[0].push {'lat': p[0], 'lng': p[1]} for p in geomTemp
+
+        console.log p[0], p[1] for p in geomTemp
+
+        @_currCO.steps[1].outAreas[0] = new HG.Area 'Horst', geomOut, null
+
+
+        @notifyAll 'onAddArea', @_currCO.steps[1].outAreas[0]
 
       else if @_currCO.id is 'DEL'   # delete old area
         @notifyAll 'onRemoveArea', @_currCO.steps[0].oldAreas[0]
