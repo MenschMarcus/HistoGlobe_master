@@ -25,7 +25,9 @@ class HG.Area
 
   # ============================================================================
   setGeometry: (geom) ->  @_geom = geom
+  setGeom: (geom) ->      @_geom = geom
   getGeometry: () ->      @_geom
+  getGeom: () ->          @_geom
 
   # ============================================================================
   setNames: (names) ->    @_names = names
