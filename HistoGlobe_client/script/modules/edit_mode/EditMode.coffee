@@ -1,7 +1,7 @@
 window.HG ?= {}
 
 # DEBUG: take out if not needed anymore
-TEST_BUTTON = yes
+TEST_BUTTON = no
 
 
 class HG.EditMode
@@ -63,6 +63,8 @@ class HG.EditMode
     else
       console.error "Unable to load Edit Mode: AreasOnMap module is not included in the current hg instance (has to be loaded before EditMode)"
 
+    @_wkt = new Wkt.Wkt # for using wkt internally here
+
     # if @_hgInstance.histoGraph?
     #   @_histoGraph = @_hgInstance.histoGraph
     # else
@@ -82,67 +84,6 @@ class HG.EditMode
       @_testButton = @_hgInstance.buttons.test
       @_testButton.onClick @, () =>
 
-
-        toWKT = (inLayer) ->
-          # credits: Bryan McBride - thank you!
-          # https://gist.github.com/bmcbride/4248238
-          # -> extended to deal with MultiPolylines and MultiPolygons as well
-          # => returns array of wkt strings
-
-          lng = undefined
-          lat = undefined
-          inLayers = [inLayer]
-          wktStrings = []
-          # preparation: transform MultiPolygons to multiple polygon layers *haha*
-          if inLayer instanceof L.MultiPolygon or layer instanceof L.MultiPolyline
-            for id, layer of inLayer._layers
-              inLayers.push layer
-          # create wkt string for each layer
-          for layer in inLayers
-            coords = []
-            if layer instanceof L.Polygon or layer instanceof L.Polyline
-              latlngs = layer.getLatLngs()
-              i = 0
-              while i < latlngs.length
-                latlngs[i]
-                coords.push latlngs[i].lng + ' ' + latlngs[i].lat
-                if i == 0
-                  lng = latlngs[i].lng
-                  lat = latlngs[i].lat
-                i++
-              if layer instanceof L.Polygon
-                wktStrings.push 'POLYGON((' + coords.join(',') + ',' + lng + ' ' + lat + '))'
-              else if layer instanceof L.Polyline
-                wktStrings.push 'LINESTRING(' + coords.join(',') + ')'
-            else if layer instanceof L.Marker
-              wktStrings.push 'POINT(' + layer.getLatLng().lng + ' ' + layer.getLatLng().lat + ')'
-          wktStrings
-
-
-        # credits: elrobis - thank you!
-        # http://gis.stackexchange.com/questions/85229/looking-for-dissolve-algorithm-for-javascript
-        # -> extended to perform cascaded union (unifies all (Multi)Polygons in array of wkt represenntations of (Multi)Polygons)
-        union = (wktStrings) ->
-          # Instantiate JSTS WKTReader and get two JSTS geometry objects
-          wktReader = new (jsts.io.WKTReader)
-          geoms = []
-          geoms.push wktReader.read wkt for wkt in wktStrings
-
-          # In JSTS, "union" is synonymous with "dissolve"
-          # TODO: could be more efficient with a tree, but I really do not care about this at this point :P
-          unionGeom = geoms[0]
-          idx = 1 # = start at the second geometry
-          while idx < geoms.length
-            unionGeom = unionGeom.union geoms[idx]
-            idx++
-
-          # Instantiate JSTS WKTWriter and get new geometry's WKT
-          wktWriter = new (jsts.io.WKTWriter)
-          wktWriter.write unionGeom
-
-
-        wkt = new Wkt.Wkt
-
         pure1 = [[
                   [20.0, -20.0],
                   [40.0, -20.0],
@@ -157,40 +98,17 @@ class HG.EditMode
                 ]]
 
         pure2 = [[
-                  [20.0, -20.0],
-                  [40.0, -20.0],
-                  [40.0, 0.0],
-                  [20.0, 0.0]
+                  [19.0, -21.0],
+                  [39.0, -21.0],
+                  [39.0, -1.0],
+                  [19.0, -1.0]
                 ]]
 
-        layer1 = new L.multiPolygon pure1
-        layer2 = new L.multiPolygon pure2
-
-        wkt.fromObject layer1
-        wkt1 = wkt.write()
-        json1 = wkt.toJson()
-        wkt.fromObject layer2
-        wkt2 = wkt.write()
-        json2 = wkt.toJson()
-
-        wkts = []
-        wkts.push wkt1
-        wkts.push wkt2
-        wktU = union wkts
-
-        wkt.read wktU
-        jsonU = wkt.toJson()
-
-        console.log json1
-        console.log json2
-        console.log jsonU
-
-        area1 = new HG.Area "test 1", json1, null
-        area2 = new HG.Area "test 2", json2, null
+        jsons = []
+        jsons.push new L.multiPolygon pure1
+        jsons.push new L.multiPolygon pure2
+        jsonU = @_union jsons
         areaU = new HG.Area "test clip", jsonU, null
-
-        @notifyAll "onAddArea", area1
-        @notifyAll "onAddArea", area2
         @notifyAll "onAddArea", areaU
 
 
@@ -608,18 +526,16 @@ class HG.EditMode
       if @_currCO.id is 'UNI'   # unify old areas
 
         # delete all old areas
+        oldAreas = []
         for area in @_currCO.steps[1].inAreas
+          oldAreas.push area.geomLayer
           @notifyAll 'onRemoveArea', area
 
         # TODO: unify @_currCO.steps[0].outAreas
-
-        ########################################################################
-
-        # @_currCO.steps[1].outAreas[0] = new HG.Area 'Horst', geomOut, null
-
-
-
-        # @notifyAll 'onAddArea', @_currCO.steps[1].outAreas[0]
+        uniArea = @_union oldAreas
+        newArea = new HG.Area "test clip", uniArea, null
+        @_currCO.steps[1].outAreas[0] = newArea
+        @notifyAll "onAddArea", newArea
 
       else if @_currCO.id is 'DEL'   # delete old area
         @notifyAll 'onRemoveArea', @_currCO.steps[0].oldAreas[0]
@@ -629,6 +545,7 @@ class HG.EditMode
 
       ## setup UI
       else
+        @_wWindow.nextStep()
         @_wWindow.stepIncomplete()
         @notifyAll 'onStartGeometrySetting'
 
@@ -667,6 +584,7 @@ class HG.EditMode
       unless @_currCO.id is 'CHB' or @_currCO.id is 'DEL'
 
       ## setup UI
+        @_wWindow.nextStep()
         @_wWindow.stepIncomplete()
         @notifyAll 'onStartNameSetting'
 
@@ -701,6 +619,8 @@ class HG.EditMode
       # no special cases, because each operation ends with adding the change to an hivent
 
       ## setup UI
+      @_wWindow.nextStep()
+      @_wWindow.stepIncomplete()
       console.log 'add change to an hivent'
 
 
@@ -739,3 +659,69 @@ class HG.EditMode
     max = if lastChar is '+' then MAX_NUM else lastChar
     min = (expr.substring 0,1)
     [parseInt(min), parseInt(max)]
+
+
+  ### GEOSPATIAL OPERATIONS ###
+
+  # ============================================================================
+  # credits: elrobis - thank you!
+  # http://gis.stackexchange.com/questions/85229/looking-for-dissolve-algorithm-for-javascript
+  # -> extended to perform cascaded union (unifies all (Multi)Polygons in array of wkt representations of (Multi)Polygons)
+  _union: (jsonObjs) ->
+    wktStrings = @_json2wkt jsonObjs                          # INPUT
+    wktGeoms = @_wkt2array wktStrings
+
+    # TODO: could be more efficient with a tree, but I really do not care about this at this point :P
+    unionGeom = wktGeoms[0]                                   # PROCESSING
+    idx = 1 # = start at the second geometry
+    while idx < wktGeoms.length
+      unionGeom = unionGeom.union wktGeoms[idx]
+      idx++
+
+    wktOut = @_write2wkt unionGeom                            # OUTPUT
+    @_wkt2json wktOut
+
+  # ============================================================================
+  _intersection: (jsonObjs) ->
+    wktStrings = @_json2wkt jsonObjs                          # INPUT
+    wktGeoms = @_wkt2array wktStrings
+
+    # TODO: could be more efficient with a tree, but I really do not care about this at this point :P
+    intersectionGeom = wktGeoms[0]                            # PROCESSING
+    idx = 1 # = start at the second geometry
+    while idx < wktGeoms.length
+      intersectionGeom = intersectionGeom.intersection wktGeoms[idx]
+      idx++
+
+    wktOut = @_write2wkt intersectionGeom                    # OUTPUT
+    @_wkt2json wktOut
+
+
+  ## HELPER CONVERSION FUNCTIONS ##
+
+  # ============================================================================
+  _json2wkt: (jsonObjs) ->
+    wkts = []
+    for obj in jsonObjs
+      @_wkt.fromObject obj
+      wkts.push @_wkt.write()
+    wkts
+
+  # ============================================================================
+  _wkt2json: (wktObj) ->
+    @_wkt.read wktObj
+    @_wkt.toJson()
+
+  # ============================================================================
+  # Instantiate JSTS WKTReader and get two JSTS geometry objects
+  _wkt2array: (wktStrings) ->
+    wktReader = new (jsts.io.WKTReader)
+    geoms = []
+    geoms.push wktReader.read wkt for wkt in wktStrings
+    geoms
+
+  # ============================================================================
+  # Instantiate JSTS WKTWriter and get new geometry's WKT
+  _write2wkt: (inGeom) ->
+    wktWriter = new (jsts.io.WKTWriter)
+    wktWriter.write inGeom
