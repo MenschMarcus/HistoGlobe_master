@@ -83,11 +83,12 @@ class HG.EditMode
       @_testButton.onClick @, () =>
 
 
-        # credits: Bryan McBride - thank you!
-        # https://gist.github.com/bmcbride/4248238
-        # -> extended to deal with MultiPolylines and MultiPolygons as well
-        # => returns array of wkt strings
         toWKT = (inLayer) ->
+          # credits: Bryan McBride - thank you!
+          # https://gist.github.com/bmcbride/4248238
+          # -> extended to deal with MultiPolylines and MultiPolygons as well
+          # => returns array of wkt strings
+
           lng = undefined
           lat = undefined
           inLayers = [inLayer]
@@ -117,16 +118,15 @@ class HG.EditMode
               wktStrings.push 'POINT(' + layer.getLatLng().lng + ' ' + layer.getLatLng().lat + ')'
           wktStrings
 
+
         # credits: elrobis - thank you!
         # http://gis.stackexchange.com/questions/85229/looking-for-dissolve-algorithm-for-javascript
-        # -> extended to
-        cascadedUnion = (wktStrings) ->
+        # -> extended to perform cascaded union (unifies all (Multi)Polygons in array of wkt represenntations of (Multi)Polygons)
+        union = (wktStrings) ->
           # Instantiate JSTS WKTReader and get two JSTS geometry objects
           wktReader = new (jsts.io.WKTReader)
           geoms = []
-          for wktString in wktStrings
-            for wkt in wktString
-              geoms.push wktReader.read wkt
+          geoms.push wktReader.read wkt for wkt in wktStrings
 
           # In JSTS, "union" is synonymous with "dissolve"
           # TODO: could be more efficient with a tree, but I really do not care about this at this point :P
@@ -136,17 +136,12 @@ class HG.EditMode
             unionGeom = unionGeom.union geoms[idx]
             idx++
 
-          ### Since 'union()' is a method of a JSTS geometry object, you
-             could easily modify this method to iterate over an array
-             of JSTS geometry objects, calling a 'union()' on each
-             sequential object.
-          ###
-
           # Instantiate JSTS WKTWriter and get new geometry's WKT
           wktWriter = new (jsts.io.WKTWriter)
           wktWriter.write unionGeom
 
 
+        wkt = new Wkt.Wkt
 
         pure1 = [[
                   [20.0, -20.0],
@@ -171,31 +166,32 @@ class HG.EditMode
         layer1 = new L.multiPolygon pure1
         layer2 = new L.multiPolygon pure2
 
+        wkt.fromObject layer1
+        wkt1 = wkt.write()
+        json1 = wkt.toJson()
+        wkt.fromObject layer2
+        wkt2 = wkt.write()
+        json2 = wkt.toJson()
+
         wkts = []
-        wkts.push toWKT layer1
-        wkts.push toWKT layer2
-        wktUnion = cascadedUnion wkts
+        wkts.push wkt1
+        wkts.push wkt2
+        wktU = union wkts
 
-        geomUnion = omnivore.wkt.parse wktUnion
+        wkt.read wktU
+        jsonU = wkt.toJson()
 
-        geomUnion.addTo @_map
-        # console.log layer for layer in geomUnion._layers
+        console.log json1
+        console.log json2
+        console.log jsonU
 
-        # console.log layer1
-        # console.log layer2
-        # console.log geomUnion
+        area1 = new HG.Area "test 1", json1, null
+        area2 = new HG.Area "test 2", json2, null
+        areaU = new HG.Area "test clip", jsonU, null
 
-        area1 = new HG.Area "test 1", pure1, null
-        area2 = new HG.Area "test 2", pure2, null
-        # areaClip = new HG.Area "test clip", pureUnion, null
-
-        # console.log area1
-        # console.log area2
-        # console.log areaClip
-
-        # @notifyAll "onAddArea", area1
-        # @notifyAll "onAddArea", area2
-        # @notifyAll "onAddArea", areaClip
+        @notifyAll "onAddArea", area1
+        @notifyAll "onAddArea", area2
+        @notifyAll "onAddArea", areaU
 
 
 
