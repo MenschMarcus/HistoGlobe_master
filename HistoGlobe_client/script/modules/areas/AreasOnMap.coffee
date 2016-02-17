@@ -139,7 +139,7 @@ class HG.AreasOnMap
   # ============================================================================
   # physically adds label to the map, but makes it invisible
   _addName: (area) ->
-    if not area.nameLayer? and not $.isEmptyObject(area.getNames())
+    if not area.nameLayer? and area.getNames().commonName?
 
       # create label with name and position
       area.nameLayer = new L.Label()
