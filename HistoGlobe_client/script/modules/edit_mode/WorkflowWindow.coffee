@@ -219,11 +219,14 @@ class HG.WorkflowWindow
 
   nextStep: () ->
     @_currStep++
+
+    console.log @_circlePos[@_currStep]
+
     @_moveStepMarker()
     @_highlightText()
 
   prevStep: () ->
-    @_currStep++
+    @_currStep--
     @_moveStepMarker()
     @_highlightText()
 
@@ -237,7 +240,7 @@ class HG.WorkflowWindow
   _moveStepMarker: () ->
     @_stepMarker
       .transition()
-      .attr 'cx', @_circlePos[@_currStep]
+      .attr 'cx', @_circlePos[@_currStep].x
 
   _highlightText: () ->
     d.removeClass 'ww-current-description' for d in @_stepDescr
