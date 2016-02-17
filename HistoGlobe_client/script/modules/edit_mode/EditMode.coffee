@@ -1,17 +1,8 @@
 window.HG ?= {}
 
 # DEBUG: take out if not needed anymore
-TEST_BUTTON = no
-TEST_GEOM = [[
-  [49.32512, -45.43945],
-  [55.52863, -37.44140],
-  [52.16045, -16.61132],
-  [46.67959, -32.69531]
-]]
-TEST_NAME = {
-  'commonName': 'Testland'
-  'pos':        [50.5, -27.5]
-}
+TEST_BUTTON = yes
+
 
 class HG.EditMode
 
@@ -78,6 +69,9 @@ class HG.EditMode
     #   console.error "Unable to load Edit Mode: HistoGraph module is not included in the current hg instance (has to be loaded before EditMode)"
 
 
+
+
+
     if TEST_BUTTON
       testButton = new HG.Button @_hgInstance, 'test', null, [{'iconFA': 'question','callback': 'onClick'}]
       $(testButton.getDom()).css 'position', 'absolute'
@@ -87,14 +81,123 @@ class HG.EditMode
       @_hgInstance._top_area.appendChild testButton.getDom()
       @_testButton = @_hgInstance.buttons.test
       @_testButton.onClick @, () =>
-        console.log '============================================================'
-        console.log "center   ", @_map.getCenter()
-        console.log "zoom     ", @_map.getZoom()
-        console.log "bounds   ", '[', @_map.getBounds()._northEast.lat, ',', @_map.getBounds()._northEast.lng, '], [', @_map.getBounds()._southWest.lat, ',', @_map.getBounds()._southWest.lng, ']'
-        console.log "map size ", @_map.getSize()
-        console.log "px bounds", '[', @_map.getPixelBounds().min.x, ',', @_map.getPixelBounds().min.y, '], [', @_map.getPixelBounds().max.x, ',', @_map.getPixelBounds().max.y, ']'
-        console.log "px orig  ", @_map.getPixelOrigin()
-        console.log '============================================================'
+
+
+        # credits: Bryan McBride - thank you!
+        # https://gist.github.com/bmcbride/4248238
+        # -> extended to deal with MultiPolylines and MultiPolygons as well
+        # => returns array of wkt strings
+        toWKT = (inLayer) ->
+          lng = undefined
+          lat = undefined
+          inLayers = [inLayer]
+          wktStrings = []
+          # preparation: transform MultiPolygons to multiple polygon layers *haha*
+          if inLayer instanceof L.MultiPolygon or layer instanceof L.MultiPolyline
+            for id, layer of inLayer._layers
+              inLayers.push layer
+          # create wkt string for each layer
+          for layer in inLayers
+            coords = []
+            if layer instanceof L.Polygon or layer instanceof L.Polyline
+              latlngs = layer.getLatLngs()
+              i = 0
+              while i < latlngs.length
+                latlngs[i]
+                coords.push latlngs[i].lng + ' ' + latlngs[i].lat
+                if i == 0
+                  lng = latlngs[i].lng
+                  lat = latlngs[i].lat
+                i++
+              if layer instanceof L.Polygon
+                wktStrings.push 'POLYGON((' + coords.join(',') + ',' + lng + ' ' + lat + '))'
+              else if layer instanceof L.Polyline
+                wktStrings.push 'LINESTRING(' + coords.join(',') + ')'
+            else if layer instanceof L.Marker
+              wktStrings.push 'POINT(' + layer.getLatLng().lng + ' ' + layer.getLatLng().lat + ')'
+          wktStrings
+
+        # credits: elrobis - thank you!
+        # http://gis.stackexchange.com/questions/85229/looking-for-dissolve-algorithm-for-javascript
+        # -> extended to
+        cascadedUnion = (wktStrings) ->
+          # Instantiate JSTS WKTReader and get two JSTS geometry objects
+          wktReader = new (jsts.io.WKTReader)
+          geoms = []
+          for wktString in wktStrings
+            for wkt in wktString
+              geoms.push wktReader.read wkt
+
+          # In JSTS, "union" is synonymous with "dissolve"
+          # TODO: could be more efficient with a tree, but I really do not care about this at this point :P
+          unionGeom = geoms[0]
+          idx = 1 # = start at the second geometry
+          while idx < geoms.length
+            unionGeom = unionGeom.union geoms[idx]
+            idx++
+
+          ### Since 'union()' is a method of a JSTS geometry object, you
+             could easily modify this method to iterate over an array
+             of JSTS geometry objects, calling a 'union()' on each
+             sequential object.
+          ###
+
+          # Instantiate JSTS WKTWriter and get new geometry's WKT
+          wktWriter = new (jsts.io.WKTWriter)
+          wktWriter.write unionGeom
+
+
+
+        pure1 = [[
+                  [20.0, -20.0],
+                  [40.0, -20.0],
+                  [40.0, -40.0],
+                  [20.0, -40.0]
+                ],
+                [
+                  [50.0, -20.0],
+                  [70.0, -20.0],
+                  [70.0, -40.0],
+                  [50.0, -40.0]
+                ]]
+
+        pure2 = [[
+                  [20.0, -20.0],
+                  [40.0, -20.0],
+                  [40.0, 0.0],
+                  [20.0, 0.0]
+                ]]
+
+        layer1 = new L.multiPolygon pure1
+        layer2 = new L.multiPolygon pure2
+
+        wkts = []
+        wkts.push toWKT layer1
+        wkts.push toWKT layer2
+        wktUnion = cascadedUnion wkts
+
+        geomUnion = omnivore.wkt.parse wktUnion
+
+        geomUnion.addTo @_map
+        # console.log layer for layer in geomUnion._layers
+
+        # console.log layer1
+        # console.log layer2
+        # console.log geomUnion
+
+        area1 = new HG.Area "test 1", pure1, null
+        area2 = new HG.Area "test 2", pure2, null
+        # areaClip = new HG.Area "test clip", pureUnion, null
+
+        # console.log area1
+        # console.log area2
+        # console.log areaClip
+
+        # @notifyAll "onAddArea", area1
+        # @notifyAll "onAddArea", area2
+        # @notifyAll "onAddArea", areaClip
+
+
 
 
 
@@ -512,24 +615,15 @@ class HG.EditMode
         for area in @_currCO.steps[1].inAreas
           @notifyAll 'onRemoveArea', area
 
-        # unify @_currCO.steps[0].outAreas
-        # TODO: how to get this to work ?!?
-        geom1 = {
-            '_latlngs': @_currCO.steps[1].inAreas[0].getGeometry()[0]
-          }
-        geom2 = {
-            '_latlngs': @_currCO.steps[1].inAreas[1].getGeometry()[0]
-          }
-        geomTemp = greinerHormann.union geom1, geom2
-        geomOut = [[]]
-        geomOut[0].push {'lat': p[0], 'lng': p[1]} for p in geomTemp
+        # TODO: unify @_currCO.steps[0].outAreas
 
-        console.log p[0], p[1] for p in geomTemp
+        ########################################################################
 
-        @_currCO.steps[1].outAreas[0] = new HG.Area 'Horst', geomOut, null
+        # @_currCO.steps[1].outAreas[0] = new HG.Area 'Horst', geomOut, null
 
 
-        @notifyAll 'onAddArea', @_currCO.steps[1].outAreas[0]
+
+        # @notifyAll 'onAddArea', @_currCO.steps[1].outAreas[0]
 
       else if @_currCO.id is 'DEL'   # delete old area
         @notifyAll 'onRemoveArea', @_currCO.steps[0].oldAreas[0]
