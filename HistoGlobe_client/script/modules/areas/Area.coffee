@@ -15,7 +15,9 @@ class HG.Area
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_id, @_geom=null, @_names={}) ->
+  constructor: (@_id, geom=null, names={}) ->
+    @_geom = @_validateGeom geom
+    @_names = @_validateNames names
     @_focused = no    # is area currently in focus (hovered)?
     @_selected = no   # is area currently selected?
     @_treated = no    # for edit mode: area has already been treated?
@@ -54,3 +56,16 @@ class HG.Area
   ##############################################################################
 
   # ============================================================================
+  # ensure that each geometry put into an HG.Area is valid for Leaflet
+  # output: [[[]]]
+  _validateGeom: (geom) ->
+    # console.log geom
+    geom
+
+
+  # ============================================================================
+  # ensure that each name put into an HG.Area has the valid form of
+  # {'commonName': string, 'pos': {'lat': float, 'lng': float}}
+  _validateNames: (names) ->
+    # TODO
+    names
