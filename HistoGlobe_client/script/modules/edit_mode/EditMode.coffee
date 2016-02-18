@@ -409,9 +409,10 @@ class HG.EditMode
             # save the named area
             currArea = @_co.geomAreas[@_co.steps[2].areaIdx]
             currArea.setNames {'commonName': name}
+            currArea.setCenter pos
             currArea.treat()
-            @_co.nameAreas[idx] = currArea          # Model
-            @notifyAll 'onUpdateArea', currArea     # View
+            @_co.nameAreas[@_co.steps[2].areaIdx] = currArea          # Model
+            @notifyAll 'onUpdateArea', currArea                       # View
 
             # cleanup
             @_newNameTool.destroy()
@@ -569,7 +570,6 @@ class HG.EditMode
 
       ## background processing for passive operations
       if @_co.id is 'UNI'               # restore selected areas
-
         @notifyAll 'onFinishAreaEdit'
         @notifyAll 'onStartAreaSelection', @_co.steps[0].maxNum
         # delete new unified
