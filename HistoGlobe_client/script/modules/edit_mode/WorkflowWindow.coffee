@@ -26,7 +26,7 @@ class HG.WorkflowWindow
   #   newName:  set name of new country/-ies? (bool)
   constructor: (@_hgInstance, operation) ->
 
-    @_currStep = 0
+    @_currStep = -1   # start without marker
 
     ### MAIN WINDOW ###
 

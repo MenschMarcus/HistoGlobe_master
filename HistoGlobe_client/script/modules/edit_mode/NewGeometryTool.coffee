@@ -24,13 +24,12 @@ class HG.NewGeometryTool
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @addCallback 'onSubmitTerritory'
+    @addCallback 'onSubmit'
 
     # setup variables
     @_map = @_hgInstance.map._map
     @_histoGraph = @_hgInstance.histoGraph
     iconPath = @_hgInstance._config.graphicsPath + 'buttons/'
-
 
     ### SETUP LEAFLET DRAW ###
 
@@ -69,6 +68,7 @@ class HG.NewGeometryTool
       }
     @_map.addControl @_drawControl
 
+
     # PROBLEM:
     # leaflet already has buttons to control the draw action
     # but I want them to behave just like any other HG Button
@@ -95,28 +95,27 @@ class HG.NewGeometryTool
     # -> leaflet buttons to be moved in there
 
     @_buttonArea = new HG.ButtonArea @_hgInstance, {
-      'id':           'newTerritoryButtons'
+      'id':           'newGeomButtons'
       'posX':         'right'
       'posY':         'top'
       'orientation':  'vertical'
     }
     @_hgInstance._top_area.appendChild @_buttonArea.getDom()
 
-    @_buttonArea.addButton new HG.Button(@_hgInstance,
-      'newTerritory', null,
+    @_newGeomBtn = new HG.Button @_hgInstance,
+      'newGeom', null,
         [
-            {
-              'id':             'normal'
-              'tooltip':        "Add new territory"
-              'iconOwn':        iconPath + 'geom_add.svg'
-              'callback':       'onClick'
-            }
-          ]
-        , @_transformToHGDOMElement leafletButtons[0])   # use existing leaflet "new polygon" button
-      ,'new-territory-add-group'
+          {
+            'id':             'normal'
+            'tooltip':        "Add new territory"
+            'iconOwn':        iconPath + 'geom_add.svg'
+            'callback':       'onClick'
+          }
+        ], @_transformToHGDOMElement leafletButtons[0]    # use existing leaflet "add polygon" button
+    @_buttonArea.addButton @_newGeomBtn, 'new-geom-add-group'
 
-    @_buttonArea.addButton new HG.Button(@_hgInstance,
-      'reuseTerritory', null,
+    @_reuseGeomBtn = new HG.Button @_hgInstance,
+      'reuseGeom', null,
         [
           {
             'id':             'normal'
@@ -125,10 +124,10 @@ class HG.NewGeometryTool
             'callback':       'onClick'
           }
         ]
-      ), 'new-territory-add-group'
+    @_buttonArea.addButton @_reuseGeomBtn, 'new-geom-add-group'
 
-    @_buttonArea.addButton new HG.Button(@_hgInstance,
-      'importTerritory', null,
+    @_importGeomBtn = new HG.Button @_hgInstance,
+      'importGeom', null,
         [
           {
             'id':             'normal'
@@ -137,40 +136,38 @@ class HG.NewGeometryTool
             'callback':       'onClick'
           }
         ]
-      ), 'new-territory-add-group'
+    @_buttonArea.addButton @_importGeomBtn, 'new-geom-add-group'
 
     @_buttonArea.addSpacer()
 
-    @_buttonArea.addButton new HG.Button(@_hgInstance,
-      'editTerritory', null,
+    @_editGeomBtn = new HG.Button @_hgInstance,
+      'editGeom', null,
         [
-            {
-              'id':             'normal'
-              'tooltip':        "edit territory on the map"
-              'iconFA':         'edit'
-              'callback':       'onClick'
-            }
-          ]
-        , @_transformToHGDOMElement leafletButtons[1])  # use existing leaflet "edit polygon" button
-      ,'new-territory-edit-group'
+          {
+            'id':             'normal'
+            'tooltip':        "edit territory on the map"
+            'iconFA':         'edit'
+            'callback':       'onClick'
+          }
+        ], @_transformToHGDOMElement leafletButtons[1]    # use existing leaflet "edit polygon" button
+    @_buttonArea.addButton @_editGeomBtn, 'new-geom-edit-group'
 
-    @_buttonArea.addButton new HG.Button(@_hgInstance,
-      'deleteTerritory', null,
+    @_deleteGeomBtn = new HG.Button @_hgInstance,
+      'deleteGeom', null,
         [
-            {
-              'id':             'normal'
-              'tooltip':        "delete territory on the map"
-              'iconFA':         'trash-o'
-              'callback':       'onClick'
-            }
-          ]
-        , @_transformToHGDOMElement leafletButtons[2])  # use existing leaflet "delete polygon" button
-      ,'new-territory-edit-group'
+          {
+            'id':             'normal'
+            'tooltip':        "delete territory on the map"
+            'iconFA':         'trash-o'
+            'callback':       'onClick'
+          }
+        ], @_transformToHGDOMElement leafletButtons[2]  # use existing leaflet "delete polygon" button
+    @_buttonArea.addButton @_deleteGeomBtn, 'new-geom-edit-group'
 
     @_buttonArea.addSpacer()
 
-    @_buttonArea.addButton new HG.Button(@_hgInstance,
-      'clipTerritory', null,
+    @_clipGeomBtn = new HG.Button @_hgInstance,
+      'clipGeom', null,
         [
           {
             'id':             'normal'
@@ -179,32 +176,49 @@ class HG.NewGeometryTool
             'callback':       'onClick'
           }
         ]
-      ), 'new-territory-finish-group'
+    @_buttonArea.addButton @_clipGeomBtn, 'new-geom-finish-group'
 
-    @_buttonArea.addButton new HG.Button(@_hgInstance,
-      'useRest', null,
+    @_buttonArea.addSpacer()
+
+    @_submitGeomBtn = new HG.Button @_hgInstance,
+      'submitGeom', null,
         [
           {
             'id':             'normal'
-            'tooltip':        "Use The Rest as Territory for this Country"
-            'iconOwn':        iconPath + 'polygon_rest.svg'
+            'tooltip':        "Accept current selection"
+            'iconFA':         'check'
+            # 'iconOwn':        iconPath + 'polygon_rest.svg'
             'callback':       'onClick'
           }
         ]
-      ), 'new-territory-finish-group'
+    @_buttonArea.addButton @_submitGeomBtn, 'new-geom-finish-group'
+
+    # init configuration: only add buttons are available
+    @_editGeomBtn.disable()
+    @_deleteGeomBtn.disable()
+    @_clipGeomBtn.disable()
+    @_submitGeomBtn.disable()
 
 
     ### INTERACTION ###
 
-    # handle newly added polygons
-    @_map.on 'draw:created', @_finishTerritory
+    # handle change events on polygons
+    @_map.on 'draw:created', @_createPolygon
+    # @_map.on 'draw:editstop', @_editPolygon
+    @_map.on 'draw:deleted', @_deletePolygon
+
+    # click OK => submit geometry
+    @_submitGeomBtn.onClick @, () =>
+      @notifyAll 'onSubmit', [[[8.9, 12.3], [10.3, 13.1], [9.1, 12.9]]]
 
 
   # ============================================================================
   destroy: () ->
 
     # interaction
-    @_map.off 'draw:created', @_finishTerritory
+    @_map.off 'draw:created', @_createPolygon
+    # @_map.off 'draw:editstop', @_editPolygon
+    @_map.off 'draw:deleted', @_deletePolygon
 
     # UI
     @_buttonArea.destroy()
@@ -220,13 +234,37 @@ class HG.NewGeometryTool
   ##############################################################################
 
   # ============================================================================
-  _finishTerritory: (e) =>
+  _createPolygon: (e) =>
     type = e.layerType
     layer = e.layer
+
+    # tell edit mode
     console.log e
-    console.log layer._latlngs
+
+    # put on the map
     @_polygons.addLayer layer
-    layer.addTo @_map
+
+    # geometry can now be edited/deleted
+    if @_polygons.getLayers().length is 1    # = if moved from 0 layers to 1 layer
+      @_editGeomBtn.enable()
+      @_deleteGeomBtn.enable()
+      @_submitGeomBtn.enable()
+
+  # ============================================================================
+  _deletePolygon: (e) =>
+    # deletes from the map automatically
+
+    # tell edit mode
+    console.log e
+
+
+    console.log @_polygons.getLayers().length
+
+    # geometry can now be edited/deleted
+    if @_polygons.getLayers().length is 0
+      @_editGeomBtn.disable()
+      @_deleteGeomBtn.disable()
+      @_submitGeomBtn.disable()
 
   # ============================================================================
   _transformToHGDOMElement: (inButton) ->

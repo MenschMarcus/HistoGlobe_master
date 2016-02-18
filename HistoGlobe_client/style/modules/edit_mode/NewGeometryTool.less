@@ -1,4 +1,4 @@
-#newTerritoryButtons
+#newGeomButtons
 {
   top: 88px;
 }
@@ -16,7 +16,7 @@
 
 /*** OLD CODE
 
-#tt-wrapper
+#geom-tool-wrapper
 {
   position: absolute;
   top: 88px;
@@ -28,13 +28,13 @@
   color: @color_white;
 }
 
-#tt-wrapper > *
+#geom-tool-wrapper > *
 {
   width: @territory_tools_width - 2*@territory_tools_border_width;
   margin-top: 5px;
 }
 
-.tt-title
+.geom-tool-title
 {
   text-align: center;
   font-size: 1.5em;
@@ -42,14 +42,14 @@
   line-height: 1.6em;
 }
 
-.tt-button-area           /* outer div
+.geom-tool-button-area           /* outer div
 {
   height: @button_diameter + @element_window_distance;
   width: 100%;            /* center !!!
   text-align: center;     /* center !!!
 }
-#tt-edit-buttons-group,
-#tt-finish-buttons-group  /* inner div
+#geom-tool-edit-buttons-group,
+#geom-tool-finish-buttons-group  /* inner div
 {
   /* center !!! = this is the f**** solution for centering a div in a div:
   the div needs to get the width of its content
@@ -62,24 +62,24 @@
 }
 
 
-#tt-list
+#geom-tool-list
 {
   min-height: 55px;
 }
 
-.tt-list-entry
+.geom-tool-list-entry
 {
   height: 20px;
   margin-left: @element_window_distance;
   font-size: 0.9em;
 }
 
-#tt-snap-option-wrapper-out
+#geom-tool-snap-option-wrapper-out
 {
   height: 48px;
 }
 
-.tt-snap-option-wrapper-in
+.geom-tool-snap-option-wrapper-in
 {
   float: left;
   width: (@territory_tools_width - 2*@territory_tools_border_width)/3;
@@ -87,30 +87,30 @@
   text-align: center;
 }
 
-.tt-snap-option-switch
+.geom-tool-snap-option-switch
 {
   margin: 3.5px auto !important;
 }
 
-.tt-snap-option-input
+.geom-tool-snap-option-input
 {
   width: 48px;
   text-align: right;
   padding-right: 3px;
   border-radius: 10px;
 }
-.tt-snap-option-text
+.geom-tool-snap-option-text
 {
   font-size: 0.8em;
   line-height: 12px;
   padding-top: 5px;
 }
-.tt-snap-option-input:focus, .tt-snap-option-text:focus
+.geom-tool-snap-option-input:focus, .geom-tool-snap-option-text:focus
 {
   outline: none;
 }
 
-#tt-finish-buttons
+#geom-tool-finish-buttons
 {
   margin-top: 18px;
 }
