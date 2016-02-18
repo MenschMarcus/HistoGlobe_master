@@ -27,12 +27,8 @@ class HG.EditMode
 
     @addCallback 'onStartAreaSelection'
     @addCallback 'onFinishAreaSelection'
-    @addCallback 'onStartGeometrySetting'
-    @addCallback 'onFinishGeometrySetting'
-    @addCallback 'onStartNameSetting'
-    @addCallback 'onFinishNameSetting'
-    @addCallback 'onStartHiventSelection'
-    @addCallback 'onFinishHiventSelection'
+    @addCallback 'onStartAreaEdit'
+    @addCallback 'onFinishAreaEdit'
 
     @addCallback 'onAddArea'
     @addCallback 'onUpdateArea'
@@ -63,15 +59,17 @@ class HG.EditMode
     else
       console.error "Unable to load Edit Mode: AreasOnMap module is not included in the current hg instance (has to be loaded before EditMode)"
 
-    @_wkt = new Wkt.Wkt # for using wkt internally here
-
     # if @_hgInstance.histoGraph?
     #   @_histoGraph = @_hgInstance.histoGraph
     # else
     #   console.error "Unable to load Edit Mode: HistoGraph module is not included in the current hg instance (has to be loaded before EditMode)"
 
+    @_wkt = new Wkt.Wkt # for using wkt internally here
 
-
+    # problem: Edit Mode should listen to each listener only once
+    # ugly solution: globally save to which callbacks it has already been added to
+    # and prevent from adding more than once
+    @_activeCallbacks = {}     # content: { 'nameOfCallback': yes/no}
 
 
     if TEST_BUTTON
@@ -167,11 +165,14 @@ class HG.EditMode
             # get current operation
             inCO = @_changeOperations.getByPropVal 'id', btn.getDom().id
 
-            @_currCO =
+            @_co =
               {
-                id:       inCO.id
-                title:    inCO.title
-                stepIdx:  -1            # start index -1 = no step
+                id:         inCO.id
+                title:      inCO.title
+                idx:        -1          # start in the beginning
+                selAreas:   []
+                geomAreas:  []
+                nameAreas:  []
                 steps: [
                   {
                     id:         'SEL_OLD_AREA'
@@ -179,7 +180,6 @@ class HG.EditMode
                     userInput:  no
                     minNum:     0
                     maxNum:     0
-                    outAreas:   []
                   },
                   {
                     id:         'SET_NEW_GEOM'
@@ -188,9 +188,7 @@ class HG.EditMode
                     minNum:     0
                     maxNum:     0
                     areaIdx:    0
-                    inAreas:    []
                     clipAreas:  []
-                    outAreas:   []
                   },
                   {
                     id:         'SET_NEW_NAME'
@@ -199,8 +197,6 @@ class HG.EditMode
                     minNum:     0
                     maxNum:     0
                     areaIdx:    0
-                    inAreas:    []
-                    outAreas:   []
                   },
                   {
                     id:         'ADD_CHNG'
@@ -212,7 +208,7 @@ class HG.EditMode
 
             # fill up default information with information of loaded change operation
             for inStep in inCO.steps
-              for defStep in @_currCO.steps
+              for defStep in @_co.steps
                 if defStep.id is inStep.id
                   defStep.userInput = yes
                   defStep.title = inStep.title
@@ -221,7 +217,8 @@ class HG.EditMode
                   defStep.maxNum = num[1]
                   break
 
-            @_nextStep()
+            # go one step forward
+            @_makeTransition 1
 
 
       # listen to next click on edit button => leave edit mode and cleanup
@@ -298,40 +295,71 @@ class HG.EditMode
   # ============================================================================
   # waiting for user input in each step or automatically process information
   # => listening to other modules
-  _makeStep: () ->
+  _makeStep: (dir) ->
 
-    ## SELECT OLD COUNTRY/-IES ##
-    if @_currCO.stepIdx is 0
-
-      ## skip step for certain operations
-      if @_currCO.id is 'NEW'
-        @_nextStep()
-
-      ## user input for certain operations
-      else
-        @_areasOnMap.onSelectArea @, (area) =>
-          @_currCO.steps[0].outAreas.push area
-          # is step complete?
-          if @_currCO.steps[0].outAreas.length >= @_currCO.steps[0].minNum
-            @_wWindow.stepComplete()
-
-        @_areasOnMap.onDeselectArea @, (area) =>
-          @_currCO.steps[0].outAreas.splice (@_currCO.steps[0].outAreas.indexOf area), 1 # remove Area from array
-          # is step incomplete?
-          if @_currCO.steps[0].outAreas.length < @_currCO.steps[0].minNum
-            @_wWindow.stepIncomplete()
-
-
-    ## SET GEOMETRY OF NEW COUNTRY/-IES ##
-    else if @_currCO.stepIdx is 1
+    #---------------------------------------------------------------------------
+    # SELECT OLD COUNTRY/-IES #
+    if @_co.idx is 0
 
       ## skip step for certain operations
-      if @_currCO.id is 'UNI' or @_currCO.id is 'CHN' or @_currCO.id is 'DEL'
-        @_nextStep()
+      if @_co.id is 'NEW'
+        @_makeTransition dir
 
-      ## user input for certain operations
+      ## wait for user input in other operations
       else
+
+        # problem: listens to callback multiple times if function is called multiple times
+        # solution: ensure listen to callback only once
+        if not @_activeCallbacks.onSelectArea
+          @_areasOnMap.onSelectArea @, (area) =>
+            if @_co.selAreas.indexOf area is -1
+              @_co.selAreas.push area
+
+            as = []
+            as.push a.getNames().commonName for a in @_co.selAreas
+            console.log "EM onSelect ) ", as
+
+            # is step complete?
+            if @_co.selAreas.length >= @_co.steps[0].minNum
+              @_wWindow.stepComplete()
+
+          # add to active callback list
+          @_activeCallbacks.onSelectArea = yes
+
+        if not @_activeCallbacks.onDeselectArea
+          @_areasOnMap.onDeselectArea @, (area) =>
+            if @_co.selAreas.indexOf area isnt -1
+              @_co.selAreas.splice (@_co.selAreas.indexOf area), 1 # remove Area from array
+
+            as = []
+            as.push a.getNames().commonName for a in @_co.selAreas
+            console.log "EM onDeselec) ", as
+
+            # is step incomplete?
+            if @_co.selAreas.length < @_co.steps[0].minNum
+              @_wWindow.stepIncomplete()
+
+          # add to active callback list
+          @_activeCallbacks.onDeselectArea = yes
+
+
+    #---------------------------------------------------------------------------
+    # SET GEOMETRY OF NEW COUNTRY/-IES #
+    else if @_co.idx is 1
+
+      ## skip step for certain operations
+      if @_co.id is 'UNI' or @_co.id is 'CHN' or @_co.id is 'DEL'
+        @_makeTransition dir
+
+      ## wait for user input in other operations
+      else
+        # @_co.geomAreas
+
         @_newGeomTool = new HG.NewGeometryTool @_hgInstance
+
+        # TODO: is it a good idea to append to these callbacks multiple times?
+        #   is it a good idea to create the geometry tools multiple times?
+        #   will the callback then also be added multiple times?
 
         @_hgInstance.buttons.newTerritory.onClick @, () =>
           # TODO: what to do on add territory?
@@ -348,21 +376,6 @@ class HG.EditMode
         @_hgInstance.buttons.deleteTerritory.onClick @, () =>
           # TODO: what to do on delete territory?
 
-        # @_hgInstance.switches.snapToPoints.onSwitchOn @, () =>
-          # TODO: what to do on turn switch to border points on!?
-
-        # @_hgInstance.switches.snapToPoints.onSwitchOff @, () =>
-          # TODO: what to do on turn switch to border points off!?
-
-        # @_hgInstance.switches.snapToLines.onSwitchOn @, () =>
-          # TODO: what to do on turn switch to border lines on!?
-
-        # @_hgInstance.switches.snapToLines.onSwitchOff @, () =>
-          # TODO: what to do on turn switch to border lines off!?
-
-        # @_hgInstance.inputs.snapTolerance.onChange @, (val) =>
-          # TODO: what to do on the new snap tolerance value is " + va?
-
         @_hgInstance.buttons.clipTerritory.onClick @, () =>
           # TODO: what to do on clip the drawn territory to the existing territory?
 
@@ -375,45 +388,43 @@ class HG.EditMode
         # TODO: check if incomplete
 
 
-    ## SET NAME OF NEW COUNTRY/-IES ##
-    else if @_currCO.stepIdx is 2
+    #---------------------------------------------------------------------------
+    # SET NAME OF NEW COUNTRY/-IES #
+    else if @_co.idx is 2
 
       ## skip step for certain operations
-      if @_currCO.id is 'CHB' or @_currCO.id is 'DEL'
-        @_nextStep()
+      if @_co.id is 'CHB' or @_co.id is 'DEL'
+        @_makeTransition dir
 
-      ## user input for certain operations
+      ## wait for user input in other operations
       else
         # for each required area
-        @_currCO.steps[2].areaIdx = 0
-
         @_newNameToolLoop = () =>
           # set up NewNameTool to set name and pos of area interactively
           @_newNameTool = new HG.NewNameTool @_hgInstance, [500, 200]  # TODO: real position
           @_newNameTool.onSubmit @, (name, pos) =>
 
-            # copy area from input array, write name to it and save in output array
-            idx = @_currCO.steps[2].areaIdx
-            area = @_currCO.steps[2].inAreas[idx]
+            # get current position in input array (= geomArray from step1)
+            idx = @_co.steps[2].areaIdx
+            # copy area from input array (treat it like temporal area)
+            area = @_co.geomAreas[idx]
+            # write name to it and mark it as fully "treated"
             area.setNames {
                 'commonName': name
                 'pos':        pos
               }
             area.treat()
 
-            # update model
-            @_currCO.steps[2].outAreas[idx] = area
+            # save the named area
+            @_co.nameAreas[idx] = area          # Model
+            @notifyAll 'onUpdateArea', area     # View
 
-            # update view
+            # cleanup
             @_newNameTool.destroy()
-            @notifyAll 'onUpdateArea', area
-
-            console.log @_currCO.steps[2].inAreas[idx]
-            console.log @_currCO.steps[2].outAreas[idx]
 
             # go to next area
-            @_currCO.steps[2].areaIdx++
-            if @_currCO.steps[2].areaIdx < @_currCO.steps[2].maxNum
+            @_co.steps[2].areaIdx++
+            if @_co.steps[2].areaIdx < @_co.steps[2].maxNum
               @_newNameToolLoop()
             else # = loop completed = required areas named => step complete
               @_wWindow.stepComplete()
@@ -421,8 +432,9 @@ class HG.EditMode
         @_newNameToolLoop()
 
 
-    ## ADD CHANGE TO HIVENT ##
-    else if @_currCO.stepIdx is 3
+    #---------------------------------------------------------------------------
+    # ADD CHANGE TO HIVENT #
+    else if @_co.idx is 3
 
       ## TODO: Hivent window
 
@@ -434,23 +446,14 @@ class HG.EditMode
 
 
   # ============================================================================
-  _makeTransition: (oldStep, newStep) ->
+  _makeTransition: (dir, aborted=no) ->
 
-    # 'START' -> 'SEL_OLD_AREA'
-    if oldStep is -1 and newStep is 0
+    #---------------------------------------------------------------------------
+    # 'START' -> 'SEL_OLD_AREA'                                             DONE
+    if @_co.idx is -1 and dir is 1
       console.log "'START' -> 'SEL_OLD_AREA'"
 
-      ## send info to server
-
-      ## get info from server
-
-      ## treat special cases
-
-      ## cleanup UI
-      # nothing to do, because it is the first step
-
-      ## setup UI
-      # = setup operation
+      ## setup everything for each operation
       # disable all buttons
       @_editButton.disable()
       @_newHiventButton.disable()
@@ -458,197 +461,177 @@ class HG.EditMode
         obj.button.disable()
 
       # highlight button of current operation
-      (@_operationButtons.getById @_currCO.id).button.activate()
+      (@_operationButtons.getById @_co.id).button.activate()
 
       # setup workflow window (in the space of the title)
       @_title.clear()
-      @_wWindow = new HG.WorkflowWindow @_hgInstance, @_currCO
+      @_wWindow = new HG.WorkflowWindow @_hgInstance, @_co
       @_wWindow.stepIncomplete()
 
       # listen to click on buttons in workflow window
-      @_hgInstance.buttons.wwNext.onNext @, () => @_nextStep()
-      @_hgInstance.buttons.wwBack.onBack @, () => @_prevStep()
+      @_hgInstance.buttons.wwNext.onNext @, () => @_makeTransition 1
+      @_hgInstance.buttons.wwBack.onBack @, () => @_makeTransition -1
 
       @_hgInstance.buttons.wwAbort.onAbort @, () =>
         # abort = back to the very beginning
-        currStep = @_currCO.stepIdx
-        while currStep > -1
-          @_makeTransition currStep, currStep-1
-          currStep--
+        while @_co.stepIdx > -1
+          @_makeTransition -1, yes  # yes = abort = skip all user input steps
+          @_co.stepIdx--
 
       @_hgInstance.buttons.wwNext.onFinish @, () =>
         console.log "HEUREKA"
 
       # tell AreasOnMap to start selecting [minNum .. maxNum] of areas
-      @notifyAll 'onStartAreaSelection', @_currCO.steps[0].maxNum
+      @notifyAll 'onStartAreaSelection', @_co.steps[0].maxNum
+
+      # add already selected areas to list
+      if @_areasOnMap.getSelectedAreas()[0]
+        @_co.selAreas.push @_areasOnMap.getSelectedAreas()[0]
 
 
-    # 'START' <- 'SEL_OLD_AREA'
-    else if oldStep is 0 and newStep is -1
+
+    #---------------------------------------------------------------------------
+    # 'START' <- 'SEL_OLD_AREA'                                             DONE
+    else if @_co.idx is 0 and dir is -1
       console.log "'START' <- 'SEL_OLD_AREA'"
 
-      ## send info to server
-
-      ## get info from server
-
-      ## treat special cases
-      # unless @_currCO.id is 'NEW'
-
-      ## cleanup UI
-      # = cleanup operation
+      ## cleanup everything from each operation
       @_wWindow.destroy()
       @_title.set "EDIT MODE"   # TODO: internationalization
-      (@_operationButtons.getById @_currCO.id).button.deactivate()
+      (@_operationButtons.getById @_co.id).button.deactivate()
       @_newHiventButton.enable()
       @_operationButtons.foreach (obj) =>
         obj.button.enable()
       @_editButton.enable()
 
-      ## setup UI
-      # nothing to set up, because it is abort
 
-
-    # 'SEL_OLD_AREA' -> 'SET_NEW_GEOM'
-    else if oldStep is 0 and newStep is 1
+    #---------------------------------------------------------------------------
+    # 'SEL_OLD_AREA' -> 'SET_NEW_GEOM'                               ALMOST DONE
+    else if @_co.idx is 0 and dir is 1
       console.log "'SEL_OLD_AREA' -> 'SET_NEW_GEOM'"
 
-      ## knowledge transfer
-      @_currCO.steps[newStep].inAreas = @_currCO.steps[oldStep].outAreas
-
-      ## send info to server
-
-      ## get info from server
-
-      ## cleanup UI
-      @notifyAll 'onFinishAreaSelection'
-
-      ## treat special cases
-      if @_currCO.id is 'UNI'   # unify old areas
-
-        # delete all old areas
-        oldAreas = []
-        for area in @_currCO.steps[1].inAreas
-          oldAreas.push area.geomLayer
-          @notifyAll 'onRemoveArea', area
-
-        # TODO: unify @_currCO.steps[0].outAreas
-        uniArea = @_union oldAreas
-        newArea = new HG.Area "test clip", uniArea, null
-        @_currCO.steps[1].outAreas[0] = newArea
-        @notifyAll "onAddArea", newArea
-
-      else if @_currCO.id is 'DEL'   # delete old area
-        @notifyAll 'onRemoveArea', @_currCO.steps[0].oldAreas[0]
-
-      else if @_currCO.id is 'CHN'
-        console.log "do nothing ;)"
-
-      ## setup UI
-      else
-        @_wWindow.nextStep()
+      ## setup for active operations
+      if @_co.id isnt 'UNI' and @_co.id isnt 'CHN' and @_co.id isnt 'DEL'
+        @notifyAll 'onFinishAreaSelection'
+        @notifyAll 'onStartAreaEdit'
+        @_wWindow.makeTransition dir
         @_wWindow.stepIncomplete()
-        @notifyAll 'onStartGeometrySetting'
 
 
-    # 'SEL_OLD_AREA' <- 'SET_NEW_GEOM'
-    else if oldStep is 1 and newStep is 0
+    #---------------------------------------------------------------------------
+    # 'SEL_OLD_AREA' <- 'SET_NEW_GEOM'                                      DONE
+    else if @_co.idx is 1 and dir is -1
       console.log "'SEL_OLD_AREA' <- 'SET_NEW_GEOM'"
 
-      ## send info to server
-
-      ## get info from server
-
-      ## treat special cases
-
-      ## cleanup UI
-
-      ## setup UI
-      # @notifyAll 'onStartAreaSelection', @_currCO.steps[0].maxNum
+      ## setup for active operations
+      if @_co.id isnt 'UNI' and @_co.id isnt 'CHN' and @_co.id isnt 'DEL'
+        @notifyAll 'onFinishAreaEdit'
+        @notifyAll 'onStartAreaSelection', @_co.steps[0].maxNum
+        @_wWindow.makeTransition dir
+        @_wWindow.stepComplete()
 
 
-    # 'SET_NEW_GEOM' -> 'SET_NEW_NAME'
-    else if oldStep is 1 and newStep is 2
+    #---------------------------------------------------------------------------
+    # 'SET_NEW_GEOM' -> 'SET_NEW_NAME'                                      TODO
+    else if @_co.idx is 1 and dir is 1
       console.log "'SET_NEW_GEOM' -> 'SET_NEW_NAME'"
 
-      ## knowledge transfer
-      @_currCO.steps[newStep].inAreas = @_currCO.steps[oldStep].outAreas
+      ## background processing for passive operations
+      if @_co.id is 'UNI'               # unify selected areas
+        @notifyAll 'onFinishAreaSelection'
+        @notifyAll 'onStartAreaEdit'
+        # delete all selected areas
+        oldAreas = []
 
-      ## send info to server
+        as = []
+        as.push a.getNames().commonName for a in @_co.selAreas
+        console.log "EM bgproc-fw ) ", as
 
-      ## get info from server
+        for area in @_co.selAreas
+          oldAreas.push area.geomLayer
+          @notifyAll 'onRemoveArea', area
+        # unify old areas to new area
+        uniArea = @_union oldAreas
+        newArea = new HG.Area "test clip", uniArea
+        newArea.select()
+        newArea.treat()   # TODO: correct?
+        @_co.geomAreas.push newArea
+        @notifyAll "onAddArea", newArea
 
-      ## cleanup UI
-      @notifyAll 'onFinishGeometrySetting'
+      else if @_co.id is 'DEL'          # remove selected area
+        @notifyAll 'onFinishAreaSelection'
+        @notifyAll 'onStartAreaEdit'
+        @notifyAll 'onRemoveArea', @_co.selAreas[0]
 
-      ## treat special cases
-      unless @_currCO.id is 'CHB' or @_currCO.id is 'DEL'
-
-      ## setup UI
-        @_wWindow.nextStep()
+      ## setup for active operations
+      if @_co.id isnt 'CHB' and @_co.id isnt 'DEL'
+        @_co.steps[2].areaIdx = 0
+        @_wWindow.makeTransition dir
         @_wWindow.stepIncomplete()
-        @notifyAll 'onStartNameSetting'
 
 
-    # 'SET_NEW_GEOM' <- 'SET_NEW_NAME'
-    else if oldStep is 2 and newStep is 1
+    #---------------------------------------------------------------------------
+    # 'SET_NEW_GEOM' <- 'SET_NEW_NAME'                                      TODO
+    else if @_co.idx is 2 and dir is -1
       console.log "'SET_NEW_GEOM' <- 'SET_NEW_NAME'"
 
-      ## send info to server
+      ## background processing for passive operations
+      if @_co.id is 'UNI'               # restore selected areas
 
-      ## get info from server
+        as = []
+        as.push a.getNames().commonName for a in @_co.selAreas
+        console.log "EM bgproc-bw ) ", as
 
-      ## treat special cases
+        @notifyAll 'onFinishAreaEdit'
+        @notifyAll 'onStartAreaSelection', @_co.steps[0].maxNum
+        # delete new unified
+        @notifyAll "onRemoveArea", @_co.geomAreas[0]
+        @_co.geomAreas = []
+        # TODO: delete the area? will it stay in the memory?
+        # re-add all previously selected areas
+        for area in @_co.selAreas
+          @notifyAll 'onAddArea', area
 
-      ## cleanup UI
+      else if @_co.id is 'DEL'          # restore selected area
+        @notifyAll 'onFinishAreaEdit'
+        @notifyAll 'onStartAreaSelection'
+        @notifyAll 'onAddArea', @_co.selAreas[0]
 
-      ## setup UI
+      ## setup for active operations
+      if @_co.id isnt 'CHB' and @_co.id isnt 'DEL'
+        @_wWindow.makeTransition dir
+        @_wWindow.stepComplete()
 
 
-    # 'SET_NEW_NAME' -> 'ADD_CHNG'
-    else if oldStep is 2 and newStep is 3
+    #---------------------------------------------------------------------------
+    # 'SET_NEW_NAME' -> 'ADD_CHNG'                                          TODO
+    else if @_co.idx is 2 and dir is 1
       console.log "'SET_NEW_NAME' -> 'ADD_CHNG'"
 
-      ## send info to server
-
-      ## get info from server
-
-      ## cleanup UI
-      @notifyAll 'onFinishNameSetting'
-
-      ## treat special cases
-      # no special cases, because each operation ends with adding the change to an hivent
-
-      ## setup UI
-      @_wWindow.nextStep()
+      ## setup for each operations (all are active in this step)
+      @_wWindow.makeTransition dir
       @_wWindow.stepIncomplete()
-      console.log 'add change to an hivent'
 
 
-    # 'SET_NEW_NAME' <- 'ADD_CHNG'
-    else if oldStep is 3 and newStep is 2
+    #---------------------------------------------------------------------------
+    # 'SET_NEW_NAME' <- 'ADD_CHNG'                                          TODO
+    else if @_co.idx is 3 and dir is -1
       console.log "'SET_NEW_NAME' <- 'ADD_CHNG'"
 
-      ## send info to server
-
-      ## get info from server
-
-      ## treat special cases
-
-      ## cleanup UI
-
-      ## setup UI
+      ## setup for each operations (all are active in this step)
+      @_wWindow.makeTransition dir
+      @_wWindow.stepComplete()
 
 
-    @_makeStep()
 
 
-  # ============================================================================
-  _nextStep: () ->
-    @_currCO.stepIdx++
-    @_makeTransition @_currCO.stepIdx-1, @_currCO.stepIdx
-  _prevStep: () ->
-    @_currCO.stepIdx--
-    @_makeTransition @_currCO.stepIdx+1, @_currCO.stepIdx
+
+
+    #---------------------------------------------------------------------------
+    @_co.idx += dir
+    @_makeStep dir unless aborted
+    # new step = either next (dir = +1) or previous (dir = -1)
+    # only do it if operation is not aborted
 
   # ============================================================================
   # possible inputs:  1   1+  2   2+

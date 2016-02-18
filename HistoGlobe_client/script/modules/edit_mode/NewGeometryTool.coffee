@@ -229,7 +229,7 @@ class HG.NewGeometryTool
 
 
 
-# OLD CODE: own territory tools
+# OLD CODE: snapping tools
 
   #   ## 4. line: snapping options
   #   # snap to points?, snap to lines? and snap tolerance

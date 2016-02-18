@@ -48,6 +48,11 @@ class HG.AreasOnMap
       else
         console.error "Unable to show areas on Map: AreaController module not detected in HistoGlobe instance!"
 
+      # DEBUG OUTPUT
+      # as = []
+      # as.push a.getNames().commonName for a in @_selectedAreas
+      # console.log "AM onStartEdi) ", as
+
       # switch to multiple-selection mode
       @_hgInstance.editController?.onStartAreaSelection @, (num) =>
         @_numSelections = num     # can receive a number (1, 2, 3, ... , MAX_NUM)
@@ -55,24 +60,27 @@ class HG.AreasOnMap
       # switch to single-selection mode
       @_hgInstance.editController?.onFinishAreaSelection @, () =>
         @_numSelections = 1       # 1 = single selection
-        @_clearSelectedAreas()
 
       # switch to focus mode
       # = areas are highlighted on hover and can be selected
-      @_hgInstance.editController?.onStartGeometrySetting @, () =>
-        @_focusMode = yes
+      @_hgInstance.editController?.onStartAreaEdit @, () =>
+        @_focusMode = no
 
       # switch to no-focus mode
       # = areas are not highlighted and can not be selected
-      @_hgInstance.editController?.onFinishGeometrySetting @, () =>
-        @_focusMode = no
-        @_removeSelectedAreas()
+      @_hgInstance.editController?.onFinishAreaEdit @, () =>
+        @_focusMode = yes
 
 
       @_hgInstance.editController?.onAddArea @, (area) =>
         @_addGeom area
         @_addName area
         @_colorArea area
+
+        as = []
+        as.push a.getNames().commonName for a in @_selectedAreas
+        console.log "AM onAddArea ) ", as
+
 
       @_hgInstance.editController?.onUpdateArea @, (area) =>
         @_removeName area
@@ -81,10 +89,18 @@ class HG.AreasOnMap
         @_addName area
         @_colorArea area
 
+        as = []
+        as.push a.getNames().commonName for a in @_selectedAreas
+        console.log "AM onUpdateAr) ", as
+
+
       @_hgInstance.editController?.onRemoveArea @, (area) =>
         @_removeGeom area
         @_removeName area
 
+        as = []
+        as.push a.getNames().commonName for a in @_selectedAreas
+        console.log "AM onRemoveAr) ", as
 
 
 
@@ -135,6 +151,9 @@ class HG.AreasOnMap
       area.geomLayer.hgArea = area
       area.geomLayer.addTo @_map
 
+      # add to selected areas, if it is selected
+      @_selectedAreas.push area if area.isSelected()
+
 
   # ============================================================================
   # physically adds label to the map, but makes it invisible
@@ -168,6 +187,9 @@ class HG.AreasOnMap
       # remove double-link: leaflet layer from area and area from leaflet layer
       @_map.removeLayer area.geomLayer
       area.geomLayer = null
+      # remove from selected areas, if it was selected
+      if area.isSelected()
+        @_selectedAreas.splice (@_selectedAreas.indexOf area), 1
 
 
   # ============================================================================
@@ -244,14 +266,6 @@ class HG.AreasOnMap
       area.deselect()
       @_colorArea area
     @_selectedAreas = []           # => no area selected. TODO: Is that right?
-
-  # ============================================================================
-  _removeSelectedAreas: () ->
-    for area in @_selectedAreas
-      @_removeGeom area
-      @_removeName area
-    @_selectedAreas = []           # => no area selected. TODO: Is that right?
-
 
   # ============================================================================
   # one function does all the coloring depending on the state of the area
