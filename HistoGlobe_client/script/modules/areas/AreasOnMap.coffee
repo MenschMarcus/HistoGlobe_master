@@ -137,7 +137,12 @@ class HG.AreasOnMap
       area.geomLayer.addTo @_map
 
       # add to selected areas, if it is selected
-      @_selectedAreas.push area if area.isSelected()
+      if area.isSelected()
+        @_selectedAreas.push area
+      # delete from selected areas, if it is not selected
+      else
+        idx = @_selectedAreas.indexOf area
+        @_selectedAreas.splice idx, 1 unless idx is -1
 
 
   # ============================================================================
@@ -207,6 +212,8 @@ class HG.AreasOnMap
     if @_focusMode is on
       area = evt.target.hgArea
 
+      console.log area.getId(), area.isSelected()
+
       # area is selected => deselect
       if area.isSelected()
         @_deselect area
@@ -221,6 +228,8 @@ class HG.AreasOnMap
       # bug: after clicking, it is assumed to be still focused
       # fix: unfocus afterwards
       @_onUnfocus evt
+
+      console.log area.getId(), area.isSelected()
 
   # ============================================================================
   _select: (area) =>
