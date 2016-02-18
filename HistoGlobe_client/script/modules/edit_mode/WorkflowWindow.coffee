@@ -217,8 +217,11 @@ class HG.WorkflowWindow
 
   makeTransition: (dir) ->
     @_currStep += dir
-    @_moveStepMarker()
-    @_highlightText()
+    unless @_currStep is -1
+      @_moveStepMarker()
+      @_highlightText()
+    else
+      @destroy()
 
 
   ##############################################################################

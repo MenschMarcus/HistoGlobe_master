@@ -49,8 +49,7 @@ class HG.NewGeometryTool
           polygon: {
             shapeOptions : {
               # = focus mode on -> selected -> unfocused
-              'className':    'area'
-              'clickable':    true
+              'className':    'new-geom-area'
               'fillColor':    HGConfig.color_active.val
               'fillOpacity':  HGConfig.area_half_opacity.val
               'color':        HGConfig.color_bg_dark.val
@@ -101,6 +100,9 @@ class HG.NewGeometryTool
       'orientation':  'vertical'
     }
     @_hgInstance._top_area.appendChild @_buttonArea.getDom()
+
+
+    ## buttons themselves
 
     @_newGeomBtn = new HG.Button @_hgInstance,
       'newGeom', null,
@@ -204,20 +206,21 @@ class HG.NewGeometryTool
 
     # handle change events on polygons
     @_map.on 'draw:created', @_createPolygon
-    # @_map.on 'draw:editstop', @_editPolygon
     @_map.on 'draw:deleted', @_deletePolygon
 
     # click OK => submit geometry
     @_submitGeomBtn.onClick @, () =>
-      @notifyAll 'onSubmit', [[[8.9, 12.3], [10.3, 13.1], [9.1, 12.9]]]
-
+      console.log @_polygons
+      # transform feature group to MultiPolygon
+      latlngs = []
+      latlngs.push pg.getLatLngs() for pg in @_polygons.getLayers()
+      @notifyAll 'onSubmit', latlngs
 
   # ============================================================================
   destroy: () ->
 
     # interaction
     @_map.off 'draw:created', @_createPolygon
-    # @_map.off 'draw:editstop', @_editPolygon
     @_map.off 'draw:deleted', @_deletePolygon
 
     # UI
@@ -238,13 +241,10 @@ class HG.NewGeometryTool
     type = e.layerType
     layer = e.layer
 
-    # tell edit mode
-    console.log e
-
     # put on the map
     @_polygons.addLayer layer
 
-    # geometry can now be edited/deleted
+    # geometry can now be edited/deleted/submitted
     if @_polygons.getLayers().length is 1    # = if moved from 0 layers to 1 layer
       @_editGeomBtn.enable()
       @_deleteGeomBtn.enable()
@@ -252,15 +252,7 @@ class HG.NewGeometryTool
 
   # ============================================================================
   _deletePolygon: (e) =>
-    # deletes from the map automatically
-
-    # tell edit mode
-    console.log e
-
-
-    console.log @_polygons.getLayers().length
-
-    # geometry can now be edited/deleted
+    # geometry can not be edited/deleted/submitted anymore
     if @_polygons.getLayers().length is 0
       @_editGeomBtn.disable()
       @_deleteGeomBtn.disable()

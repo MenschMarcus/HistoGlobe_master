@@ -65,19 +65,35 @@ class HG.Area
   # ensure that each geometry put into an HG.Area is valid for Leaflet
   # -> transform geometry from geojson into leaflet layer
   _jsonToArray: (inCoords) ->
+
     geom = []
 
-    # error handling: empty layer because of non-existing geometry
-    if inCoords.coordinates.length is 0
-      geom = [[]]
+    # check if array of coords -> if so, take it!
+    if inCoords instanceof Array
+      if inCoords[0] instanceof Array and inCoords[0][0].lat
+        # polypolygon
+        geom = inCoords
+      else if inCoords[0].lat
+        # polygon
+        geom = [inCoords]
 
+    # check if leaflet layer -> if so, take it!
+    else if inCoords.type is "Polygon" or inCoords.type is "LineString" or inCoords.type is "MultiPolygon" or inCoords.type is "MultiLineString"
+      # error handling: empty layer because of non-existing geometry
+      if inCoords.coordinates.length is 0
+        geom = [[]]
+
+      else
+        data = L.GeoJSON.geometryToLayer inCoords
+        if inCoords.type is "Polygon" or inCoords.type is "LineString"
+          geom.push data._latlngs
+        else if inCoords.type is "MultiPolygon" or inCoords.type is "MultiLineString"
+          for id, layer of data._layers
+            geom.push layer._latlngs
+
+    # if both fail, it is not a valid geometry
     else
-      data = L.GeoJSON.geometryToLayer inCoords
-      if inCoords.type is "Polygon" or inCoords.type is "LineString"
-        geom.push data._latlngs
-      else if inCoords.type is "MultiPolygon" or inCoords.type is "MultiLineString"
-        for id, layer of data._layers
-          geom.push layer._latlngs
+      console.error "The geometry you gave into the Area is neither an Array nor a Leaflet object. Please use only one of those two"
 
     geom
 
