@@ -64,7 +64,8 @@ class HG.EditMode
     # else
     #   console.error "Unable to load Edit Mode: HistoGraph module is not included in the current hg instance (has to be loaded before EditMode)"
 
-    @_wkt = new Wkt.Wkt # for using wkt internally here
+    # for using the geooperator internally here
+    @_geop = new HG.GeoOperator
 
     # problem: Edit Mode should listen to each listener only once
     # ugly solution: globally save to which callbacks it has already been added to
@@ -352,40 +353,28 @@ class HG.EditMode
 
       ## wait for user input in other operations
       else
-        # @_co.geomAreas
+        # for each required area
+        @_newGeomToolLoop = () =>
 
-        @_newGeomTool = new HG.NewGeometryTool @_hgInstance
+          # set up NewGeometryTool to define geometry of an area interactively
+          @_newGeomTool = new HG.NewGeometryTool @_hgInstance
 
-        # TODO: is it a good idea to append to these callbacks multiple times?
-        #   is it a good idea to create the geometry tools multiple times?
-        #   will the callback then also be added multiple times?
+          @_newGeomTool.onSubmit @, (geom) =>
+            # save data
 
-        @_hgInstance.buttons.newTerritory.onClick @, () =>
-          # TODO: what to do on add territory?
+            # cleanup
+            @_newGeomTool.destroy()
 
-        @_hgInstance.buttons.reuseTerritory.onClick @, () =>
-          # TODO: what to do on reuse territory?
+            # go to next area
+            @_co.steps[1].areaIdx++
+            if @_co.steps[1].areaIdx < @_co.steps[1].maxNum
+              @_newNameToolLoop()
+            # if required areas named => loop complete => step complete => next
+            else
+              @_makeTransition 1
 
-        @_hgInstance.buttons.importTerritory.onClick @, () =>
-          # TODO: what to do on import new territory from file?
 
-        @_hgInstance.buttons.editTerritory.onClick @, () =>
-          # TODO: what to do on edit territory?
-
-        @_hgInstance.buttons.deleteTerritory.onClick @, () =>
-          # TODO: what to do on delete territory?
-
-        @_hgInstance.buttons.clipTerritory.onClick @, () =>
-          # TODO: what to do on clip the drawn territory to the existing territory?
-
-        @_hgInstance.buttons.useRest.onClick @, () =>
-          # TODO: what to do on use the remaining territory for this new country?
-
-        ## finish up
-        # TODO: check if complete
-        @_wWindow.stepComplete()
-        # TODO: check if incomplete
-
+        @_newGeomToolLoop()
 
     #---------------------------------------------------------------------------
     # SET NAME OF NEW COUNTRY/-IES #
@@ -449,7 +438,7 @@ class HG.EditMode
     if @_co.idx is -1 and dir is 1
       console.log "'START' -> 'SEL_OLD_AREA'"
 
-      ## setup everything for each operation
+      ## setup operation management for each operation
       # disable all buttons
       @_editButton.disable()
       @_newHiventButton.disable()
@@ -477,13 +466,19 @@ class HG.EditMode
       @_hgInstance.buttons.wwNext.onFinish @, () =>
         console.log "HEUREKA"
 
-      # tell AreasOnMap to start selecting [minNum .. maxNum] of areas
-      @notifyAll 'onStartAreaSelection', @_co.steps[0].maxNum
+      ## setup selection step for all active operations
+      if @_co.id isnt 'ADD'
 
-      # add already selected areas to list
-      if @_areasOnMap.getSelectedAreas()[0]
-        @_co.initArea = @_areasOnMap.getSelectedAreas()[0]
-        @_co.selAreas.push @_co.initArea
+        # tell AreasOnMap to start selecting [minNum .. maxNum] of areas
+        @notifyAll 'onStartAreaSelection', @_co.steps[0].maxNum
+
+        # add already selected areas to list
+        if @_areasOnMap.getSelectedAreas()[0]
+          @_co.initArea = @_areasOnMap.getSelectedAreas()[0]
+          @_co.selAreas.push @_co.initArea
+
+        @_wWindow.makeTransition dir
+        @_wWindow.stepIncomplete()
 
 
 
@@ -493,12 +488,13 @@ class HG.EditMode
       console.log "'START' <- 'SEL_OLD_AREA'"
 
       ## cleanup area selection (except for initially selected area)
-      for area in @_co.selAreas
-        area.deselect()
-        if @_co.initArea and @_co.initArea.getId() is area.getId()
-          area.select()
-        @notifyAll 'onUpdateArea', area
-      @notifyAll 'onFinishAreaSelection'
+      if @_co.id isnt 'ADD'
+        for area in @_co.selAreas
+          area.deselect()
+          if @_co.initArea and @_co.initArea.getId() is area.getId()
+            area.select()
+          @notifyAll 'onUpdateArea', area
+        @notifyAll 'onFinishAreaSelection'
 
       ## cleanup everything from each operation
       @_wWindow.destroy()
@@ -516,7 +512,7 @@ class HG.EditMode
       console.log "'SEL_OLD_AREA' -> 'SET_NEW_GEOM'"
 
       ## setup for active operations
-      if @_co.id isnt 'ADD' and @_co.id isnt 'UNI' and @_co.id isnt 'CHN' and @_co.id isnt 'DEL'
+      if @_co.id isnt 'UNI' and @_co.id isnt 'CHN' and @_co.id isnt 'DEL'
         @notifyAll 'onFinishAreaSelection'
         @notifyAll 'onStartAreaEdit'
         @_wWindow.makeTransition dir
@@ -551,7 +547,7 @@ class HG.EditMode
           oldAreas.push area.geomLayer
           @notifyAll 'onRemoveArea', area
         # unify old areas to new area
-        uniArea = @_union oldAreas
+        uniArea = @_geop.union oldAreas
         newArea = new HG.Area "test clip", uniArea
         newArea.select()
         newArea.treat()   # TODO: correct?
@@ -650,69 +646,3 @@ class HG.EditMode
     max = if lastChar is '+' then MAX_NUM else lastChar
     min = (expr.substring 0,1)
     [parseInt(min), parseInt(max)]
-
-
-  ### GEOSPATIAL OPERATIONS ###
-
-  # ============================================================================
-  # credits: elrobis - thank you!
-  # http://gis.stackexchange.com/questions/85229/looking-for-dissolve-algorithm-for-javascript
-  # -> extended to perform cascaded union (unifies all (Multi)Polygons in array of wkt representations of (Multi)Polygons)
-  _union: (jsonObjs) ->
-    wktStrings = @_json2wkt jsonObjs                          # INPUT
-    wktGeoms = @_wkt2array wktStrings
-
-    # TODO: could be more efficient with a tree, but I really do not care about this at this point :P
-    unionGeom = wktGeoms[0]                                   # PROCESSING
-    idx = 1 # = start at the second geometry
-    while idx < wktGeoms.length
-      unionGeom = unionGeom.union wktGeoms[idx]
-      idx++
-
-    wktOut = @_write2wkt unionGeom                            # OUTPUT
-    @_wkt2json wktOut
-
-  # ============================================================================
-  _intersection: (jsonObjs) ->
-    wktStrings = @_json2wkt jsonObjs                          # INPUT
-    wktGeoms = @_wkt2array wktStrings
-
-    # TODO: could be more efficient with a tree, but I really do not care about this at this point :P
-    intersectionGeom = wktGeoms[0]                            # PROCESSING
-    idx = 1 # = start at the second geometry
-    while idx < wktGeoms.length
-      intersectionGeom = intersectionGeom.intersection wktGeoms[idx]
-      idx++
-
-    wktOut = @_write2wkt intersectionGeom                    # OUTPUT
-    @_wkt2json wktOut
-
-
-  ## HELPER CONVERSION FUNCTIONS ##
-
-  # ============================================================================
-  _json2wkt: (jsonObjs) ->
-    wkts = []
-    for obj in jsonObjs
-      @_wkt.fromObject obj
-      wkts.push @_wkt.write()
-    wkts
-
-  # ============================================================================
-  _wkt2json: (wktObj) ->
-    @_wkt.read wktObj
-    @_wkt.toJson()
-
-  # ============================================================================
-  # Instantiate JSTS WKTReader and get two JSTS geometry objects
-  _wkt2array: (wktStrings) ->
-    wktReader = new (jsts.io.WKTReader)
-    geoms = []
-    geoms.push wktReader.read wkt for wkt in wktStrings
-    geoms
-
-  # ============================================================================
-  # Instantiate JSTS WKTWriter and get new geometry's WKT
-  _write2wkt: (inGeom) ->
-    wktWriter = new (jsts.io.WKTWriter)
-    wktWriter.write inGeom

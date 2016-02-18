@@ -12,7 +12,6 @@ class HG.Button
   # ============================================================================
   # button object into constructor
   #   * = required, *A / *B = alternative -> either A or B have to be provided
-  # {
   #       hgInstance
   #       id             buttonIdInCamelCase (!)
   #       classes       ['className1', 'className2', ...]
@@ -27,7 +26,6 @@ class HG.Button
   #             *   callback: onCallbackName
   #           },
   #         ]
-  # }
   #
   # usage
   #   @_hgInstance.buttons.buttonName.onCallbackName @, () =>
