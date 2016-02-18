@@ -35,8 +35,8 @@ class HG.NewGeometryTool
     ### SETUP LEAFLET DRAW ###
 
     # group that contains all drawn territories
-    @_territories = new L.FeatureGroup
-    @_map.addLayer @_territories
+    @_polygons = new L.FeatureGroup
+    @_map.addLayer @_polygons
 
 
     ### SETUP UI ###
@@ -47,13 +47,24 @@ class HG.NewGeometryTool
         position: 'topright',
         draw: {
           polyline: no
-          polygon: yes
+          polygon: {
+            shapeOptions : {
+              # = focus mode on -> selected -> unfocused
+              'className':    'area'
+              'clickable':    true
+              'fillColor':    HGConfig.color_active.val
+              'fillOpacity':  HGConfig.area_half_opacity.val
+              'color':        HGConfig.color_bg_dark.val
+              'opacity':      HGConfig.border_opacity.val
+              'weight':       HGConfig.border_width.val
+            }
+          }
           rectangle: no
           circle: no
           marker: no
         },
         edit: {
-          featureGroup: @_territories
+          featureGroup: @_polygons
         }
       }
     @_map.addControl @_drawControl
@@ -199,8 +210,8 @@ class HG.NewGeometryTool
     @_buttonArea.destroy()
     @_map.removeControl @_drawControl
     delete @_drawControl
-    @_map.removeLayer @_territories
-    delete @_territories
+    @_map.removeLayer @_polygons
+    delete @_polygons
 
 
 
@@ -214,7 +225,7 @@ class HG.NewGeometryTool
     layer = e.layer
     console.log e
     console.log layer._latlngs
-    @_territories.addLayer layer
+    @_polygons.addLayer layer
     layer.addTo @_map
 
   # ============================================================================

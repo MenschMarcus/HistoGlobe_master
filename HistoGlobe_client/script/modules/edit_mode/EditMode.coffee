@@ -309,7 +309,7 @@ class HG.EditMode
     if @_co.idx is 0
 
       ## skip step for certain operations
-      if @_co.id is 'NEW'
+      if @_co.id is 'ADD'
         @_makeTransition dir
 
       ## wait for user input in other operations
@@ -516,7 +516,7 @@ class HG.EditMode
       console.log "'SEL_OLD_AREA' -> 'SET_NEW_GEOM'"
 
       ## setup for active operations
-      if @_co.id isnt 'UNI' and @_co.id isnt 'CHN' and @_co.id isnt 'DEL'
+      if @_co.id isnt 'ADD' and @_co.id isnt 'UNI' and @_co.id isnt 'CHN' and @_co.id isnt 'DEL'
         @notifyAll 'onFinishAreaSelection'
         @notifyAll 'onStartAreaEdit'
         @_wWindow.makeTransition dir
@@ -632,9 +632,6 @@ class HG.EditMode
       ## setup for each operations (all are active in this step)
       @_wWindow.makeTransition dir
       @_wWindow.cleanupOkButton()
-
-
-
 
 
 
