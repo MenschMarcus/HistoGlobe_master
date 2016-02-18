@@ -212,8 +212,6 @@ class HG.AreasOnMap
     if @_focusMode is on
       area = evt.target.hgArea
 
-      console.log area.getId(), area.isSelected()
-
       # area is selected => deselect
       if area.isSelected()
         @_deselect area
