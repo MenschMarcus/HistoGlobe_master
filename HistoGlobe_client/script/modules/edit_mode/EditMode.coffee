@@ -170,6 +170,7 @@ class HG.EditMode
                 id:         inCO.id
                 title:      inCO.title
                 idx:        -1          # = step index -> -1 = start in the beginning
+                initArea:   null
                 selAreas:   []
                 geomAreas:  []
                 nameAreas:  []
@@ -481,7 +482,8 @@ class HG.EditMode
 
       # add already selected areas to list
       if @_areasOnMap.getSelectedAreas()[0]
-        @_co.selAreas.push @_areasOnMap.getSelectedAreas()[0]
+        @_co.initArea = @_areasOnMap.getSelectedAreas()[0]
+        @_co.selAreas.push @_co.initArea
 
 
 
@@ -489,6 +491,14 @@ class HG.EditMode
     # 'START' <- 'SEL_OLD_AREA'                                             DONE
     else if @_co.idx is 0 and dir is -1
       console.log "'START' <- 'SEL_OLD_AREA'"
+
+      ## cleanup area selection (except for initially selected area)
+      for area in @_co.selAreas
+        area.deselect()
+        if @_co.initArea and @_co.initArea.getId() is area.getId()
+          area.select()
+        @notifyAll 'onUpdateArea', area
+      @notifyAll 'onFinishAreaSelection'
 
       ## cleanup everything from each operation
       @_wWindow.destroy()
