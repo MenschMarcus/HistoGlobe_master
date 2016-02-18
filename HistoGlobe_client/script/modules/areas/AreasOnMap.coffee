@@ -77,11 +77,6 @@ class HG.AreasOnMap
         @_addName area
         @_colorArea area
 
-        as = []
-        as.push a.getNames().commonName for a in @_selectedAreas
-        console.log "AM onAddArea ) ", as
-
-
       @_hgInstance.editController?.onUpdateArea @, (area) =>
         @_removeName area
         @_removeGeom area
@@ -89,19 +84,9 @@ class HG.AreasOnMap
         @_addName area
         @_colorArea area
 
-        as = []
-        as.push a.getNames().commonName for a in @_selectedAreas
-        console.log "AM onUpdateAr) ", as
-
-
       @_hgInstance.editController?.onRemoveArea @, (area) =>
         @_removeGeom area
         @_removeName area
-
-        as = []
-        as.push a.getNames().commonName for a in @_selectedAreas
-        console.log "AM onRemoveAr) ", as
-
 
 
   # ============================================================================
@@ -163,7 +148,7 @@ class HG.AreasOnMap
       # create label with name and position
       area.nameLayer = new L.Label()
       area.nameLayer.setContent @_addLinebreaks area.getNames().commonName
-      area.nameLayer.setLatLng area.getNames().pos
+      area.nameLayer.setLatLng area.getCenter()
 
       # create double-link: leaflet label knows HG area and HG area knows leaflet label
       area.nameLayer.hgArea = area
