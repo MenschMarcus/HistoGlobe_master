@@ -31,6 +31,7 @@ class HG.Area
   setGeom: (geom) ->      @_geom = geom
   getGeometry: () ->      @_geom
   getGeom: () ->          @_geom
+  getCenter: () ->        @_center
 
   # ============================================================================
   setNames: (names) ->    @_names = names
@@ -99,7 +100,7 @@ class HG.Area
         if coords.lng < minLng then minLng = coords.lng
         if coords.lng > maxLng then maxLng = coords.lng
 
-    @_names.pos = {
+    @_center = {
       'lat': (minLat+maxLat)/2,
       'lng': (minLng+maxLng)/2
     }

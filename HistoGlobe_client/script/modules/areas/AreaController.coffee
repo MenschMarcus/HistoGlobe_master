@@ -27,9 +27,7 @@ class HG.AreaController
     for file in @_config.JSONPaths
       $.getJSON file, (areas) =>
         for area in areas.features
-          names = {
-            'commonName': area.properties.name
-          }
+          names = {'commonName': area.properties.name}
           newArea = new HG.Area area.id, area.geometry, names
           @_areas.push newArea
           @notifyAll "onAddArea", newArea

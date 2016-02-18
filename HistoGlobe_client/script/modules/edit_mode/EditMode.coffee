@@ -169,7 +169,7 @@ class HG.EditMode
               {
                 id:         inCO.id
                 title:      inCO.title
-                idx:        -1          # start in the beginning
+                idx:        -1          # = step index -> -1 = start in the beginning
                 selAreas:   []
                 geomAreas:  []
                 nameAreas:  []
@@ -284,6 +284,12 @@ class HG.EditMode
     @_editButton.changeState 'normal'
 
 
+
+  ## DEBUG
+  # as = []
+  # as.push a.getNames().commonName for a in @_co.selAreas
+  # console.log "stepId ) ", as
+
   ## (3) STEP ###
   ## differentiate between a step
   ##  -> waiting for the users input
@@ -315,10 +321,6 @@ class HG.EditMode
             if @_co.selAreas.indexOf area is -1
               @_co.selAreas.push area
 
-            as = []
-            as.push a.getNames().commonName for a in @_co.selAreas
-            console.log "EM onSelect ) ", as
-
             # is step complete?
             if @_co.selAreas.length >= @_co.steps[0].minNum
               @_wWindow.stepComplete()
@@ -330,10 +332,6 @@ class HG.EditMode
           @_areasOnMap.onDeselectArea @, (area) =>
             if @_co.selAreas.indexOf area isnt -1
               @_co.selAreas.splice (@_co.selAreas.indexOf area), 1 # remove Area from array
-
-            as = []
-            as.push a.getNames().commonName for a in @_co.selAreas
-            console.log "EM onDeselec) ", as
 
             # is step incomplete?
             if @_co.selAreas.length < @_co.steps[0].minNum
@@ -400,24 +398,20 @@ class HG.EditMode
       else
         # for each required area
         @_newNameToolLoop = () =>
+
+          # get current area
+          currArea = @_co.geomAreas[@_co.steps[2].areaIdx]
+
           # set up NewNameTool to set name and pos of area interactively
-          @_newNameTool = new HG.NewNameTool @_hgInstance, [500, 200]  # TODO: real position
+          @_newNameTool = new HG.NewNameTool @_hgInstance, currArea.getCenter()
           @_newNameTool.onSubmit @, (name, pos) =>
 
-            # get current position in input array (= geomArray from step1)
-            idx = @_co.steps[2].areaIdx
-            # copy area from input array (treat it like temporal area)
-            area = @_co.geomAreas[idx]
-            # write name to it and mark it as fully "treated"
-            area.setNames {
-                'commonName': name
-                'pos':        pos
-              }
-            area.treat()
-
             # save the named area
-            @_co.nameAreas[idx] = area          # Model
-            @notifyAll 'onUpdateArea', area     # View
+            currArea = @_co.geomAreas[@_co.steps[2].areaIdx]
+            currArea.setNames {'commonName': name}
+            currArea.treat()
+            @_co.nameAreas[idx] = currArea          # Model
+            @notifyAll 'onUpdateArea', currArea     # View
 
             # cleanup
             @_newNameTool.destroy()
@@ -426,8 +420,9 @@ class HG.EditMode
             @_co.steps[2].areaIdx++
             if @_co.steps[2].areaIdx < @_co.steps[2].maxNum
               @_newNameToolLoop()
-            else # = loop completed = required areas named => step complete
-              @_wWindow.stepComplete()
+            # if required areas named => loop complete => step complete => next
+            else
+              @_makeTransition 1
 
         @_newNameToolLoop()
 
@@ -441,7 +436,6 @@ class HG.EditMode
       ### ACTION ###
       ## finish up
       # TODO: check if complete
-      @_wWindow.operationComplete()
       # TODO: check if incomplete
 
 
@@ -542,11 +536,6 @@ class HG.EditMode
         @notifyAll 'onStartAreaEdit'
         # delete all selected areas
         oldAreas = []
-
-        as = []
-        as.push a.getNames().commonName for a in @_co.selAreas
-        console.log "EM bgproc-fw ) ", as
-
         for area in @_co.selAreas
           oldAreas.push area.geomLayer
           @notifyAll 'onRemoveArea', area
@@ -575,12 +564,11 @@ class HG.EditMode
     else if @_co.idx is 2 and dir is -1
       console.log "'SET_NEW_GEOM' <- 'SET_NEW_NAME'"
 
+      # cleanup name tool if it was there
+      @_newNameTool?.destroy()
+
       ## background processing for passive operations
       if @_co.id is 'UNI'               # restore selected areas
-
-        as = []
-        as.push a.getNames().commonName for a in @_co.selAreas
-        console.log "EM bgproc-bw ) ", as
 
         @notifyAll 'onFinishAreaEdit'
         @notifyAll 'onStartAreaSelection', @_co.steps[0].maxNum
@@ -609,8 +597,9 @@ class HG.EditMode
       console.log "'SET_NEW_NAME' -> 'ADD_CHNG'"
 
       ## setup for each operations (all are active in this step)
-      @_wWindow.makeTransition dir
+      @_wWindow.setupOkButton()
       @_wWindow.stepIncomplete()
+      @_wWindow.makeTransition dir
 
 
     #---------------------------------------------------------------------------
@@ -618,9 +607,21 @@ class HG.EditMode
     else if @_co.idx is 3 and dir is -1
       console.log "'SET_NEW_NAME' <- 'ADD_CHNG'"
 
+      ## restore areas without names
+      # TODO: really hacky... isn't there a nicer way to do that?
+      if @_co.id isnt 'CHB' and @_co.id isnt 'DEL'
+        for area in @_co.nameAreas
+          # delete the name
+          area.setNames {}
+          # update
+          @notifyAll 'onUpdateArea', area     # View
+        @_co.steps[2].areaIdx = 0
+        @_co.nameAreas = []
+
+
       ## setup for each operations (all are active in this step)
       @_wWindow.makeTransition dir
-      @_wWindow.stepComplete()
+      @_wWindow.cleanupOkButton()
 
 
 
