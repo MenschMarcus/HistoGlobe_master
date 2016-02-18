@@ -209,12 +209,10 @@ class HG.WorkflowWindow
   stepIncomplete: () ->
     @_nextButton.disable()
 
-  operationComplete: () ->
-    @_nextButton.enable()
+  setupOkButton: () ->
     @_nextButton.changeState 'finish'
 
-  operationIncomplete: () ->
-    @_nextButton.disable()
+  cleanupOkButton: () ->
     @_nextButton.changeState 'normal'
 
   makeTransition: (dir) ->

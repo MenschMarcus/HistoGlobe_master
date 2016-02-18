@@ -7,7 +7,7 @@ class HG.NewNameTool
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, pos) ->
+  constructor: (@_hgInstance, posLatLng) ->
 
     # add to HG instance
     @_hgInstance.newCountryLabel = @
@@ -45,13 +45,18 @@ class HG.NewNameTool
     # => possible, but hard...
 
     @_wrapper = new HG.Div 'new-name-wrapper', null
-    @_wrapper.j().css 'left', pos[0]
-    @_wrapper.j().css 'top', pos[1]
     @_hgInstance._top_area.appendChild @_wrapper.dom()
 
     @_inputField = new HG.TextInput @_hgInstance, 'new-name-input', null
     @_inputField.j().attr 'size', 1 # starts with minimum size of 1
     @_wrapper.appendChild @_inputField
+
+    # position of wrapper = center of country
+    # -> to center it, half dimensions of input field have to be subtracted
+    posPx = @_map.latLngToContainerPoint posLatLng
+    @_wrapper.j().css 'left', posPx.x - (@_inputField.j().width()/2)
+    @_wrapper.j().css 'top',  posPx.y - (@_inputField.j().height()/2)
+
 
     @_okButton = new HG.Button @_hgInstance, 'newNameOK', ['confirm-button'], [
       {
@@ -66,13 +71,18 @@ class HG.NewNameTool
 
     # seamless interaction
     @_makeDraggable()
-    @_inputField.j().on 'keydown keydown click each', @_enableAutoResize
+    @_inputField.j().on 'keydown keyup click each', (e) =>
+      #       ensures width >= 1                         magic factor to scale width with increasing size
+      width = Math.max 1, (@_inputField.j().val().length)*1.15
+      @_inputField.j().attr 'size', width
+      # TODO: set actual width, independent from font-size
+      # TODO: animate to the new width -> works not with 'size' but only with 'width' (size is not a CSS property)
+
     @_map.on 'drag',    @_respondToMapDrag
     @_map.on 'zoomend', @_respondToMapZoom
 
     # type name => change name
     @_inputField.j().on 'keyup mouseup', (e) =>
-      # tell everyone the new value
       @notifyAll 'onChangeName', @_inputField.j().val()
 
     # click OK => submit name and position
@@ -82,7 +92,7 @@ class HG.NewNameTool
       width = @_inputField.j().width()
       height = @_inputField.j().height()
       center = L.point offset.left + width / 2, offset.top + height / 2
-      # submit               common name             label position
+      #                      common name             label position
       @notifyAll 'onSubmit', @_inputField.j().val(), @_map.containerPointToLatLng center
 
 
@@ -127,13 +137,6 @@ class HG.NewNameTool
         e.preventDefault()
         @_wrapper.j().data 'preventBehaviour', false
       return # for some reason this has to be there ?!?
-
-  _enableAutoResize: (e) =>
-    #       ensures width >= 1                magic factor to scale width with increasing size
-    width = Math.max 1, (@_inputField.j().val().length)*1.15
-    @_inputField.j().attr 'size', width
-    # TODO: set actual width, independent from font-size
-    # TODO: animate to the new width -> works not with 'size' but only with 'width' (size is not a CSS property)
 
   _respondToMapDrag: (e) =>
     # this is probably more complicated than necessary - but it works :)
