@@ -18,7 +18,7 @@ class HG.Area
   # ============================================================================
   constructor: (@_id, geom=null, @_names={}) ->
     @_geom = @_jsonToArray geom   # assumes input is leaflet layer
-    @_calcNamePos()
+    @_calcCenter()
     @_focused = no    # is area currently in focus (hovered)?
     @_selected = no   # is area currently selected?
     @_treated = no    # for edit mode: area has already been treated?
@@ -31,6 +31,10 @@ class HG.Area
   setGeom: (geom) ->      @_geom = geom
   getGeometry: () ->      @_geom
   getGeom: () ->          @_geom
+
+  # ============================================================================
+  setCenter: (center) ->  @_center = center
+  resetCenter: () ->      @_calcCenter
   getCenter: () ->        @_center
 
   # ============================================================================
@@ -79,7 +83,7 @@ class HG.Area
 
 
   # ============================================================================
-  _calcNamePos: () ->
+  _calcCenter: () ->
 
     minLat = 180.0
     minLng = 90.0
