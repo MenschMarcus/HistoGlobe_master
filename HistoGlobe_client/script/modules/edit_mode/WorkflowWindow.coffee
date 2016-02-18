@@ -217,16 +217,8 @@ class HG.WorkflowWindow
     @_nextButton.disable()
     @_nextButton.changeState 'normal'
 
-  nextStep: () ->
-    @_currStep++
-
-    console.log @_circlePos[@_currStep]
-
-    @_moveStepMarker()
-    @_highlightText()
-
-  prevStep: () ->
-    @_currStep--
+  makeTransition: (dir) ->
+    @_currStep += dir
     @_moveStepMarker()
     @_highlightText()
 
