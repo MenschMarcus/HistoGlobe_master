@@ -1,7 +1,7 @@
 window.HG ?= {}
 
 # DEBUG: take out if not needed anymore
-TEST_BUTTON = no
+TEST_BUTTON = yes
 
 
 class HG.EditMode
@@ -106,8 +106,9 @@ class HG.EditMode
         jsons = []
         jsons.push new L.multiPolygon pure1
         jsons.push new L.multiPolygon pure2
-        jsonU = @_union jsons
+        jsonU = @_geop.union jsons
         areaU = new HG.Area "test clip", jsonU, null
+        console.log areaU
         @notifyAll "onAddArea", areaU
 
 
@@ -360,19 +361,26 @@ class HG.EditMode
           @_newGeomTool = new HG.NewGeometryTool @_hgInstance
 
           @_newGeomTool.onSubmit @, (geom) =>
-            # save data
-
-            # cleanup
-            @_newGeomTool.destroy()
-
-            # go to next area
-            @_co.steps[1].areaIdx++
-            if @_co.steps[1].areaIdx < @_co.steps[1].maxNum
-              @_newNameToolLoop()
-            # if required areas named => loop complete => step complete => next
+            # check data
+            if no
+              # send back to tool and redo
             else
-              @_makeTransition 1
+              # cleanup
+              @_newGeomTool.destroy()
+              delete @_newGeomTool
 
+              # save data
+              newArea = new HG.Area "Test", geom
+              @_co.geomAreas.push newArea
+              @notifyAll 'onAddArea', newArea
+
+              # go to next area
+              @_co.steps[1].areaIdx++
+              if @_co.steps[1].areaIdx < @_co.steps[1].maxNum
+                @_newGeomToolLoop()
+              # if required areas named => loop complete => step complete => next
+              else
+                @_makeTransition 1
 
         @_newGeomToolLoop()
 
@@ -406,6 +414,7 @@ class HG.EditMode
 
             # cleanup
             @_newNameTool.destroy()
+            delete @_newNameTool
 
             # go to next area
             @_co.steps[2].areaIdx++
@@ -426,6 +435,7 @@ class HG.EditMode
 
       ### ACTION ###
       ## finish up
+      @_wWindow.stepComplete()
       # TODO: check if complete
       # TODO: check if incomplete
 
@@ -459,12 +469,20 @@ class HG.EditMode
 
       @_hgInstance.buttons.wwAbort.onAbort @, () =>
         # abort = back to the very beginning
-        while @_co.stepIdx > -1
+        while @_co.idx > -1
           @_makeTransition -1, yes  # yes = abort = skip all user input steps
-          @_co.stepIdx--
 
       @_hgInstance.buttons.wwNext.onFinish @, () =>
+        # TODO: better design
         console.log "HEUREKA"
+        @_title.set "EDIT MODE"   # TODO: internationalization
+        (@_operationButtons.getById @_co.id).button.deactivate()
+        @_newHiventButton.enable()
+        @_operationButtons.foreach (obj) =>
+          obj.button.enable()
+        @_editButton.enable()
+
+
 
       ## setup selection step for all active operations
       if @_co.id isnt 'ADD'
@@ -495,9 +513,9 @@ class HG.EditMode
             area.select()
           @notifyAll 'onUpdateArea', area
         @notifyAll 'onFinishAreaSelection'
+        @_wWindow.makeTransition -1
 
       ## cleanup everything from each operation
-      @_wWindow.destroy()
       @_title.set "EDIT MODE"   # TODO: internationalization
       (@_operationButtons.getById @_co.id).button.deactivate()
       @_newHiventButton.enable()
@@ -524,6 +542,9 @@ class HG.EditMode
     else if @_co.idx is 1 and dir is -1
       console.log "'SEL_OLD_AREA' <- 'SET_NEW_GEOM'"
 
+      # cleanup geometry tool if it was there
+      @_newGeomTool?.destroy()
+
       ## setup for active operations
       if @_co.id isnt 'UNI' and @_co.id isnt 'CHN' and @_co.id isnt 'DEL'
         @notifyAll 'onFinishAreaEdit'
@@ -536,6 +557,9 @@ class HG.EditMode
     # 'SET_NEW_GEOM' -> 'SET_NEW_NAME'                                      TODO
     else if @_co.idx is 1 and dir is 1
       console.log "'SET_NEW_GEOM' -> 'SET_NEW_NAME'"
+
+      # cleanup geometry tool if it was there
+      @_newGeomTool?.destroy()
 
       ## background processing for passive operations
       if @_co.id is 'UNI'               # unify selected areas
@@ -574,8 +598,13 @@ class HG.EditMode
       # cleanup name tool if it was there
       @_newNameTool?.destroy()
 
-      ## background processing for passive operations
-      if @_co.id is 'UNI'               # restore selected areas
+      ## background processing for passive operations: restore areas
+      # TODO: edit last area
+      if @_co.id is 'ADD'               # remove selected area
+        @notifyAll 'onRemoveArea', @_co.geomAreas[0]
+        @_co.geomAreas = []
+
+      else if @_co.id is 'UNI'          # restore selected areas
         @notifyAll 'onFinishAreaEdit'
         @notifyAll 'onStartAreaSelection', @_co.steps[0].maxNum
         # delete new unified
@@ -601,6 +630,9 @@ class HG.EditMode
     # 'SET_NEW_NAME' -> 'ADD_CHNG'                                          TODO
     else if @_co.idx is 2 and dir is 1
       console.log "'SET_NEW_NAME' -> 'ADD_CHNG'"
+
+      # cleanup name tool if it was there
+      @_newNameTool?.destroy()
 
       ## setup for each operations (all are active in this step)
       @_wWindow.setupOkButton()
