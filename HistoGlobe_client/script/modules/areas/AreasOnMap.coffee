@@ -272,54 +272,41 @@ class HG.AreasOnMap
     #    1/  \0    1/  \0    1/  \0    |
 
     if @_focusMode
-      console.log area if DEBUG
-      console.log 'focusMode on'  if DEBUG
       if area.isSelected()
-        console.log '  area selected'  if DEBUG
         if area.isFocused()
-          console.log '    area focused'  if DEBUG
           @_animate area.geomLayer, {
             'fill':         HGConfig.color_highlight.val
             'fill-opacity': HGConfig.area_full_opacity.val
           }, HGConfig.animation_time.val
         else
-          console.log '    area not focused'  if DEBUG
           @_animate area.geomLayer, {
             'fill':         HGConfig.color_active.val
             'fill-opacity': HGConfig.area_half_opacity.val
           }, HGConfig.animation_time.val
       else
-        console.log '  area not selected'  if DEBUG
         if area.isFocused()
-          console.log '    area focused'  if DEBUG
           @_animate area.geomLayer, {
             'fill':         HGConfig.color_highlight.val
             'fill-opacity': HGConfig.area_half_opacity.val
           }, HGConfig.animation_time.val
         else
-          console.log '    area not focused'  if DEBUG
           @_animate area.geomLayer, {
             'fill':         HGConfig.color_white.val
             'fill-opacity': HGConfig.area_full_opacity.val
           }, HGConfig.animation_time.val
     else
-      console.log 'focusMode off'  if DEBUG
       if area.isSelected()
-        console.log '  area selected'  if DEBUG
         if area.isTreated()
-          console.log '    area treated'  if DEBUG
           @_animate area.geomLayer, {
             'fill':         HGConfig.color_bg_medium.val
             'fill-opacity': HGConfig.area_full_opacity.val
           }, HGConfig.animation_time.val
         else
-          console.log '    area not treated'  if DEBUG
           @_animate area.geomLayer, {
             'fill':         HGConfig.color_bg_medium.val
             'fill-opacity': HGConfig.area_half_opacity.val
           }, HGConfig.animation_time.val
       else
-        console.log '  area not selected'  if DEBUG
         @_animate area.geomLayer, {
           'fill':         HGConfig.color_white.val
           'fill-opacity': HGConfig.area_full_opacity.val
