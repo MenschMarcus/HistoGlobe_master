@@ -65,11 +65,13 @@ class HG.AreasOnMap
       # = areas are highlighted on hover and can be selected
       @_hgInstance.editController?.onStartAreaEdit @, () =>
         @_focusMode = no
+        @_colorArea a for a in @_selectedAreas
 
       # switch to no-focus mode
       # = areas are not highlighted and can not be selected
       @_hgInstance.editController?.onFinishAreaEdit @, () =>
         @_focusMode = yes
+        @_colorArea a for a in @_selectedAreas
 
 
       @_hgInstance.editController?.onAddArea @, (area) =>
