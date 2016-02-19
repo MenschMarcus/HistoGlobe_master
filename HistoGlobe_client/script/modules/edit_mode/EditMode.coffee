@@ -475,6 +475,7 @@ class HG.EditMode
       @_hgInstance.buttons.wwNext.onFinish @, () =>
         # TODO: better design
         console.log "HEUREKA"
+        @_wWindow.destroy()
         @_title.set "EDIT MODE"   # TODO: internationalization
         (@_operationButtons.getById @_co.id).button.deactivate()
         @_newHiventButton.enable()
@@ -543,7 +544,10 @@ class HG.EditMode
       console.log "'SEL_OLD_AREA' <- 'SET_NEW_GEOM'"
 
       # cleanup geometry tool if it was there
-      @_newGeomTool?.destroy()
+      if @_newGeomTool?
+        @_newGeomTool.destroy()
+        delete @_newGeomTool
+
 
       ## setup for active operations
       if @_co.id isnt 'UNI' and @_co.id isnt 'CHN' and @_co.id isnt 'DEL'
@@ -559,7 +563,9 @@ class HG.EditMode
       console.log "'SET_NEW_GEOM' -> 'SET_NEW_NAME'"
 
       # cleanup geometry tool if it was there
-      @_newGeomTool?.destroy()
+      if @_newGeomTool?
+        @_newGeomTool.destroy()
+        delete @_newGeomTool
 
       ## background processing for passive operations
       if @_co.id is 'UNI'               # unify selected areas
@@ -630,6 +636,8 @@ class HG.EditMode
     # 'SET_NEW_NAME' -> 'ADD_CHNG'                                          TODO
     else if @_co.idx is 2 and dir is 1
       console.log "'SET_NEW_NAME' -> 'ADD_CHNG'"
+
+      @notifyAll 'onFinishAreaEdit'
 
       # cleanup name tool if it was there
       @_newNameTool?.destroy()
