@@ -161,7 +161,7 @@ class HG.AreasOnMap
       # create label with name and position
       area.nameLayer = new L.Label()
       area.nameLayer.setContent @_addLinebreaks area.getNames().commonName
-      area.nameLayer.setLatLng area.getLabelPosition()
+      area.nameLayer.setLatLng @_flipLatLng area.getLabelPosition()
 
       # create double-link: leaflet label knows HG area and HG area knows leaflet label
       area.nameLayer.hgArea = area
@@ -234,8 +234,6 @@ class HG.AreasOnMap
       # bug: after clicking, it is assumed to be still focused
       # fix: unfocus afterwards
       @_onUnfocus evt
-
-      console.log area.getId(), area.isSelected()
 
   # ============================================================================
   _select: (area) =>
@@ -345,3 +343,11 @@ class HG.AreasOnMap
         d3.select(path._path).transition().duration(duration).attr(attributes).each('end', finishFunction)
     else if area._path?
       d3.select(area._path).transition().duration(duration).attr(attributes).each('end', finishFunction)
+
+
+  # ============================================================================
+  _flipLatLng: (arr) ->
+    tmp = arr[0]
+    arr[0] = arr[1]
+    arr[1] = tmp
+    arr
