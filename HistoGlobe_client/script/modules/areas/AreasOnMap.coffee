@@ -73,7 +73,6 @@ class HG.AreasOnMap
         @_focusMode = yes
         @_colorArea a for a in @_selectedAreas
 
-
       @_hgInstance.editController?.onAddArea @, (area) =>
         @_addGeom area
         @_addName area
@@ -90,10 +89,15 @@ class HG.AreasOnMap
         @_removeGeom area
         @_removeName area
 
-
   # ============================================================================
-  getSelectedAreas: () ->  @_selectedAreas
+  getSelectedAreas: () ->
+    @_selectedAreas
 
+  getAreas: () ->
+    areas = []
+    @_map.eachLayer (l) ->    # push all areas
+      areas.push l if l.hgArea? and not (l instanceof L.Label)
+    areas
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
@@ -127,7 +131,9 @@ class HG.AreasOnMap
         'weight':       HGConfig.border_width.val
       }
 
-      area.geomLayer = L.multiPolygon area.getGeometry(), options
+      area.geomLayer = L.geoJson()
+      area.geomLayer.options = options
+      area.geomLayer.addData area.getGeometry().json()
 
       # interaction
       area.geomLayer.on 'mouseover', @_onFocus
@@ -155,7 +161,7 @@ class HG.AreasOnMap
       # create label with name and position
       area.nameLayer = new L.Label()
       area.nameLayer.setContent @_addLinebreaks area.getNames().commonName
-      area.nameLayer.setLatLng area.getCenter()
+      area.nameLayer.setLatLng area.getLabelPosition()
 
       # create double-link: leaflet label knows HG area and HG area knows leaflet label
       area.nameLayer.hgArea = area

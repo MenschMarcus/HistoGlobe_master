@@ -29,18 +29,18 @@ class HG.DOMElement
   prependChild: (child) ->  @_elem.insertBefore (@_getDom child), @_elem.firstChild
 
   # ============================================================================
-  show: () ->           @_j.show()
-  hide: () ->           @_j.hide()
+  show: () ->               @_j.show()
+  hide: () ->               @_j.hide()
 
   # ============================================================================
-  destroy: () ->        @_j.remove()
-  remove: () ->         @_j.remove()
+  destroy: () ->            @_j.remove()
+  remove: () ->             @_j.remove()
 
   # ============================================================================
   # return DOM element:     myObj.dom()
-  #   or   jQuery element:  myObj.j()
-  dom: () ->            @_elem
-  j: () ->              @_j
+  dom: () ->                @_elem
+  # return jQuery object:   myObj.j()
+  j: () ->                  @_j
 
 
   ##############################################################################

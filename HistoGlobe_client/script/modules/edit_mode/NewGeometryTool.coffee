@@ -26,9 +26,12 @@ class HG.NewGeometryTool
 
     @addCallback 'onSubmit'
 
-    # setup variables
+    # includes
     @_map = @_hgInstance.map._map
     @_histoGraph = @_hgInstance.histoGraph
+    @_geometryReader = new HG.GeometryReader
+    @_geometryOperator = new HG.GeometryOperator
+
     iconPath = @_hgInstance._config.graphicsPath + 'buttons/'
 
     ### SETUP LEAFLET DRAW ###
@@ -210,11 +213,13 @@ class HG.NewGeometryTool
 
     # click OK => submit geometry
     @_submitGeomBtn.onClick @, () =>
-      console.log @_polygons
-      # transform feature group to MultiPolygon
-      latlngs = []
-      latlngs.push pg.getLatLngs() for pg in @_polygons.getLayers()
-      @notifyAll 'onSubmit', latlngs
+
+      geometries = []
+      geometries.push @_geometryReader.read layer for layer in @_featureGroup.getLayers()
+      # merge all of them together
+      # -> only works if they are (poly)polygons, not for polylines or points
+
+      @notifyAll 'onSubmit', @_geometryOperator.merge geometries
 
   # ============================================================================
   destroy: () ->
@@ -264,8 +269,6 @@ class HG.NewGeometryTool
     $(inButton).detach()
     $(inButton).addClass 'button'
     new HG.Anchor null, null, null, inButton
-
-
 
 
 
