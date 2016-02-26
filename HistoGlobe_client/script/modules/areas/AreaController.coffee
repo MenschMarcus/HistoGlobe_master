@@ -36,7 +36,6 @@ class HG.AreaController
         $.getJSON file, (areas) =>
           for area in areas.features
             id = area.id
-            console.log id
             geometry = geometryReader.read area.geometry
             names = {'commonName': area.properties.name}
             newArea = new HG.Area id, geometry, names
