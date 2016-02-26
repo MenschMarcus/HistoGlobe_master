@@ -21,7 +21,7 @@ class HG.GeometryReader
   # ============================================================================
   read: (inObject) ->
     # error handling: empty geometry
-    return new HG.Point null if inObject is null
+    geometry = 'EMPTY' if inObject is null
 
     # convert to geometry array
     geometry = @_readJsts inObject            unless geometry
@@ -30,11 +30,16 @@ class HG.GeometryReader
     geometry = @_readGeoJSON inObject         unless geometry
     geometry = @_readCoordinateArray inObject unless geometry
 
+    # error handling: empty geometry
+    if geometry is 'EMPTY'
+      return new HG.Point null
+
     # error handling: non-detectable format
     if geometry is null
       console.error "The given geometry could not be read, it must be in one of the accepted formats: \n
         leaflet layer, GeoJSON object, pure geometry array, WKT string or jsts object"
       return null
+
 
     ### OUTPUT ###
     # create actual geometry
@@ -120,12 +125,12 @@ class HG.GeometryReader
   _readWkt: (inObject) ->
     # detect
     if (
-      (typeof inObject is "string") and
+      (typeof inObject is 'string') and
       (
-        ((inObject.indexOf "POINT") isnt -1) or
-        ((inObject.indexOf "LINESTRING") isnt -1) or
-        ((inObject.indexOf "POLYGON") isnt -1) or
-        ((inObject.indexOf "MULTIPOLYGON") isnt -1)
+        ((inObject.indexOf 'POINT') isnt -1) or
+        ((inObject.indexOf 'LINESTRING') isnt -1) or
+        ((inObject.indexOf 'POLYGON') isnt -1) or
+        ((inObject.indexOf 'MULTIPOLYGON') isnt -1)
       )
     )
 
@@ -142,7 +147,7 @@ class HG.GeometryReader
     # detect
     # TODO: better way to detect it?
     if (
-      (typeof inObject is "object") and
+      (typeof inObject is 'object') and
       (inObject.hasOwnProperty 'factory')
     )
 
@@ -151,7 +156,7 @@ class HG.GeometryReader
       wktString = wktWriter.write inObject
 
       # error handling: reject any kind of empty geometry
-      return null if (wktString.indexOf "EMPTY") isnt -1
+      return 'EMPTY' if (wktString.indexOf 'EMPTY') isnt -1
 
       # error handling: merge GEOMETRYCOLLECTIONS
       # TODO
