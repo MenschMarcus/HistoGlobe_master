@@ -36,7 +36,12 @@ class HG.Area
   # ----------------------------------------------------------------------------
   setLabelPosition: (pos) ->    @_labelPosition = pos
   resetLabelPosition: () ->     @_labelPosition = @_geometry.getCenter()
-  getLabelPosition: () ->       @_labelPosition
+
+  getLabelPosition: (flipped=no) ->
+    if flipped
+      return [@_labelPosition[1], @_labelPosition[0]]
+    else
+      return @_labelPosition
 
   # ----------------------------------------------------------------------------
   setNames: (names) ->          @_names = names
