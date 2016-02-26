@@ -21,28 +21,32 @@ class HG.AreaController
 
     @_config = $.extend {}, defaultConfig, config
 
-    # lead areas
-    @_areas = []          # set of all HG.Area's (id, geometry, name)
-
-    for file in @_config.JSONPaths
-      $.getJSON file, (areas) =>
-        for area in areas.features
-          names = {'commonName': area.properties.name}
-          newArea = new HG.Area area.id, area.geometry, names
-          @_areas.push newArea
-          @notifyAll "onAddArea", newArea
-
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
     @_hgInstance.areaController = @
 
+    @_areas = []          # set of all HG.Area's (id, geometry, name)
+
+
+    @_hgInstance.onAllModulesLoaded @, () =>
+      geometryReader = new HG.GeometryReader
+
+      for file in @_config.JSONPaths
+        $.getJSON file, (areas) =>
+          for area in areas.features
+            id = area.id
+            console.log id
+            geometry = geometryReader.read area.geometry
+            names = {'commonName': area.properties.name}
+            newArea = new HG.Area id, geometry, names
+            @_areas.push newArea
+            @notifyAll "onAddArea", newArea
+
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
-
-
 
 
   # ============================================================================
