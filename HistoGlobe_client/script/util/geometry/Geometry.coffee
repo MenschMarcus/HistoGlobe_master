@@ -55,39 +55,38 @@ class HG.Geometry
 
   ### GETTER ###
   # ============================================================================
-  type: () ->                   @_type
+  type: () ->                       @_type
 
   # ----------------------------------------------------------------------------
-  json: () ->                   @_json
+  json: () ->                       @_json
 
   # ----------------------------------------------------------------------------
-  coordinates: (flipped=no) ->  @_getCoordinates flipped
-  array: (flipped=no) ->        @_getCoordinates flipped
-  latLng: () ->                 @_getCoordinates yes
-  LngLat: () ->                 @_getCoordinates no
+  coordinates: (inLatLng=no) ->     @_getCoordinates inLatLng
+  array: (inLatLng=no) ->           @_getCoordinates inLatLng
+  latLng: () ->                     @_getCoordinates yes
 
   # ----------------------------------------------------------------------------
-  wkt: () ->                    @_toWkt @_json
+  wkt: () ->                        @_toWkt @_json
 
   # ----------------------------------------------------------------------------
-  jsts: () ->                   @_toJsts @_toWkt @_json
+  jsts: () ->                       @_toJsts @_toWkt @_json
 
   # ----------------------------------------------------------------------------
-  isValid: () ->                @_isValid
+  isValid: () ->                    @_isValid
 
   # ----------------------------------------------------------------------------
   # bounding box structure: minLng, maxLng, minLat, maxLat
-  getBoundingBox: (flipped=no) ->   @_getBoundingBox flipped
-  getCenter: (flipped=no) ->        @_getCenter flipped
+  getBoundingBox: (inLatLng=no) ->  @_getBoundingBox inLatLng
+  getCenter: (inLatLng=no) ->       @_getCenter inLatLng
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
 
   # ============================================================================
-  _getCoordinates: (flipped=no) ->
+  _getCoordinates: (inLatLng=no) ->
     coordinates = []
-    coordinates.push geometry.coordinates(flipped) for geometry in @_geometries
+    coordinates.push geometry.coordinates(inLatLng) for geometry in @_geometries
     coordinates
 
   # ============================================================================
@@ -111,41 +110,57 @@ class HG.Geometry
   # ============================================================================
 
   # ----------------------------------------------------------------------------
-  _getBoundingBox: (flipped=no) ->
+  _getBoundingBox: (inLatLng=no) ->
     # approach: get bounding box of level underneath and
     # calculate this levels' bounding box based on them
     # what a great idea :)
 
-    thisBbox = @_geometries[0].getBoundingBox(flipped)
+    thisBbox = @_geometries[0].getBoundingBox(inLatLng)
 
     for lowerGeom in @_geometries
-      lowerBbox = lowerGeom.getBoundingBox(flipped)       # corresponds to (unflipped):
-      thisBbox[0] = Math.min thisBbox[0], lowerBbox[0]    # minLng
-      thisBbox[1] = Math.max thisBbox[1], lowerBbox[1]    # maxLng
-      thisBbox[2] = Math.min thisBbox[2], lowerBbox[2]    # minLat
-      thisBbox[3] = Math.max thisBbox[3], lowerBbox[3]    # maxLat
+      lowerBbox = lowerGeom.getBoundingBox(inLatLng)
+      if inLatLng
+        thisBbox.minLng = Math.min thisBbox.minLng, lowerBbox.minLng
+        thisBbox.maxLng = Math.max thisBbox.maxLng, lowerBbox.maxLng
+        thisBbox.minLat = Math.min thisBbox.minLat, lowerBbox.minLat
+        thisBbox.maxLat = Math.max thisBbox.maxLat, lowerBbox.maxLat
+      else
+        thisBbox[0] = Math.min thisBbox[0], lowerBbox[0]
+        thisBbox[1] = Math.max thisBbox[1], lowerBbox[1]
+        thisBbox[2] = Math.min thisBbox[2], lowerBbox[2]
+        thisBbox[3] = Math.max thisBbox[3], lowerBbox[3]
 
     thisBbox
 
 
   # ----------------------------------------------------------------------------
-  _getCenter: (flipped=no) ->
+  _getCenter: (inLatLng=no) ->
     # approach: get bounding box of largest geometry underneath and take its center
     # TODO: is that actually a good approach? Does that actually matter?
     # -> I'm going to redefine it later anyways...
 
-    center = [0,0]
+    if inLatLng
+      center = {'lat': 0.0, 'lng': 0.0}
+    else
+      center = [0.0,0.0]
 
     # find largest sub-part
     maxSize = 0
     for lowerGeom in @_geometries
-      bbox = lowerGeom.getBoundingBox(flipped)
-      size = (Math.abs bbox[1]-bbox[0])*(Math.abs bbox[3]-bbox[2])
+      bbox = lowerGeom.getBoundingBox(inLatLng)
+      if inLatLng
+        size = (Math.abs bbox.maxLng-bbox.minLng)*(Math.abs bbox.maxLat-bbox.minLat)
+      else
+        size = (Math.abs bbox[1]-bbox[0])*(Math.abs bbox[3]-bbox[2])
       # new largest sub-part found!
       if size > maxSize
         maxSize = size
         # update center
-        center[0] = ((bbox[0]+bbox[1])/2)
-        center[1] = ((bbox[2]+bbox[3])/2)
+        if inLatLng
+          center.lng = ((bbox.minLng+bbox.maxLng)/2)
+          center.lat = ((bbox.minLat+bbox.maxLat)/2)
+        else
+          center[0] = ((bbox[0]+bbox[1])/2)
+          center[1] = ((bbox[2]+bbox[3])/2)
 
     center
