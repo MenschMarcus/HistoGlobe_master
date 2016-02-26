@@ -1,7 +1,7 @@
 window.HG ?= {}
 
 # DEBUG: take out if not needed anymore
-TEST_BUTTON = yes
+TEST_BUTTON = no
 
 
 class HG.EditMode
@@ -65,7 +65,8 @@ class HG.EditMode
     #   console.error "Unable to load Edit Mode: HistoGraph module is not included in the current hg instance (has to be loaded before EditMode)"
 
     # for using the geooperator internally here
-    @_geop = new HG.GeoOperator
+    @_geometryOperator = new HG.GeometryOperator
+    @_geometryReader = new HG.GeometryReader
 
     # problem: Edit Mode should listen to each listener only once
     # ugly solution: globally save to which callbacks it has already been added to
@@ -103,10 +104,10 @@ class HG.EditMode
                   [19.0, -1.0]
                 ]]
 
-        jsons = []
-        jsons.push new L.multiPolygon pure1
-        jsons.push new L.multiPolygon pure2
-        jsonU = @_geop.union jsons
+        geometries = []
+        geometries.push @_geometryReader.read pure1
+        geometries.push @_geometryReader.read pure2
+        union = @_geometryOperator.union geometries
         areaU = new HG.Area "test clip", jsonU, null
         console.log areaU
         @notifyAll "onAddArea", areaU
@@ -316,7 +317,6 @@ class HG.EditMode
 
       ## wait for user input in other operations
       else
-
         # problem: listens to callback multiple times if function is called multiple times
         # solution: ensure listen to callback only once
         if not @_activeCallbacks.onSelectArea
@@ -360,27 +360,42 @@ class HG.EditMode
           # set up NewGeometryTool to define geometry of an area interactively
           @_newGeomTool = new HG.NewGeometryTool @_hgInstance
 
-          @_newGeomTool.onSubmit @, (geom) =>
-            # check data
-            if no
-              # send back to tool and redo
+          @_newGeomTool.onSubmit @, (geometry) =>
+
+            A = geometry
+
+            # clip to existing geomtries
+            if @_co.id is 'ADD'
+              activeAreas = @_areasOnMap.getAreas()
+              # check for intersection with each country
+              # TODO: make more efficient later
+              for area in activeAreas
+                B = area.getGeometry()
+                C = @_geometryOperator.intersection A, B
+                if intersect
+                  console.log "area 1:           ", A
+                  console.log "area 2:           ", B
+                  console.log "intersection:     ", C
+                  D = @_geometryOperator.difference B, C
+                  console.log "difference 2-int: ", intersect
+                  area.setGeometry D
+                  @notifyAll 'onUpdateArea', area
+
+            # cleanup
+            @_newGeomTool.destroy()
+            delete @_newGeomTool
+
+            # save data
+            @_co.geomAreas.push tempArea
+            @notifyAll 'onAddArea', tempArea
+
+            # go to next area
+            @_co.steps[1].areaIdx++
+            if @_co.steps[1].areaIdx < @_co.steps[1].maxNum
+              @_newGeomToolLoop()
+            # if required areas named => loop complete => step complete => next
             else
-              # cleanup
-              @_newGeomTool.destroy()
-              delete @_newGeomTool
-
-              # save data
-              newArea = new HG.Area "Test", geom
-              @_co.geomAreas.push newArea
-              @notifyAll 'onAddArea', newArea
-
-              # go to next area
-              @_co.steps[1].areaIdx++
-              if @_co.steps[1].areaIdx < @_co.steps[1].maxNum
-                @_newGeomToolLoop()
-              # if required areas named => loop complete => step complete => next
-              else
-                @_makeTransition 1
+              @_makeTransition 1
 
         @_newGeomToolLoop()
 
@@ -407,7 +422,7 @@ class HG.EditMode
             # save the named area
             currArea = @_co.geomAreas[@_co.steps[2].areaIdx]
             currArea.setNames {'commonName': name}
-            currArea.setCenter pos
+            currArea.setLabelPosition pos
             currArea.treat()
             @_co.nameAreas[@_co.steps[2].areaIdx] = currArea          # Model
             @notifyAll 'onUpdateArea', currArea                       # View
@@ -577,7 +592,7 @@ class HG.EditMode
           oldAreas.push area.geomLayer
           @notifyAll 'onRemoveArea', area
         # unify old areas to new area
-        uniArea = @_geop.union oldAreas
+        uniArea = @_geometryOperator.union oldAreas
         newArea = new HG.Area "test clip", uniArea
         newArea.select()
         newArea.treat()   # TODO: correct?
