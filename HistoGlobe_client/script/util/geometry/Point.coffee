@@ -36,8 +36,11 @@ class HG.Point extends HG.Geometry
   ##############################################################################
 
   # ============================================================================
-  _getCoordinates: (flipped=no) ->
-    if not flipped then [@_lng, @_lat] else [@_lat, @_lng]
+  _getCoordinates: (inLatLng=no) ->
+    if inLatLng
+      {'lat': @_lat, 'lng': @_lng}
+    else
+      [@_lng, @_lat]
 
   # ============================================================================
   _checkIfPointArr: (coordinates) ->
@@ -56,8 +59,10 @@ class HG.Point extends HG.Geometry
 
   # ============================================================================
   # special calculation for bounding box and center -> it is the point itself
-  _getBoundingBox: (flipped=no) ->
-    if not flipped then [@_lng, @_lng, @_lat, @_lat] else  [@_lat, @_lat, @_lng, @_lng]
+  _getBoundingBox: (inLatLng=no) ->
+    if inLatLng
+      {'minLat': @_lat, 'maxLat': @_lat, 'minLng': @_lng, 'maxLng': @_lng}
+    else
+      [@_lng, @_lng, @_lat, @_lat]
 
-  _getCenter: (flipped=no) ->
-    if not flipped then [@_lng, @_lat] else [@_lat, @_lng]
+  _getCenter: (inLatLng=no) -> @_getCoordinates inLatLng

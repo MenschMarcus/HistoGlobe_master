@@ -37,8 +37,8 @@ class HG.NewGeometryTool
     ### SETUP LEAFLET DRAW ###
 
     # group that contains all drawn territories
-    @_polygons = new L.FeatureGroup
-    @_map.addLayer @_polygons
+    @_featureGroup = new L.FeatureGroup
+    @_map.addLayer @_featureGroup
 
 
     ### SETUP UI ###
@@ -65,7 +65,7 @@ class HG.NewGeometryTool
           marker: no
         },
         edit: {
-          featureGroup: @_polygons
+          featureGroup: @_featureGroup
         }
       }
     @_map.addControl @_drawControl
@@ -232,8 +232,8 @@ class HG.NewGeometryTool
     @_buttonArea.destroy()
     @_map.removeControl @_drawControl
     delete @_drawControl
-    @_map.removeLayer @_polygons
-    delete @_polygons
+    @_map.removeLayer @_featureGroup
+    delete @_featureGroup
 
 
 
@@ -247,10 +247,10 @@ class HG.NewGeometryTool
     layer = e.layer
 
     # put on the map
-    @_polygons.addLayer layer
+    @_featureGroup.addLayer layer
 
     # geometry can now be edited/deleted/submitted
-    if @_polygons.getLayers().length is 1    # = if moved from 0 layers to 1 layer
+    if @_featureGroup.getLayers().length is 1    # = if moved from 0 layers to 1 layer
       @_editGeomBtn.enable()
       @_deleteGeomBtn.enable()
       @_submitGeomBtn.enable()
@@ -258,7 +258,7 @@ class HG.NewGeometryTool
   # ============================================================================
   _deletePolygon: (e) =>
     # geometry can not be edited/deleted/submitted anymore
-    if @_polygons.getLayers().length is 0
+    if @_featureGroup.getLayers().length is 0
       @_editGeomBtn.disable()
       @_deleteGeomBtn.disable()
       @_submitGeomBtn.disable()
