@@ -55,38 +55,39 @@ class HG.Geometry
 
   ### GETTER ###
   # ============================================================================
-  type: () ->             @_type
+  type: () ->                   @_type
 
   # ----------------------------------------------------------------------------
-  json: () ->             @_json
+  json: () ->                   @_json
 
   # ----------------------------------------------------------------------------
-  coordinates: () ->      @_getCoordinates()
-  array: ()->             @_getCoordinates()
-  get: ()->               @_getCoordinates()
+  coordinates: (flipped=no) ->  @_getCoordinates flipped
+  array: (flipped=no) ->        @_getCoordinates flipped
+  latLng: () ->                 @_getCoordinates yes
+  LngLat: () ->                 @_getCoordinates no
 
   # ----------------------------------------------------------------------------
-  wkt: () ->              @_toWkt @_json
+  wkt: () ->                    @_toWkt @_json
 
   # ----------------------------------------------------------------------------
-  jsts: () ->             @_toJsts @_toWkt @_json
+  jsts: () ->                   @_toJsts @_toWkt @_json
 
   # ----------------------------------------------------------------------------
-  isValid: () ->          @_isValid
+  isValid: () ->                @_isValid
 
   # ----------------------------------------------------------------------------
   # bounding box structure: minLng, maxLng, minLat, maxLat
-  getBoundingBox: () ->   @_calcBoundingBox()
-  getCenter: () ->        @_calcCenter()
+  getBoundingBox: (flipped=no) ->   @_getBoundingBox flipped
+  getCenter: (flipped=no) ->        @_getCenter flipped
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
 
   # ============================================================================
-  _getCoordinates: () ->
+  _getCoordinates: (flipped=no) ->
     coordinates = []
-    coordinates.push geometry.coordinates() for geometry in @_geometries
+    coordinates.push geometry.coordinates(flipped) for geometry in @_geometries
     coordinates
 
   # ============================================================================
@@ -110,26 +111,25 @@ class HG.Geometry
   # ============================================================================
 
   # ----------------------------------------------------------------------------
-  _calcBoundingBox: () ->
+  _getBoundingBox: (flipped=no) ->
     # approach: get bounding box of level underneath and
     # calculate this levels' bounding box based on them
     # what a great idea :)
 
-    thisBbox = @_geometries[0].getBoundingBox()
+    thisBbox = @_geometries[0].getBoundingBox(flipped)
 
     for lowerGeom in @_geometries
-      lowerBbox = lowerGeom.getBoundingBox()
+      lowerBbox = lowerGeom.getBoundingBox(flipped)       # corresponds to (unflipped):
       thisBbox[0] = Math.min thisBbox[0], lowerBbox[0]    # minLng
       thisBbox[1] = Math.max thisBbox[1], lowerBbox[1]    # maxLng
       thisBbox[2] = Math.min thisBbox[2], lowerBbox[2]    # minLat
       thisBbox[3] = Math.max thisBbox[3], lowerBbox[3]    # maxLat
 
-    # special case: points have no structure underneath, take their coordinates
     thisBbox
 
 
   # ----------------------------------------------------------------------------
-  _calcCenter: () ->
+  _getCenter: (flipped=no) ->
     # approach: get bounding box of largest geometry underneath and take its center
     # TODO: is that actually a good approach? Does that actually matter?
     # -> I'm going to redefine it later anyways...
@@ -139,7 +139,7 @@ class HG.Geometry
     # find largest sub-part
     maxSize = 0
     for lowerGeom in @_geometries
-      bbox = lowerGeom.getBoundingBox()
+      bbox = lowerGeom.getBoundingBox(flipped)
       size = (Math.abs bbox[1]-bbox[0])*(Math.abs bbox[3]-bbox[2])
       # new largest sub-part found!
       if size > maxSize

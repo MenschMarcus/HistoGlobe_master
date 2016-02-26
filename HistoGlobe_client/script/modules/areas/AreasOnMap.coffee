@@ -131,9 +131,7 @@ class HG.AreasOnMap
         'weight':       HGConfig.border_width.val
       }
 
-      area.geomLayer = L.geoJson()
-      area.geomLayer.options = options
-      area.geomLayer.addData area.getGeometry().json()
+      area.geomLayer = new L.multiPolygon area.getGeometry().latLng(), options
 
       # interaction
       area.geomLayer.on 'mouseover', @_onFocus
@@ -161,7 +159,7 @@ class HG.AreasOnMap
       # create label with name and position
       area.nameLayer = new L.Label()
       area.nameLayer.setContent @_addLinebreaks area.getNames().commonName
-      area.nameLayer.setLatLng @_flipLatLng area.getLabelPosition()
+      area.nameLayer.setLatLng area.getLabelPosition(yes)
 
       # create double-link: leaflet label knows HG area and HG area knows leaflet label
       area.nameLayer.hgArea = area
@@ -343,11 +341,3 @@ class HG.AreasOnMap
         d3.select(path._path).transition().duration(duration).attr(attributes).each('end', finishFunction)
     else if area._path?
       d3.select(area._path).transition().duration(duration).attr(attributes).each('end', finishFunction)
-
-
-  # ============================================================================
-  _flipLatLng: (arr) ->
-    tmp = arr[0]
-    arr[0] = arr[1]
-    arr[1] = tmp
-    arr
