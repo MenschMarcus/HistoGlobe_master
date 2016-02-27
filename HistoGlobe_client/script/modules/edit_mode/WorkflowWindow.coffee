@@ -26,6 +26,8 @@ class HG.WorkflowWindow
   #   newName:  set name of new country/-ies? (bool)
   constructor: (@_hgInstance, operation) ->
 
+    @_hgInstance.workflowWindow = @
+
     @_currStep = -1   # start without marker
 
     ### MAIN WINDOW ###
@@ -61,6 +63,7 @@ class HG.WorkflowWindow
     stepCols = 0
     @_stepDescr = []
     for step in operation.steps
+      # only setup a column for steps that require user input
       if step.userInput
         @_graphRow.appendChild new HG.Div null, ['ww-graph-row', 'ww-step-col']
         descr = new HG.Div null, ['ww-description-row', 'ww-step-col', 'ww-description-cell']
@@ -144,7 +147,7 @@ class HG.WorkflowWindow
     ### BUTTONS ###
 
     # back button (= undo, disabled)
-    @_backButton = new HG.Button @_hgInstance, 'wwBack', null, [
+    @_backButton = new HG.Button @_hgInstance, 'lastOperationStep', null, [
         {
           'id':       'normal'
           'tooltip':  "Undo / Go Back"
@@ -156,7 +159,7 @@ class HG.WorkflowWindow
 
     # next button ( = ok = go to next step, disabled)
     # -> changes to OK button / "finish" state in last step
-    @_nextButton = new HG.Button @_hgInstance, 'wwNext', null, [
+    @_nextButton = new HG.Button @_hgInstance, 'nextOperationStep', null, [
         {
           'id':       'normal'
           'tooltip':  "Done / Next Step"
@@ -165,7 +168,7 @@ class HG.WorkflowWindow
         },
         {
           'id':       'finish'
-          'tooltip':  "Done / Next Step"
+          'tooltip':  "Finish Operation"
           'iconFA':   'check'
           'callback': 'onFinish'
         },
@@ -173,7 +176,7 @@ class HG.WorkflowWindow
     nextButtonParent.appendChild @_nextButton.getDom()
 
     # abort button
-    @_abortButton = new HG.Button @_hgInstance, 'wwAbort', ['button-abort'], [
+    @_abortButton = new HG.Button @_hgInstance, 'abortOperation', ['button-abort'], [
         {
           'id':       'normal'
           'tooltip':  "Abort Operation"
@@ -188,6 +191,9 @@ class HG.WorkflowWindow
     marginLeft = -@_mainWindow.j().width()/2         # half of own window width
     @_mainWindow.j().css 'left', posLeft
     @_mainWindow.j().css 'margin-left', marginLeft
+
+    # initially no way to go to the next step
+    @_nextButton.disable()
 
 
   # ============================================================================

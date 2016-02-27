@@ -11,7 +11,6 @@
       },
       {
         "id":       "SET_NEW_NAME",
-        "num":      "1",
         "title":    "create name <br/> of new country"
       }
     ]
@@ -50,7 +49,6 @@
       },
       {
         "id":       "SET_NEW_NAME",
-        "num":      "2+",
         "title":    "create names <br/> of all separated countries"
       }
     ]
@@ -84,7 +82,6 @@
       },
       {
         "id":       "SET_NEW_NAME",
-        "num":      "1",
         "title":    "create new name <br/> of the country"
       }
     ]
