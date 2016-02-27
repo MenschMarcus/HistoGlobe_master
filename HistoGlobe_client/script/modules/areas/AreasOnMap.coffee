@@ -39,11 +39,7 @@ class HG.AreasOnMap
       if @_hgInstance.areaController
 
         # change of areas
-        @_hgInstance.areaController.onAddArea @, (area) =>
-          @_addGeom area
-          @_addName area
-          @_colorArea area
-        # @_areaController.onRemoveArea @, (id) =>    @_removeArea id
+        @_hgInstance.areaController.onAddArea @, (area) => @addArea area
 
       else
         console.error "Unable to show areas on Map: AreaController module not detected in HistoGlobe instance!"
@@ -53,51 +49,63 @@ class HG.AreasOnMap
       # as.push a.getNames().commonName for a in @_selectedAreas
       # console.log "AM onStartEdi) ", as
 
-      # switch to multiple-selection mode
-      @_hgInstance.editController?.onStartAreaSelection @, (num) =>
-        @_numSelections = num     # can receive a number (1, 2, 3, ... , MAX_NUM)
+  # ============================================================================
+  # direct commands from edit operation steps
 
-      # switch to single-selection mode
-      @_hgInstance.editController?.onFinishAreaSelection @, () =>
-        @_numSelections = 1       # 1 = single selection
+  # ----------------------------------------------------------------------------
+  # switch to multiple-selection mode
+  startAreaSelection: (num) ->
+    @_numSelections = num     # can receive a number (1, 2, 3, ... , MAX_NUM)
 
-      # switch to focus mode
-      # = areas are highlighted on hover and can be selected
-      @_hgInstance.editController?.onStartAreaEdit @, () =>
-        @_focusMode = no
-        @_colorArea a for a in @_selectedAreas
+  # ----------------------------------------------------------------------------
+  # switch to single-selection mode
+  finishAreaSelection: () ->
+    @_numSelections = 1       # 1 = single selection
 
-      # switch to no-focus mode
-      # = areas are not highlighted and can not be selected
-      @_hgInstance.editController?.onFinishAreaEdit @, () =>
-        @_focusMode = yes
-        @_colorArea a for a in @_selectedAreas
+  # ----------------------------------------------------------------------------
+  # switch to focus mode
+  # = areas are highlighted on hover and can be selected
+  startAreaEdit: () ->
+    @_focusMode = no
+    @_colorArea area for area in @_selectedAreas
 
-      @_hgInstance.editController?.onAddArea @, (area) =>
-        @_addGeom area
-        @_addName area
-        @_colorArea area
+  # ----------------------------------------------------------------------------
+  # switch to no-focus mode
+  # = areas are not highlighted and can not be selected
+  finishAreaEdit: () ->
+    @_focusMode = yes
+    @_colorArea area for area in @_selectedAreas
 
-      @_hgInstance.editController?.onUpdateArea @, (area) =>
-        @_removeName area
-        @_removeGeom area
-        @_addGeom area
-        @_addName area
-        @_colorArea area
+  # ----------------------------------------------------------------------------
+  addArea: (area) ->
+    @_addGeom area
+    @_addName area
+    @_colorArea area
 
-      @_hgInstance.editController?.onRemoveArea @, (area) =>
-        @_removeGeom area
-        @_removeName area
+  # ----------------------------------------------------------------------------
+  updateArea: (area) ->
+    @_removeName area
+    @_removeGeom area
+    @_addGeom area
+    @_addName area
+    @_colorArea area
+
+  # ----------------------------------------------------------------------------
+  removeArea: (area) ->
+    @_removeGeom area
+    @_removeName area
 
   # ============================================================================
   getSelectedAreas: () ->
     @_selectedAreas
 
+  # ----------------------------------------------------------------------------
   getAreas: () ->
     areas = []
     @_map.eachLayer (l) ->    # push all areas
       areas.push l if l.hgArea? and not (l instanceof L.Label)
     areas
+
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
@@ -158,7 +166,8 @@ class HG.AreasOnMap
 
       # create label with name and position
       area.nameLayer = new L.Label()
-      area.nameLayer.setContent @_addLinebreaks area.getNames().commonName
+      # TODO: set back @_addLinebreaks
+      area.nameLayer.setContent area.getNames().commonName
       area.nameLayer.setLatLng area.getLabelPosition(yes)
 
       # create double-link: leaflet label knows HG area and HG area knows leaflet label
