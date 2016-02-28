@@ -64,11 +64,11 @@ class HG.EditMode
 
     if TEST_BUTTON
       testButton = new HG.Button @_hgInstance, 'test', null, [{'iconFA': 'question','callback': 'onClick'}]
-      $(testButton.getDom()).css 'position', 'absolute'
-      $(testButton.getDom()).css 'bottom', '0'
-      $(testButton.getDom()).css 'right', '0'
-      $(testButton.getDom()).css 'z-index', 100
-      @_hgInstance._top_area.appendChild testButton.getDom()
+      $(testButton.dom()).css 'position', 'absolute'
+      $(testButton.dom()).css 'bottom', '0'
+      $(testButton.dom()).css 'right', '0'
+      $(testButton.dom()).css 'z-index', 100
+      @_hgInstance._top_area.appendChild testButton.dom()
       @_testButton = @_hgInstance.buttons.test
       @_testButton.onClick @, () =>
 
@@ -104,7 +104,7 @@ class HG.EditMode
         'orientation':  'horizontal'
         'direction':    'prepend'
       }
-      @_hgInstance._top_area.appendChild @_editButtonArea.getDom()
+      @_hgInstance._top_area.appendChild @_editButtonArea.dom()
 
       @_editButton = new HG.Button @_hgInstance, 'editMode', null,
         [
@@ -138,7 +138,7 @@ class HG.EditMode
           operationButton.button.onClick @, (operationButton) =>
 
             # get current operation
-            currentOperation = @_editOperations.getByPropVal 'id', operationButton.getDom().id
+            currentOperation = @_editOperations.getByPropVal 'id', operationButton.dom().id
             @_operationId = currentOperation.id
             # TODO (opId_move_to_operation)
             # clean design: the EditMode should not need to know which
@@ -178,7 +178,7 @@ class HG.EditMode
           'id':       'normal',
           'tooltip':  "Add New Hivent",
           'iconOwn':  @_hgInstance._config.graphicsPath + 'buttons/new_hivent.svg',
-          'callback': 'onAdd'
+          'callback': 'onClick'
         }
       ]
     @_editButtonArea.addButton @_newHiventButton

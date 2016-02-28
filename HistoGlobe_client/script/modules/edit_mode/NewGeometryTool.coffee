@@ -17,9 +17,6 @@ class HG.NewGeometryTool
   # ============================================================================
   constructor: (@_hgInstance) ->
 
-    # add to HG instance
-    @_hgInstance.newCountryTerritory = @
-
     # handle callbacks
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
@@ -102,7 +99,7 @@ class HG.NewGeometryTool
       'posY':         'top'
       'orientation':  'vertical'
     }
-    @_hgInstance._top_area.appendChild @_buttonArea.getDom()
+    @_hgInstance._top_area.appendChild @_buttonArea.dom()
 
 
     ## buttons themselves

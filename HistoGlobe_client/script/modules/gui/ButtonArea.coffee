@@ -60,11 +60,11 @@ class HG.ButtonArea
   # add button to group: set groupName
   addButton: (button, groupName) ->
     # select group (sets group name manually if no group name)
-    name = if groupName then groupName else button.getDom().id + '-group'
+    name = if groupName then groupName else button.dom().id + '-group'
 
     # create button in group
     group = @_addGroup name
-    group.appendChild button.getDom()
+    group.appendChild button.dom()
 
   # ============================================================================
   addButtonGroup: (name) ->
@@ -99,7 +99,7 @@ class HG.ButtonArea
       @_div.j().animate {'right': '+=' + dist}
 
   # ============================================================================
-  getDom: ()  -> @_div.dom()
+  dom: ()  -> @_div.dom()
   destroy: () -> @_div.destroy()
 
   ##############################################################################
