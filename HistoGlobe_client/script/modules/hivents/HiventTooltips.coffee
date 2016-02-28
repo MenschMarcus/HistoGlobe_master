@@ -12,10 +12,11 @@ class HG.HiventTooltips
     @_hiventsOnMap = null
 
   # ============================================================================
-  hgInit: (@_hgInstance) ->
-    @_hiventsOnTimeline = @_hgInstance.hiventsOnTimeline
-    @_hiventsOnMap = @_hgInstance.hiventsOnMap
-    @_hiventsOnGlobe = @_hgInstance.hiventsOnGlobe
+  hgInit: (hgInstance) ->
+    @_hiventsOnTimeline = hgInstance.hiventsOnTimeline
+    @_hiventsOnMap = hgInstance.hiventsOnMap
+    @_hiventsOnGlobe = hgInstance.hiventsOnGlobe
+
 
     if @_hiventsOnTimeline
       @_hiventsOnTimeline.onMarkerAdded (marker) =>

@@ -34,7 +34,8 @@ class HG.Popover
     @_hiventHandle = @_config.hiventHandle
     @_multimediaController = @_config.hgInstance.multimediaController
     @_multimedia = @_hiventHandle.getHivent().multimedia
-    @_mode = @_hgInstance.abTest.config.hiventMarkerMode
+    # @_mode = @_hgInstance.abTest?.config.hiventMarkerMode
+    @_mode = 'B'  # hardcode, bitch!!!
 
     # ============================================================================
     @_screenWidth = @_config.hgInstance.getMapAreaSize().x
@@ -172,7 +173,7 @@ class HG.Popover
       content.className = "guiPopoverContent"
 
       if @_config.content?
-        content.appendChild @_config.content
+        content.appendChild @_config.content.dom()
       else
         content.innerHTML = @_config.contentHTML
 

@@ -1,7 +1,7 @@
 window.HG ?= {}
 
 # DEBUG: take out if not needed anymore
-TEST_BUTTON = no
+TEST_BUTTON = yes
 
 # ==============================================================================
 # EditMode registers clicks on edit operation buttons -> init operation
@@ -58,6 +58,10 @@ class HG.EditMode
     @_activeCallbacks = {}     # content: { 'nameOfCallback': yes/no}
 
 
+
+    ############################################################################
+    # TEST PLAYGROUND INIT
+
     if TEST_BUTTON
       testButton = new HG.Button @_hgInstance, 'test', null, [{'iconFA': 'question','callback': 'onClick'}]
       $(testButton.getDom()).css 'position', 'absolute'
@@ -68,33 +72,20 @@ class HG.EditMode
       @_testButton = @_hgInstance.buttons.test
       @_testButton.onClick @, () =>
 
-        pure1 = [[
-                  [20.0, -20.0],
-                  [40.0, -20.0],
-                  [40.0, -40.0],
-                  [20.0, -40.0]
-                ],
-                [
-                  [50.0, -20.0],
-                  [70.0, -20.0],
-                  [70.0, -40.0],
-                  [50.0, -40.0]
-                ]]
+        # TEST PLAYGROUND START HERE
 
-        pure2 = [[
-                  [19.0, -21.0],
-                  [39.0, -21.0],
-                  [39.0, -1.0],
-                  [19.0, -1.0]
-                ]]
+        stepData = {
+            id:               'ADD_CHNG'
+            title:            "add change <br /> to historical event"
+            userInput:        yes
+            inData:           {}
+          }
+        new HG.AddChangeStep @_hgInstance, stepData
 
-        geometries = []
-        geometries.push @_geometryReader.read pure1
-        geometries.push @_geometryReader.read pure2
-        union = @_geometryOperator.union geometries
-        areaU = new HG.Area "test clip", jsonU, null
-        console.log areaU
-        @notifyAll "onAddArea", areaU
+        # TEST PLAYGROUND END HERE
+    ############################################################################
+
+
 
 
     # init everything

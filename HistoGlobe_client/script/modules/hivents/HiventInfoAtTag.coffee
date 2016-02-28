@@ -21,8 +21,9 @@ class HG.HiventInfoAtTag
     @_readHash()
 
   # ============================================================================
-  hgInit: (@_hgInstance) ->
-    @_hgInstance.hiventInfoAtTag = @
+  hgInit: (hgInstance) ->
+    hgInstance.hiventInfoAtTag = @
+    @_hgInstance = hgInstance
 
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @

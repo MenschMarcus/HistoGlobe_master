@@ -39,10 +39,19 @@
   {
     "JSONPaths" : ["../HistoGlobe_client/config/common/data/countries.geojson"]
   },
-
   "AreasOnMap" : {},
 
+  "HiventController" : {},
+  "HiventsOnMap" : {},
+  "HiventsOnTimeline" : {},
+  "HiventTooltips" : {},
+  "HiventInfoPopovers" : {},
+  "HiventPresenter" : {},
+  "HiventInfoAtTag" : {},
+
   "EditMode" :  {},
+
+
 
   "Imprint": {}
 }

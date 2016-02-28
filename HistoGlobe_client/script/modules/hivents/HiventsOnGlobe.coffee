@@ -28,13 +28,18 @@ class HG.HiventsOnGlobe
 
     @_hgInstance              = null
 
-  # ============================================================================
-  hgInit: (@_hgInstance) ->
-    @_hgInstance.hiventsOnGlobe = @
+    @_intersected             = false
 
-    if @_hgInstance.categoryIconMapping
-      for category in @_hgInstance.categoryIconMapping.getCategories()
-        icons = @_hgInstance.categoryIconMapping.getIcons(category)
+  # ============================================================================
+  hgInit: (hgInstance) ->
+
+    @_hgInstance = hgInstance
+
+    hgInstance.hiventsOnGlobe = @
+
+    if hgInstance.categoryIconMapping
+      for category in hgInstance.categoryIconMapping.getCategories()
+        icons = hgInstance.categoryIconMapping.getIcons(category)
         @_hiventLogos[category] = THREE.ImageUtils.loadTexture(icons["default"])
         @_hiventLogos[category+"_highlighted"] = THREE.ImageUtils.loadTexture(icons["highlighted"])
         @_hiventLogos["group_default"] = THREE.ImageUtils.loadTexture(icons["group_default"])
@@ -43,11 +48,11 @@ class HG.HiventsOnGlobe
     #console.log "@_hiventLogos ",@_hiventLogos
 
 
-    @_globeCanvas = @_hgInstance._map_canvas
+    @_globeCanvas = hgInstance._map_canvas
 
-    @_globe = @_hgInstance.globe
+    @_globe = hgInstance.globe
 
-    @_hiventController = @_hgInstance.hiventController
+    @_hiventController = hgInstance.hiventController
 
     if @_globe
       @_globe.onLoaded @, @_initHivents
@@ -74,8 +79,6 @@ class HG.HiventsOnGlobe
       @_globe.addSceneToRenderer(@_sceneInterface)
 
       @_globe.onMove @, @_updateHiventSizes
-      @_globe.onMove @, @_deactivateAllHivents
-      @_globe.onZoom @, @_deactivateAllHivents
       window.addEventListener   "mouseup",  @_onMouseUp,         false #for hivent intersections
       window.addEventListener   "mousedown",@_onMouseDown,       false #for hivent intersections
 
@@ -240,10 +243,10 @@ class HG.HiventsOnGlobe
     @_backupZoom = @_globe._currentZoom
     @_backupCenter = @_globe._targetCameraPos
 
-    if @_lastIntersected.length is 0
-        HG.HiventHandle.DEACTIVATE_ALL_HIVENTS()
-        for group in @_hiventMarkerGroups
-          group.onUnClick()
+    # if @_lastIntersected.length is 0
+    #     HG.HiventHandle.DEACTIVATE_ALL_HIVENTS()
+    #     for group in @_hiventMarkerGroups
+    #       group.onUnClick()
 
 
   # ============================================================================
@@ -312,13 +315,15 @@ class HG.HiventsOnGlobe
 
             tmp_intersects.push hivent
             HG.Display.CONTAINER.style.cursor = "pointer"
+            @_intersected = true
 
     for hivent in @_lastIntersected
       hivent.onMouseOut()
 
 
     if tmp_intersects.length is 0
-      HG.Display.CONTAINER.style.cursor = "auto"
+      HG.Display.CONTAINER.style.cursor = "auto" if @_intersected
+      @_intersected = false
     @_lastIntersected = tmp_intersects
 
 
