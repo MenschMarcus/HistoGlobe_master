@@ -16,7 +16,9 @@ class HG.HiventHandle
   # Constructor
   # Initializes member data and stores a reference to the passed Hivent object.
   # ============================================================================
-  constructor: (@_hivent) ->
+  constructor: (hivent) ->
+
+    @_hivent = hivent
 
     # Internal states
     @_activated = false

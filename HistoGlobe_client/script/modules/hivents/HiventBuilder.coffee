@@ -12,44 +12,69 @@ class HG.HiventBuilder
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_config, @_multimediaController) ->
+  constructor: (config={}, multimediaController) ->
+    @_config = config
+    # @_multimediaController = multimediaController
+
+  # ============================================================================
+  constructHiventFromJSON: (dataJSON, successCallback) ->
+    if dataObject isnt {}
+      successCallback?= (hivent) -> console.log hivent
+
+      dataObject = {
+        id          : dataJSON.id           ?= ""
+        name        : dataJSON.name         ?= ""
+        description : dataJSON.description  ?= ""
+        startYear   : dataJSON.startYear    ?= ""
+        startMonth  : dataJSON.startMonth   ?= ""
+        startDay    : dataJSON.startDay     ?= ""
+        endYear     : dataJSON.endYear      ?= ""
+        endMonth    : dataJSON.endMonth     ?= ""
+        endDay      : dataJSON.endDay       ?= ""
+        displayDate : dataJSON.displayDate  ?= ""
+        location    : dataJSON.location     ?= ""
+        lat         : dataJSON.lat          ?= ""
+        lng         : dataJSON.long         ?= ""
+        region      : dataJSON.region       ?= ""
+        isImp       : dataJSON.isImp        ?= ""
+        category    : dataJSON.category     ?= ""
+        parentTopic : dataJSON.parentTopic  ?= ""
+        subTopic    : dataJSON.subTopic     ?= ""
+        multimedia  : dataJSON.multimedia   ?= ""
+        link        : dataJSON.link         ?= ""
+      }
+
+      successCallback @_createHivent dataObject
 
   # ============================================================================
   constructHiventFromArray: (dataArray, successCallback) ->
     if dataArray isnt []
       successCallback?= (hivent) -> console.log hivent
 
-      id          = dataArray[@_config.indexMapping.id]           ?= ""
-      name        = dataArray[@_config.indexMapping.name]         ?= ""
-      description = dataArray[@_config.indexMapping.description]  ?= ""
-      startYear   = dataArray[@_config.indexMapping.startYear]    ?= ""
-      startMonth  = dataArray[@_config.indexMapping.startMonth]   ?= ""
-      startDay    = dataArray[@_config.indexMapping.startDay]     ?= ""
-      endYear     = dataArray[@_config.indexMapping.endYear]      ?= ""
-      endMonth    = dataArray[@_config.indexMapping.endMonth]     ?= ""
-      endDay      = dataArray[@_config.indexMapping.endDay]       ?= ""
-      displayDate = dataArray[@_config.indexMapping.displayDate]  ?= ""
-      location    = dataArray[@_config.indexMapping.location]     ?= ""
-      lat         = dataArray[@_config.indexMapping.lat]          ?= ""
-      long        = dataArray[@_config.indexMapping.long]         ?= ""
-      region      = dataArray[@_config.indexMapping.region]       ?= ""
-      isImp       = dataArray[@_config.indexMapping.isImp]        ?= ""
-      category    = dataArray[@_config.indexMapping.category]     ?= ""
-      parentTopic = dataArray[@_config.indexMapping.parentTopic]  ?= ""
-      subTopic    = dataArray[@_config.indexMapping.subTopic]     ?= ""
-      multimedia  = dataArray[@_config.indexMapping.multimedia]   ?= ""
-      link        = dataArray[@_config.indexMapping.link]         ?= ""
+      dataObject = {
+        id          : dataArray[@_config.indexMapping.id]           ?= ""
+        name        : dataArray[@_config.indexMapping.name]         ?= ""
+        description : dataArray[@_config.indexMapping.description]  ?= ""
+        startYear   : dataArray[@_config.indexMapping.startYear]    ?= ""
+        startMonth  : dataArray[@_config.indexMapping.startMonth]   ?= ""
+        startDay    : dataArray[@_config.indexMapping.startDay]     ?= ""
+        endYear     : dataArray[@_config.indexMapping.endYear]      ?= ""
+        endMonth    : dataArray[@_config.indexMapping.endMonth]     ?= ""
+        endDay      : dataArray[@_config.indexMapping.endDay]       ?= ""
+        displayDate : dataArray[@_config.indexMapping.displayDate]  ?= ""
+        location    : dataArray[@_config.indexMapping.location]     ?= ""
+        lat         : dataArray[@_config.indexMapping.lat]          ?= ""
+        lng         : dataArray[@_config.indexMapping.long]         ?= ""
+        region      : dataArray[@_config.indexMapping.region]       ?= ""
+        isImp       : dataArray[@_config.indexMapping.isImp]        ?= ""
+        category    : dataArray[@_config.indexMapping.category]     ?= ""
+        parentTopic : dataArray[@_config.indexMapping.parentTopic]  ?= ""
+        subTopic    : dataArray[@_config.indexMapping.subTopic]     ?= ""
+        multimedia  : dataArray[@_config.indexMapping.multimedia]   ?= ""
+        link        : dataArray[@_config.indexMapping.link]         ?= ""
+      }
 
-      successCallback @_createHivent( id, name,
-                                      startYear, startMonth, startDay,
-                                      endYear, endMonth, endDay,
-                                      displayDate,
-                                      location, lat, long,
-                                      region,
-                                      isImp,
-                                      category, parentTopic, subTopic
-                                      description,
-                                      multimedia, link)
+      successCallback @_createHivent dataObject
 
 
   # ============================================================================
@@ -208,68 +233,37 @@ class HG.HiventBuilder
 
 
   ############################# MAIN FUNCTIONS #################################
-  _createHivent: (id, name,
-                  startYear, startMonth, startDay,
-                  endYear, endMonth, endDay,
-                  displayDate,
-                  location, lat, long,
-                  region,
-                  isImp
-                  category, parentTopic, subTopic
-                  description,
-                  multimedia, link) ->
+  _createHivent: (data) ->
 
-    if id != "" and name != ""
+    # manipulate data
+
+    if data.id != "" and data.name != ""
 
       #concatenate content
-      content = '<p>' + description + '<p>'
+      data.content = '<p>' + data.description + '<p>'
 
       # allow multiple locations per hivent
-      location = location?.replace(/\s*;\s*/g, ';').split(';')
-      lat = "#{lat}".replace(/\s*;\s*/g, ';').split(';') if lat?
-      long = "#{long}".replace(/\s*;\s*/g, ';').split(';') if long?
+      data.location = data.location?.replace(/\s*;\s*/g, ';').split(';')
+      data.lat = "#{data.lat}".replace(/\s*;\s*/g, ';').split(';') if data.lat?
+      data.lng = "#{data.lng}".replace(/\s*;\s*/g, ';').split(';') if data.lng?
 
       # set end date to start date if unless differently specified
-      if endYear is ''
-        endYear = startYear
-        endMonth = startMonth
-        endDay = startDay
+      if data.endYear is ''
+        data.endYear = data.startYear
+        data.endMonth = data.startMonth
+        data.endDay = data.startDay
 
       # create hivent region
-      regionPolygon = undefined
+      data.regionPolygon = undefined
 
-      if region.length > 1
-        regionPolygon = JSON.parse region
-        for index in regionPolygon
+      if data.region?.length > 1
+        data.regionPolygon = JSON.parse data.region
+        for index in data.regionPolygon
           tmp=index[0]
           index[0]=index[1]
           index[1]=tmp
 
       # set hivent category
-      category = parentTopic
+      data.category = data.parentTopic
 
-      hivent = new HG.Hivent(
-        id,
-        name,
-        startYear,
-        startMonth,
-        startDay,
-        endYear,
-        endMonth,
-        endDay,
-        displayDate,
-        location,
-        long,
-        lat,
-        regionPolygon,
-        isImp,
-        category,
-        parentTopic,
-        subTopic,
-        content,
-        description,
-        multimedia,
-        link
-      )
-
-      hivent
+      new HG.Hivent data

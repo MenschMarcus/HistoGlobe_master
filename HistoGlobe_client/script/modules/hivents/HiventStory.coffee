@@ -26,14 +26,14 @@ class HG.HiventStory
     @_needsSorting = true
 
   # ============================================================================
-  hgInit: (@_hgInstance) ->
-    @_hgInstance.onAllModulesLoaded @, () =>
+  hgInit: (hgInstance) ->
+    hgInstance.onAllModulesLoaded @, () =>
 
-      @_timeline = @_hgInstance.timeline
-      # @_nowMarker = @_hgInstance.timeline.getNowMarker()
-      @_hiventController = @_hgInstance.hiventController
-      @_categoryFilter = @_hgInstance.categoryFilter
-      @_hashSetter = @_hgInstance.hiventInfoAtTag
+      @_timeline = hgInstance.timeline
+      @_nowMarker = hgInstance.timeline.getNowMarker()
+      @_hiventController = hgInstance.hiventController
+      @_categoryFilter = hgInstance.categoryFilter
+      @_hashSetter = hgInstance.hiventInfoAtTag
 
       @_currentDate = @_timeline.getNowDate()
       @_timeline.onNowChanged @, (date) =>

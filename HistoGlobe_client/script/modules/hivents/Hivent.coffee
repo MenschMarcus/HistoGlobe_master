@@ -10,19 +10,21 @@ class HG.Hivent
   #                            PUBLIC INTERFACE                                #
   ##############################################################################
 
-  constructor: (
-      @_id, @_name,
-      @_startYear, @_startMonth, @_startDay,
-      @_endYear, @_endMonth, @_endDay,
-      displayDate,
-      @_locationName,
-      @_long, @_lat, @_region,
-      @_isImp,
-      @_category, @_parentTopic, @_subTopic
-      @_content,
-      @_description, @_multimedia, @_link
-    )  ->
-
-    @startDate = new Date(startYear, startMonth - 1, startDay)
-    @endDate = new Date(endYear, endMonth - 1, endDay)
-    @displayDate = displayDate ?= new String (@startDate + " bis " + @endDate)
+  constructor: (data)  ->
+    @id           = data.id
+    @name         = data.name
+    @startDate    = new Date(data.startYear, data.startMonth-1, data.startDay)
+    @endDate      = new Date(data.endYear, data.endMonth-1, data.endDay)
+    @displayDate  = data.displayDate ?= new String (@startDate + " &ndash; " + @endDate)
+    @locationName = data.locationName
+    @long         = data.lng
+    @lat          = data.lat
+    @region       = data.region
+    @isImp        = data.isImp
+    @category     = data.category
+    @parentTopic  = data.parentTopic
+    @subTopic     = data.subTopic
+    @content      = data.content
+    @description  = data.description
+    @multimedia   = data.multimedia
+    @link         = data.link

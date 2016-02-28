@@ -9,7 +9,9 @@ class HG.HiventDatabaseInterface
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_serverName, @_databaseName) ->
+  constructor: (serverName, databaseName) ->
+    @_serverName = serverName
+    @_databaseName = databaseName
 
   # ============================================================================
   # config =
