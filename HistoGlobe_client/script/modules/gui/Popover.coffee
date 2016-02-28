@@ -35,31 +35,31 @@ class HG.Popover
     @_multimediaController = @_config.hgInstance.multimediaController
     @_multimedia = @_hiventHandle.getHivent().multimedia
     # @_mode = @_hgInstance.abTest?.config.hiventMarkerMode
-    @_mode = 'B'  # hardcode, bitch!!!
+    @_mode = 'A'  # hardcode, bitch!!!
 
     # ============================================================================
     @_screenWidth = @_config.hgInstance.getMapAreaSize().x
     @_screenHeight = @_config.hgInstance.getMapAreaSize().y
 
-    @_width = BODY_DEFAULT_WIDTH
-    @_height = BODY_DEFAULT_HEIGHT
+    @_width = HGConfig.popover_body_default_width.val
+    @_height = HGConfig.popover_body_default_height.val
 
     @_map_size = @_config.hgInstance.getMapAreaSize()
 
-    @_widthFSBox = @_map_size.x - HIVENTLIST_OFFSET #- FULLSCREEN_BOX_LEFT_OFFSET
+    @_widthFSBox = @_map_size.x - HGConfig.hiventlist_offset.val #- FULLSCREEN_BOX_LEFT_OFFSET
     @_heightFSBox = 0.82 * @_map_size.y
 
     @_mainDiv = document.createElement 'div'
     @_mainDiv.className = "guiPopover"
 
     @_mainDiv.style.position = "absolute"
-    @_mainDiv.style.top = "#{WINDOW_TO_ANCHOR_OFFSET_Y}px"
+    @_mainDiv.style.top = "#{HGConfig.window_to_anchor_offset_y.val}"
     @_mainDiv.style.visibility = "hidden"
 
     if @_config.fullscreen
       $(@_mainDiv).addClass("fullscreen")
     else
-      @_mainDiv.style.left = "#{WINDOW_TO_ANCHOR_OFFSET_X}px"
+      @_mainDiv.style.left = "#{HGConfig.window_to_anchor_offset_x.val}"
 
     # YouTube div slide ===============================================
     @_videoDiv = document.createElement 'div'
@@ -173,7 +173,7 @@ class HG.Popover
       content.className = "guiPopoverContent"
 
       if @_config.content?
-        content.appendChild @_config.content.dom()
+        content.appendChild @_config.content#.dom()
       else
         content.innerHTML = @_config.contentHTML
 
@@ -182,8 +182,8 @@ class HG.Popover
         @_bodyDiv.setAttribute "height", "#{@_height}px"
 
       if content.offsetWidth > @_width
-        @_width = Math.min content.offsetWidth, BODY_MAX_WIDTH
-        @_height = Math.min @_height, BODY_MAX_HEIGHT
+        @_width = Math.min content.offsetWidth, HGConfig.popover_body_max_width.val
+        @_height = Math.min @_height, HGConfig.popover_body_max_height.val
 
     @_mainDiv.appendChild closeDiv
     @_mainDiv.appendChild @_bodyDiv
@@ -335,8 +335,8 @@ class HG.Popover
     @_mainDiv.style.pointerEvents = "none"
     @_mainDiv.style.width = "#{@_widthFSBox}px"
     @_mainDiv.style.height = "#{@_heightFSBox}px"
-    @_mainDiv.style.top = "#{FULLSCREEN_BOX_TOP_OFFSET}px"
-    @_mainDiv.style.left = "#{FULLSCREEN_BOX_LEFT_OFFSET}px"
+    @_mainDiv.style.top = "#{HGConfig.fullscreen_box_top_offset.val}"
+    @_mainDiv.style.left = "#{HGConfig.fullscreen_box_left_offset.val}"
     $(@_mainDiv).unbind('drag')
 
     @_mainDiv.replaceChild @_bodyDivBig, @_bodyDiv
@@ -431,8 +431,7 @@ class HG.Popover
 
 
   # ============================================================================
-  updatePosition: (position) ->
-    @_position = position
+  updatePosition: (@_position) ->
     @_updateCenterPos()
     @_updateWindowPos()
 
@@ -507,18 +506,3 @@ class HG.Popover
     @_centerPos =
       x:@_mainDiv.offsetLeft + @_mainDiv.offsetWidth/2 - parentOffset.left
       y:@_mainDiv.offsetTop  + @_mainDiv.offsetHeight/2 - parentOffset.top
-
-
-  ##############################################################################
-  #                             STATIC MEMBERS                                 #
-  ##############################################################################
-
-  WINDOW_TO_ANCHOR_OFFSET_X = 0
-  WINDOW_TO_ANCHOR_OFFSET_Y = 30
-  FULLSCREEN_BOX_TOP_OFFSET = 10
-  FULLSCREEN_BOX_LEFT_OFFSET = 120
-  HIVENTLIST_OFFSET = 400
-  BODY_DEFAULT_WIDTH = 450
-  BODY_MAX_WIDTH = 400
-  BODY_DEFAULT_HEIGHT = 350
-  BODY_MAX_HEIGHT = 400

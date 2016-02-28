@@ -65,8 +65,10 @@ class HG.EditOperation
           { # idx             3
             id:               'ADD_CHNG'
             title:            "add change <br /> to historical event"
-            userInput:        yes
             inData:           {}
+            outData: {
+              hiventInfo:     {}
+            }
           },
         ]
       }
@@ -136,13 +138,13 @@ class HG.EditOperation
     # setup new step
     @_operation.idx += direction
     if @_operation.idx is 0
-      @_step = new HG.SelectOldAreasStep @_hgInstance, newStep, isForward
+      @_step = new HG.SelectOldAreasStep @_hgInstance, newStep
     else if @_operation.idx is 1
-      @_step = new HG.CreateNewGeometryStep @_hgInstance, newStep, isForward
+      @_step = new HG.CreateNewGeometryStep @_hgInstance, newStep
     else if @_operation.idx is 2
-      @_step = new HG.CreateNewNameStep @_hgInstance, newStep, isForward
+      @_step = new HG.CreateNewNameStep @_hgInstance, newStep
     else if @_operation.idx is 3
-      @_step = new HG.AddChangeStep @_hgInstance, newStep, isForward
+      @_step = new HG.AddChangeStep @_hgInstance, newStep
 
     # change workflow window
     if newStep.userInput

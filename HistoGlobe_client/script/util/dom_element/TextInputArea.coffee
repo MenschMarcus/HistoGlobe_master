@@ -3,10 +3,10 @@ window.HG ?= {}
 # ============================================================================
 # <input type='text' name='id'>
 
-class HG.TextInput extends HG.DOMElement
+class HG.TextInputArea extends HG.DOMElement
 
   # ============================================================================
-  constructor: (@_hgInstance, id=null, classes=[]) ->
+  constructor: (@_hgInstance, id=null, classes=[], dimensions=[]) ->
 
     console.error "Please enter an id for the text input field, it is required" unless id?
 
@@ -21,7 +21,7 @@ class HG.TextInput extends HG.DOMElement
     @addCallback 'onChange'
 
     # construct object of subclass with superclass
-    super 'input', id, classes, [['type', 'text'], ['name', id]]
+    super 'textarea', id, classes, [['rows', dimensions[0]], ['cols', dimensions[1]], ['name', id]]
 
     # change
     $(@_elem).on 'keyup mouseup', (e) =>

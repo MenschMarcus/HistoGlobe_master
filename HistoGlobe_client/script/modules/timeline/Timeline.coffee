@@ -100,10 +100,11 @@ class HG.Timeline
         'posY':         'right',
         'orientation':  'horizontal'
       }
-      @_parentDiv.appendChild zoomButtonsArea.getDom()
+      @_parentDiv.appendChild zoomButtonsArea.dom()
 
       # buttons itself
-      zoomButtonsArea.addButton new HG.Button(@_hgInstance, 'timelineZoomOut', null, [
+      zoomButtonsArea.addButton new HG.Button(@_hgInstance, 'timelineZoomOut', ['button-no-background'],
+        [
           {
             'id':         'normal',
             'tooltip':    "Zoom Out Timeline",
@@ -112,7 +113,8 @@ class HG.Timeline
           }
         ]),'timelineZoom'
 
-      zoomButtonsArea.addButton new HG.Button(@_hgInstance, 'timelineZoomIn', null, [
+      zoomButtonsArea.addButton new HG.Button(@_hgInstance, 'timelineZoomIn', ['button-no-background'],
+        [
           {
             'id':         'normal',
             'tooltip':    "Zoom In Timeline",

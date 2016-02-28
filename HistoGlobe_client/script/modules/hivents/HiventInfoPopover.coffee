@@ -84,8 +84,8 @@ class HG.HiventInfoPopover
   # ============================================================================
   show: (position) =>
     @_popover.show
-      x: position.at(0)
-      y: position.at(1)
+      x: position.at 0
+      y: position.at 1
       @_visible = true
       @_hgInstance.hiventInfoAtTag?.setOption("event", @_hiventHandle._hivent.id)
 
@@ -107,4 +107,3 @@ class HG.HiventInfoPopover
   # ============================================================================
   destroy: () ->
     @_popover.destroy()
-

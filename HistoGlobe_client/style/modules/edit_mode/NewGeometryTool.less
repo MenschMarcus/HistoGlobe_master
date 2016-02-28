@@ -1,117 +1,14 @@
 #newGeomButtons
 {
-  top: 88px;
+  top: @edit_buttons_top_distance;
 }
 
 /* hacky hacky hacky */
 #leaflet-new-button-action
 {
-  margin-top: 83px;
+  margin-top: @edit_buttons_top_distance - 5;
 }
 #leaflet-edit-button-action
 {
-  margin-top: 73px;
+  margin-top: @edit_buttons_top_distance - 15;
 }
-
-
-/*** OLD CODE
-
-#geom-tool-wrapper
-{
-  position: absolute;
-  top: 88px;
-  right: @element_window_distance;
-  width: @territory_tools_width;
-  background-color: @color_bg_medium;
-  border: @territory_tools_border_width solid @color_bg_dark;
-  border-radius: @border_radius;
-  color: @color_white;
-}
-
-#geom-tool-wrapper > *
-{
-  width: @territory_tools_width - 2*@territory_tools_border_width;
-  margin-top: 5px;
-}
-
-.geom-tool-title
-{
-  text-align: center;
-  font-size: 1.5em;
-  height: 1.6em;
-  line-height: 1.6em;
-}
-
-.geom-tool-button-area           /* outer div
-{
-  height: @button_diameter + @element_window_distance;
-  width: 100%;            /* center !!!
-  text-align: center;     /* center !!!
-}
-#geom-tool-edit-buttons-group,
-#geom-tool-finish-buttons-group  /* inner div
-{
-  /* center !!! = this is the f**** solution for centering a div in a div:
-  the div needs to get the width of its content
-  -> that is why display has to be inline-block
-  display: inline-block;  /* center !!!
-  float: none;
-  height: @button_diameter + @element_window_distance;
-  margin-right: auto;     /* center !!!
-  margin-left: auto;      /* center !!!
-}
-
-
-#geom-tool-list
-{
-  min-height: 55px;
-}
-
-.geom-tool-list-entry
-{
-  height: 20px;
-  margin-left: @element_window_distance;
-  font-size: 0.9em;
-}
-
-#geom-tool-snap-option-wrapper-out
-{
-  height: 48px;
-}
-
-.geom-tool-snap-option-wrapper-in
-{
-  float: left;
-  width: (@territory_tools_width - 2*@territory_tools_border_width)/3;
-  height: 48px;
-  text-align: center;
-}
-
-.geom-tool-snap-option-switch
-{
-  margin: 3.5px auto !important;
-}
-
-.geom-tool-snap-option-input
-{
-  width: 48px;
-  text-align: right;
-  padding-right: 3px;
-  border-radius: 10px;
-}
-.geom-tool-snap-option-text
-{
-  font-size: 0.8em;
-  line-height: 12px;
-  padding-top: 5px;
-}
-.geom-tool-snap-option-input:focus, .geom-tool-snap-option-text:focus
-{
-  outline: none;
-}
-
-#geom-tool-finish-buttons
-{
-  margin-top: 18px;
-}
-***/
