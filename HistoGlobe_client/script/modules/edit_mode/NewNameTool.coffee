@@ -9,9 +9,6 @@ class HG.NewNameTool
   # ============================================================================
   constructor: (@_hgInstance, posLatLng) ->
 
-    # add to HG instance
-    @_hgInstance.newCountryLabel = @
-
     # handle callbacks
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
@@ -48,6 +45,7 @@ class HG.NewNameTool
     @_hgInstance._top_area.appendChild @_wrapper.dom()
 
     @_inputField = new HG.TextInput @_hgInstance, 'new-name-input', null
+    @_inputField.setPlaceholder "Country Name"
     @_inputField.j().attr 'size', 1 # starts with minimum size of 1
     @_wrapper.appendChild @_inputField
 
@@ -62,7 +60,7 @@ class HG.NewNameTool
         'iconFA':   'check'
       }
     ]
-    @_wrapper.appendChild @_okButton.getDom()
+    @_wrapper.appendChild @_okButton.dom()
 
 
     ### INTERACTION ###

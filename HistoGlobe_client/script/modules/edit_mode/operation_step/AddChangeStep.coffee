@@ -11,7 +11,7 @@ class HG.AddChangeStep extends HG.EditOperationStep
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, @_stepData, @_isForward) ->
+  constructor: (@_hgInstance, @_stepData) ->
 
     # inherit functionality from base class
     super @_hgInstance, @_stepData
@@ -20,71 +20,55 @@ class HG.AddChangeStep extends HG.EditOperationStep
     @_workflowWindow = @_hgInstance.workflowWindow
     @_areasOnMap = @_hgInstance.areasOnMap
 
+
     ### SETUP OPERATION ###
 
+    # hivent box: select existing or create new hivent
+
+    hiventBox = new HG.NewHiventBox @_hgInstance, @_stepData
+
+
     # setup new hivent
-    hiventData = {
-      id            : 'NEW'
-      name          : "My Own New Hivent"
-      startYear     : 1900
-      startMonth    : 1
-      startDay      : 1
-      endYear       : 1910
-      endMonth      : 1
-      endDay        : 1
-      displayDate   : "20th century"
-      locationName  : "Weimar"
-      lng           : 11.0
-      lat           : 51.00
-      isImp         : yes
-      description   : "Please create your own event in here!"
-    }
+    # @_stepData.outData.hiventInfo = {
+    #   name          : ""
+    #   date          : "20th century"
+    #   location      : "Weimar"
+    #   lng           : 0
+    #   lat           : 0
+    #   description   : ""
+    #   link          : ""
+    # }
 
-    builder = new HG.HiventBuilder
-    hivent = builder._createHivent hiventData
-    hiventHandle = new HG.HiventHandle hivent
+      # send to operation and finish ?!?
 
-    # setup new hivent window
-    # copy from HiventInfoPopover, let's see how / if that works...
-    body = new HG.Div null, ['hivent-body']
-    titleDiv = new HG.Div null, ['guiPopoverTitle', 'editable']
-    titleDiv.j().html hiventHandle.getHivent().name
-    body.appendChild titleDiv
-    text = new HG.Div null, ['hivent-content', 'editable']
-    text.j().html hiventHandle.getHivent().description
-    body.appendChild text
+    ## that would be the nice way to do it, directly in HistoGlobe
+    ## but I am going to go the easy way :-)
+    # builder = new HG.HiventBuilder
+    # hivent = builder._createHivent hiventData
+    # hiventHandle = new HG.HiventHandle hivent
 
-    @_popover = new HG.Popover
-      hgInstance:   @_hgInstance
-      hiventHandle: hiventHandle
-      placement:    "top"
-      content:      body
-      title:        hiventHandle.getHivent().name
-      # container:    container
-      # showArrow:    showArrow
-      # fullscreen:   !showArrow
+    # @_popover = new HG.HiventInfoPopover(
+    #     hiventHandle,
+    #     @_hgInstance._top_area,
+    #     @_hgInstance,
+    #     1,
+    #     yes
+    #   )
 
-    @_popover.onClose @, () ->
-      hiventHandle.inActiveAll()
+    # $('.guiPopoverTitle')[0].contentEditable = true
+    # $('.hivent-content')[0].contentEditable = true
 
-    @_popover.show()
-
-    hiventHandle.onDestruction @, @_popover.destroy
-
-
-
-    ### PERFORM ACTION ###
+    # @_popover.show new HG.Vector $('body').width()-237, 380
 
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
 
-
   # ============================================================================
   _cleanup: () ->
 
+    hiventBox.destroy()
     @_areasOnMap.finishAreaEdit() if @_isForward
 
     ### CLEANUP OPERATION ###
-    # if @_stepData.userInput

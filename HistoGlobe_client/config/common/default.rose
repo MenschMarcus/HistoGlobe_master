@@ -22,8 +22,8 @@ $color_active_semitransparent       = rgba(213,125,0,0.4)
 $color_disabled                     = rgb(222,222,222)
 $color_disabled_active              = rgb(140,140,140)
 
-$shadow_intensity                   = 0.2
 $shadow_radius                      = 10px
+$shadow_intensity                   = 0.65
 
 $border_radius                      = 15px
 
@@ -73,10 +73,9 @@ $histograph_line_width              = 10px
 $operation_window_height            = 120px
 $operation_step_width               = 175px
 
-// TERRITORY TOOLS WINDOW ------------------------------------------
+$edit_buttons_top_distance          = 88px
 
-$territory_tools_width              = 200px
-$territory_tools_border_width       = 2px
+// ADD CHANGE WINDOW -----------------------------------------------
 
 
 
@@ -86,10 +85,26 @@ $hivent_marker_color                = rgb(37,121,191)
 $hivent_marker_color_light          = rgb(0,134,246)
 
 
+// POPOVERS --------------------------------------------------------
+
+$window_to_anchor_offset_x          = 0px
+$window_to_anchor_offset_y          = 30px
+$fullscreen_box_top_offset          = 10px
+$fullscreen_box_left_offset         = 120px
+$hiventlist_offset                  = 400px
+$popover_body_default_width         = 450px
+$popover_body_max_width             = 400px
+$popover_body_default_height        = 350px
+$popover_body_max_height            = 400px
+
+
 // IMPRINT OPTIONS -------------------------------------------------
 
 $imprint_width            = 800 px
 $imprint_height           = 600 px
+
+
+
 
 
 // ================================================================
