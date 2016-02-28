@@ -7,8 +7,10 @@ class HG.HiventInfoPopover
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hiventHandle, container, @_hgInstance, hiventIndex, showArrow) ->
+  constructor: (hiventHandle, container, hgInstance, hiventIndex, showArrow) ->
 
+    @_hiventHandle = hiventHandle
+    @_hgInstance = hgInstance
     @_visible = false
     @_multimediaController = hgInstance.multimediaController
 
@@ -18,13 +20,16 @@ class HG.HiventInfoPopover
     #@_multimedia_ID = @_hiventHandle.getHivent().multimedia.substring(2)
 
     # generate content
-    body = new HG.Div null, "hivent-body"
+    body = document.createElement "div"
+    body.className = "hivent-body"
 
-    titleDiv = new HG.Div null, "guiPopoverTitle"
-    titleDiv.j().html @_hiventHandle.getHivent().name
+    titleDiv = document.createElement "h4"
+    titleDiv.className = "guiPopoverTitle"
+    titleDiv.innerHTML = @_hiventHandle.getHivent().name
     body.appendChild titleDiv
 
-    text = new HG.Div null, "hivent-content"
+    text = document.createElement "div"
+    text.className = "hivent-content"
 
     description = @_hiventHandle.getHivent().description
     if description.length > @_description_length
@@ -64,7 +69,7 @@ class HG.HiventInfoPopover
       hgInstance: hgInstance
       hiventHandle: hiventHandle
       placement:  "top"
-      content:    body.dom()
+      content:    body
       title:      @_hiventHandle.getHivent().name
       container:  container
       showArrow:  showArrow
