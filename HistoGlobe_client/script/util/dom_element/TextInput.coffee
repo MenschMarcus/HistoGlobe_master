@@ -25,21 +25,20 @@ class HG.TextInput extends HG.DOMElement
     super 'input', id, classes, [['type', 'text'], ['name', id]]
 
     # change
-    $(@_elem).on 'keyup mouseup', (e) =>
+    @_j.on 'keyup mouseup', (e) =>
       # tell everyone the new value
       @notifyAll 'onChange', e.currentTarget.value
 
     # focus
-    $(@_elem).on 'focus', (e) =>
-      $(@_elem).addClass 'hg-input-focus'
-    $(@_elem).on 'focusout', (e) =>
-      $(@_elem).removeClass 'hg-input-focus'
+    @_j.on 'focus', (e) =>
+      @_j.addClass 'hg-input-focus'
+    @_j.on 'focusout', (e) =>
+      @_j.removeClass 'hg-input-focus'
 
 
   # ============================================================================
-  setPlaceholder: (text) ->
-    $(@_elem).attr 'placeholder', text
+  setPlaceholder: (text) ->  @_j.attr 'placeholder', text
 
   # ----------------------------------------------------------------------------
-  setValue: (text) ->
-    $(@_elem).attr 'value', text
+  getValue: () ->            @_elem.value
+  setValue: (text) ->        @_elem.value = text

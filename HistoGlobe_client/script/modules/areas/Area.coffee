@@ -41,6 +41,7 @@ class HG.Area
   # ----------------------------------------------------------------------------
   setNames: (names) ->          @_names = names
   getNames: () ->               @_names
+  getCommonName: () ->          @_names.commonName
 
   # ============================================================================
   deselect: () ->               @_selected = no
