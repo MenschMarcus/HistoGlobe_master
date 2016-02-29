@@ -11,13 +11,13 @@ class HG.AddChangeStep extends HG.EditOperationStep
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, @_stepData) ->
+  constructor: (@_hgInstance, @_stepData, @_operationDescription) ->
 
     # inherit functionality from base class
     super @_hgInstance, @_stepData
 
     # get external modules
-    @_workflowWindow = @_hgInstance.workflowWindow
+    workflowWindow = @_hgInstance.workflowWindow
     @_areasOnMap = @_hgInstance.areasOnMap
 
 
@@ -25,21 +25,17 @@ class HG.AddChangeStep extends HG.EditOperationStep
 
     # hivent box: select existing or create new hivent
 
-    hiventBox = new HG.NewHiventBox @_hgInstance, @_stepData
+    @_hiventBox = new HG.NewHiventBox @_hgInstance, @_stepData, @_operationDescription
+
+    ### INTERACTION ###
+    # tell workflow window to change to the finish button
+    @_hiventBox.onReady @, () ->
+      workflowWindow.setupFinishButton()
+
+    @_hiventBox.onUnready @, () ->
+      workflowWindow.cleanupFinishButton()
 
 
-    # setup new hivent
-    # @_stepData.outData.hiventInfo = {
-    #   name          : ""
-    #   date          : "20th century"
-    #   location      : "Weimar"
-    #   lng           : 0
-    #   lat           : 0
-    #   description   : ""
-    #   link          : ""
-    # }
-
-      # send to operation and finish ?!?
 
     ## that would be the nice way to do it, directly in HistoGlobe
     ## but I am going to go the easy way :-)
@@ -68,7 +64,7 @@ class HG.AddChangeStep extends HG.EditOperationStep
   # ============================================================================
   _cleanup: () ->
 
-    hiventBox.destroy()
-    @_areasOnMap.finishAreaEdit() if @_isForward
+    @_hiventBox.destroy()
+    @_areasOnMap.finishAreaEdit()
 
     ### CLEANUP OPERATION ###

@@ -285,22 +285,26 @@ class HG.AreasOnMap
     if @_focusMode
       if area.isSelected()
         if area.isFocused()
+          # focus mode -> selected + focussed (really active)
           @_animate area.geomLayer, {
             'fill':         HGConfig.color_highlight.val
             'fill-opacity': HGConfig.area_full_opacity.val
           }, HGConfig.animation_time.val
         else
+          # focus mode -> selected + not focussed (active)
           @_animate area.geomLayer, {
             'fill':         HGConfig.color_active.val
             'fill-opacity': HGConfig.area_half_opacity.val
           }, HGConfig.animation_time.val
       else
         if area.isFocused()
+          # focus mode -> not selected + focussed (highlight)
           @_animate area.geomLayer, {
             'fill':         HGConfig.color_highlight.val
             'fill-opacity': HGConfig.area_half_opacity.val
           }, HGConfig.animation_time.val
         else
+          # focus mode -> not selected + not focussed (normal)
           @_animate area.geomLayer, {
             'fill':         HGConfig.color_white.val
             'fill-opacity': HGConfig.area_full_opacity.val
@@ -308,16 +312,19 @@ class HG.AreasOnMap
     else
       if area.isSelected()
         if area.isTreated()
+          # edit mode -> selected + treated (done)
           @_animate area.geomLayer, {
             'fill':         HGConfig.color_bg_medium.val
             'fill-opacity': HGConfig.area_full_opacity.val
           }, HGConfig.animation_time.val
         else
+          # edit mode -> selected + not treated (to be treated)
           @_animate area.geomLayer, {
             'fill':         HGConfig.color_bg_medium.val
             'fill-opacity': HGConfig.area_half_opacity.val
           }, HGConfig.animation_time.val
       else
+        # edit mode -> not selected (normal)
         @_animate area.geomLayer, {
           'fill':         HGConfig.color_white.val
           'fill-opacity': HGConfig.area_full_opacity.val

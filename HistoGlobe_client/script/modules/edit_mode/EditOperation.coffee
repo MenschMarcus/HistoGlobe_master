@@ -29,6 +29,7 @@ class HG.EditOperation
       {
         id:         operationConfig.id
         title:      operationConfig.title
+        verb:       operationConfig.verb
         idx:        -1          # = step index -> -1 = start in the beginning
         steps: [
           { # idx             0
@@ -93,11 +94,12 @@ class HG.EditOperation
       @_step.finish()
 
     @_hgInstance.buttons.nextOperationStep.onFinish @, () =>
-      # TODO: what to do?
+      @_step.finish()
+      @_finish()
 
     @_hgInstance.buttons.lastOperationStep.onBack @, () =>
       # backwards logic to be done in a different way
-      # really cool idea: actionList (just revert the action later)
+      # really cool idea: actionList (just go back the list revert the action later)
 
     # listen to abort button
     @_hgInstance.buttons.abortOperation.onAbort @, () =>
@@ -118,6 +120,9 @@ class HG.EditOperation
   # ============================================================================
   #
   _makeStep: (direction, aborted=no) ->
+
+    # error handling: break up last step
+    return if (@_operation.idx is 3) and (direction is 1)
 
     # create bool variable: 'step forward? yes / no?'
     isForward = direction is 1
@@ -145,7 +150,7 @@ class HG.EditOperation
     else if @_operation.idx is 2
       @_step = new HG.CreateNewNameStep @_hgInstance, newStep
     else if @_operation.idx is 3
-      @_step = new HG.AddChangeStep @_hgInstance, newStep
+      @_step = new HG.AddChangeStep @_hgInstance, newStep, @_getOperationDescription()
 
     # change workflow window
     if newStep.userInput
@@ -170,6 +175,9 @@ class HG.EditOperation
     @_workflowWindow.destroy()
 
     # TODO: convert action list to new data to be stored in the database
+    # save data to the server
+    console.log @_operation
+    # close operation
 
     @notifyAll 'onFinish'
 
@@ -187,3 +195,14 @@ class HG.EditOperation
     }
 
   MAX_NUM = 50  # arbitrary number that limits excessive area selection
+
+
+  # ============================================================================
+  # possible inputs:  1   1+  2   2+
+  _getOperationDescription: () ->
+    command = @_operation.verb
+    oldAreas = []
+    oldAreas.push area.getCommonName() for area in @_operation.steps[0].outData.selectedAreas
+    newAreas = []
+    newAreas.push area.getCommonName() for area in @_operation.steps[2].outData.namedAreas
+    return command + " " + oldAreas.join(", ") + " to " + newAreas.join(", ")
