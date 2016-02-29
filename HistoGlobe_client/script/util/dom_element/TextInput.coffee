@@ -21,6 +21,7 @@ class HG.TextInput extends HG.DOMElement
     @addCallback 'onChange'
 
     # construct object of subclass with superclass
+    classes.push 'hg-input'
     super 'input', id, classes, [['type', 'text'], ['name', id]]
 
     # change
@@ -28,7 +29,17 @@ class HG.TextInput extends HG.DOMElement
       # tell everyone the new value
       @notifyAll 'onChange', e.currentTarget.value
 
+    # focus
+    $(@_elem).on 'focus', (e) =>
+      $(@_elem).addClass 'hg-input-focus'
+    $(@_elem).on 'focusout', (e) =>
+      $(@_elem).removeClass 'hg-input-focus'
+
 
   # ============================================================================
   setPlaceholder: (text) ->
     $(@_elem).attr 'placeholder', text
+
+  # ----------------------------------------------------------------------------
+  setValue: (text) ->
+    $(@_elem).attr 'value', text
