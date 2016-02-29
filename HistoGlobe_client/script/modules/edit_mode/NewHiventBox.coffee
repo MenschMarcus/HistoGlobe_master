@@ -7,18 +7,19 @@ class HG.NewHiventBox
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, @_stepData) ->
+  constructor: (@_hgInstance, @_stepData, @_operationDescription) ->
 
     # handle callbacks
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @addCallback 'onSubmit'
+    @addCallback 'onReady'
+    @addCallback 'onUnready'
 
     ### SETUP UI ###
 
-    @_box = new HG.Div 'new-hivent-box', null
-    @_hgInstance._top_area.appendChild @_box.dom()
+    @_hiventBox = new HG.Div 'new-hivent-box', null
+    @_hgInstance._top_area.appendChild @_hiventBox.dom()
 
     ## 1) choose between select existing and create new hivent
     @_makeDecisionStep()
@@ -29,14 +30,13 @@ class HG.NewHiventBox
     ## 2.2) create new hivent
     @_hgInstance.buttons.newHiventInBox.onClick @, () ->
       # cleanup box and repupulate with new form
-      @_box.j().empty()
+      @_hiventBox.j().empty()
       @_makeNewHiventForm()
 
 
   # ============================================================================
   destroy: () ->
-    @_okButton.remove()
-    @_box.remove()
+    @_hiventBox.remove()
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
@@ -49,7 +49,7 @@ class HG.NewHiventBox
     ## option A) select existing hivent
 
     selectExistingWrapper = new HG.Div null, ['new-hivent-box-selection-wrapper']
-    @_box.appendChild selectExistingWrapper
+    @_hiventBox.appendChild selectExistingWrapper
 
     selectExistingText = new HG.Div null, ['new-hivent-box-text']
     selectExistingText.j().html "Select Existing Hivent"
@@ -74,13 +74,13 @@ class HG.NewHiventBox
     ## OR
     orHalf = new HG.Div null, ['new-hivent-box-selection-center', 'new-hivent-box-text']
     orHalf.j().html "OR"
-    @_box.appendChild orHalf
+    @_hiventBox.appendChild orHalf
 
 
     ## option B) create new hivent
 
     createNewHiventWrapper = new HG.Div 'create-new-hivent', ['new-hivent-box-selection-wrapper']
-    @_box.appendChild createNewHiventWrapper
+    @_hiventBox.appendChild createNewHiventWrapper
 
     newHiventButton = new HG.Button @_hgInstance, 'newHiventInBox', null,
       [
@@ -105,7 +105,7 @@ class HG.NewHiventBox
     ### SETUP UI ###
 
     formWrapper = new HG.Div 'new-hivent-info-wrapper', ['new-hivent-box-selection-wrapper']
-    @_box.appendChild formWrapper
+    @_hiventBox.appendChild formWrapper
 
     ## name
     hiventName = new HG.TextInput @_hgInstance, 'newHiventName', ['new-hivent-information']
@@ -125,8 +125,6 @@ class HG.NewHiventBox
     formWrapper.appendChild hiventLocation.dom()
 
     ## description
-    # TODO: make multiple lines
-    # TODO: detect location name and put marker on the map
     hiventDescription = new HG.TextInputArea @_hgInstance, 'newHiventDescription', ['new-hivent-information'], [null, 5]
     hiventDescription.setPlaceholder "Description of the Hivent (take your space...)"
     formWrapper.appendChild hiventDescription.dom()
@@ -141,7 +139,7 @@ class HG.NewHiventBox
     # TODO: put in information about current change
     # TODO: connect this with hg action language
     hiventChanges = new HG.Div 'newHiventChanges', ['new-hivent-information']
-    hiventChanges.j().html "Horst" #@_stepData.inData.namedAreas[0].getId() + " was named :)"
+    hiventChanges.j().html @_operationDescription
     formWrapper.appendChild hiventChanges.dom()
 
 
@@ -169,6 +167,16 @@ class HG.NewHiventBox
 
     ### INTERACTION ###
 
+    ## name done => ready to submit
+    hiventName.onChange @, (name) ->
+      # save to data
+      @_stepData.outData.hiventInfo.name = name
+      # tell everyone: "I am done"
+      if name isnt ''
+        @notifyAll 'onReady'
+      else
+        @notifyAll 'onUnready'
+
     ## synchronize hivent date with timeline
     # timeline -> hivent box
     @_hgInstance.timeline.onNowChanged @, (date) ->
@@ -183,4 +191,23 @@ class HG.NewHiventBox
         "YYYY"
       ]
       if moment(dateString, formats, true).isValid()
-        @_hgInstance.timeline.setNowDate moment(dateString, formats, true).toDate()
+        nowDate = moment(dateString, formats, true).toDate()
+        @_hgInstance.timeline.setNowDate nowDate
+        # save to data
+        @_stepData.outData.hiventInfo.name = nowDate
+
+    ## convert location to lat/lng coordinates
+    # TODO: later
+    hiventLocation.onChange @, (location) ->
+      # save to data
+      @_stepData.outData.hiventInfo.location = location
+
+    ## save the description
+    hiventDescription.onChange @, (description) ->
+      # save to data
+      @_stepData.outData.hiventInfo.description = description
+
+    ## save the link
+    hiventLink.onChange @, (link) ->
+      # save to data
+      @_stepData.outData.hiventInfo.link = link

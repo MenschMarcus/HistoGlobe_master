@@ -29,6 +29,7 @@ class HG.WorkflowWindow
     @_hgInstance.workflowWindow = @
 
     @_currStep = -1   # start without marker
+    @_totalSteps = 0
 
     ### MAIN WINDOW ###
 
@@ -60,7 +61,6 @@ class HG.WorkflowWindow
     @_descriptionRow.appendChild backButtonParent
 
     # step columns
-    stepCols = 0
     @_stepDescr = []
     for step in operation.steps
       # only setup a column for steps that require user input
@@ -70,7 +70,7 @@ class HG.WorkflowWindow
         descr.j().html step.title
         @_descriptionRow.appendChild descr
         @_stepDescr.push descr.j()
-        stepCols++
+        @_totalSteps++
 
     # next column
     abortButtonParent = new HG.Div 'abort-button-parent', ['ww-graph-row', 'ww-button-col']
@@ -217,10 +217,12 @@ class HG.WorkflowWindow
   stepIncomplete: () ->
     @_nextButton.disable()
 
-  setupOkButton: () ->
+  setupFinishButton: () ->
+    @_nextButton.enable()
     @_nextButton.changeState 'finish'
 
-  cleanupOkButton: () ->
+  cleanupFinishButton: () ->
+    @_nextButton.disable()
     @_nextButton.changeState 'normal'
 
   makeTransition: (dir) ->

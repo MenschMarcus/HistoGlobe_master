@@ -183,7 +183,9 @@ class HG.Timeline
   # ============================================================================
   # SETTER
 
-  setNowDate: (date) -> @_moveToDate date
+  setNowDate: (date) ->
+    @_moveToDate date, 1
+    @_updateDateMarkers()
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
