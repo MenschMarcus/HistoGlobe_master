@@ -180,7 +180,10 @@ class HG.NewHiventBox
     ## synchronize hivent date with timeline
     # timeline -> hivent box
     @_hgInstance.timeline.onNowChanged @, (date) ->
-      hiventDate.setValue date.toLocaleDateString()
+      nowDate = date.toLocaleDateString()
+      hiventDate.setValue nowDate
+      # save to data
+      @_stepData.outData.hiventInfo.name = nowDate
 
     # timeline <- hivent box
     hiventDate.onChange @, (dateString) ->
@@ -195,6 +198,10 @@ class HG.NewHiventBox
         @_hgInstance.timeline.setNowDate nowDate
         # save to data
         @_stepData.outData.hiventInfo.name = nowDate
+
+    # hack: it is possible to finish this step without changing the date
+    # => date has to be initially written into outpu
+    @_stepData.outData.hiventInfo.name = @_hgInstance.timeline.getNowDate().toLocaleDateString()
 
     ## convert location to lat/lng coordinates
     # TODO: later

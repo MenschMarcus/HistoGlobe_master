@@ -49,11 +49,24 @@ class HG.CreateNewGeometryStep extends HG.EditOperationStep
       @_stepData.outData.createdAreas.push newArea
       @_areasOnMap.addArea newArea
 
+    ## change name operation
+    else if @_stepData.operationCommand is 'CHN'
+
+      # remove the name from the area, but leave its geometry untouched
+      renameArea = @_stepData.inData.selectedAreas[0]
+      renameArea.setNames {} # TODO: make name handling nicer...
+      renameArea.select()
+      renameArea.treat()
+      @_areasOnMap.updateArea renameArea
+      @_stepData.outData.createdAreas.push renameArea
+
+
     ## delete operation
     else if @_stepData.operationCommand is 'DEL'
 
       # delete selected area
       @_areasOnMap.removeArea @_stepData.inData.selectedAreas[0]
+
 
 
     ## for backward step
@@ -97,16 +110,16 @@ class HG.CreateNewGeometryStep extends HG.EditOperationStep
             # TODO: make more efficient later
             for existingArea in existingAreas
               existingGeometry = existingArea.hgArea.getGeometry()
-              intersectionGeometry = @_geometryOperator.intersection newGeometry, Geometry       if A_B.isValid()
+              intersectionGeometry = @_geometryOperator.intersection newGeometry, existingGeometry
               if intersectionGeometry.isValid()
                 clippedGeometry = @_geometryOperator.difference existingGeometry, intersectionGeometry
-                console.log "draw area 1:      ", newGeometry
-                console.log "original area 2:  ", existingGeometry
-                console.log "intersection:     ", intersectionGeometry
-                console.log "difference 2-int: ", clippedGeometry
+                # console.log "draw area 1:      ", newGeometry
+                # console.log "original area 2:  ", existingGeometry
+                # console.log "intersection:     ", intersectionGeometry
+                # console.log "difference 2-int: ", clippedGeometry
                 # only change, if area actually changed
                 existingArea.hgArea.setGeometry clippedGeometry
-                @_areasOnMap.updateArea existingArea
+                @_areasOnMap.updateArea existingArea.hgArea
 
           # cleanup
           @_newGeometryTool.destroy()
@@ -115,6 +128,8 @@ class HG.CreateNewGeometryStep extends HG.EditOperationStep
           # save new area data
           id = 'NEW_AREA' # TODO: refine this id in next step
           newArea = new HG.Area id, newGeometry
+          newArea.select()
+          newArea.treat()
           @_stepData.outData.createdAreas.push newArea
           @_areasOnMap.addArea newArea
 
@@ -144,6 +159,7 @@ class HG.CreateNewGeometryStep extends HG.EditOperationStep
       @_newGeometryTool.destroy()
       delete @_newGeometryTool
 
-    @_areasOnMap.finishAreaEdit() unless @_isForward
+    # TODO: only do on backwards change!
+    # @_areasOnMap.finishAreaEdit()
 
     # if @_stepData.userInput

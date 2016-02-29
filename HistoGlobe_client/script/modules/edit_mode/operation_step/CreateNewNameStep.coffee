@@ -15,11 +15,11 @@ class HG.CreateNewNameStep extends HG.EditOperationStep
   # ============================================================================
   constructor: (@_hgInstance, @_stepData, isForward) ->
 
-    # skip steps without user input
-    @_onFinish() if not @_stepData.userInput
-
     # inherit functionality from base class
     super @_hgInstance, @_stepData
+
+    # skip steps without user input
+    return @finish() if not @_stepData.userInput
 
     # get external modules
     @_workflowWindow = @_hgInstance.workflowWindow
