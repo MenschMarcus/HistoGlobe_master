@@ -112,7 +112,7 @@ class HG.CreateNewGeometryStep extends HG.EditOperationStep
               existingGeometry = existingArea.hgArea.getGeometry()
               intersectionGeometry = @_geometryOperator.intersection newGeometry, existingGeometry
               if intersectionGeometry.isValid()
-                clippedGeometry = @_geometryOperator.difference existingGeometry, intersectionGeometry
+                clippedGeometry = @_geometryOperator.difference existingGeometry, newGeometry
                 # console.log "draw area 1:      ", newGeometry
                 # console.log "original area 2:  ", existingGeometry
                 # console.log "intersection:     ", intersectionGeometry
