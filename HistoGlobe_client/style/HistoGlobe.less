@@ -182,3 +182,22 @@ body {
         }
     }
 }
+
+// ----------------------- INPUT FIELDS ------------------------
+
+.hg-input
+{
+  padding-left: @border_radius + 2;
+  padding-right: @border_radius + 2;
+  border: none;
+  border-radius: @border_radius;
+  outline: none;
+  background: none;
+  color: @color_white;
+  box-shadow: 0 0 @shadow_radius -2px @color_white;
+}
+
+.hg-input-focus
+{
+  box-shadow: 0 0 @shadow_radius 3px @color_active;
+}

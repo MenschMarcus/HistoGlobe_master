@@ -2,6 +2,8 @@
 {
   position: absolute;
   top: 0;
+  background-color: @color_bg_medium;
+  border-radius: 0 0 @border_radius @border_radius;
 }
 
 #ww-graph-wrapper
@@ -13,11 +15,10 @@
 
 #ww-description-wrapper
 {
-  /* underneath hg title (take rest of height of main window, semi-transparent background) */
+  /* underneath hg title (take rest of height of main window, same style as title) */
   width: 100%;
   height: @operation_window_height - (2*@element_window_distance + @logo_height);
-
-  background-color: @color_bg_medium_semitransparent;
+  box-shadow: 0 7px @shadow_radius -7px rgba(0,0,0,@shadow_intensity);
   border-radius: 0 0 @border_radius @border_radius;
 }
 
