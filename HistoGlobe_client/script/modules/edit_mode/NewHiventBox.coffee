@@ -21,7 +21,7 @@ class HG.NewHiventBox
     @_hgInstance._top_area.appendChild @_box.dom()
 
     ## 1) choose between select existing and create new hivent
-    @_setupDecisionStep()
+    @_makeDecisionStep()
 
     ## 2.1) select existing hivent
     # TODO
@@ -30,30 +30,7 @@ class HG.NewHiventBox
     @_hgInstance.buttons.newHiventInBox.onClick @, () ->
       # cleanup box and repupulate with new form
       @_box.j().empty()
-      @_setupNewHiventForm()
-
-
-
-    # @_inputField = new HG.TextInput @_hgInstance, 'new-hivent-box-input', null
-    # @_inputField.j().attr 'size', 1 # starts with minimum size of 1
-    # @_box.appendChild @_inputField
-
-    # @_okButton = new HG.Button @_hgInstance, 'addChangeOK', ['confirm-button'],
-    # [
-    #   {
-    #     'iconFA':   'check'
-    #   }
-    # ]
-    # @_box.appendChild @_okButton.dom()
-
-
-    ### INTERACTION ###
-    ## to other modules
-
-    # click OK => submit name and position
-    # @_okButton.onClick @, () =>
-    #   @notifyAll 'onSubmit', @_inputField.j().val(), @_map.containerPointToLatLng center
-
+      @_makeNewHiventForm()
 
 
   # ============================================================================
@@ -67,7 +44,7 @@ class HG.NewHiventBox
 
   # ============================================================================
   # decision: select existing hivent OR create new one?
-  _setupDecisionStep: () ->
+  _makeDecisionStep: () ->
 
     ## option A) select existing hivent
 
@@ -78,7 +55,7 @@ class HG.NewHiventBox
     selectExistingText.j().html "Select Existing Hivent"
     selectExistingWrapper.appendChild selectExistingText
 
-    searchBox = new HG.TextInput @_hgInstance, 'selectExitingHivent', null
+    searchBox = new HG.TextInput @_hgInstance, 'selectExitingHivent', ['new-hivent-input']
     searchBox.setPlaceholder "find existing hivent by name, date, location, ..."
     selectExistingWrapper.appendChild searchBox
 
@@ -123,7 +100,9 @@ class HG.NewHiventBox
 
   # ============================================================================
   # forms with Hivent information
-  _setupNewHiventForm: () ->
+  _makeNewHiventForm: () ->
+
+    ### SETUP UI ###
 
     formWrapper = new HG.Div 'new-hivent-info-wrapper', ['new-hivent-box-selection-wrapper']
     @_box.appendChild formWrapper
@@ -134,9 +113,8 @@ class HG.NewHiventBox
     formWrapper.appendChild hiventName.dom()
 
     ## date
-    # TODO: bind to timeline
     hiventDate = new HG.TextInput @_hgInstance, 'newHiventDate', ['new-hivent-information']
-    hiventDate.setPlaceholder "DD.MM.YYYY"
+    hiventDate.setValue @_hgInstance.timeline.getNowDate().toLocaleDateString()
     formWrapper.appendChild hiventDate.dom()
 
     ## location
@@ -165,3 +143,44 @@ class HG.NewHiventBox
     hiventChanges = new HG.Div 'newHiventChanges', ['new-hivent-information']
     hiventChanges.j().html "Horst" #@_stepData.inData.namedAreas[0].getId() + " was named :)"
     formWrapper.appendChild hiventChanges.dom()
+
+
+    ## buttons
+    # TODO: are the buttons really necessary or can't I reuse the buttons from the workflow window?
+    # is against "direct manipulation" paradigm, but kind of makes sense
+    # abortButton = new HG.Button @_hgInstance, 'addChangeAbort', ['button-abort'],
+    #   [
+    #     {
+    #       'iconFA':   'times'
+    #       'callback': 'onClick'
+    #     }
+    #   ]
+    # formWrapper.appendChild abortButton.dom()
+
+    # okButton = new HG.Button @_hgInstance, 'addChangeOK', null,
+    #   [
+    #     {
+    #       'iconFA':   'check'
+    #       'callback': 'onClick'
+    #     }
+    #   ]
+    # formWrapper.appendChild okButton.dom()
+
+
+    ### INTERACTION ###
+
+    ## synchronize hivent date with timeline
+    # timeline -> hivent box
+    @_hgInstance.timeline.onNowChanged @, (date) ->
+      hiventDate.setValue date.toLocaleDateString()
+
+    # timeline <- hivent box
+    hiventDate.onChange @, (dateString) ->
+      formats = [
+        moment.ISO_8601,
+        "DD.MM.YYYY",
+        "DD/MM/YYYY",
+        "YYYY"
+      ]
+      if moment(dateString, formats, true).isValid()
+        @_hgInstance.timeline.setNowDate moment(dateString, formats, true).toDate()

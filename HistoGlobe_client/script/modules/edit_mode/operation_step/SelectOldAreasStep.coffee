@@ -15,7 +15,7 @@ class HG.SelectOldAreasStep extends HG.EditOperationStep
   constructor: (@_hgInstance, @_stepData, isForward) ->
 
     # skip steps without user input
-    @_onFinish() if not @_stepData.userInput
+    @finish() if not @_stepData.userInput
 
     # inherit functionality from base class
     super @_hgInstance, @_stepData

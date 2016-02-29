@@ -65,6 +65,7 @@ class HG.EditOperation
           { # idx             3
             id:               'ADD_CHNG'
             title:            "add change <br /> to historical event"
+            userInput:        yes
             inData:           {}
             outData: {
               hiventInfo:     {}

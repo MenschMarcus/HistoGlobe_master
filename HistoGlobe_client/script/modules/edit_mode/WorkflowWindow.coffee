@@ -159,7 +159,8 @@ class HG.WorkflowWindow
 
     # next button ( = ok = go to next step, disabled)
     # -> changes to OK button / "finish" state in last step
-    @_nextButton = new HG.Button @_hgInstance, 'nextOperationStep', null, [
+    @_nextButton = new HG.Button @_hgInstance, 'nextOperationStep', null,
+      [
         {
           'id':       'normal'
           'tooltip':  "Done / Next Step"
@@ -176,7 +177,8 @@ class HG.WorkflowWindow
     nextButtonParent.appendChild @_nextButton.dom()
 
     # abort button
-    @_abortButton = new HG.Button @_hgInstance, 'abortOperation', ['button-abort'], [
+    @_abortButton = new HG.Button @_hgInstance, 'abortOperation', ['button-abort'],
+      [
         {
           'id':       'normal'
           'tooltip':  "Abort Operation"

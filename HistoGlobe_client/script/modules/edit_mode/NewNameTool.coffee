@@ -45,8 +45,8 @@ class HG.NewNameTool
     @_hgInstance._top_area.appendChild @_wrapper.dom()
 
     @_inputField = new HG.TextInput @_hgInstance, 'new-name-input', null
-    @_inputField.setPlaceholder "Country Name"
-    @_inputField.j().attr 'size', 1 # starts with minimum size of 1
+    @_inputField.setPlaceholder "name"
+    @_inputField.j().attr 'size', NAME_MIN_SIZE
     @_wrapper.appendChild @_inputField
 
     # set position of wrapper = center of country
@@ -55,11 +55,12 @@ class HG.NewNameTool
     @_wrapper.j().css 'top',  posPx.y
     @_recenter()
 
-    @_okButton = new HG.Button @_hgInstance, 'newNameOK', ['confirm-button'], [
-      {
-        'iconFA':   'check'
-      }
-    ]
+    @_okButton = new HG.Button @_hgInstance, 'newNameOK', ['confirm-button'],
+      [
+        {
+          'iconFA':   'check'
+        }
+      ]
     @_wrapper.appendChild @_okButton.dom()
 
 
@@ -113,6 +114,7 @@ class HG.NewNameTool
   # ============================================================================
   # preparation functions
 
+  # ============================================================================
   _makeDraggable: () ->
     # make input field draggable
     # this code snippet does MAGIC !!!
@@ -134,14 +136,16 @@ class HG.NewNameTool
         @_wrapper.j().data 'preventBehaviour', false
       return # for some reason this has to be there ?!?
 
+  # ============================================================================
   _resize: (e) =>
     # TODO: set actual width, independent from font-size
     # TODO: animate to the new width -> works not with 'size' but only with 'width' (size is not a CSS property)
-    #                ensures width >= 1                 magic factor to scale width with increasing size
-    width = Math.max 1, (@_inputField.j().val().length)*1.15
+    #                ensures width >= 1                             magic factor to scale width with increasing size
+    width = Math.max NAME_MIN_SIZE, (@_inputField.j().val().length)*SIZE_TO_WIDTH_FACTOR
     @_inputField.j().attr 'size', width
     @_recenter()
 
+  # ============================================================================
   _respondToMapDrag: (e) =>
     # this is probably more complicated than necessary - but it works :)
     # get movement of center of the map (as reference)
@@ -164,6 +168,7 @@ class HG.NewNameTool
     # refresh
     @_viewCenter = mapNew
 
+  # ============================================================================
   _respondToMapZoom: (e) =>
     @_viewCenter = @_map.getCenter() # to prevent jumping label on drag after zoom
     # TODO: get to work
@@ -181,3 +186,8 @@ class HG.NewNameTool
     # console.log zoomFactor
     # console.log windowCenterStart
     # console.log windowCenterEnd
+
+
+  # ============================================================================
+  NAME_MIN_SIZE = 4
+  SIZE_TO_WIDTH_FACTOR = 1.15   # magical factor to translate from text input size to its width
