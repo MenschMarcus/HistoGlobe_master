@@ -18,13 +18,13 @@ class HG.CreateNewGeometryStep extends HG.EditOperationStep
 
     # get external modules
     @_workflowWindow = @_hgInstance.workflowWindow
-    @_areasOnMap = @_hgInstance.areasOnMap
+    @_areaController = @_hgInstance.areaController
     @_geometryOperator = new HG.GeometryOperator
 
 
     ### SETUP OPERATION ###
 
-    @_areasOnMap.startAreaEdit()
+    @_areaController.startAreaEdit()
 
     ## unification operation
     if @_stepData.operationCommand is 'UNI'
@@ -35,7 +35,7 @@ class HG.CreateNewGeometryStep extends HG.EditOperationStep
       for area in @_stepData.inData.selectedAreas
         oldIds.push area.getId()
         oldGeometries.push area.getGeometry()
-        @_areasOnMap.removeArea area
+        @_areaController.removeArea area
 
       # unify old areas to new area
       uniArea = @_geometryOperator.union oldGeometries
@@ -46,7 +46,7 @@ class HG.CreateNewGeometryStep extends HG.EditOperationStep
       newArea.select()
       newArea.treat()   # TODO: correct?
       @_stepData.outData.createdAreas.push newArea
-      @_areasOnMap.addArea newArea
+      @_areaController.addArea newArea
 
     ## change name operation
     else if @_stepData.operationCommand is 'CHN'
@@ -56,7 +56,7 @@ class HG.CreateNewGeometryStep extends HG.EditOperationStep
       renameArea.setNames {} # TODO: make name handling nicer...
       renameArea.select()
       renameArea.treat()
-      @_areasOnMap.updateArea renameArea
+      @_areaController.updateArea renameArea
       @_stepData.outData.createdAreas.push renameArea
 
 
@@ -64,7 +64,7 @@ class HG.CreateNewGeometryStep extends HG.EditOperationStep
     else if @_stepData.operationCommand is 'DEL'
 
       # delete selected area
-      @_areasOnMap.removeArea @_stepData.inData.selectedAreas[0]
+      @_areaController.removeArea @_stepData.inData.selectedAreas[0]
 
 
 
@@ -75,18 +75,18 @@ class HG.CreateNewGeometryStep extends HG.EditOperationStep
     #   if @_stepData.operationCommand is 'UNI'
 
     #     # restore unified area
-    #     @_areasOnMap.removeArea @_stepData.outData.createdAreas[0]
+    #     @_areaController.removeArea @_stepData.outData.createdAreas[0]
     #     @_stepData.outData.createdAreas = []
     #     # TODO: delete the area? will it stay in the memory?
     #     # re-add all previously selected areas
     #     for area in @_stepData.inData.selectedAreas
-    #       @_areasOnMap.addArea area
+    #       @_areaController.addArea area
 
     #   ## delete operation
     #   else if @_stepData.operationCommand is 'DEL'
 
     #     # restore selected area
-    #     @_areasOnMap.addArea @_stepData.inData.selectedAreas[0]
+    #     @_areaController.addArea @_stepData.inData.selectedAreas[0]
 
 
 
@@ -106,10 +106,9 @@ class HG.CreateNewGeometryStep extends HG.EditOperationStep
             newGeometry = inGeometry
 
             # clip new geometry to existing geomtries
-            existingAreas = @_areasOnMap.getAreas()
             # check for intersection with each country
             # TODO: make more efficient later
-            for existingArea in existingAreas
+            for existingArea in @_areaController.getAreas()
               existingGeometry = existingArea.getGeometry()
               intersectionGeometry = @_geometryOperator.intersection newGeometry, existingGeometry
 
@@ -120,17 +119,17 @@ class HG.CreateNewGeometryStep extends HG.EditOperationStep
                 # if something is still left, update it
                 if updatedGeometry.isValid()
                   existingArea.setGeometry clipGeometry
-                  @_areasOnMap.updateArea existingArea
+                  @_areaController.updateArea existingArea
                 # if nothing is left, delete it
                 else
-                  @_areasOnMap.deleteArea existingArea
+                  @_areaController.removeArea existingArea
 
             # insert new geometry into new area and add to HistoGlobe
             newId = 'NEW_AREA' # TODO: refine this id in next step
             newArea = new HG.Area newId, newGeometry
             newArea.select()
             newArea.treat()
-            @_areasOnMap.addArea newArea
+            @_areaController.addArea newArea
             @_stepData.outData.createdAreas.push newArea
 
 
@@ -154,7 +153,7 @@ class HG.CreateNewGeometryStep extends HG.EditOperationStep
             newArea = new HG.Area newId, newGeometry
             newArea.select()
             newArea.treat()
-            @_areasOnMap.addArea newArea
+            @_areaController.addArea newArea
             @_stepData.outData.createdAreas.push newArea
 
             # update existing geometry
@@ -163,10 +162,10 @@ class HG.CreateNewGeometryStep extends HG.EditOperationStep
             if updatedGeometry.isValid()
               existingArea.setGeometry updatedGeometry
               existingArea.untreat()
-              @_areasOnMap.updateArea existingArea
+              @_areaController.updateArea existingArea
             # if nothing is left, delete it
             else
-              @_areasOnMap.deleteArea existingArea
+              @_areaController.removeArea existingArea
 
 
           # cleanup
