@@ -32,13 +32,17 @@ class HG.AreasOnMap
     @_hgInstance.onAllModulesLoaded @, () =>
 
       # listen to area changes from both area controller and edit mode
-      controllers = []
-      controllers.push @_hgInstance.areaController if @_hgInstance.areaController
-      controllers.push @_hgInstance.editMode if @_hgInstance.editMode
+      if @_hgInstance.areaController
+        controller = @_hgInstance.areaController
 
-      for controller in controllers
-        controller.onAddArea @, (area) =>
+        controller.onCreateArea @, (area) =>
           @_addGeometry area
+          @_addName area
+
+        controller.onCreateAreaGeometry @, (area) =>
+          @_addGeometry area
+
+        controller.onCreateAreaName @, (area) =>
           @_addName area
 
         controller.onUpdateAreaGeometry @, (area) =>
@@ -48,30 +52,23 @@ class HG.AreasOnMap
           @_removeName area
           @_addName area
 
+        controller.onUpdateAreaStatus @, (area) =>
+          @_updateProperties area
+
+        controller.onSelectArea @, (area) =>
+          @_updateProperties area
+          @_map.fitBounds area.geomLayer.getBounds() if FOCUS
+
+        controller.onDeselectArea @, (area) =>
+          @_updateProperties area
+          @_map.fitBounds area.geomLayer.getBounds() if FOCUS
+
         controller.onRemoveArea @, (area) =>
           @_removeName area
           @_removeGeometry area
 
-
-      # listen to area property changes only from area controller
-      # TOOD: something here doesn't make quite sense...
-      if @_hgInstance.areaController
-
-        @_hgInstance.areaController.onFocusArea @, (area) =>
-          @_updateProperties area
-
-        @_hgInstance.areaController.onUnfocusArea @, (area) =>
-          @_updateProperties area
-
-        @_hgInstance.areaController.onSelectArea @, (area) =>
-          @_updateProperties area
-          @_map.fitBounds area.geomLayer.getBounds() if FOCUS
-
-        @_hgInstance.areaController.onDeselectArea @, (area) =>
-          @_updateProperties area
-          @_map.fitBounds area.geomLayer.getBounds() if FOCUS
-
-
+        controller.onRemoveAreaName @, (area) =>
+          @_removeName area
 
 
 
@@ -187,7 +184,7 @@ class HG.AreasOnMap
 
   # ----------------------------------------------------------------------------
   _onUnfocus: (evt) =>
-    @notifyAll 'onFocusArea', evt.target.hgArea
+    @notifyAll 'onUnfocusArea', evt.target.hgArea
 
   # ----------------------------------------------------------------------------
   _onClick: (evt) =>

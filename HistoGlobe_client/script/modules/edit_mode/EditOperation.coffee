@@ -203,7 +203,7 @@ class HG.EditOperation
   _getOperationDescription: () ->
     command = @_operation.verb
     oldAreas = []
-    oldAreas.push area.getCommonName() for area in @_operation.steps[0].outData.selectedAreas
+    oldAreas.push id for id in @_operation.steps[0].outData.selectedAreas
     newAreas = []
-    newAreas.push area.getCommonName() for area in @_operation.steps[2].outData.namedAreas
+    newAreas.push id for id in @_operation.steps[2].outData.namedAreas
     return command + " " + oldAreas.join(", ") + " to " + newAreas.join(", ")

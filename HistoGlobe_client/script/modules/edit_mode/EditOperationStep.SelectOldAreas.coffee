@@ -5,7 +5,7 @@ window.HG ?= {}
 # interaction with AreaController module
 # ==============================================================================
 
-class HG.SelectOldAreasStep extends HG.EditOperationStep
+class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
@@ -13,6 +13,8 @@ class HG.SelectOldAreasStep extends HG.EditOperationStep
 
   # ============================================================================
   constructor: (@_hgInstance, @_stepData, isForward) ->
+
+    @_hgInstance.selectOldAreasStep = @
 
     # inherit functionality from base class
     super @_hgInstance, @_stepData
@@ -29,7 +31,7 @@ class HG.SelectOldAreasStep extends HG.EditOperationStep
 
     ## for both forward and backward step
     # tell AreaController to start selecting maximal X number of areas
-    @_areaController.enableMultiSelection @_stepData.number.max
+    @notifyEditMode 'onEnableMultiSelection', @_stepData.number.max
 
     ## for backward step
     # else
@@ -43,14 +45,14 @@ class HG.SelectOldAreasStep extends HG.EditOperationStep
     # listen to area (de)selection from AreaController
 
     @_areaController.onSelectArea @, (area) =>
-      @_stepData.outData.selectedAreas.push area
+      @_stepData.outData.selectedAreas.push area.getId()
 
       # is step complete?
       if @_stepData.outData.selectedAreas.length >= @_stepData.number.min
         @_workflowWindow.stepComplete()
 
     @_areaController.onDeselectArea @, (area) =>
-      @_stepData.outData.selectedAreas.splice (@_stepData.outData.selectedAreas.indexOf area), 1
+      @_stepData.outData.selectedAreas.splice (@_stepData.outData.selectedAreas.indexOf area.getId()), 1
 
       # is step incomplete?
       if @_stepData.outData.selectedAreas.length < @_stepData.number.min
@@ -69,4 +71,6 @@ class HG.SelectOldAreasStep extends HG.EditOperationStep
     if @_stepData.userInput
 
       # tell areas on map to stop selecting multiple areas
-      @_areaController.disableMultiSelection()
+      @notifyEditMode 'onDisableMultiSelection'
+
+    delete @_hgInstance.selectOldAreasStep

@@ -6,7 +6,7 @@ window.HG ?= {}
 # TODO: set names in all languages
 # ==============================================================================
 
-class HG.CreateNewNameStep extends HG.EditOperationStep
+class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
@@ -23,6 +23,7 @@ class HG.CreateNewNameStep extends HG.EditOperationStep
 
     # get external modules
     @_workflowWindow = @_hgInstance.workflowWindow
+    @_areaController = @_hgInstance.areaController
 
     ### SETUP OPERATION ###
     # nothing to do here ?!?
@@ -34,19 +35,19 @@ class HG.CreateNewNameStep extends HG.EditOperationStep
       @_makeNewName = () =>
 
         # get current area
-        currArea = @_stepData.inData.createdAreas[@_areaIdx]
+        currAreaId = @_stepData.inData.createdAreas[@_areaIdx]
+        currArea = @_areaController.getArea currAreaId
 
-        # set up NewNameTool to set name and pos of area interactively
+        # set up NewNameTool to set name and position of area interactively
         @_newNameTool = new HG.NewNameTool @_hgInstance, currArea.getLabelPosition(yes)
-        @_newNameTool.onSubmit @, (name, pos) =>
+        @_newNameTool.onSubmit @, (name, position) =>
 
           # save the named area
-          currArea = @_stepData.inData.createdAreas[@_areaIdx]
-          currArea.setNames {'commonName': name}
-          currArea.setLabelPosition pos
-          currArea.treat()
-          @_stepData.outData.namedAreas[@_areaIdx] = currArea
-          @_hgInstance.areaController.updateArea currArea
+          currAreaId = @_stepData.inData.createdAreas[@_areaIdx]
+          # TODO: better name handling
+          @notifyEditMode 'onUpdateAreaName', currAreaId, {'commonName': name}, position
+          @notifyEditMode 'onUpdateAreaStatus', currAreaId, yes # treated
+          @_stepData.outData.namedAreas[@_areaIdx] = currAreaId
 
           # cleanup
           @_newNameTool.destroy()
