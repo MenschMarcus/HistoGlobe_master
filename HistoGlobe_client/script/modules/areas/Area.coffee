@@ -17,9 +17,9 @@ class HG.Area
 
   # ============================================================================
   constructor: (@_id, @_geometry, @_names={}) ->
-    @_focused = no    # is area currently in focus (hovered)?
-    @_selected = no   # is area currently selected?
-    @_treated = no    # for edit mode: area has already been treated?
+    @_selected = no     # is area currently selected?
+    @_focused = no      # is area currently in focus (hovered)?
+    @_treated = no      # for edit mode: area has already been treated?
 
     @resetLabelPosition()
 
