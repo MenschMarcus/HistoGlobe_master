@@ -19,6 +19,21 @@ class HG.EditMode
   # ============================================================================
   constructor: (config) ->
 
+    # handle callbacks
+    HG.mixin @, HG.CallbackContainer
+    HG.CallbackContainer.call @
+
+    @addCallback 'onAddArea'
+    @addCallback 'onUpdateAreaGeommetry'
+    @addCallback 'onUpdateAreaName'
+    @addCallback 'onRemoveArea'
+
+    @addCallback 'onFocusArea'
+    @addCallback 'onUnfocusArea'
+    @addCallback 'onSelectArea'
+    @addCallback 'onDeselectArea'
+
+
     # init config
     defaultConfig =
       editOperationsPath: 'HistoGlobe_client/config/common/editOperations.json'
@@ -32,31 +47,12 @@ class HG.EditMode
     # add to HG instance
     @_hgInstance.editMode = @   # N.B. edit mode = edit controller :)
 
-    # loading dependencies + error handling
-    if @_hgInstance.map._map?
-      @_map = @_hgInstance.map._map
-    else
+    # error handling
+    if not @_hgInstance.map._map?
       console.error "Unable to load Edit Mode: There is no map, you idiot! Why would you want to have HistoGlobe without a map ?!?"
 
-    if @_hgInstance.areasOnMap?
-      @_areasOnMap = @_hgInstance.areasOnMap
-    else
-      console.error "Unable to load Edit Mode: AreasOnMap module is not included in the current hg instance (has to be loaded before EditMode)"
-
-    # if @_hgInstance.histoGraph?
-    #   @_histoGraph = @_hgInstance.histoGraph
-    # else
-    #   console.error "Unable to load Edit Mode: HistoGraph module is not included in the current hg instance (has to be loaded before EditMode)"
-
-    # for using the geooperator internally here
-    @_geometryOperator = new HG.GeometryOperator
-    @_geometryReader = new HG.GeometryReader
-
-    # problem: Edit Mode should listen to each listener only once
-    # ugly solution: globally save to which callbacks it has already been added to
-    # and prevent from adding more than once
-    @_activeCallbacks = {}     # content: { 'nameOfCallback': yes/no}
-
+    if not @_hgInstance.areaController?
+      console.error "Unable to load Edit Mode: AreaController module is not included in the current hg instance (has to be loaded before EditMode)"
 
 
     ############################################################################
@@ -84,8 +80,6 @@ class HG.EditMode
 
         # TEST PLAYGROUND END HERE
     ############################################################################
-
-
 
 
     # init everything

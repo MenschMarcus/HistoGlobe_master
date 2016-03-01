@@ -18,7 +18,6 @@ class HG.AddChangeStep extends HG.EditOperationStep
 
     # get external modules
     workflowWindow = @_hgInstance.workflowWindow
-    @_areasOnMap = @_hgInstance.areasOnMap
 
 
     ### SETUP OPERATION ###
@@ -67,5 +66,4 @@ class HG.AddChangeStep extends HG.EditOperationStep
     @_hiventBox.destroy()
 
     # TODO: untreat all areas that have ever been treated
-
-    @_areasOnMap.finishAreaEdit()
+    @_hgInstance.areaController.finishAreaEdit()
