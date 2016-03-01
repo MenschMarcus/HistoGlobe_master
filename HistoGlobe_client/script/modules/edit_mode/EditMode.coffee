@@ -23,9 +23,15 @@ class HG.EditMode
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @addCallback 'onAddArea'
+    @addCallback 'onEnableMultiSelection'
+    @addCallback 'onDisableMultiSelection'
+    @addCallback 'onStartAreaEdit'
+    @addCallback 'onFinishAreaEdit'
+
+    @addCallback 'onCreateArea'
     @addCallback 'onUpdateAreaGeommetry'
     @addCallback 'onUpdateAreaName'
+    @addCallback 'onUpdateAreaStatus'
     @addCallback 'onRemoveArea'
 
     @addCallback 'onFocusArea'
@@ -152,6 +158,17 @@ class HG.EditMode
       @_editButton.onLeave @, () ->
         @_cleanupEditMode()
     )
+
+
+  # ============================================================================
+  # PROBLEM: all views (OperationStep) of Edit Mode would like to talk to the
+  # AreaController, but they can not, because the AreaController on creation
+  # can not know that these view classes will ever exist
+  # SOLLUTION: make them callbacks of the EditMode and divert callback calls
+  # from the view to the EditMode
+  # TODO: is there a nicer solution for that problem?
+  notifyEditMode: (callbackName, parameters...) ->
+    @notifyAll callbackName, parameters...
 
 
   ##############################################################################
