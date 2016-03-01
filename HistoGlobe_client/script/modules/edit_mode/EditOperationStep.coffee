@@ -22,6 +22,16 @@ class HG.EditOperationStep
 
 
   # ============================================================================
+  # simple interface for each of the steps to divert their notification callbacks
+  # to the EditMode, so that it can notify all its listeners
+  # => makes EditMode pretty much equivalent to all its subclasses in terms
+  # of callbacks and notifications to the outside
+  # usage: just like with @notifyAll 'onSomething', parameters...
+  #                   ->  @notifyEditMode 'onSomething', parameters...
+  notifyEditMode: (callbackName, parameters...) ->
+    @_hgInstance.editMode.notifyEditMode callbackName, parameters...
+
+  # ============================================================================
   # finish method can be intervoked both by clicking next button
   # in the workflow window and by the operation itself
   # (e.g. if last area successfully named)

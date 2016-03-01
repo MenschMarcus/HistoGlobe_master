@@ -4,7 +4,7 @@ window.HG ?= {}
 # Step 4 in Edit Operation Workflow: Add change to a Hivent
 # ==============================================================================
 
-class HG.AddChangeStep extends HG.EditOperationStep
+class HG.EditOperationStep.AddChange extends HG.EditOperationStep
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
@@ -65,5 +65,4 @@ class HG.AddChangeStep extends HG.EditOperationStep
 
     @_hiventBox.destroy()
 
-    # TODO: untreat all areas that have ever been treated
-    @_hgInstance.areaController.finishAreaEdit()
+    @notifyEditMode 'onFinishAreaEdit'
