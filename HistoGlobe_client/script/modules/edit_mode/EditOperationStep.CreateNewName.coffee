@@ -23,7 +23,6 @@ class HG.CreateNewNameStep extends HG.EditOperationStep
 
     # get external modules
     @_workflowWindow = @_hgInstance.workflowWindow
-    @_areasOnMap = @_hgInstance.areasOnMap
 
     ### SETUP OPERATION ###
     # nothing to do here ?!?
@@ -47,7 +46,7 @@ class HG.CreateNewNameStep extends HG.EditOperationStep
           currArea.setLabelPosition pos
           currArea.treat()
           @_stepData.outData.namedAreas[@_areaIdx] = currArea
-          @_areasOnMap.updateArea currArea
+          @_hgInstance.areaController.updateArea currArea
 
           # cleanup
           @_newNameTool.destroy()
