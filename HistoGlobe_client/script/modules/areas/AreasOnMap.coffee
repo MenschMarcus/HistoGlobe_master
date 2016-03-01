@@ -20,9 +20,9 @@ class HG.AreasOnMap
     @addCallback 'onDeselectArea'
 
     # init variables
-    @_focusMode = yes         # can areas be focused (onHover)?
-    @_numSelections = 1       # 1 = single-selection mode, 2..n = multiple-selection mode (maximum number of selections)
-    @_selectedAreas = []      # for multiple-selection mode: save array of selected areas [{id, target, area}]
+    @_focusMode = on          # can areas be focused (onHover)?
+    @_maxSelections = 1       # 1 = single-selection mode, 2..n = multi-selection mode (maximum number of selections)
+    @_selectedAreas = []      # for multi-selection mode: save array of selected areas [{id, target, area}]
                               # in single-selection mode this array has only one object -> the 1 selected area
   # ============================================================================
   hgInit: (@_hgInstance) ->
@@ -53,27 +53,27 @@ class HG.AreasOnMap
   # direct commands from edit operation steps
 
   # ----------------------------------------------------------------------------
-  # switch to multiple-selection mode
+  # switch to multi-selection mode
   startAreaSelection: (num) ->
-    @_numSelections = num     # can receive a number (1, 2, 3, ... , MAX_NUM)
+    @_maxSelections = num     # can receive a number (1, 2, 3, ... , MAX_NUM)
 
   # ----------------------------------------------------------------------------
   # switch to single-selection mode
   finishAreaSelection: () ->
-    @_numSelections = 1       # 1 = single selection
+    @_maxSelections = 1       # 1 = single selection
 
   # ----------------------------------------------------------------------------
   # switch to focus mode
   # = areas are highlighted on hover and can be selected
   startAreaEdit: () ->
-    @_focusMode = no
+    @_focusMode = off
     @_colorArea area for area in @_selectedAreas
 
   # ----------------------------------------------------------------------------
   # switch to no-focus mode
   # = areas are not highlighted and can not be selected
   finishAreaEdit: () ->
-    @_focusMode = yes
+    @_focusMode = on
     @_colorArea area for area in @_selectedAreas
 
   # ----------------------------------------------------------------------------
@@ -103,7 +103,7 @@ class HG.AreasOnMap
   getAreas: () ->
     areas = []
     @_map.eachLayer (l) ->    # push all areas
-      areas.push l if l.hgArea? and not (l instanceof L.Label)
+      areas.push l.hgArea if l.hgArea? and not (l instanceof L.Label)
     areas
 
 
@@ -211,10 +211,9 @@ class HG.AreasOnMap
 
   # ============================================================================
   _onFocus: (evt) =>
-    if @_focusMode is on
-      area = evt.target.hgArea
-      area.focus()
-      @_colorArea area
+    area = evt.target.hgArea
+    area.focus()
+    @_colorArea area
 
   # ============================================================================
   _onUnfocus: (evt) =>
@@ -224,23 +223,30 @@ class HG.AreasOnMap
 
   # ============================================================================
   _onClick: (evt) =>
-    if @_focusMode is on
-      area = evt.target.hgArea
+    area = evt.target.hgArea
+
+    # single-selection mode
+    if @_maxSelections is 1
 
       # area is selected => deselect
       if area.isSelected()
         @_deselect area
 
-      # area is deselected => select
+      # area is deselected => deselect selected area(s) + select this one
       else
-        # single-selection mode: only one area can be activated it and deactivate currently active area
-        @_deselect @_selectedAreas[0] if @_numSelections is 1
-        # multiple-selection mode: just select another one -> if there is still space for one more
-        @_select area if @_selectedAreas.length < @_numSelections
+        @_deselect area for area in @_selectedAreas
+        @_select area
 
-      # bug: after clicking, it is assumed to be still focused
-      # fix: unfocus afterwards
-      @_onUnfocus evt
+    # multi-selection mode
+    else
+
+      # if maximum number of selections not reached => add it
+      if @_selectedAreas.length < @_maxSelections
+        @_select area
+
+    # bug: after clicking, it is assumed to be still focused
+    # fix: unfocus afterwards
+    @_onUnfocus evt
 
   # ============================================================================
   _select: (area) =>
@@ -266,14 +272,9 @@ class HG.AreasOnMap
       @notifyAll 'onDeselectArea', area
 
   # ============================================================================
-  _clearSelectedAreas: () ->
-    for area in @_selectedAreas    # deactivate all areas from multiple selection mode
-      area.deselect()
-      @_colorArea area
-    @_selectedAreas = []           # => no area selected. TODO: Is that right?
-
-  # ============================================================================
   # one function does all the coloring depending on the state of the area
+  # this was SO hard to come up with. Please no major changes
+  # -> it will be a pain in the ***
   _colorArea: (area) =>
     # decision tree:  focusMode?
     #               1/          \0
@@ -281,11 +282,13 @@ class HG.AreasOnMap
     #        1/     \0          1/     \0
     #   focused?  focused?  treated?   |
     #    1/  \0    1/  \0    1/  \0    |
+    #                          focused?
+    #                          1/   \0
 
     if @_focusMode
       if area.isSelected()
         if area.isFocused()
-          # focus mode -> selected + focussed (really active)
+          # focus mode -> selected + focussed (hover active)
           @_animate area.geomLayer, {
             'fill':         HGConfig.color_highlight.val
             'fill-opacity': HGConfig.area_full_opacity.val
@@ -298,7 +301,7 @@ class HG.AreasOnMap
           }, HGConfig.animation_time.val
       else
         if area.isFocused()
-          # focus mode -> not selected + focussed (highlight)
+          # focus mode -> not selected + focussed (hover)
           @_animate area.geomLayer, {
             'fill':         HGConfig.color_highlight.val
             'fill-opacity': HGConfig.area_half_opacity.val
@@ -314,15 +317,22 @@ class HG.AreasOnMap
         if area.isTreated()
           # edit mode -> selected + treated (done)
           @_animate area.geomLayer, {
-            'fill':         HGConfig.color_bg_medium.val
+            'fill':         HGConfig.color_active.val
             'fill-opacity': HGConfig.area_full_opacity.val
           }, HGConfig.animation_time.val
         else
-          # edit mode -> selected + not treated (to be treated)
-          @_animate area.geomLayer, {
-            'fill':         HGConfig.color_bg_medium.val
-            'fill-opacity': HGConfig.area_half_opacity.val
-          }, HGConfig.animation_time.val
+          # edit mode -> selected + not treated + focussed (hover -> currently treating)
+          if area.isFocused()
+            @_animate area.geomLayer, {
+              'fill':         HGConfig.color_highlight.val
+              'fill-opacity': HGConfig.area_full_opacity.val
+            }, HGConfig.animation_time.val
+          # edit mode -> selected + not treated + not focussed (to be treated)
+          else
+            @_animate area.geomLayer, {
+              'fill':         HGConfig.color_active.val
+              'fill-opacity': HGConfig.area_half_opacity.val
+            }, HGConfig.animation_time.val
       else
         # edit mode -> not selected (normal)
         @_animate area.geomLayer, {
