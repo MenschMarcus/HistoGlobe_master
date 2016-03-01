@@ -32,21 +32,25 @@ class HG.SelectOldAreasStep extends HG.EditOperationStep
     @_areasOnMap.startAreaSelection @_stepData.number.max
 
     ## for forward step
-    if isForward
 
-      # add already selected areas to list
-      @_initArea = null
-      if @_areasOnMap.getSelectedAreas()[0]
-        @_initArea = @_areasOnMap.getSelectedAreas()[0]
-        @_stepData.outData.selectedAreas.push @_initArea
+    # add already selected areas to list
+    # TODO: make that a little bit nicer
+    # function is very similar to onSelectArea
+    @_initArea = null
+    if @_areasOnMap.getSelectedAreas()[0]
+      @_initArea = @_areasOnMap.getSelectedAreas()[0]
+      @_stepData.outData.selectedAreas.push @_initArea
+      # is step complete?
+      if @_stepData.outData.selectedAreas.length >= @_stepData.number.min
+        @_workflowWindow.stepComplete()
 
-    ## for backward step
-    else
+    # ## for backward step
+    # else
 
-      # put all previously selected areas back on the map
-      for area in @_stepData.outData.selectedAreas
-        area.select()
-        @_areasOnMap.updateArea area
+    #   # put all previously selected areas back on the map
+    #   for area in @_stepData.outData.selectedAreas
+    #     area.select()
+    #     @_areasOnMap.updateArea area
 
 
     ### REACT ON USER INPUT ###

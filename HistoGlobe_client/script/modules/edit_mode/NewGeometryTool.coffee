@@ -15,7 +15,7 @@ class HG.NewGeometryTool
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance) ->
+  constructor: (@_hgInstance, firstIteration) ->
 
     # handle callbacks
     HG.mixin @, HG.CallbackContainer
@@ -168,19 +168,20 @@ class HG.NewGeometryTool
 
     @_buttonArea.addSpacer()
 
-    @_clipGeomBtn = new HG.Button @_hgInstance,
-      'clipGeom', null,
-        [
-          {
-            'id':             'normal'
-            'tooltip':        "Clip Selected Areas"
-            'iconOwn':        iconPath + 'polygon_cut.svg'
-            'callback':       'onClick'
-          }
-        ]
-    @_buttonArea.addButton @_clipGeomBtn, 'new-geom-finish-group'
+    # TODO: is that button really necessary?
+    # @_clipGeomBtn = new HG.Button @_hgInstance,
+    #   'clipGeom', null,
+    #     [
+    #       {
+    #         'id':             'normal'
+    #         'tooltip':        "Clip Selected Areas"
+    #         'iconOwn':        iconPath + 'polygon_cut.svg'
+    #         'callback':       'onClick'
+    #       }
+    #     ]
+    # @_buttonArea.addButton @_clipGeomBtn, 'new-geom-finish-group'
 
-    @_buttonArea.addSpacer()
+    # @_buttonArea.addSpacer()
 
     @_submitGeomBtn = new HG.Button @_hgInstance,
       'submitGeom', null,
@@ -198,8 +199,13 @@ class HG.NewGeometryTool
     # init configuration: only add buttons are available
     @_editGeomBtn.disable()
     @_deleteGeomBtn.disable()
-    @_clipGeomBtn.disable()
+    # @_clipGeomBtn.disable()
     @_submitGeomBtn.disable()
+
+    # TODO: implement functionality for import and reuse buttons
+    # until then -> disable forever
+    @_importGeomBtn.disable()
+    @_reuseGeomBtn.disable()
 
 
     ### INTERACTION ###
@@ -217,6 +223,7 @@ class HG.NewGeometryTool
       # -> only works if they are (poly)polygons, not for polylines or points
 
       @notifyAll 'onSubmit', @_geometryOperator.merge geometries
+
 
   # ============================================================================
   destroy: () ->

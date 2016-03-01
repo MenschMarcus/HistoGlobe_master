@@ -24,7 +24,6 @@ class HG.CreateNewGeometryStep extends HG.EditOperationStep
 
     ### SETUP OPERATION ###
 
-    # set AreasOnMap in area edit mode (for all operations)
     @_areasOnMap.startAreaEdit()
 
     ## unification operation
@@ -34,8 +33,8 @@ class HG.CreateNewGeometryStep extends HG.EditOperationStep
       oldGeometries = []
       oldIds = []
       for area in @_stepData.inData.selectedAreas
-        oldIds.push area.geomLayer.hgArea.getId()
-        oldGeometries.push area.geomLayer.hgArea.getGeometry()
+        oldIds.push area.getId()
+        oldGeometries.push area.getGeometry()
         @_areasOnMap.removeArea area
 
       # unify old areas to new area
@@ -99,39 +98,80 @@ class HG.CreateNewGeometryStep extends HG.EditOperationStep
 
         # set up NewGeometryTool to define geometry of an area interactively
         @_newGeometryTool = new HG.NewGeometryTool @_hgInstance
-        @_newGeometryTool.onSubmit @, (newGeometry) =>
+        @_newGeometryTool.onSubmit @, (inGeometry) =>
 
           ## create new country operation
           if @_stepData.operationCommand is 'ADD'
+
+            newGeometry = inGeometry
 
             # clip new geometry to existing geomtries
             existingAreas = @_areasOnMap.getAreas()
             # check for intersection with each country
             # TODO: make more efficient later
             for existingArea in existingAreas
-              existingGeometry = existingArea.hgArea.getGeometry()
+              existingGeometry = existingArea.getGeometry()
               intersectionGeometry = @_geometryOperator.intersection newGeometry, existingGeometry
+
+              # if new geometry intersects with an existing geometry
+              # clip the existing geometry to the new geometry and update its area
               if intersectionGeometry.isValid()
-                clippedGeometry = @_geometryOperator.difference existingGeometry, newGeometry
-                # console.log "draw area 1:      ", newGeometry
-                # console.log "original area 2:  ", existingGeometry
-                # console.log "intersection:     ", intersectionGeometry
-                # console.log "difference 2-int: ", clippedGeometry
-                # only change, if area actually changed
-                existingArea.hgArea.setGeometry clippedGeometry
-                @_areasOnMap.updateArea existingArea.hgArea
+                clipGeometry = @_geometryOperator.difference existingGeometry, newGeometry
+                # if something is still left, update it
+                if updatedGeometry.isValid()
+                  existingArea.setGeometry clipGeometry
+                  @_areasOnMap.updateArea existingArea
+                # if nothing is left, delete it
+                else
+                  @_areasOnMap.deleteArea existingArea
+
+            # insert new geometry into new area and add to HistoGlobe
+            newId = 'NEW_AREA' # TODO: refine this id in next step
+            newArea = new HG.Area newId, newGeometry
+            newArea.select()
+            newArea.treat()
+            @_areasOnMap.addArea newArea
+            @_stepData.outData.createdAreas.push newArea
+
+
+          ## separate geometries operation
+          else if @_stepData.operationCommand is 'SEP'
+
+            existingArea = @_stepData.inData.selectedAreas[0]
+
+            # is there a remaining area left that can be used?
+            # -> i.e. has the existing area ever been changed?
+            # -> i.e. is there at least one created area based on this existing area?
+            # if @_stepData.outData.createdAreas.length > 0
+
+            existingGeometry = existingArea.getGeometry()
+            clipGeometry = inGeometry
+
+            # clip incoming geometry (= clipGeometry) to selected geometry
+            # -> create new area
+            newGeometry = @_geometryOperator.intersection existingGeometry, clipGeometry
+            newId = 'SEP_AREA_' + @_stepData.outData.createdAreas.length
+            newArea = new HG.Area newId, newGeometry
+            newArea.select()
+            newArea.treat()
+            @_areasOnMap.addArea newArea
+            @_stepData.outData.createdAreas.push newArea
+
+            # update existing geometry
+            updatedGeometry = @_geometryOperator.difference existingGeometry, clipGeometry
+            # if something is still left, update it
+            if updatedGeometry.isValid()
+              existingArea.setGeometry updatedGeometry
+              existingArea.untreat()
+              @_areasOnMap.updateArea existingArea
+            # if nothing is left, delete it
+            else
+              @_areasOnMap.deleteArea existingArea
+
 
           # cleanup
           @_newGeometryTool.destroy()
           delete @_newGeometryTool  # TODO: necessary?
-
-          # save new area data
-          id = 'NEW_AREA' # TODO: refine this id in next step
-          newArea = new HG.Area id, newGeometry
-          newArea.select()
-          newArea.treat()
-          @_stepData.outData.createdAreas.push newArea
-          @_areasOnMap.addArea newArea
 
           # go to next area if limit not reached
           if @_stepData.outData.createdAreas.length < @_stepData.number.max
@@ -159,7 +199,3 @@ class HG.CreateNewGeometryStep extends HG.EditOperationStep
       @_newGeometryTool.destroy()
       delete @_newGeometryTool
 
-    # TODO: only do on backwards change!
-    # @_areasOnMap.finishAreaEdit()
-
-    # if @_stepData.userInput

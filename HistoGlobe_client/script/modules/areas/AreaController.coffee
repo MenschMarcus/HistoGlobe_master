@@ -28,7 +28,6 @@ class HG.AreaController
 
     @_areas = []          # set of all HG.Area's (id, geometry, name)
 
-
     @_hgInstance.onAllModulesLoaded @, () =>
       geometryReader = new HG.GeometryReader
 

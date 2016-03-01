@@ -65,6 +65,7 @@ class HG.AddChangeStep extends HG.EditOperationStep
   _cleanup: () ->
 
     @_hiventBox.destroy()
-    @_areasOnMap.finishAreaEdit()
 
-    ### CLEANUP OPERATION ###
+    # TODO: untreat all areas that have ever been treated
+
+    @_areasOnMap.finishAreaEdit()

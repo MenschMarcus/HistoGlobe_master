@@ -103,9 +103,10 @@ class HG.EditOperation
 
     # listen to abort button
     @_hgInstance.buttons.abortOperation.onAbort @, () =>
-      # abort = back to the very beginning
-      while @_operation.idx > -1
-        @_makeStep -1, yes  # yes = abort = skip all user input steps
+      # do it the hard way
+      @_step.finish()
+      @_workflowWindow.destroy()
+      @notifyAll 'onFinish'
 
 
     ### LET'S GO ###
@@ -141,6 +142,14 @@ class HG.EditOperation
     else # not isForward = backward
       newStep.outData = oldStep.inData
 
+    # change workflow window
+    if newStep.userInput
+      @_workflowWindow.makeTransition direction
+      if isForward
+        @_workflowWindow.stepIncomplete()
+      else
+        @_workflowWindow.stepComplete()
+
     # setup new step
     @_operation.idx += direction
     if @_operation.idx is 0
@@ -151,14 +160,6 @@ class HG.EditOperation
       @_step = new HG.CreateNewNameStep @_hgInstance, newStep
     else if @_operation.idx is 3
       @_step = new HG.AddChangeStep @_hgInstance, newStep, @_getOperationDescription()
-
-    # change workflow window
-    if newStep.userInput
-      @_workflowWindow.makeTransition direction
-      if isForward
-        @_workflowWindow.stepIncomplete()
-      else
-        @_workflowWindow.stepComplete()
 
     # collect data if step is complete
     if newStep.userInput
