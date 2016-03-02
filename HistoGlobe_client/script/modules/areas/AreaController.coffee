@@ -14,6 +14,7 @@ class HG.AreaController
     HG.CallbackContainer.call @
 
     @addCallback 'onCreateArea'
+    @addCallback 'onCreateAreaName'
     @addCallback 'onUpdateAreaGeometry'
     @addCallback 'onUpdateAreaName'
     @addCallback 'onUpdateAreaStatus'
@@ -82,9 +83,9 @@ class HG.AreaController
           # error handling: ignore if area is already focused
           return if area.isFocused()
 
-          # edit mode: only unselected areas can be focused
+          # edit mode: only unselected areas in edit mode can be focused
           if @_areaEditMode is on
-            if not area.isSelected()
+            if (area.isInEdit()) and (not area.isSelected())
               area.focus()
               @notifyAll 'onUpdateAreaStatus', area
 
@@ -119,6 +120,8 @@ class HG.AreaController
 
             # area is selected => deselect
             if area.isSelected()
+              if area.getId() is "DEU"
+                console.log "A", area.isSelected()
               area.deselect()
               @notifyAll 'onDeselectArea', area
               @_selectedAreas = []
@@ -128,6 +131,8 @@ class HG.AreaController
 
               # deselect currently selected area
               if @_selectedAreas.length is 1
+                if area.getId() is "DEU"
+                  console.log "B", area.isSelected()
                 @_selectedAreas[0].deselect()
                 @notifyAll 'onDeselectArea', @_selectedAreas[0]
                 # no update of @_selectedAreas, because it will happen afterwards
@@ -143,6 +148,8 @@ class HG.AreaController
 
             # area is selected => deselect
             if area.isSelected()
+              if area.getId() is "DEU"
+                console.log "C", area.isSelected()
               area.deselect()
               @notifyAll 'onDeselectArea', area
               @_selectedAreas.splice (@_selectedAreas.indexOf area), 1
@@ -167,11 +174,7 @@ class HG.AreaController
         if (num < 1) or (isNaN num)
           return console.error "There can not be less than 1 area selected"
 
-        # error handling: number must be larger than 1
-        # otherwise stay in single-selection mode
-        return if num is 0
-
-        # enable multi-selection mode
+        # set maximum number of selections
         @_maxSelections = num
 
         # if there has been an area already selected in single-selection mode
@@ -188,35 +191,36 @@ class HG.AreaController
         # -> except for the one specified by edit mode to be kept selected
 
         # manuel while loop, because selected areas shrinks while operating in it
-        idx = 0
-        len = @_selectedAreas.length
-        while idx < len
+        loopIdx = @_selectedAreas.length-1
+        while loopIdx >= 0
 
-          area = @_selectedAreas[idx]
+          area = @_selectedAreas[loopIdx]
 
           # special case: ignore area specified to be still active
           if area.getId() is selectedAreaId
-            len--
+            loopIdx--
             continue
 
           # normal case: deselect
+          if area.getId() is "DEU"
+            console.log "D", area.isSelected()
           area.deselect()
           # N.B. do not notify selectOldAreas step, because that would remove the areas from their internal array
           @notifyAllBut 'onDeselectArea', @_hgInstance.selectOldAreasStep, area
-          @_selectedAreas.splice idx, 1
+          @_selectedAreas.splice loopIdx, 1
 
-          len--
+          loopIdx--
 
 
       # ========================================================================
       # swap normal mode <-> edit mode
 
       @_hgInstance.editMode.onEnableAreaEditMode @, () ->
-        @_areaEditMode is on
+        @_areaEditMode = on
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onDisableAreaEditMode @, (selectedAreaId=null) ->
-        @_areaEditMode is off
+        @_areaEditMode = off
 
         # transform each edit area into a normal area and deselect it
         # -> except for the one specified by edit mode to be kept selected
@@ -234,6 +238,8 @@ class HG.AreaController
             @notifyAll 'onSelectArea', area
 
           # normal case: deselect
+          if area.getId() is "DEU"
+            console.log "E", area.isSelected()
           area.deselect()
 
           # anyway: new status => redraw
@@ -256,6 +262,7 @@ class HG.AreaController
         @_activeAreas.push newArea
         @notifyAll 'onCreateArea', newArea
 
+
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onUpdateAreaGeometry @, (id, geometry) ->
         area = @getArea id
@@ -266,6 +273,12 @@ class HG.AreaController
         area.setGeometry geometry
         @notifyAll 'onUpdateAreaGeometry', area
 
+        # TODO: better way to do this?
+        # adapt label position
+        area.resetRepresentativePoint()
+        @notifyAll 'onUpdateAreaName', area
+
+
       # ------------------------------------------------------------------------
       # name and position come always together from edit mode, so both properties
       # can exceptionally be treated in the same function
@@ -273,11 +286,51 @@ class HG.AreaController
         area = @getArea id
 
         # error handling: area has to be found
-        return if (not area) or (not name)
+        return if (not area)
+
+        hadNameBefore = area.getName()?
 
         area.setName name
+
+        # no name => delete it from the map
+        if name is null
+          area.resetRepresentativePoint()
+          @notifyAll 'onRemoveAreaName', area
+          return
+
+        # name given => update it (if it was there before) or create it new
         area.setRepresentativePoint position if position
-        @notifyAll 'onUpdateAreaName', area
+
+        if hadNameBefore
+          @notifyAll 'onUpdateAreaName', area
+        else # area had no name before
+          @notifyAll 'onCreateAreaName', area
+
+
+      # ------------------------------------------------------------------------
+      @_hgInstance.editMode.onStartEditArea @, (id) ->
+        area = @getArea id
+
+        # error handling: area has to be found
+        return if (not area)
+
+        area.inEdit yes
+        @notifyAll 'onUpdateAreaStatus', area
+        # no usage of @_selectedAreas array in edit mode, because all areas
+        # in edit mode are already in @_editAreas array
+
+      # ------------------------------------------------------------------------
+      @_hgInstance.editMode.onEndEditArea @, (id) ->
+        area = @getArea id
+
+        # error handling: area has to be found
+        return if (not area)
+
+        area.inEdit no
+        @notifyAll 'onUpdateAreaStatus', area
+        # no usage of @_selectedAreas array in edit mode, because all areas
+        # in edit mode are already in @_editAreas array
+
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onSelectArea @, (id) ->
@@ -291,6 +344,7 @@ class HG.AreaController
         # no usage of @_selectedAreas array in edit mode, because all areas
         # in edit mode are already in @_editAreas array
 
+
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onDeselectArea @, (id) ->
         area = @getArea id
@@ -298,10 +352,13 @@ class HG.AreaController
         # error handling: area has to be found
         return if (not area)
 
+        if area.getId() is "DEU"
+          console.log "F", area.isSelected()
         area.deselect()
         @notifyAll 'onDeselectArea', area
         # no usage of @_selectedAreas array in edit mode, because all areas
         # in edit mode are already in @_editAreas array
+
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onRemoveArea @, (id) ->
@@ -317,18 +374,6 @@ class HG.AreaController
         @_editAreas.splice idx, 1 if idx isnt -1
 
         @notifyAll 'onRemoveArea', area
-
-      # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onRemoveAreaName @, (id, name=null, position=null) ->
-        area = @getArea id
-
-        # error handling: area has to be found
-        return if (not area)
-
-        area.setName null
-        area.resetRepresentativePoint()
-        @notifyAll 'onRemoveAreaName', area
-
 
 
   # ============================================================================

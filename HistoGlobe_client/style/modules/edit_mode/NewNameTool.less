@@ -20,7 +20,13 @@
   background: none;
   font-size: 1.1em;
   text-align: center;
+  color: @color_bg_light;
 }
+#new-name-input:focus
+{
+  box-shadow: 0 0 @shadow_radius 3px @color_bg_light;
+}
+
 #new-name-wrapper:focus, #new-name-input:focus
 { /* prevent outline on active input element */
   outline: none;
