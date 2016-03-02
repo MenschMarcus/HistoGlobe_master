@@ -153,7 +153,7 @@ class HG.AreaController
         if @_singleSelectedArea?
           @_multiSelectedAreas.push @_singleSelectedArea
           # tell the SelectOldAreas step, so it can add it to its internal list
-          @notify 'onSelectArea', @_hgInstance.areasOnMap, @_singleSelectedArea
+          @notify 'onSelectArea', @_hgInstance.selectOldAreasStep, @_singleSelectedArea
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onDisableMultiSelection @, () ->
@@ -173,9 +173,14 @@ class HG.AreaController
       @_hgInstance.editMode.onStartAreaEdit @, () ->
         @_areaEditMode = on
 
+      # ------------------------------------------------------------------------
       @_hgInstance.editMode.onFinishAreaEdit @, () ->
         @_areaEditMode = off
-        area.untreat() for area in @_activeAreas
+        # cleanup all treated areas
+        for area in @_activeAreas
+          if area.isTreated()
+            area.untreat()
+            @notifyAll 'onUpdateAreaStatus', area
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onCreateArea @, (id, geometry, names, treated=no) ->
@@ -189,7 +194,7 @@ class HG.AreaController
           @notifyAll 'onCreateAreaGeometry', newArea
 
       # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onUpdateAreaGeommetry @, (id, geometry) ->
+      @_hgInstance.editMode.onUpdateAreaGeometry @, (id, geometry) ->
         area = @getArea id
         if area
           area.setGeometry geometry
