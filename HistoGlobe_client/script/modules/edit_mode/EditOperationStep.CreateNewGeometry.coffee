@@ -42,7 +42,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
       # TODO: give reasonable Area id!
       newId = "UNION"
       newId += ('_'+areaId) for areaId in oldIds
-      @notifyEditMode 'onCreateArea', newId, unifiedGeometry, null, yes
+      @notifyEditMode 'onCreateArea', newId, unifiedGeometry, null, no
       @_stepData.outData.createdAreas.push newId
 
     ## change name operation
@@ -113,7 +113,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
               if intersectionGeometry.isValid()
                 clipGeometry = @_geometryOperator.difference existingGeometry, newGeometry
                 # if something is still left, update it
-                if updatedGeometry.isValid()
+                if clipGeometry.isValid()
                   @notifyEditMode 'onUpdateAreaGeometry', existingAreaId, clipGeometry
                 # if nothing is left, delete it
                 else
@@ -122,7 +122,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
             # insert new geometry into new area and add to HistoGlobe
             newId = 'NEW_AREA' # TODO: refine this id in next step
             @notifyEditMode 'onCreateArea', newId, newGeometry, null, yes
-            @_stepData.outData.createdAreas.push newArea
+            @_stepData.outData.createdAreas.push newId
 
 
           ## separate geometries operation
@@ -143,7 +143,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
             newGeometry = @_geometryOperator.intersection existingGeometry, clipGeometry
             newId = 'SEP_AREA_' + @_stepData.outData.createdAreas.length
             @notifyEditMode 'onCreateArea', newId, newGeometry, null, yes
-            @_stepData.outData.createdAreas.push newArea
+            @_stepData.outData.createdAreas.push newId
 
             # update existing geometry
             updatedGeometry = @_geometryOperator.difference existingGeometry, clipGeometry
