@@ -34,20 +34,18 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
       # for each new area
       @_makeNewName = () =>
 
-        # get current area
-        currAreaId = @_stepData.inData.createdAreas[@_areaIdx]
-        currArea = @_areaController.getArea currAreaId
+        currentArea = @_areaController.getArea @_stepData.inData.createdAreas[@_areaIdx]
 
         # set up NewNameTool to set name and position of area interactively
-        @_newNameTool = new HG.NewNameTool @_hgInstance, currArea.getLabelPosition(yes)
+        @_newNameTool = new HG.NewNameTool @_hgInstance, currentArea.getRepresentativePoint()
         @_newNameTool.onSubmit @, (name, position) =>
 
           # save the named area
-          currAreaId = @_stepData.inData.createdAreas[@_areaIdx]
+          currentAreaId = @_stepData.inData.createdAreas[@_areaIdx]
+          @_stepData.outData.namedAreas[@_areaIdx] = currentAreaId
           # TODO: better name handling
-          @notifyEditMode 'onUpdateAreaName', currAreaId, {'commonName': name}, position
-          @notifyEditMode 'onUpdateAreaStatus', currAreaId, yes # treated
-          @_stepData.outData.namedAreas[@_areaIdx] = currAreaId
+          @notifyEditMode 'onUpdateAreaName', currentAreaId, name, position
+          @notifyEditMode 'onSelectArea', currentAreaId
 
           # cleanup
           @_newNameTool.destroy()

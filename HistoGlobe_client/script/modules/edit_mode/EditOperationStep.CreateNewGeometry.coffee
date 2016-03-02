@@ -24,7 +24,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
     ### SETUP OPERATION ###
 
-    @notifyEditMode 'onStartAreaEdit'
+    @notifyEditMode 'onEnableAreaEditMode'
 
     ## unification operation
     if @_stepData.operationCommand is 'UNI'
@@ -39,19 +39,18 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
       # unify old areas to new area
       unifiedGeometry = @_geometryOperator.union oldGeometries
-      # TODO: give reasonable Area id!
+      # TODO: give reasonable Area id in next step
       newId = "UNION"
       newId += ('_'+areaId) for areaId in oldIds
-      @notifyEditMode 'onCreateArea', newId, unifiedGeometry, null, no
+      @notifyEditMode 'onCreateArea', newId, unifiedGeometry, null
       @_stepData.outData.createdAreas.push newId
 
     ## change name operation
     else if @_stepData.operationCommand is 'CHN'
 
-      # remove the name from the area, but leave its geometry untouched
+      # remove the name from the area
       id = @_stepData.inData.selectedAreas[0]
-      @notifyEditMode 'onUpdateAreaName', id, null
-      @notifyEditMode 'onUpdateAreaStatus', id, yes
+      @notifyEditMode 'onRemoveAreaName', id
       @_stepData.outData.createdAreas.push id
 
 
@@ -121,7 +120,8 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
             # insert new geometry into new area and add to HistoGlobe
             newId = 'NEW_AREA' # TODO: refine this id in next step
-            @notifyEditMode 'onCreateArea', newId, newGeometry, null, yes
+            @notifyEditMode 'onCreateArea', newId, newGeometry, null
+            @notifyEditMode 'onSelectArea', newId
             @_stepData.outData.createdAreas.push newId
 
 
@@ -142,7 +142,8 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
             # -> create new area
             newGeometry = @_geometryOperator.intersection existingGeometry, clipGeometry
             newId = 'SEP_AREA_' + @_stepData.outData.createdAreas.length
-            @notifyEditMode 'onCreateArea', newId, newGeometry, null, yes
+            @notifyEditMode 'onCreateArea', newId, newGeometry, null
+            @notifyEditMode 'onSelectArea', newId
             @_stepData.outData.createdAreas.push newId
 
             # update existing geometry
@@ -150,7 +151,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
             # if something is still left, update it
             if updatedGeometry.isValid()
               @notifyEditMode 'onUpdateAreaGeometry', existingAreaId, updatedGeometry
-              @notifyEditMode 'onUpdateAreaStatus', existingAreaId, no   # set as untreated
+              @notifyEditMode 'onDeselectArea', existingAreaId
             # if nothing is left, delete it
             else
               @notifyEditMode 'onRemoveArea', existingAreaId

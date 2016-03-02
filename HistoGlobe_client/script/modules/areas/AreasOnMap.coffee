@@ -39,18 +39,11 @@ class HG.AreasOnMap
           @_addGeometry area
           @_addName area
 
-        controller.onCreateAreaGeometry @, (area) =>
-          @_addGeometry area
-
-        controller.onCreateAreaName @, (area) =>
-          @_addName area
-
         controller.onUpdateAreaGeometry @, (area) =>
           @_updateGeometry area
 
         controller.onUpdateAreaName @, (area) =>
-          @_removeName area
-          @_addName area
+          @_updateName area
 
         controller.onUpdateAreaStatus @, (area) =>
           @_updateProperties area
@@ -71,10 +64,8 @@ class HG.AreasOnMap
           @_removeName area
 
 
-
       else
-        console.error "Unable to show areas on Map: AreaController module not detected in HistoGlobe instance!"
-
+        console.error "Unable to show areas on the map: AreaController module not detected in HistoGlobe instance!"
 
 
   ##############################################################################
@@ -124,8 +115,8 @@ class HG.AreasOnMap
     # create label with name and position
     area.nameLayer = new L.Label()
     # TODO: set back @_addLinebreaks
-    area.nameLayer.setContent area.getNames().commonName
-    area.nameLayer.setLatLng area.getLabelPosition yes  # yes = give me the LatLng corrdinate object instead of the [lng, lat] array to correctly place the label
+    area.nameLayer.setContent area.getName()
+    area.nameLayer.setLatLng area.getRepresentativePoint()
 
     # create double-link: leaflet label knows HG area and HG area knows leaflet label
     area.nameLayer.hgArea = area
@@ -133,8 +124,8 @@ class HG.AreasOnMap
 
     # put text in center of label
     area.nameLayer.options.offset = [
-      -area.nameLayer._container.offsetWidth/2,
-      -area.nameLayer._container.offsetHeight/2
+      -(area.nameLayer._container.offsetWidth/2),
+      -(area.nameLayer._container.offsetHeight/2)
     ]
     area.nameLayer._updatePosition()
 
@@ -147,6 +138,20 @@ class HG.AreasOnMap
     area.geomLayer.setLatLngs area.getGeometry().latLng()
     # TODO: necessary?
     area.geomLayer.hgArea = area
+
+  # ----------------------------------------------------------------------------
+  _updateName: (area) ->
+    area.nameLayer.setContent area.getName()
+    area.nameLayer.setLatLng area.getRepresentativePoint()
+    # TODO: necessary?
+    area.nameLayer.hgArea = area
+
+    # recenter text
+    area.nameLayer.options.offset = [
+      -(area.nameLayer._container.offsetWidth/2),
+      -(area.nameLayer._container.offsetHeight/2)
+    ]
+    area.nameLayer._updatePosition()
 
   # ----------------------------------------------------------------------------
   _updateProperties: (area) ->
@@ -167,7 +172,6 @@ class HG.AreasOnMap
     # remove double-link: leaflet layer from area and area from leaflet layer
     @_map.removeLayer area.geomLayer
     area.geomLayer = null
-
 
   # ----------------------------------------------------------------------------
   _removeName: (area) ->

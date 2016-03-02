@@ -4,10 +4,8 @@ window.HG ?= {}
 # MODEL class
 # contains data about each Area in the system
 # geom = geojson object
-# names = {
-#   'commonName': string,
-#   'pos':        {'lat': float, 'lng': float}
-# }
+# name = string,
+# representativePoint = {'lat': float, 'lng': float}
 
 class HG.Area
 
@@ -16,50 +14,52 @@ class HG.Area
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_id, @_geometry, @_names={}) ->
+  constructor: (
+        @_id,
+        @_geometry,
+        @_name = null,
+        @_representativePoint = {'lat': null, 'lng': null}
+      ) ->
+
     @_selected = no     # is area currently selected?
     @_focused = no      # is area currently in focus (hovered)?
-    @_treated = no      # for edit mode: area has already been treated?
+    @_inEdit = no       # is area in edit mode?
 
-    @resetLabelPosition()
+    @resetRepresentativePoint()
 
-
-  # ============================================================================
-  getId: () ->                  @_id
-
-  # ----------------------------------------------------------------------------
-  setGeometry: (geom) ->        @_geometry = geom
-  setGeom: (geom) ->            @_geometry = geom
-  getGeometry: () ->            @_geometry
-  getGeom: () ->                @_geometry
-
-  # ----------------------------------------------------------------------------
-  resetLabelPosition: () ->     @_labelPosition = @_geometry.getCenter(yes)
-  setLabelPosition: (pos) ->    @_labelPosition = pos
-  getLabelPosition: () ->       @_labelPosition
-
-  # ----------------------------------------------------------------------------
-  setNames: (names) ->          @_names = names
-  getNames: () ->               @_names
-  getCommonName: () ->          @_names.commonName
-
-  # ----------------------------------------------------------------------------
-  getStyle: () ->               @_getStyle()
 
   # ============================================================================
-  deselect: () ->               @_selected = no
-  select: () ->                 @_selected = yes
-  isSelected: () ->             @_selected
+  getId: () ->                      @_id
 
   # ----------------------------------------------------------------------------
-  unfocus: () ->                @_focused = no
-  focus: () ->                  @_focused = yes
-  isFocused: () ->              @_focused
+  setGeometry: (geom) ->            @_geometry = geom
+  getGeometry: () ->                @_geometry
 
   # ----------------------------------------------------------------------------
-  treat: () ->                  @_treated = yes
-  untreat: () ->                @_treated = no
-  isTreated: () ->              @_treated
+  setName: (name) ->                @_name = name
+  getName: () ->                    @_name
+
+  # ----------------------------------------------------------------------------
+  resetRepresentativePoint: () ->   @_representativePoint = @_geometry.getCenter yes
+  setRepresentativePoint: (pos) ->  @_representativePoint = pos
+  getRepresentativePoint: () ->     @_representativePoint
+
+  # ----------------------------------------------------------------------------
+  getStyle: () ->                   @_getStyle()
+
+  # ============================================================================
+  deselect: () ->                   @_selected = no
+  select: () ->                     @_selected = yes
+  isSelected: () ->                 @_selected
+
+  # ----------------------------------------------------------------------------
+  unfocus: () ->                    @_focused = no
+  focus: () ->                      @_focused = yes
+  isFocused: () ->                  @_focused
+
+  # ----------------------------------------------------------------------------
+  inEdit: (inEdit = no) ->          @_inEdit = inEdit
+  isInEdit: () ->                   @_inEdit
 
 
   ##############################################################################
@@ -94,37 +94,57 @@ class HG.Area
 
     ## change certain style properties based on the area status
 
-    # decision tree:        ___ selected? ___
-    #                     1/                 \0
-    #                treated?                |
-    #             1/         \0              |
-    #             |       focused?        focused?
-    #             |      1/      \0      1/      \0
-    #            (T)   (UTF)    (UT)    (NF)     (N)
+    # decision tree:        _________ inEdit? _________
+    #                     1/                           \0
+    #                 selected?                      selected?
+    #             1/           \0                1/            \0
+    #             |         focused?         focused?        focused?
+    #             |       1/      \0       1/      \0      1/      \0
+    #             x       x       x        x       x       x       x
+    #           (ES)    (EF)     (E)     (NSF)   (NS)    (NF)     (N)
 
-    if @_selected
 
-      if @_treated
-        # (T)
+    if @_inEdit
+
+      if @_selected
+        # (ES)  in edit mode + selected + can not be focused => full active
         style.areaColor = HGConfig.color_active.val
 
-      else  # not treated
+      else # not selected
+
         if @_focused
-          # (UTF)
+          # (EF)  in edit mode + unselected + focused => full highlight
           style.areaColor = HGConfig.color_highlight.val
 
         else # not focused
-          # (UT)
+          # (E)  in edit mode + unselected + not focused => half active
           style.areaColor = HGConfig.color_active.val
           style.areaOpacity = HGConfig.area_half_opacity.val
 
-    else  # not selected
-      if @_focused
-        # (NF)
-        style.areaColor = HGConfig.color_highlight.val
-        style.areaOpacity = HGConfig.area_half_opacity.val
+    else # not in edit
 
-      # else not focused
-        # (N) => initial configuration => no change
+      if @_selected
+
+        if @_focused
+          # (NSF) normal area + selected + focused => full highlight
+          style.areaColor = HGConfig.color_highlight.val
+
+        else # not focused
+          # (NS) normal area + selected + not focused => half active
+          style.areaColor = HGConfig.color_active.val
+          style.areaOpacity = HGConfig.area_half_opacity.val
+
+      else # not selected
+
+        if @_focused
+          # (NF) normal area + unselected + focused => half highlight
+          style.areaColor = HGConfig.color_highlight.val
+          style.areaOpacity = HGConfig.area_half_opacity.val
+
+
+        # else not focused
+          # (N) normal area + unselected + not focused => initial configuration
+          # => no change
+
 
     return style
