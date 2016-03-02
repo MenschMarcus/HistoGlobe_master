@@ -26,6 +26,18 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
     @notifyEditMode 'onEnableAreaEditMode'
 
+    # some operations work directly on selected areas from first step
+    # PROBLEM: AreaController deselects them by disabling multi-selection mode
+    # => reselect them
+    if  @_stepData.operationCommand is 'SEP' or
+        @_stepData.operationCommand is 'CHB' or
+        @_stepData.operationCommand is 'CHN'
+
+      for areaId in @_stepData.inData.selectedAreas
+        @notifyEditMode 'onStartEditArea', areaId
+        @notifyEditMode 'onSelectArea', areaId
+
+
     ## unification operation
     if @_stepData.operationCommand is 'UNI'
 
@@ -45,13 +57,18 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
       @notifyEditMode 'onCreateArea', newId, unifiedGeometry, null
       @_stepData.outData.createdAreas.push newId
 
+      return @finish()
+
+
     ## change name operation
     else if @_stepData.operationCommand is 'CHN'
 
       # remove the name from the area
       id = @_stepData.inData.selectedAreas[0]
-      @notifyEditMode 'onRemoveAreaName', id
+      @notifyEditMode 'onUpdateAreaName', id, null
       @_stepData.outData.createdAreas.push id
+
+      return @finish()
 
 
     ## delete operation
@@ -60,6 +77,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
       # delete selected area
       @notifyEditMode 'onRemoveArea', @_stepData.inData.selectedAreas[0]
 
+      return @finish()
 
 
     ## for backward step
@@ -102,7 +120,12 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
             # clip new geometry to existing geomtries
             # check for intersection with each country
             # TODO: make more efficient later
-            for existingArea in @_areaController.getAreas()
+
+            # manual loop, because some areas might be deleted on the way
+            existingAreas = @_areaController.getAreas()
+            loopIdx = existingAreas.length-1
+            while loopIdx >= 0
+              existingArea = existingAreas[loopIdx]
               existingAreaId = existingArea.getId()
               existingGeometry = existingArea.getGeometry()
               intersectionGeometry = @_geometryOperator.intersection newGeometry, existingGeometry
@@ -117,6 +140,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
                 # if nothing is left, delete it
                 else
                   @notifyEditMode 'onRemoveArea', existingAreaId
+              loopIdx--
 
             # insert new geometry into new area and add to HistoGlobe
             newId = 'NEW_AREA' # TODO: refine this id in next step

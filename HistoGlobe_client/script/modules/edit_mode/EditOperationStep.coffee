@@ -13,6 +13,8 @@ class HG.EditOperationStep
 
   # ============================================================================
   constructor: (@_hgInstance, @_stepData) ->
+    console.log "IN ", @_stepData
+    console.log "DEU:", @_hgInstance.areaController.getArea("DEU").isSelected()
 
     # handle callbacks
     HG.mixin @, HG.CallbackContainer
@@ -37,6 +39,8 @@ class HG.EditOperationStep
   # (e.g. if last area successfully named)
   finish: () ->
     @_cleanup()
+    console.log "OUT", @_stepData
+    console.log "DEU:", @_hgInstance.areaController.getArea("DEU").isSelected()
     @notifyAll 'onFinish', @_stepData
 
   ##############################################################################

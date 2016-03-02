@@ -29,12 +29,6 @@ class HG.TextInput extends HG.DOMElement
       # tell everyone the new value
       @notifyAll 'onChange', e.currentTarget.value
 
-    # focus
-    @_j.on 'focus', (e) =>
-      @_j.addClass 'hg-input-focus'
-    @_j.on 'focusout', (e) =>
-      @_j.removeClass 'hg-input-focus'
-
 
   # ============================================================================
   setPlaceholder: (text) ->  @_j.attr 'placeholder', text
