@@ -33,6 +33,11 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     # tell AreaController to start selecting maximal X number of areas
     @notifyEditMode 'onEnableMultiSelection', @_stepData.number.max
 
+    # get currently selected area and add it to array
+    @_initSelectedArea = @_areaController.getSelectedAreas()[0]
+    @_selectArea @_initSelectedArea if @_initSelectedArea
+
+
     ## for backward step
     # else
     #   # put all previously selected areas back on the map
@@ -44,24 +49,29 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     ### REACT ON USER INPUT ###
     # listen to area (de)selection from AreaController
 
-    @_areaController.onSelectArea @, (area) =>
-      @_stepData.outData.selectedAreas.push area.getId()
-
-      # is step complete?
-      if @_stepData.outData.selectedAreas.length >= @_stepData.number.min
-        @_workflowWindow.stepComplete()
-
-    @_areaController.onDeselectArea @, (area) =>
-      @_stepData.outData.selectedAreas.splice (@_stepData.outData.selectedAreas.indexOf area.getId()), 1
-
-      # is step incomplete?
-      if @_stepData.outData.selectedAreas.length < @_stepData.number.min
-        @_workflowWindow.stepIncomplete()
+    @_areaController.onSelectArea @, (area) =>    @_selectArea area
+    @_areaController.onDeselectArea @, (area) =>  @_deselectArea area
 
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
+
+  # ============================================================================
+  _selectArea: (area) ->
+    @_stepData.outData.selectedAreas.push area.getId()
+
+    # is step complete?
+    if @_stepData.outData.selectedAreas.length >= @_stepData.number.min
+      @_workflowWindow.stepComplete()
+
+  # ----------------------------------------------------------------------------
+  _deselectArea: (area) ->
+      @_stepData.outData.selectedAreas.splice (@_stepData.outData.selectedAreas.indexOf area.getId()), 1
+
+      # is step incomplete?
+      if @_stepData.outData.selectedAreas.length < @_stepData.number.min
+        @_workflowWindow.stepIncomplete()
 
 
   # ============================================================================
@@ -71,6 +81,6 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     if @_stepData.userInput
 
       # tell areas on map to stop selecting multiple areas
-      @notifyEditMode 'onDisableMultiSelection'
+      @notifyEditMode 'onDisableMultiSelection', @_initSelectedArea?.getId()
 
     delete @_hgInstance.selectOldAreasStep
