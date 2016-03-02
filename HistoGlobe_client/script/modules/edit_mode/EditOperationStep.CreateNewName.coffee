@@ -37,7 +37,7 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
         currentArea = @_areaController.getArea @_stepData.inData.createdAreas[@_areaIdx]
 
         # set up NewNameTool to set name and position of area interactively
-        @_newNameTool = new HG.NewNameTool @_hgInstance, currentArea.getRepresentativePoint()
+        @_newNameTool = new HG.NewNameTool @_hgInstance, currentArea.getName(), currentArea.getRepresentativePoint()
         @_newNameTool.onSubmit @, (name, position) =>
 
           # save the named area
