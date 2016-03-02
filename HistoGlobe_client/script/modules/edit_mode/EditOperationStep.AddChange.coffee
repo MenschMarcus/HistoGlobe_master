@@ -65,4 +65,5 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
 
     @_hiventBox.destroy()
 
-    @notifyEditMode 'onFinishAreaEdit'
+    # TODO: decide which area to have seleted after everything is over
+    @notifyEditMode 'onDisableAreaEditMode'

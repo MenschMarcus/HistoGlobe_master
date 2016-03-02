@@ -25,19 +25,16 @@ class HG.EditMode
 
     @addCallback 'onEnableMultiSelection'
     @addCallback 'onDisableMultiSelection'
-    @addCallback 'onStartAreaEdit'
-    @addCallback 'onFinishAreaEdit'
+    @addCallback 'onEnableAreaEditMode'
+    @addCallback 'onDisableAreaEditMode'
 
     @addCallback 'onCreateArea'
     @addCallback 'onUpdateAreaGeometry'
     @addCallback 'onUpdateAreaName'
-    @addCallback 'onUpdateAreaStatus'
-    @addCallback 'onRemoveArea'
-
-    @addCallback 'onFocusArea'
-    @addCallback 'onUnfocusArea'
     @addCallback 'onSelectArea'
     @addCallback 'onDeselectArea'
+    @addCallback 'onRemoveArea'
+    @addCallback 'onRemoveAreaName'
 
 
     # init config
