@@ -1,0 +1,8 @@
+EDIT OPERATION WORKFLOW
+- in geometry step: Why is the next step button enabled after first polygon is drawn?
+- make all actions reversible
+- get abort button to work
+- border change: make sure two selected countries actually border each other
+
+MAP
+- label collision
