@@ -31,45 +31,44 @@ class HG.AreasOnMap
     # event handling
     @_hgInstance.onAllModulesLoaded @, () =>
 
-      # listen to area changes from both area controller and edit mode
+      # listen to area changes from area controller
       if @_hgInstance.areaController
-        controller = @_hgInstance.areaController
 
-        controller.onCreateArea @, (area) =>
+        @_hgInstance.areaController.onCreateArea @, (area) =>
           @_addGeometry area
           @_addName area
 
-        controller.onCreateAreaGeometry @, (area) =>
+        @_hgInstance.areaController.onCreateAreaGeometry @, (area) =>
           @_addGeometry area
 
-        controller.onCreateAreaName @, (area) =>
+        @_hgInstance.areaController.onCreateAreaName @, (area) =>
           @_addName area
 
-        controller.onUpdateAreaGeometry @, (area) =>
+        @_hgInstance.areaController.onUpdateAreaGeometry @, (area) =>
           @_updateGeometry area
 
-        controller.onUpdateAreaName @, (area) =>
+        @_hgInstance.areaController.onUpdateAreaName @, (area) =>
           @_updateName area
 
-        controller.onUpdateAreaStatus @, (area) =>
+        @_hgInstance.areaController.onUpdateAreaStatus @, (area) =>
           @_updateProperties area
 
-        controller.onSelectArea @, (area) =>
-          @_updateProperties area
-          @_map.fitBounds area.geomLayer.getBounds() if FOCUS
-
-        controller.onDeselectArea @, (area) =>
+        @_hgInstance.areaController.onSelectArea @, (area) =>
           @_updateProperties area
           @_map.fitBounds area.geomLayer.getBounds() if FOCUS
 
-        controller.onRemoveArea @, (area) =>
+        @_hgInstance.areaController.onDeselectArea @, (area) =>
+          @_updateProperties area
+          @_map.fitBounds area.geomLayer.getBounds() if FOCUS
+
+        @_hgInstance.areaController.onRemoveArea @, (area) =>
           @_removeName area
           @_removeGeometry area
 
-        controller.onRemoveAreaGeometry @, (area) =>
+        @_hgInstance.areaController.onRemoveAreaGeometry @, (area) =>
           @_removeGeometry area
 
-        controller.onRemoveAreaName @, (area) =>
+        @_hgInstance.areaController.onRemoveAreaName @, (area) =>
           @_removeName area
 
 
