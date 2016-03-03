@@ -39,6 +39,9 @@ class HG.AreasOnMap
           @_addGeometry area
           @_addName area
 
+        controller.onCreateAreaGeometry @, (area) =>
+          @_addGeometry area
+
         controller.onCreateAreaName @, (area) =>
           @_addName area
 
@@ -61,6 +64,9 @@ class HG.AreasOnMap
 
         controller.onRemoveArea @, (area) =>
           @_removeName area
+          @_removeGeometry area
+
+        controller.onRemoveAreaGeometry @, (area) =>
           @_removeGeometry area
 
         controller.onRemoveAreaName @, (area) =>

@@ -70,7 +70,11 @@
       {
         "id":       "SET_NEW_GEOM",
         "num":      "2",
-        "title":    "create new geometries <br/> of the two countries"
+        "title":    "create new territories <br/> of both countries"
+      },
+      {
+        "id":       "SET_NEW_NAME",
+        "title":    "reset names <br/> of both countries"
       }
     ]
   },

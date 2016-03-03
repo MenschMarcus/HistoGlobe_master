@@ -14,13 +14,18 @@ class HG.AreaController
     HG.CallbackContainer.call @
 
     @addCallback 'onCreateArea'
+    @addCallback 'onCreateAreaGeometry'
     @addCallback 'onCreateAreaName'
+
     @addCallback 'onUpdateAreaGeometry'
     @addCallback 'onUpdateAreaName'
     @addCallback 'onUpdateAreaStatus'
+
     @addCallback 'onSelectArea'
     @addCallback 'onDeselectArea'
+
     @addCallback 'onRemoveArea'
+    @addCallback 'onRemoveAreaGeometry'
     @addCallback 'onRemoveAreaName'
 
 
@@ -120,8 +125,6 @@ class HG.AreaController
 
             # area is selected => deselect
             if area.isSelected()
-              if area.getId() is "DEU"
-                console.log "A", area.isSelected()
               area.deselect()
               @notifyAll 'onDeselectArea', area
               @_selectedAreas = []
@@ -131,8 +134,6 @@ class HG.AreaController
 
               # deselect currently selected area
               if @_selectedAreas.length is 1
-                if area.getId() is "DEU"
-                  console.log "B", area.isSelected()
                 @_selectedAreas[0].deselect()
                 @notifyAll 'onDeselectArea', @_selectedAreas[0]
                 # no update of @_selectedAreas, because it will happen afterwards
@@ -148,8 +149,6 @@ class HG.AreaController
 
             # area is selected => deselect
             if area.isSelected()
-              if area.getId() is "DEU"
-                console.log "C", area.isSelected()
               area.deselect()
               @notifyAll 'onDeselectArea', area
               @_selectedAreas.splice (@_selectedAreas.indexOf area), 1
@@ -177,6 +176,8 @@ class HG.AreaController
         # set maximum number of selections
         @_maxSelections = num
 
+        # console.log "single-end", @_selectedAreas
+
         # if there has been an area already selected in single-selection mode
         # it will still be in the @_selectedAreas array and can stay there,
         # since it will never be deselected
@@ -186,6 +187,8 @@ class HG.AreaController
 
         # restore single-selection mode
         @_maxSelections = 1
+
+        # console.log "multi-start", @_selectedAreas
 
         # deselect each area
         # -> except for the one specified by edit mode to be kept selected
@@ -202,14 +205,14 @@ class HG.AreaController
             continue
 
           # normal case: deselect
-          if area.getId() is "DEU"
-            console.log "D", area.isSelected()
           area.deselect()
           # N.B. do not notify selectOldAreas step, because that would remove the areas from their internal array
           @notifyAllBut 'onDeselectArea', @_hgInstance.selectOldAreasStep, area
           @_selectedAreas.splice loopIdx, 1
 
           loopIdx--
+
+        # console.log "multi-end", @_selectedAreas
 
 
       # ========================================================================
@@ -218,9 +221,13 @@ class HG.AreaController
       @_hgInstance.editMode.onEnableAreaEditMode @, () ->
         @_areaEditMode = on
 
+        # console.log "edit-start", @_selectedAreas
+
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onDisableAreaEditMode @, (selectedAreaId=null) ->
         @_areaEditMode = off
+
+        # console.log "normal-start", @_selectedAreas
 
         # transform each edit area into a normal area and deselect it
         # -> except for the one specified by edit mode to be kept selected
@@ -238,8 +245,6 @@ class HG.AreaController
             @notifyAll 'onSelectArea', area
 
           # normal case: deselect
-          if area.getId() is "DEU"
-            console.log "E", area.isSelected()
           area.deselect()
 
           # anyway: new status => redraw
@@ -247,6 +252,8 @@ class HG.AreaController
 
         # clear edit areas -> all transfered to active areas at this point
         @_editAreas = []
+
+        # console.log "normal-end", @_selectedAreas
 
 
       # ========================================================================
@@ -352,8 +359,6 @@ class HG.AreaController
         # error handling: area has to be found
         return if (not area)
 
-        if area.getId() is "DEU"
-          console.log "F", area.isSelected()
         area.deselect()
         @notifyAll 'onDeselectArea', area
         # no usage of @_selectedAreas array in edit mode, because all areas
@@ -373,7 +378,11 @@ class HG.AreaController
         idx = @_editAreas.indexOf area
         @_editAreas.splice idx, 1 if idx isnt -1
 
-        @notifyAll 'onRemoveArea', area
+        # decide: remove full area (name + geometry) or is only geometry left?
+        if area.getName() isnt null
+          @notifyAll 'onRemoveArea', area
+        else
+          @notifyAll 'onRemoveAreaGeometry', area
 
 
   # ============================================================================
