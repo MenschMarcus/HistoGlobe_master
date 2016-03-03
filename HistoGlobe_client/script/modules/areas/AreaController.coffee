@@ -1,5 +1,8 @@
 window.HG ?= {}
 
+# debug output?
+DEBUG = no
+
 class HG.AreaController
 
   ##############################################################################
@@ -126,8 +129,8 @@ class HG.AreaController
             # area is selected => deselect
             if area.isSelected()
               area.deselect()
-              @notifyAll 'onDeselectArea', area
               @_selectedAreas = []
+              @notifyAll 'onDeselectArea', area
 
             # area is deselected => toggle currently selected area <-> new selection
             else  # not area.isSelected()
@@ -140,8 +143,8 @@ class HG.AreaController
 
               # select new area
               area.select()
-              @notifyAll 'onSelectArea', area
               @_selectedAreas[0] = area
+              @notifyAll 'onSelectArea', area
 
 
           # multi-selection mode: add to selected area until max limit is reached
@@ -150,16 +153,18 @@ class HG.AreaController
             # area is selected => deselect
             if area.isSelected()
               area.deselect()
-              @notifyAll 'onDeselectArea', area
               @_selectedAreas.splice (@_selectedAreas.indexOf area), 1
+              @notifyAll 'onDeselectArea', area
 
             else  # not area.isSelected()
               # if maximum number of selections not reached => select it
               if @_selectedAreas.length < @_maxSelections
                 area.select()
-                @notifyAll 'onSelectArea', area
                 @_selectedAreas.push area
+                @notifyAll 'onSelectArea', area
 
+
+          @_DEBUG_OUTPUT 'select area (from view)' if DEBUG
 
       # ========================================================================
       ## listen to Edit Mode
@@ -176,11 +181,11 @@ class HG.AreaController
         # set maximum number of selections
         @_maxSelections = num
 
-        # console.log "single-end", @_selectedAreas
-
         # if there has been an area already selected in single-selection mode
         # it will still be in the @_selectedAreas array and can stay there,
         # since it will never be deselected
+
+        @_DEBUG_OUTPUT 'enable multi selection' if DEBUG
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onDisableMultiSelection @, (selectedAreaId=null) ->
@@ -188,31 +193,11 @@ class HG.AreaController
         # restore single-selection mode
         @_maxSelections = 1
 
-        # console.log "multi-start", @_selectedAreas
-
         # deselect each area
         # -> except for the one specified by edit mode to be kept selected
+        @_cleanSelectedAreas selectedAreaId
 
-        # manuel while loop, because selected areas shrinks while operating in it
-        loopIdx = @_selectedAreas.length-1
-        while loopIdx >= 0
-
-          area = @_selectedAreas[loopIdx]
-
-          # special case: ignore area specified to be still active
-          if area.getId() is selectedAreaId
-            loopIdx--
-            continue
-
-          # normal case: deselect
-          area.deselect()
-          # N.B. do not notify selectOldAreas step, because that would remove the areas from their internal array
-          @notifyAllBut 'onDeselectArea', @_hgInstance.selectOldAreasStep, area
-          @_selectedAreas.splice loopIdx, 1
-
-          loopIdx--
-
-        # console.log "multi-end", @_selectedAreas
+        @_DEBUG_OUTPUT 'disable multi selection' if DEBUG
 
 
       # ========================================================================
@@ -220,42 +205,34 @@ class HG.AreaController
 
       @_hgInstance.editMode.onEnableAreaEditMode @, () ->
         @_areaEditMode = on
+        @_maxSelections = HGConfig.max_area_selection.val
 
-        # console.log "edit-start", @_selectedAreas
+        # if there has been an area already selected in single-selection mode
+        # it will still be in the @_selectedAreas array and can stay there,
+        # since it will never be deselected
+
+        @_DEBUG_OUTPUT 'start edit mode' if DEBUG
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onDisableAreaEditMode @, (selectedAreaId=null) ->
         @_areaEditMode = off
+        @_maxSelections = 1
 
-        # console.log "normal-start", @_selectedAreas
+        @_DEBUG_OUTPUT 'end edit mode (before)' if DEBUG
 
-        # transform each edit area into a normal area and deselect it
+        # deselect each area
         # -> except for the one specified by edit mode to be kept selected
+        @_cleanSelectedAreas selectedAreaId
+
+        # transform each edit area into a normal area
         for area in @_editAreas
-
-          # TODO: error handling here?
-
-          ## 1) make normal
           area.inEdit no
-
-          ## 2) deselect
-          # special case: area specified to be still active to be put in selectedAreas array
-          # error handling: area must actually still exist
-          if (area.getId() is selectedAreaId) and (@getArea(area.getId()) isnt -1)
-            area.select()
-            @_selectedAreas.push area
-            @notifyAll 'onSelectArea', area
-
-          # normal case: deselect
-          area.deselect()
-
-          # anyway: new status => redraw
           @notifyAll 'onUpdateAreaStatus', area
 
         # clear edit areas -> all transfered to active areas at this point
         @_editAreas = []
 
-        # console.log "normal-end", @_selectedAreas
+        @_DEBUG_OUTPUT 'end edit mode (after)' if DEBUG
 
 
       # ========================================================================
@@ -271,6 +248,7 @@ class HG.AreaController
         @_activeAreas.push newArea
         @notifyAll 'onCreateArea', newArea
 
+        @_DEBUG_OUTPUT 'create area' if DEBUG
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onUpdateAreaGeometry @, (id, geometry) ->
@@ -287,6 +265,7 @@ class HG.AreaController
         area.resetRepresentativePoint()
         @notifyAll 'onUpdateAreaName', area
 
+        @_DEBUG_OUTPUT 'update area geometry' if DEBUG
 
       # ------------------------------------------------------------------------
       # name and position come always together from edit mode, so both properties
@@ -315,6 +294,7 @@ class HG.AreaController
         else # area had no name before
           @notifyAll 'onCreateAreaName', area
 
+        @_DEBUG_OUTPUT 'update area name' if DEBUG
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onStartEditArea @, (id) ->
@@ -324,22 +304,27 @@ class HG.AreaController
         return if (not area)
 
         area.inEdit yes
-        @notifyAll 'onUpdateAreaStatus', area
-        # no usage of @_selectedAreas array in edit mode, because all areas
-        # in edit mode are already in @_editAreas array
+        idx = @_editAreas.indexOf area
+        if idx is -1 # = if area is not in array
+          @_editAreas.push area
+          @notifyAll 'onUpdateAreaStatus', area
+
+        @_DEBUG_OUTPUT 'start edit mode' if DEBUG
 
       # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onEndEditArea @, (id) ->
+      @_hgInstance.editMode.onFinishEditArea @, (id) ->
         area = @getArea id
 
         # error handling: area has to be found
         return if (not area)
 
         area.inEdit no
-        @notifyAll 'onUpdateAreaStatus', area
-        # no usage of @_selectedAreas array in edit mode, because all areas
-        # in edit mode are already in @_editAreas array
+        idx = @_editAreas.indexOf area
+        if idx isnt -1  # = if area in array
+          @_editAreas.push area
+          @notifyAll 'onUpdateAreaStatus', area
 
+        @_DEBUG_OUTPUT 'end edit mode' if DEBUG
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onSelectArea @, (id) ->
@@ -349,10 +334,13 @@ class HG.AreaController
         return if (not area)
 
         area.select()
-        @notifyAll 'onSelectArea', area
-        # no usage of @_selectedAreas array in edit mode, because all areas
-        # in edit mode are already in @_editAreas array
 
+        idx = @_selectedAreas.indexOf area
+        if idx is -1 # = if area is not in array
+          @_selectedAreas.push area
+          @notifyAll 'onSelectArea', area
+
+        @_DEBUG_OUTPUT 'select area (from edit mode)' if DEBUG
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onDeselectArea @, (id) ->
@@ -362,10 +350,13 @@ class HG.AreaController
         return if (not area)
 
         area.deselect()
-        @notifyAll 'onDeselectArea', area
-        # no usage of @_selectedAreas array in edit mode, because all areas
-        # in edit mode are already in @_editAreas array
 
+        idx = @_selectedAreas.indexOf area
+        if idx isnt -1 # = if area in array
+          @_selectedAreas.splice idx, 1
+          @notifyAll 'onDeselectArea', area
+
+        @_DEBUG_OUTPUT 'deselect area (from edit mode)' if DEBUG
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onRemoveArea @, (id) ->
@@ -391,6 +382,8 @@ class HG.AreaController
         else
           @notifyAll 'onRemoveAreaGeometry', area
 
+        @_DEBUG_OUTPUT 'remove area' if DEBUG
+
 
   # ============================================================================
   getAreas: () ->           @_activeAreas
@@ -407,3 +400,39 @@ class HG.AreaController
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
+
+  # ============================================================================
+  _cleanSelectedAreas: (exceptionAreaId) ->
+    # manuel while loop, because selected areas shrinks while operating in it
+    loopIdx = @_selectedAreas.length-1
+    while loopIdx >= 0
+
+      area = @_selectedAreas[loopIdx]
+
+      # special case: ignore area specified to be still active
+      if area.getId() is exceptionAreaId
+        loopIdx--
+        continue
+
+      # normal case: deselect
+      area.deselect()
+      @notifyAll 'onDeselectArea', area
+      @_selectedAreas.splice loopIdx, 1
+
+      loopIdx--
+
+  # ============================================================================
+  _DEBUG_OUTPUT: (id) ->
+
+    sel = []
+    sel.push a.getId() for a in @_selectedAreas
+    edi = []
+    edi.push a.getId() for a in @_editAreas
+
+    console.log "-------------------------- ", id, "-------------------------- "
+    console.log "max selections: ", @_maxSelections
+    console.log "selected areas: ", sel.join(', ')
+    console.log "edit mode:      ", @_areaEditMode
+    console.log "edit areas:     ", edi.join(', ')
+    console.log "active areas:   ", @_activeAreas.length
+    console.log "=============================================================="

@@ -32,7 +32,7 @@ class HG.EditMode
     @addCallback 'onUpdateAreaGeometry'
     @addCallback 'onUpdateAreaName'
     @addCallback 'onStartEditArea'
-    @addCallback 'onEndEditArea'
+    @addCallback 'onFinishEditArea'
     @addCallback 'onSelectArea'
     @addCallback 'onDeselectArea'
     @addCallback 'onRemoveArea'
