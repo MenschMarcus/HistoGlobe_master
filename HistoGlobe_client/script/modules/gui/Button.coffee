@@ -72,15 +72,18 @@ class HG.Button
     unless existParent
       @_button = new HG.Div id, classes
     else  # if parent div already given, take it
-      # add all classes before
       @_button = existParent
+      # add all classes before
       @_button.j().addClass cl for cl in classes
 
     # set state-dependend properties of button
     @_updateState()
 
     # manually hide tooltip after clicking the button
-    @_button.j().click () -> $(@).tooltip('hide')
+    # HACK: bruteforce method: find tooltip among the first children of body
+    # and delete it
+    @_button.j().click () =>
+      $('body > .tooltip').remove()
 
 
   # ============================================================================
