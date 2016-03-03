@@ -240,7 +240,9 @@ class HG.AreaController
 
           ## 2) deselect
           # special case: area specified to be still active to be put in selectedAreas array
-          if area.getId() is selectedAreaId
+          # error handling: area must actually still exist
+          if (area.getId() is selectedAreaId) and (@getArea(area.getId()) isnt -1)
+            area.select()
             @_selectedAreas.push area
             @notifyAll 'onSelectArea', area
 
@@ -372,11 +374,16 @@ class HG.AreaController
         # error handling: area has to be found
         return if (not area)
 
+        # remove from active areas
         @_activeAreas.splice (@_activeAreas.indexOf area), 1
 
         # remove also from editAreas array, in case it was there
         idx = @_editAreas.indexOf area
         @_editAreas.splice idx, 1 if idx isnt -1
+
+        # remove also from selected array, in case it was there
+        idx = @_selectedAreas.indexOf area
+        @_selectedAreas.splice idx, 1 if idx isnt -1
 
         # decide: remove full area (name + geometry) or is only geometry left?
         if area.getName() isnt null

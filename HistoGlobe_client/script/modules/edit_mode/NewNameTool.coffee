@@ -7,7 +7,7 @@ class HG.NewNameTool
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, initName="name", posLatLng) ->
+  constructor: (@_hgInstance, initName, posLatLng) ->
 
     # handle callbacks
     HG.mixin @, HG.CallbackContainer
@@ -45,7 +45,10 @@ class HG.NewNameTool
     @_hgInstance._top_area.appendChild @_wrapper.dom()
 
     @_inputField = new HG.TextInput @_hgInstance, 'new-name-input', null
-    @_inputField.setText initName
+    if initName   # set either the text that is given (to just accept it)
+      @_inputField.setText initName
+    else          # or have only a placeholder
+      @_inputField.setPlaceholder 'name'
     @_inputField.j().attr 'size', NAME_MIN_SIZE
     @_wrapper.appendChild @_inputField
 
