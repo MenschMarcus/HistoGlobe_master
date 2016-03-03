@@ -45,15 +45,17 @@ class HG.ControlButtons
         switch id                 # selects class of required button
 
           when 'zoom' then (
-            @_buttonArea.addButton new HG.Button(@_hgInstance, 'zoomIn', null, [
-                {
-                  'id':       'normal',
-                  'tooltip':  "Zoom In",
-                  'iconFA':   'plus',
-                  'callback': 'onClick'
-                }
-              ]), 'zoom-group'  # group name
-            @_buttonArea.addButton new HG.Button(@_hgInstance, 'zoomOut', null, [
+            @_buttonArea.addButton new HG.Button(@_hgInstance, 'zoomIn', null,
+                [
+                  {
+                    'id':       'normal',
+                    'tooltip':  "Zoom In",
+                    'iconFA':   'plus',
+                    'callback': 'onClick'
+                  }
+                ]), 'zoom-group'  # group name
+            @_buttonArea.addButton new HG.Button(@_hgInstance, 'zoomOut', null,
+              [
                 {
                   'id':       'normal',
                   'tooltip':  "Zoom Out",
@@ -61,11 +63,12 @@ class HG.ControlButtons
                   'callback': 'onClick'
                 }
               ]), 'zoom-group' # group name
-          )
+            )
 
-          # fullscreen mode
+            # fullscreen mode
           when 'fullscreen' then (
-            @_buttonArea.addButton new HG.Button @_hgInstance, 'fullscreen', null, [
+            @_buttonArea.addButton new HG.Button @_hgInstance, 'fullscreen', null,
+            [
               {
                 'id':       'normal',
                 'tooltip':  "Fullscreen",
@@ -83,57 +86,60 @@ class HG.ControlButtons
 
           # high contrast mode
           when 'highContrast' then (
-            @_buttonArea.addButton new HG.Button @_hgInstance, 'highContrast', null, [
-              {
-                'id':       'normal',
-                'tooltip':  "High-Contrast Mode",
-                'iconFA':   'adjust',
-                'callback': 'onEnter'
-              },
-              {
-                'id':       'high-contrast',
-                'tooltip':  "Normal Color Mode",
-                'iconFA':   'adjust',
-                'callback': 'onLeave'
-              }
-            ]
+            @_buttonArea.addButton new HG.Button @_hgInstance, 'highContrast', null,
+              [
+                {
+                  'id':       'normal',
+                  'tooltip':  "High-Contrast Mode",
+                  'iconFA':   'adjust',
+                  'callback': 'onEnter'
+                },
+                {
+                  'id':       'high-contrast',
+                  'tooltip':  "Normal Color Mode",
+                  'iconFA':   'adjust',
+                  'callback': 'onLeave'
+                }
+              ]
           )
 
           # minimal layout mode
           when 'minLayout' then (
-            @_buttonArea.addButton new HG.Button @_hgInstance, 'minLayoutButton', null, [
-              {
-                'id':       'normal',
-                'tooltip':  "Simplify User Interface",
-                'iconFA':   'sort-desc',
-                'callback': 'onRemoveGUI'
-              },
-              {
-                'id':       'min-layout',
-                'tooltip':  "Restore Interface",
-                'iconFA':   'sort-asc',
-                'callback': 'onOpenGUI'
-              }
-            ]
+            @_buttonArea.addButton new HG.Button @_hgInstance, 'minLayoutButton', null,
+              [
+                {
+                  'id':       'normal',
+                  'tooltip':  "Simplify User Interface",
+                  'iconFA':   'sort-desc',
+                  'callback': 'onRemoveGUI'
+                },
+                {
+                  'id':       'min-layout',
+                  'tooltip':  "Restore Interface",
+                  'iconFA':   'sort-asc',
+                  'callback': 'onOpenGUI'
+                }
+              ]
           )
 
           # graph mode
           when 'graph' then (
             # 1. init button
-            @_buttonArea.addButton new HG.Button @_hgInstance, 'graph', null, [
-              {
-                'id':       'normal',
-                'tooltip':  "Show Alliances",
-                'iconFA':   'share-alt',
-                'callback': 'onShow'
-              },
-              {
-                'id':       'graph',
-                'tooltip':  "Hide Alliances",
-                'iconFA':   'share-alt',
-                'callback': 'onHide'
-              }
-            ]
+            @_buttonArea.addButton new HG.Button @_hgInstance, 'graph', null,
+              [
+                {
+                  'id':       'normal',
+                  'tooltip':  "Show Alliances",
+                  'iconFA':   'share-alt',
+                  'callback': 'onShow'
+                },
+                {
+                  'id':       'graph',
+                  'tooltip':  "Hide Alliances",
+                  'iconFA':   'share-alt',
+                  'callback': 'onHide'
+                }
+              ]
           )
 
     # listen to show/hide of HistoGraph
