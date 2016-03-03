@@ -15,7 +15,7 @@ class HG.NewGeometryTool
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, firstIteration) ->
+  constructor: (@_hgInstance, @_firstIteration) ->
 
     # handle callbacks
     HG.mixin @, HG.CallbackContainer
@@ -214,11 +214,60 @@ class HG.NewGeometryTool
     @_map.on 'draw:created', @_createPolygon
     @_map.on 'draw:deleted', @_deletePolygon
 
+
+    # after first iteration, it is possible to select the leftover area and
+    # select it as the leftover geometry
+    # precondition: there is certainly only one unselected area in edit mode!
+    if not @_firstIteration
+
+      @_initFeatureGroup = null
+
+      # select leftover area: make this one the selected
+      @_hgInstance.areaController.onSelectArea @, (area) =>
+
+        # clear feature group
+        # CAUTION! potential usability flaw
+        for layer in @_featureGroup
+          # populate initial feature group to restore it later onClick
+          @_initFeatureGroup.addLayer layer
+          # empty feature
+          @_featureGroup.removeLayer layer
+
+        # make this one the selected "drawn" area
+        @_featureGroup.addLayer area.geomLayer
+
+        @_submitGeomBtn.enable()
+
+
+      # deselect leftover area: restore layeers drawn before
+      @_hgInstance.areaController.onDeselectArea @, (area) =>
+
+        # make this one the selected "drawn" area
+        @_featureGroup.removeLayer area.geomLayer
+
+        # restore feature group
+        # CAUTION! potential usability flaw
+        for layer in @_initFeatureGroup
+          # populate feature group
+          @_featureGroup.addLayer layer
+          # empty init feature group to populate on next use
+          @_initFeatureGroup.removeLayer layer
+
+        @_submitGeomBtn.disable() if @_featureGroup.length is 0
+
+
+
     # click OK => submit geometry
     @_submitGeomBtn.onClick @, () =>
 
+      # immediately sto listening to on(De)SelectArea, to avoid weird behaviour
+      if not @_firstIteration
+        @_hgInstance.areaController.removeListener 'onSelectArea', @
+        @_hgInstance.areaController.removeListener 'onDeselectArea', @
+
       geometries = []
       geometries.push @_geometryReader.read layer for layer in @_featureGroup.getLayers()
+
       # merge all of them together
       # -> only works if they are (poly)polygons, not for polylines or points
 
@@ -228,7 +277,7 @@ class HG.NewGeometryTool
   # ============================================================================
   destroy: () ->
 
-    # interaction
+    # remove interaction
     @_map.off 'draw:created', @_createPolygon
     @_map.off 'draw:deleted', @_deletePolygon
 

@@ -81,6 +81,6 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     if @_stepData.userInput
 
       # tell areas on map to stop selecting multiple areas
-      @notifyEditMode 'onDisableMultiSelection', @_initSelectedArea?.getId()
+      @notifyEditMode 'onDisableMultiSelection'
 
     delete @_hgInstance.selectOldAreasStep

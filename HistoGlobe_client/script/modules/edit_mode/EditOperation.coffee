@@ -135,12 +135,12 @@ class HG.EditOperation
     # step forward
     # outgoing data of previous (old) step is incoming data for next (new) step
     if isForward
-      newStep.inData = oldStep.outData unless @_operation.idx is -1
+      newStep.inData = @_deepCopy oldStep.outData unless @_operation.idx is -1
 
     # step backward
     # incoming data of next (old) step is outgoing data for previous (new) step
     else # not isForward = backward
-      newStep.outData = oldStep.inData
+      newStep.outData = @_deepCopy oldStep.inData
 
     # change workflow window
     if newStep.userInput
@@ -207,3 +207,11 @@ class HG.EditOperation
     newAreas = []
     newAreas.push id for id in @_operation.steps[2].outData.namedAreas
     return command + " " + oldAreas.join(", ") + " to " + newAreas.join(", ")
+
+
+  # ============================================================================
+  # copy each property from one object to the nect object
+  _deepCopy: (origObj) ->
+    return JSON.parse(JSON.stringify(origObj))
+    # for prop, val of origObj
+    #   destObj[prop] = val

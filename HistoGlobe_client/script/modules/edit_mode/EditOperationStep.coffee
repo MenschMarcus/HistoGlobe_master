@@ -13,8 +13,8 @@ class HG.EditOperationStep
 
   # ============================================================================
   constructor: (@_hgInstance, @_stepData) ->
-    console.log "IN ", @_stepData
-    console.log "DEU:", @_hgInstance.areaController.getArea("DEU").isSelected()
+
+    # console.log "IN ", @_stepData.id, @_stepData.inData
 
     # handle callbacks
     HG.mixin @, HG.CallbackContainer
@@ -39,9 +39,11 @@ class HG.EditOperationStep
   # (e.g. if last area successfully named)
   finish: () ->
     @_cleanup()
-    console.log "OUT", @_stepData
-    console.log "DEU:", @_hgInstance.areaController.getArea("DEU").isSelected()
+
+    # console.log "OUT", @_stepData.id, @_stepData.outData
+
     @notifyAll 'onFinish', @_stepData
+
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #

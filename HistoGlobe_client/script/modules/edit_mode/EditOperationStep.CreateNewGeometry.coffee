@@ -21,6 +21,8 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
     @_areaController = @_hgInstance.areaController
     @_geometryOperator = new HG.GeometryOperator
 
+    @_firstIteration = yes
+
 
     ### SETUP OPERATION ###
 
@@ -28,14 +30,19 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
     # some operations work directly on selected areas from first step
     # PROBLEM: AreaController deselects them by disabling multi-selection mode
-    # => reselect them
-    if  @_stepData.operationCommand is 'SEP' or
-        @_stepData.operationCommand is 'CHB' or
-        @_stepData.operationCommand is 'CHN'
 
-      for areaId in @_stepData.inData.selectedAreas
-        @notifyEditMode 'onStartEditArea', areaId
-        @notifyEditMode 'onSelectArea', areaId
+    # separation and border change: set one/both in edit mode
+    if @_stepData.operationCommand is 'SEP'
+      @notifyEditMode 'onStartEditArea', @_stepData.inData.selectedAreas[0]
+
+    else if @_stepData.operationCommand is 'CHB'
+      @notifyEditMode 'onStartEditArea', @_stepData.inData.selectedAreas[0]
+      @notifyEditMode 'onStartEditArea', @_stepData.inData.selectedAreas[1]
+
+    # name change: no geometry change => will be ready => select as well
+    else if @_stepData.operationCommand is 'CHN'
+      @notifyEditMode 'onStartEditArea', @_stepData.inData.selectedAreas[0]
+      @notifyEditMode 'onSelectArea', @_stepData.inData.selectedAreas[0]
 
 
     ## unification operation
@@ -55,6 +62,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
       newId = "UNION"
       newId += ('_'+areaId) for areaId in oldIds
       @notifyEditMode 'onCreateArea', newId, unifiedGeometry, null
+      @notifyEditMode 'onSelectArea', newId
       @_stepData.outData.createdAreas.push newId
 
       return @finish()
@@ -63,10 +71,8 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
     ## change name operation
     else if @_stepData.operationCommand is 'CHN'
 
-      # remove the name from the area
-      id = @_stepData.inData.selectedAreas[0]
-      @notifyEditMode 'onUpdateAreaName', id, null
-      @_stepData.outData.createdAreas.push id
+      # nothing to do => hand area further to next sstep
+      @_stepData.outData.createdAreas.push @_stepData.inData.selectedAreas[0]
 
       return @finish()
 
@@ -101,7 +107,6 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
     #     @_areaController.addArea @_stepData.inData.selectedAreas[0]
 
 
-
     ### REACT ON USER INPUT ###
     if @_stepData.userInput
 
@@ -109,8 +114,11 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
       @_makeNewGeometry = () =>
 
         # set up NewGeometryTool to define geometry of an area interactively
-        @_newGeometryTool = new HG.NewGeometryTool @_hgInstance
+        @_newGeometryTool = new HG.NewGeometryTool @_hgInstance, @_firstIteration
         @_newGeometryTool.onSubmit @, (inGeometry) =>
+
+          # finish criterion, to be decided by each step on its own
+          finish = no
 
           ## create new country operation
           if @_stepData.operationCommand is 'ADD'
@@ -148,17 +156,14 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
             @notifyEditMode 'onSelectArea', newId
             @_stepData.outData.createdAreas.push newId
 
+            # finish criterion: only one step necessary
+            finish = yes
+
 
           ## separate geometries operation
           else if @_stepData.operationCommand is 'SEP'
 
             existingAreaId = @_stepData.inData.selectedAreas[0]
-
-            # is there a remaining area left that can be used?
-            # -> i.e. has the existing area ever been changed?
-            # -> i.e. is there at least one created area based on this existing area?
-            # if @_stepData.outData.createdAreas.length > 0
-
             existingGeometry = @_areaController.getArea(existingAreaId).getGeometry()
             clipGeometry = inGeometry
 
@@ -180,18 +185,55 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
             else
               @notifyEditMode 'onRemoveArea', existingAreaId
 
+              # finish criterion: existing area is completely split up
+              finish = yes
+
+
+          ## separate geometries operation
+          else if @_stepData.operationCommand is 'CHB'
+
+            # idea: both areas A and B get a new common border
+            # => unify both areas and use the drawn geometry C as a clip polygon
+            # A' = (A \/ B) /\ C    intersection (A u B) with C
+            # B' = (A \/ B) - C     difference (A u B) with C
+
+            Aid = @_stepData.inData.selectedAreas[0]
+            Bid = @_stepData.inData.selectedAreas[1]
+            A = @_areaController.getArea(Aid).getGeometry()
+            B = @_areaController.getArea(Bid).getGeometry()
+            C = inGeometry  # clip geometry
+
+            AuB = @_geometryOperator.union [A, B]
+
+            A2 = @_geometryOperator.intersection AuB, C
+            B2 = @_geometryOperator.difference AuB, C
+
+            # update both geometries
+            @notifyEditMode 'onUpdateAreaGeometry', Aid, A2
+            @notifyEditMode 'onUpdateAreaGeometry', Bid, B2
+
+            # add to workflow
+            @_stepData.outData.createdAreas.push Aid
+            @_stepData.outData.createdAreas.push Bid
+
+            # done!
+            finish = yes
+
 
           # cleanup
           @_newGeometryTool.destroy()
           delete @_newGeometryTool  # TODO: necessary?
 
-          # go to next area if limit not reached
-          if @_stepData.outData.createdAreas.length < @_stepData.number.max
-            @_makeNewGeometry()
+          @_firstIteration = no # will stay no forever
 
-          # required number of areas reached => loop complete => step complete
-          else
+
+          ## finish criteria
+          if finish
             @finish()
+
+          # not finished => go to next step
+          else
+            @_makeNewGeometry()
 
 
       # start new geometry loop here

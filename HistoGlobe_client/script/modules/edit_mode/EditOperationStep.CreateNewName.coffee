@@ -13,7 +13,7 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, @_stepData, isForward) ->
+  constructor: (@_hgInstance, @_stepData) ->
 
     # inherit functionality from base class
     super @_hgInstance, @_stepData
@@ -36,8 +36,14 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
 
         currentArea = @_areaController.getArea @_stepData.inData.createdAreas[@_areaIdx]
 
+        # if name is already given, save it, hand it over to name tool, but delete it from the area
+        id = currentArea.getId()
+        name = currentArea.getName()
+        position = currentArea.getRepresentativePoint()
+        @notifyEditMode 'onUpdateAreaName', id, null if name
+
         # set up NewNameTool to set name and position of area interactively
-        @_newNameTool = new HG.NewNameTool @_hgInstance, currentArea.getName(), currentArea.getRepresentativePoint()
+        @_newNameTool = new HG.NewNameTool @_hgInstance, name, position
         @_newNameTool.onSubmit @, (name, position) =>
 
           # save the named area

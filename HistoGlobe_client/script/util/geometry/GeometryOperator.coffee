@@ -82,11 +82,12 @@ class HG.GeometryOperator
       if geometry.type() is 'Polygon'
         outCoordinates.push geometry.coordinates()
       else if geometry.type() is 'MultiPolygon'
-        for polygon in geometry
+        for polygon in geometry._geometries
           outCoordinates.push polygon.coordinates()
       else if geometry.type() is 'LineString'
-        for polygon in geometry
-          for polyline in polygon
+        # TODO: this one will probably not work...
+        for polygon in geometry._geometries
+          for polyline in polygon._geometries
             outCoordinates.push [polyline.coordinates()]
       else
         return console.error "It is not possible to merge a point. Idiot !!!"
