@@ -188,14 +188,12 @@ class HG.EditOperation
   _getRequiredNum: (expr) ->
     return 0 if not expr?
     lastChar = expr.substr(expr.length-1)
-    max = if lastChar is '+' then MAX_NUM else lastChar
+    max = if lastChar is '+' then HGConfig.max_area_selection.val else lastChar
     min = (expr.substring 0,1)
     return {
       'min': parseInt(min)
       'max': parseInt(max)
     }
-
-  MAX_NUM = 50  # arbitrary number that limits excessive area selection
 
 
   # ============================================================================

@@ -31,15 +31,16 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
     # some operations work directly on selected areas from first step
     # PROBLEM: AreaController deselects them by disabling multi-selection mode
 
-    # separation and border change: set one/both in edit mode
     if @_stepData.operationCommand is 'SEP'
       @notifyEditMode 'onStartEditArea', @_stepData.inData.selectedAreas[0]
+      @notifyEditMode 'onSelectArea', @_stepData.inData.selectedAreas[0]
 
     else if @_stepData.operationCommand is 'CHB'
       @notifyEditMode 'onStartEditArea', @_stepData.inData.selectedAreas[0]
       @notifyEditMode 'onStartEditArea', @_stepData.inData.selectedAreas[1]
+      @notifyEditMode 'onSelectArea', @_stepData.inData.selectedAreas[0]
+      @notifyEditMode 'onSelectArea', @_stepData.inData.selectedAreas[1]
 
-    # name change: no geometry change => will be ready => select as well
     else if @_stepData.operationCommand is 'CHN'
       @notifyEditMode 'onStartEditArea', @_stepData.inData.selectedAreas[0]
       @notifyEditMode 'onSelectArea', @_stepData.inData.selectedAreas[0]

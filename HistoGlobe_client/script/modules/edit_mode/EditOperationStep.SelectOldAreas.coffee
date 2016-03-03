@@ -14,8 +14,6 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
   # ============================================================================
   constructor: (@_hgInstance, @_stepData, isForward) ->
 
-    @_hgInstance.selectOldAreasStep = @
-
     # inherit functionality from base class
     super @_hgInstance, @_stepData
 
@@ -77,10 +75,12 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
   # ============================================================================
   _cleanup: () ->
 
+    ### STOP LISTENING ###
+    @_areaController.removeListener 'onSelectArea', @
+    @_areaController.removeListener 'onDeselectArea', @
+
     ### CLEANUP OPERATION ###
     if @_stepData.userInput
 
       # tell areas on map to stop selecting multiple areas
       @notifyEditMode 'onDisableMultiSelection'
-
-    delete @_hgInstance.selectOldAreasStep
