@@ -1,7 +1,7 @@
 window.HG ?= {}
 
 # DEVEL OPTION: tooltips are annoying... take care of styling them later
-TOOLTIPS = no
+TOOLTIPS = yes
 
 class HG.Button
 
@@ -30,6 +30,7 @@ class HG.Button
   # usage
   #   @_hgInstance.buttons.buttonName.onCallbackName @, () =>
   # ============================================================================
+
   constructor: (@_hgInstance, id, classes=[], states, existParent=null) ->
     console.error 'no button id given' unless id?
     console.error 'no states of button given' unless Array.isArray(states)
@@ -131,32 +132,35 @@ class HG.Button
 
   # ============================================================================
   _updateState: (oldState) ->
-    @_removeClasses oldState.classes if oldState
-    @_setClasses()     # optional
-    @_setTooltip()     # optional
-    @_setIcon()        # one of the two must be givem
-    @_setCallback()
 
-  # ============================================================================
-  _removeClasses: (oldClasses) ->
-    if oldClasses
-      @_button.j().removeClass cl for cl in oldClasses
+    # remove old classes
+    if oldState
+      @_button.j().removeClass cl for cl in oldState.classes
 
-  # ============================================================================
-  _setClasses: () ->
+    # set new classes
     @_button.j().addClass cl for cl in @_state.classes
 
-  # ============================================================================
-  _setTooltip: () ->
+    # set tooltip
+    # N.B: BOOTSTRAP tooltips, not jQuery UI Tooltips!
+    # http://www.w3schools.com/bootstrap/bootstrap_ref_js_tooltip.asp
     if @_state.tooltip and TOOLTIPS
-      @_button.j().tooltip {
-        title: @_state.tooltip,
-        placement: 'right',
-        container: 'body'
-      }
 
-  # ============================================================================
-  _setIcon: () ->
+      @_button.j().tooltip {
+          title:      @_state.tooltip
+          container:  'body'          # is that necessary?
+          placement:  (context, source) ->
+            return 'top'    if $(source).hasClass 'tooltip-top'
+            return 'bottom' if $(source).hasClass 'tooltip-bottom'
+            return 'left'   if $(source).hasClass 'tooltip-left'
+            return 'right'  # fallback
+          animation:  yes
+        }
+
+      # return 'top'    if $(source).hasClass 'tooltip-top'
+      # return 'bottom' if $(source).hasClass 'tooltip-bottom'
+      # return 'left'   if $(source).hasClass 'tooltip-left'
+      # return 'right'  if $(source).hasClass 'tooltip-right'
+
     # remove old icon
     @_button.j().empty()
     icon = null
@@ -181,12 +185,57 @@ class HG.Button
 
     @_button.appendChild icon if icon?
 
-  # ============================================================================
-  _setCallback: () ->
-    # clear callbacks first to prevent multiple click handlers on same DOM element
+    # clear old callbacks
+    # -> prevent multiple click handlers on same DOM element
     @_button.j().unbind 'click'
-    # define new callback
+
+    # set new callback
     @_button.j().click () =>
       # callback = tell everybody that state has changed
       # hand button itself (@) into callback so everybody can operate on the button (e.g. change state)
       @notifyAll @_state.callback, @
+
+
+
+  # ============================================================================
+  _calculateTooltipPosition: (context, source) ->
+    sourceElement = {
+      top:    $(source).offset().top
+      left:   $(source).offset().left
+      bottom: $(source).offset().top  + $(source).height()
+      right:  $(source).offset().left + $(source).width()
+    }
+    viewport = {
+      top:    0
+      left:   0
+      bottom: $(window).height()
+      right:  $(window).width()
+    }
+    tooltipSpace = {
+      top:    sourceElement.top  - viewport.top
+      left:   sourceElement.left - viewport.left
+      bottom: viewport.bottom    - sourceElement.bottom
+      right:  viewport.right     - sourceElement.right
+    }
+    minDistance = 250
+
+    console.log tooltipSpace
+
+    # 1. priority: right
+    if tooltipSpace.right > minDistance
+      return 'right'
+
+    # 2. priority: bottom
+    if tooltipSpace.bottom > minDistance
+      return 'bottom'
+
+    # 3. priority: left
+    if tooltipSpace.left > minDistance
+      return 'left'
+
+    # 4. priority: top
+    if tooltipSpace.top > minDistance
+      return 'top'
+
+    # if nothing works, do what you want!
+    return 'auto'

@@ -104,7 +104,7 @@ class HG.EditMode
       }
       @_hgInstance._top_area.appendChild @_editButtonArea.dom()
 
-      @_editButton = new HG.Button @_hgInstance, 'editMode', null,
+      @_editButton = new HG.Button @_hgInstance, 'editMode', ['tooltip-left'],
         [
           {
             'id':       'normal',
@@ -181,7 +181,7 @@ class HG.EditMode
 
     # setup new hivent button
     @_editButtonArea.addSpacer()
-    @_newHiventButton = new HG.Button @_hgInstance, 'newHivent', null,
+    @_newHiventButton = new HG.Button @_hgInstance, 'newHivent', ['tooltip-bottom'],
       [
         {
           'id':       'normal',
@@ -197,7 +197,7 @@ class HG.EditMode
     @_operationButtons = new HG.ObjectArray
     @_editOperations.foreach (operation) =>
       # add button to UI
-      coButton = new HG.Button @_hgInstance, operation.id, ['button-horizontal'],
+      coButton = new HG.Button @_hgInstance, operation.id, ['button-horizontal', 'tooltip-bottom'],
         [
           {
             'id':       'normal',
