@@ -37,6 +37,7 @@ $title_distance_horizontal          = 25px
 
 $button_diameter                    = 40px
 $button_abort_shrink_factor         = 0.75
+$button_spacer_distance             = 20px
 
 
 // MAP -------------------------------------------------------------

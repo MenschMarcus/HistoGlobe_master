@@ -147,7 +147,9 @@ class HG.WorkflowWindow
     ### BUTTONS ###
 
     # back button (= undo, disabled)
-    @_backButton = new HG.Button @_hgInstance, 'lastOperationStep', null, [
+    @_backButton = new HG.Button @_hgInstance,
+      'lastOperationStep', ['tooltip-bottom'],
+      [
         {
           'id':       'normal'
           'tooltip':  "Undo / Go Back"
@@ -159,7 +161,8 @@ class HG.WorkflowWindow
 
     # next button ( = ok = go to next step, disabled)
     # -> changes to OK button / "finish" state in last step
-    @_nextButton = new HG.Button @_hgInstance, 'nextOperationStep', null,
+    @_nextButton = new HG.Button @_hgInstance,
+      'nextOperationStep', ['tooltip-bottom'],
       [
         {
           'id':       'normal'
@@ -177,7 +180,8 @@ class HG.WorkflowWindow
     nextButtonParent.appendChild @_nextButton.dom()
 
     # abort button
-    @_abortButton = new HG.Button @_hgInstance, 'abortOperation', ['button-abort'],
+    @_abortButton = new HG.Button @_hgInstance,
+      'abortOperation', ['button-abort', 'tooltip-bottom'],
       [
         {
           'id':       'normal'

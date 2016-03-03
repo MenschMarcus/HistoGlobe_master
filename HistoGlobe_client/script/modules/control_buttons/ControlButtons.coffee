@@ -45,16 +45,18 @@ class HG.ControlButtons
         switch id                 # selects class of required button
 
           when 'zoom' then (
-            @_buttonArea.addButton new HG.Button(@_hgInstance, 'zoomIn', null,
-                [
-                  {
-                    'id':       'normal',
-                    'tooltip':  "Zoom In",
-                    'iconFA':   'plus',
-                    'callback': 'onClick'
-                  }
-                ]), 'zoom-group'  # group name
-            @_buttonArea.addButton new HG.Button(@_hgInstance, 'zoomOut', null,
+            @_buttonArea.addButton new HG.Button(@_hgInstance,
+              'zoomIn', null,
+              [
+                {
+                  'id':       'normal',
+                  'tooltip':  "Zoom In",
+                  'iconFA':   'plus',
+                  'callback': 'onClick'
+                }
+              ]), 'zoom-group'  # group name
+            @_buttonArea.addButton new HG.Button(@_hgInstance,
+              'zoomOut', [],
               [
                 {
                   'id':       'normal',
@@ -67,26 +69,28 @@ class HG.ControlButtons
 
             # fullscreen mode
           when 'fullscreen' then (
-            @_buttonArea.addButton new HG.Button @_hgInstance, 'fullscreen', null,
-            [
-              {
-                'id':       'normal',
-                'tooltip':  "Fullscreen",
-                'iconFA':   'expand',
-                'callback': 'onEnter'
-              },
-              {
-                'id':       'fullscreen',
-                'tooltip':  "Leave Fullscreen",
-                'iconFA':   'compress',
-                'callback': 'onLeave'
-              }
-            ]
+            @_buttonArea.addButton new HG.Button @_hgInstance,
+              'fullscreen', [],
+              [
+                {
+                  'id':       'normal',
+                  'tooltip':  "Fullscreen",
+                  'iconFA':   'expand',
+                  'callback': 'onEnter'
+                },
+                {
+                  'id':       'fullscreen',
+                  'tooltip':  "Leave Fullscreen",
+                  'iconFA':   'compress',
+                  'callback': 'onLeave'
+                }
+              ]
           )
 
           # high contrast mode
           when 'highContrast' then (
-            @_buttonArea.addButton new HG.Button @_hgInstance, 'highContrast', null,
+            @_buttonArea.addButton new HG.Button @_hgInstance,
+              'highContrast', [],
               [
                 {
                   'id':       'normal',
@@ -105,7 +109,8 @@ class HG.ControlButtons
 
           # minimal layout mode
           when 'minLayout' then (
-            @_buttonArea.addButton new HG.Button @_hgInstance, 'minLayoutButton', null,
+            @_buttonArea.addButton new HG.Button @_hgInstance,
+              'minLayoutButton', [],
               [
                 {
                   'id':       'normal',
@@ -125,7 +130,8 @@ class HG.ControlButtons
           # graph mode
           when 'graph' then (
             # 1. init button
-            @_buttonArea.addButton new HG.Button @_hgInstance, 'graph', null,
+            @_buttonArea.addButton new HG.Button @_hgInstance,
+              'graph', [],
               [
                 {
                   'id':       'normal',
