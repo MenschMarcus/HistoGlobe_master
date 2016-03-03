@@ -93,19 +93,20 @@ class HG.NewGeometryTool
     ## button area
     # -> leaflet buttons to be moved in there
 
-    @_buttonArea = new HG.ButtonArea @_hgInstance, {
-      'id':           'newGeomButtons'
-      'posX':         'right'
-      'posY':         'top'
-      'orientation':  'vertical'
-    }
+    @_buttonArea = new HG.ButtonArea @_hgInstance,
+      {
+        'id':           'newGeomButtons'
+        'posX':         'right'
+        'posY':         'top'
+        'orientation':  'vertical'
+      }
     @_hgInstance._top_area.appendChild @_buttonArea.dom()
 
 
     ## buttons themselves
 
     @_newGeomBtn = new HG.Button @_hgInstance,
-      'newGeom', null,
+        'newGeom', ['tooltip-left'],
         [
           {
             'id':             'normal'
@@ -117,7 +118,7 @@ class HG.NewGeometryTool
     @_buttonArea.addButton @_newGeomBtn, 'new-geom-add-group'
 
     @_reuseGeomBtn = new HG.Button @_hgInstance,
-      'reuseGeom', null,
+        'reuseGeom', ['tooltip-left'],
         [
           {
             'id':             'normal'
@@ -126,10 +127,11 @@ class HG.NewGeometryTool
             'callback':       'onClick'
           }
         ]
-    @_buttonArea.addButton @_reuseGeomBtn, 'new-geom-add-group'
+    # TODO: implement
+    # @_buttonArea.addButton @_reuseGeomBtn, 'new-geom-add-group'
 
     @_importGeomBtn = new HG.Button @_hgInstance,
-      'importGeom', null,
+        'importGeom', ['tooltip-left'],
         [
           {
             'id':             'normal'
@@ -138,12 +140,13 @@ class HG.NewGeometryTool
             'callback':       'onClick'
           }
         ]
-    @_buttonArea.addButton @_importGeomBtn, 'new-geom-add-group'
+    # TODO: implement
+    # @_buttonArea.addButton @_importGeomBtn, 'new-geom-add-group'
 
     @_buttonArea.addSpacer()
 
     @_editGeomBtn = new HG.Button @_hgInstance,
-      'editGeom', null,
+        'editGeom', ['tooltip-left'],
         [
           {
             'id':             'normal'
@@ -155,7 +158,7 @@ class HG.NewGeometryTool
     @_buttonArea.addButton @_editGeomBtn, 'new-geom-edit-group'
 
     @_deleteGeomBtn = new HG.Button @_hgInstance,
-      'deleteGeom', null,
+        'deleteGeom', ['tooltip-left'],
         [
           {
             'id':             'normal'
@@ -168,23 +171,8 @@ class HG.NewGeometryTool
 
     @_buttonArea.addSpacer()
 
-    # TODO: is that button really necessary?
-    # @_clipGeomBtn = new HG.Button @_hgInstance,
-    #   'clipGeom', null,
-    #     [
-    #       {
-    #         'id':             'normal'
-    #         'tooltip':        "Clip Selected Areas"
-    #         'iconOwn':        iconPath + 'polygon_cut.svg'
-    #         'callback':       'onClick'
-    #       }
-    #     ]
-    # @_buttonArea.addButton @_clipGeomBtn, 'new-geom-finish-group'
-
-    # @_buttonArea.addSpacer()
-
     @_submitGeomBtn = new HG.Button @_hgInstance,
-      'submitGeom', null,
+        'submitGeom', ['tooltip-left'],
         [
           {
             'id':             'normal'
@@ -199,7 +187,6 @@ class HG.NewGeometryTool
     # init configuration: only add buttons are available
     @_editGeomBtn.disable()
     @_deleteGeomBtn.disable()
-    # @_clipGeomBtn.disable()
     @_submitGeomBtn.disable()
 
     # TODO: implement functionality for import and reuse buttons
@@ -319,7 +306,7 @@ class HG.NewGeometryTool
   # ============================================================================
   _transformToHGDOMElement: (inButton) ->
     $(inButton).removeClass()
-    $(inButton).detach()
+    $(inButton).detach()        # removes element from DOM to place it somewhere else
     $(inButton).addClass 'button'
     new HG.Anchor null, null, null, inButton
 

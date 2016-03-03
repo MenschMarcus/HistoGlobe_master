@@ -1,7 +1,5 @@
 window.HG ?= {}
 
-# DEVEL OPTION: tooltips are annoying... take care of styling them later
-TOOLTIPS = yes
 
 class HG.Button
 
@@ -32,8 +30,11 @@ class HG.Button
   # ============================================================================
 
   constructor: (@_hgInstance, id, classes=[], states, existParent=null) ->
-    console.error 'no button id given' unless id?
-    console.error 'no states of button given' unless Array.isArray(states)
+    unless id?
+      return console.error 'no button id given'
+    unless Array.isArray(states)
+      return console.error 'no states of button given'
+
 
     # add button to button object in HG instance
     @_hgInstance.buttons = {} unless @_hgInstance.buttons
@@ -64,15 +65,22 @@ class HG.Button
     @_enabled = yes
     @_active = no
 
+    # make button generically accessible by CSS
+    classes.unshift 'button'
+
     # create button itself
     unless existParent
-      classes.unshift 'button'
       @_button = new HG.Div id, classes
     else  # if parent div already given, take it
+      # add all classes before
       @_button = existParent
+      @_button.j().addClass cl for cl in classes
 
     # set state-dependend properties of button
     @_updateState()
+
+    # manually hide tooltip after clicking the button
+    @_button.j().click () -> $(@).tooltip('hide')
 
 
   # ============================================================================
@@ -143,7 +151,7 @@ class HG.Button
     # set tooltip
     # N.B: BOOTSTRAP tooltips, not jQuery UI Tooltips!
     # http://www.w3schools.com/bootstrap/bootstrap_ref_js_tooltip.asp
-    if @_state.tooltip and TOOLTIPS
+    if @_state.tooltip
 
       @_button.j().tooltip {
           title:      @_state.tooltip
@@ -198,6 +206,7 @@ class HG.Button
 
 
   # ============================================================================
+  # just in case it is ever needed again...
   _calculateTooltipPosition: (context, source) ->
     sourceElement = {
       top:    $(source).offset().top

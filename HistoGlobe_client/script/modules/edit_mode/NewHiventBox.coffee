@@ -59,11 +59,11 @@ class HG.NewHiventBox
     searchBox.setPlaceholder "find existing hivent by name, date, location, ..."
     selectExistingWrapper.appendChild searchBox
 
-    searchIcon = new HG.Button @_hgInstance, 'existingHiventSearch', ['button-no-background'],
+    searchIcon = new HG.Button @_hgInstance,
+      'existingHiventSearch', ['button-no-background'],
       [
         {
           'id':         'normal',
-          'tooltip':    "Search for Existing Hivent",
           'iconFA':     'search'
           'callback':   'onClick'
         }
@@ -82,7 +82,8 @@ class HG.NewHiventBox
     createNewHiventWrapper = new HG.Div 'create-new-hivent', ['new-hivent-box-selection-wrapper']
     @_hiventBox.appendChild createNewHiventWrapper
 
-    newHiventButton = new HG.Button @_hgInstance, 'newHiventInBox', null,
+    newHiventButton = new HG.Button @_hgInstance,
+      'newHiventInBox', ['tooltip-bottom'],
       [
         {
           'id':       'normal',
@@ -146,7 +147,8 @@ class HG.NewHiventBox
     ## buttons
     # TODO: are the buttons really necessary or can't I reuse the buttons from the workflow window?
     # is against "direct manipulation" paradigm, but kind of makes sense
-    # abortButton = new HG.Button @_hgInstance, 'addChangeAbort', ['button-abort'],
+    # abortButton = new HG.Button @_hgInstance,
+        # 'addChangeAbort', ['button-abort'],
     #   [
     #     {
     #       'iconFA':   'times'
@@ -155,7 +157,8 @@ class HG.NewHiventBox
     #   ]
     # formWrapper.appendChild abortButton.dom()
 
-    # okButton = new HG.Button @_hgInstance, 'addChangeOK', null,
+    # okButton = new HG.Button @_hgInstance,
+        # 'addChangeOK', null,
     #   [
     #     {
     #       'iconFA':   'check'
