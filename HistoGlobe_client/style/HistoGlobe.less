@@ -58,6 +58,7 @@ body {
   overflow: hidden;
 }
 
+
 // --------------------------- MAP ---------------------------
 
 #top-area {
@@ -93,6 +94,7 @@ body {
   .transition-duration(@sidebar_aimation_speed);
 }
 
+
 // ------------------------ TIMELINE ------------------------
 #timeline-area {
   position: absolute;
@@ -103,6 +105,7 @@ body {
   right: 0;
   bottom: 0;
 }
+
 
 // ----------------------- COLLAPSE BUTTON ------------------------
 #collapse-button {
@@ -146,42 +149,56 @@ body {
 
 
 // ----------------------- TOOLTIPS ------------------------
+// bootstrap-override
 
 .tooltip-inner {
-    border: none !important;
-    box-shadow: 1px 1px 2px 2px rgba(0,0,0,@shadow_intensity);
-    font-size: 1.1em;
-    color: #333;
-    opacity: 1 !important;
+
+    border-radius: @border_radius;
+    color: @color_bg_dark;
+    background-color: @color_bg_light;
+    box-shadow: 0 0 @shadow_radius rgba(0,0,0,@shadow_intensity);
+
+    // have content on one line
+    white-space: nowrap;
+
+    // automatic width
+    display: inline-block;
+
+    pointer-events: none;
 }
 
+// outer tooltip (wrapper)
 .tooltip {
-    opacity: 1 !important;
-
-    &.bottom {
+    &.bottom
+    {
         .tooltip-arrow {
-            border-bottom-color: #fff;
+            border-bottom-color: #666;
         }
     }
 
-    &.top {
+    &.top
+    {
         .tooltip-arrow {
-            border-top-color: #fff;
+            border-top-color: #666;
         }
     }
 
-    &.left {
+    &.left
+    {
         .tooltip-arrow {
-            border-left-color: #fff;
+            border-left-color: #666;
         }
     }
 
-    &.right {
+    &.right
+    {
         .tooltip-arrow {
-            border-right-color: #fff;
+            border-right-color: #666;
         }
     }
 }
+
+
 
 // ----------------------- INPUT FIELDS ------------------------
 
