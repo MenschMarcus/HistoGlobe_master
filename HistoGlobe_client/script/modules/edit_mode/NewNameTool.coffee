@@ -58,7 +58,8 @@ class HG.NewNameTool
     @_wrapper.j().css 'top',  posPx.y
     @_recenter()
 
-    @_okButton = new HG.Button @_hgInstance, 'newNameOK', ['confirm-button'],
+    @_okButton = new HG.Button @_hgInstance,
+      'newNameOK', ['confirm-button'],
       [
         {
           'iconFA':   'check'
