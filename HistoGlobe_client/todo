@@ -1,13 +1,11 @@
 prio effort [1 .. 3]
 
 GENERAL UI
-1 2 disable all tooltips after button clicked
+1 3 label collision on the map
 
 GENERAL EDIT OPERATION WORKFLOW
-1 2 fix whole selection/deselection mechanism
-1 3 make all actions reversible
 1 2 get abort button to work
-
+1 3 make all actions reversible
 
 SELECTION STEP
 
@@ -24,10 +22,6 @@ NAME STEP
 HIVENT STEP
 3 1 explain term "Hivent"
 2 1 put "submit" button underneath Hivent Box
-
-MAP
-1 3 label collision
-
 
 
 "I HAVE NO IDEA WHAT TO DO"
