@@ -31,8 +31,12 @@ class HG.TextInput extends HG.DOMElement
 
 
   # ============================================================================
-  setPlaceholder: (text) ->  @_j.attr 'placeholder', text
+  setPlaceholder: (text) ->   @_j.attr 'placeholder', text
 
   # ----------------------------------------------------------------------------
-  getValue: () ->            @_elem.value
-  setValue: (text) ->        @_elem.value = text
+  getValue: () ->             @_elem.value
+  getText: () ->              @getValue()
+
+  # ----------------------------------------------------------------------------
+  setValue: (text) ->         @_elem.value = text
+  setText: (text) ->          @setValue text

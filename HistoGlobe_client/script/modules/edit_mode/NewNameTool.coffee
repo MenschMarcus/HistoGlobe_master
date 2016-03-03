@@ -45,7 +45,7 @@ class HG.NewNameTool
     @_hgInstance._top_area.appendChild @_wrapper.dom()
 
     @_inputField = new HG.TextInput @_hgInstance, 'new-name-input', null
-    @_inputField.setPlaceholder initName
+    @_inputField.setText initName
     @_inputField.j().attr 'size', NAME_MIN_SIZE
     @_wrapper.appendChild @_inputField
 
