@@ -21,7 +21,6 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     return @finish() if not @_stepData.userInput
 
     # get external modules
-    @_workflowWindow = @_hgInstance.workflowWindow
     @_areaController = @_hgInstance.areaController
 
 
@@ -65,10 +64,11 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
 
     # is step complete?
     if @_stepData.outData.selectedAreas.length >= @_stepData.number.min
-      @_workflowWindow.stepComplete()
+      @notifyOperation 'onStepComplete'
 
     # make action reversible
-    @_undoManager.add {
+    @notifyOperation 'onAddUndo', {
+      # TODO: why does that work ???
       undo: =>
         @notifyEditMode 'onDeselectArea', area.getId()
       redo: =>
@@ -85,10 +85,10 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
 
     # is step incomplete?
     if @_stepData.outData.selectedAreas.length < @_stepData.number.min
-      @_workflowWindow.stepIncomplete()
+      @notifyOperation 'onStepIncomplete'
 
     # make action reversible
-    @_undoManager.add {
+    @notifyOperation 'onAddUndo', {
       undo: =>
         @notifyEditMode 'onSelectArea', area.getId()
       redo: =>
