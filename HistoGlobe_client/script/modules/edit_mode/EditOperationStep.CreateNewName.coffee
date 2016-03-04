@@ -22,7 +22,6 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
     return @finish() if not @_stepData.userInput
 
     # get external modules
-    @_workflowWindow = @_hgInstance.workflowWindow
     @_areaController = @_hgInstance.areaController
 
     ### SETUP OPERATION ###

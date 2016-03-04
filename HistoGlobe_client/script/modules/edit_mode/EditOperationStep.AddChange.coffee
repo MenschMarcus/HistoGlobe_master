@@ -16,9 +16,6 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
     # inherit functionality from base class
     super @_hgInstance, @_stepData
 
-    # get external modules
-    workflowWindow = @_hgInstance.workflowWindow
-
 
     ### SETUP OPERATION ###
 
@@ -29,11 +26,10 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
     ### INTERACTION ###
     # tell workflow window to change to the finish button
     @_hiventBox.onReady @, () ->
-      workflowWindow.setupFinishButton()
+      @notifyOperation 'onOperationComplete'
 
     @_hiventBox.onUnready @, () ->
-      workflowWindow.cleanupFinishButton()
-
+      @notifyOperation 'onOperationIncomplete'
 
 
     ## that would be the nice way to do it, directly in HistoGlobe

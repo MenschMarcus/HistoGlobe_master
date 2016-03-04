@@ -22,9 +22,15 @@ class HG.EditOperation
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @addCallback "onFinish"
+    @addCallback 'onFinish'
+    @addCallback 'onStepComplete'
+    @addCallback 'onStepIncomplete'
+    @addCallback 'onStepTransition'
+    @addCallback 'onOperationComplete'
+    @addCallback 'onOperationIncomplete'
+    @addCallback 'onAddUndo'
+    @addCallback 'onNoUndoAction'
 
-    # get dependend classes
 
     ### SETUP CONFIG ###
     @_operation =
@@ -77,7 +83,6 @@ class HG.EditOperation
         ]
       }
     @_step = null
-    @_undoManagers = [null, null, null, null]   # holds max 4 undo managers for each of the four steps
 
     # fill up default information with information of loaded change operation
     for stepConfig in operationConfig.steps
@@ -89,8 +94,9 @@ class HG.EditOperation
             stepData.number = @_getRequiredNum stepConfig.num
           break
 
+
     ### SETUP UI ###
-    @_workflowWindow = new HG.WorkflowWindow @_hgInstance, @_operation
+    new HG.WorkflowWindow @_hgInstance, @_operation
 
     # listen to input from workflow window buttons
     @_hgInstance.buttons.nextOperationStep.onNext @, () =>
@@ -101,28 +107,32 @@ class HG.EditOperation
       @_finish()
 
     @_hgInstance.buttons.lastOperationStep.onBack @, () =>
-      @_undoAction()
+      @_undoManager.undo()
+      @notifyAll 'onNoUndoAction' if not @_undoManager.hasUndo()
 
     # listen to abort button
     @_hgInstance.buttons.abortOperation.onAbort @, () =>
-      # do it the hard way
-      @_step.finish()
-      @_workflowWindow.destroy()
-      @notifyAll 'onFinish'
+      # todo: undo all actions
+      @_abort()
 
+    ### SETUP UPDATE MANAGER (background mechanism) ###
+    @_undoManager = new UndoManager
 
     ### LET'S GO ###
     @_makeStep 1
 
+    # make this reversible
+    @_undoManager.add {
+      undo: =>
+        @_abort()
+    }
 
-  # ============================================================================
-  # manage undo managers ;)
-  addUndoManager: (undoManager) ->
-    @_undoManagers[@_operation.idx] = undoManager
 
-  _undoAction: () ->
-    @_undoManagers[@_operation.idx].undo()
+    # ==========================================================================
+    # listen to own callbacks, notified from operation step
 
+    @.onAddUndo @, (action) ->
+      @_undoManager.add action
 
 
   ##############################################################################
@@ -130,8 +140,7 @@ class HG.EditOperation
   ##############################################################################
 
   # ============================================================================
-  #
-  _makeStep: (direction, aborted=no) ->
+  _makeStep: (direction) ->
 
     # error handling: break up last step
     return if (@_operation.idx is 3) and (direction is 1)
@@ -155,11 +164,7 @@ class HG.EditOperation
 
     # change workflow window
     if newStep.userInput
-      @_workflowWindow.makeTransition direction
-      if isForward
-        @_workflowWindow.stepIncomplete()
-      else
-        @_workflowWindow.stepComplete()
+      @notifyAll 'onStepTransition', direction
 
     # setup new step
     @_operation.idx += direction
@@ -176,7 +181,7 @@ class HG.EditOperation
     if newStep.userInput
       @_step.onFinish @, (stepData) ->
         newStep = stepData
-        @_makeStep 1
+        @_makeStep direction
 
     # go to next step if no input required
     else
@@ -184,8 +189,6 @@ class HG.EditOperation
 
   # ============================================================================
   _finish: () ->
-    @_workflowWindow.destroy()
-
     # TODO: convert action list to new data to be stored in the database
     # save data to the server
     console.log @_operation
@@ -193,6 +196,9 @@ class HG.EditOperation
 
     @notifyAll 'onFinish'
 
+  # ============================================================================
+  _abort: () ->
+    @notifyAll 'onFinish'
 
   # ============================================================================
   # possible inputs:  1   1+  2   2+
