@@ -98,20 +98,30 @@ class HG.Button
   # ============================================================================
   disable: () ->
     @_enabled = no
-    @_setActivateAbleClasses()
+    @_resetClasses()
 
+  # ----------------------------------------------------------------------------
   enable: () ->
     @_enabled = yes
-    @_setActivateAbleClasses()
+    @_resetClasses()
+
+  # ----------------------------------------------------------------------------
+  isEnabled: () ->
+    @_enabled
 
   # ============================================================================
   activate: () ->
     @_active = yes
-    @_setActivateAbleClasses()
+    @_resetClasses()
 
+  # ----------------------------------------------------------------------------
   deactivate: () ->
     @_active = no
-    @_setActivateAbleClasses()
+    @_resetClasses()
+
+  # ----------------------------------------------------------------------------
+  isActive: () ->
+    @_active
 
   # ============================================================================
   show: () ->           @_button.j().show()
@@ -119,7 +129,8 @@ class HG.Button
 
   # ============================================================================
   destroy: () ->        @_button.j().remove()
-  remove: () ->         @_button.j().remove()
+  remove: () ->         @destroy()
+  delete: () ->         @destroy()
 
 
   ##############################################################################
@@ -127,7 +138,7 @@ class HG.Button
   ##############################################################################
 
   # ============================================================================
-  _setActivateAbleClasses: () ->
+  _resetClasses: () ->
     ## 4 cases: none, button-disabled, button-active, button-disable-active
     # cleanup
     @_button.j().removeClass 'button-disabled'

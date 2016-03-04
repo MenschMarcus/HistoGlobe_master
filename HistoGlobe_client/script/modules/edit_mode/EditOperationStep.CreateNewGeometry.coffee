@@ -17,7 +17,6 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
     super @_hgInstance, @_stepData
 
     # get external modules
-    @_workflowWindow = @_hgInstance.workflowWindow
     @_areaController = @_hgInstance.areaController
     @_geometryOperator = new HG.GeometryOperator
 

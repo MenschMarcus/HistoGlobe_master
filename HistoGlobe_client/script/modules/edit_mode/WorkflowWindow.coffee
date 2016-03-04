@@ -26,7 +26,11 @@ class HG.WorkflowWindow
   #   newName:  set name of new country/-ies? (bool)
   constructor: (@_hgInstance, operation) ->
 
+    # add to hg instance
     @_hgInstance.workflowWindow = @
+
+    @_editOperation = @_hgInstance.editOperation
+
 
     @_currStep = -1   # start without marker
     @_totalSteps = 0
@@ -198,44 +202,54 @@ class HG.WorkflowWindow
     @_mainWindow.j().css 'left', posLeft
     @_mainWindow.j().css 'margin-left', marginLeft
 
-    # initially no way to go to the next step
+    # initially no way to get forward
     @_nextButton.disable()
 
 
-  # ============================================================================
-  destroy: () ->
-    @_abortButton.destroy()
-    @_nextButton.destroy()
-    @_backButton.destroy()
-    @_mainWindow?.j().empty()
-    @_mainWindow?.j().remove()
-    delete @_mainWindow?
+    ### INTERACTION ###
 
+    # ----------------------------------------------------------------------------
+    @_editOperation.onStepComplete @, () ->
+      @_nextButton.enable()
 
-  # ============================================================================
-  ### interaction from Edit Mode ###
+    @_editOperation.onStepIncomplete @, () ->
+      @_nextButton.disable()
 
-  stepComplete: () ->
-    @_nextButton.enable()
+    # ----------------------------------------------------------------------------
+    @_editOperation.onAddUndo @, () ->
+      @_backButton.enable()
 
-  stepIncomplete: () ->
-    @_nextButton.disable()
+    # ----------------------------------------------------------------------------
+    @_editOperation.onNoUndoAction @, () ->
+      @_backButton.disable()
 
-  setupFinishButton: () ->
-    @_nextButton.enable()
-    @_nextButton.changeState 'finish'
+    # ----------------------------------------------------------------------------
+    @_editOperation.onOperationComplete @, () ->
+      @_nextButton.enable()
+      @_nextButton.changeState 'finish'
 
-  cleanupFinishButton: () ->
-    @_nextButton.disable()
-    @_nextButton.changeState 'normal'
+    # ----------------------------------------------------------------------------
+    @_editOperation.onOperationIncomplete @, () ->
+      @_nextButton.disable()
+      @_nextButton.changeState 'normal'
 
-  makeTransition: (dir) ->
-    @_currStep += dir
-    unless @_currStep is -1
-      @_moveStepMarker()
-      @_highlightText()
-    else
-      @destroy()
+    # ----------------------------------------------------------------------------
+    @_editOperation.onStepTransition @, (dir) ->
+      @_currStep += dir
+      unless @_currStep is -1
+        @_moveStepMarker()
+        @_highlightText()
+      else
+        @destroy()
+
+    # ----------------------------------------------------------------------------
+    @_editOperation.onFinish @, () ->
+      @_abortButton.destroy()
+      @_nextButton.destroy()
+      @_backButton.destroy()
+      @_mainWindow?.j().empty()
+      @_mainWindow?.j().remove()
+      delete @_mainWindow?
 
 
   ##############################################################################
