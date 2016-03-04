@@ -57,19 +57,43 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
 
   # ============================================================================
   _selectArea: (area) ->
+    # error handling
+    idx = @_stepData.outData.selectedAreas.indexOf area.getId()
+    return if idx isnt -1
+
     @_stepData.outData.selectedAreas.push area.getId()
 
     # is step complete?
     if @_stepData.outData.selectedAreas.length >= @_stepData.number.min
       @_workflowWindow.stepComplete()
 
+    # make action reversible
+    @_undoManager.add {
+      undo: =>
+        @notifyEditMode 'onDeselectArea', area.getId()
+      redo: =>
+        @notifyEditMode 'onSelectArea', area.getId()
+    }
+
   # ----------------------------------------------------------------------------
   _deselectArea: (area) ->
-      @_stepData.outData.selectedAreas.splice (@_stepData.outData.selectedAreas.indexOf area.getId()), 1
+    # error handling
+    idx = @_stepData.outData.selectedAreas.indexOf area.getId()
+    return if idx is -1
 
-      # is step incomplete?
-      if @_stepData.outData.selectedAreas.length < @_stepData.number.min
-        @_workflowWindow.stepIncomplete()
+    @_stepData.outData.selectedAreas.splice idx, 1
+
+    # is step incomplete?
+    if @_stepData.outData.selectedAreas.length < @_stepData.number.min
+      @_workflowWindow.stepIncomplete()
+
+    # make action reversible
+    @_undoManager.add {
+      undo: =>
+        @notifyEditMode 'onSelectArea', area.getId()
+      redo: =>
+        @notifyEditMode 'onDeselectArea', area.getId()
+    }
 
 
   # ============================================================================
