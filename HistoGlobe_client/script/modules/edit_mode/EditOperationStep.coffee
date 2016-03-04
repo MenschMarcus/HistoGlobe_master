@@ -22,6 +22,10 @@ class HG.EditOperationStep
 
     @addCallback "onFinish"
 
+    # undomanager for each step
+    @_undoManager = new UndoManager
+    @_hgInstance.editOperation.addUndoManager @_undoManager
+
 
   # ============================================================================
   # simple interface for each of the steps to divert their notification callbacks
