@@ -16,6 +16,8 @@ class HG.EditOperation
   # setup the whole operation
   constructor: (@_hgInstance, operationConfig) ->
 
+    @_hgInstance.editOperation = @
+
     # handle callbacks
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
@@ -75,6 +77,7 @@ class HG.EditOperation
         ]
       }
     @_step = null
+    @_undoManagers = [null, null, null, null]   # holds max 4 undo managers for each of the four steps
 
     # fill up default information with information of loaded change operation
     for stepConfig in operationConfig.steps
@@ -98,8 +101,7 @@ class HG.EditOperation
       @_finish()
 
     @_hgInstance.buttons.lastOperationStep.onBack @, () =>
-      # backwards logic to be done in a different way
-      # really cool idea: actionList (just go back the list revert the action later)
+      @_undoAction()
 
     # listen to abort button
     @_hgInstance.buttons.abortOperation.onAbort @, () =>
@@ -111,6 +113,15 @@ class HG.EditOperation
 
     ### LET'S GO ###
     @_makeStep 1
+
+
+  # ============================================================================
+  # manage undo managers ;)
+  addUndoManager: (undoManager) ->
+    @_undoManagers[@_operation.idx] = undoManager
+
+  _undoAction: () ->
+    @_undoManagers[@_operation.idx].undo()
 
 
 
