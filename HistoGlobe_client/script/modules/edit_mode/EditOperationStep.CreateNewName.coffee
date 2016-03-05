@@ -33,9 +33,6 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
       @_makeNewName 1   # direction: positive
 
     else # backward
-      # reselect all areas
-      # for area in @_stepData.outData.namedAreas
-
       @_areaIdx = @_numAreas
       @_makeNewName -1  # direction: negative
 
@@ -46,7 +43,7 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
   ##############################################################################
 
   # ============================================================================
-  _makeNewName: (direction) =>
+  _makeNewName: (direction) ->
 
     # error handling: last name -> forward    => finish
     #                 first name -> backward  => abort
@@ -68,7 +65,8 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
     # set up NewNameTool to set name and position of area interactively
     newNameTool = new HG.NewNameTool @_hgInstance, name, position
 
-    ### REACT ON USER INPUT ###
+
+    ### LISTEN TO USER INPUT ###
     newNameTool.onSubmit @, (name, position) =>
 
       # save the named area
@@ -91,7 +89,7 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
       @notifyEditMode 'onUpdateAreaName', currentAreaId, name, position
       # @notifyEditMode 'onSelectArea', currentAreaId
 
-      # go to next area
+      # go to next name
       @_cleanup()
       @_makeNewName 1
 
@@ -100,5 +98,5 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
   _cleanup: () ->
 
     ### CLEANUP OPERATION ###
-    newNameTool = @_hgInstance.newNameTool
-    newNameTool?.destroy()
+    @_hgInstance.newNameTool?.destroy()
+    @_hgInstance.newNameTool = null
