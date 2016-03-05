@@ -151,22 +151,22 @@ class HG.WorkflowWindow
     ### BUTTONS ###
 
     # back button (= undo, disabled)
-    @_backButton = new HG.Button @_hgInstance,
-      'lastOperationStep', ['tooltip-bottom'],
+    @_undoButton = new HG.Button @_hgInstance,
+      'undoStep', ['tooltip-bottom'],
       [
         {
           'id':       'normal'
           'tooltip':  "Undo / Go Back"
           'iconFA':   'chevron-left'
-          'callback': 'onBack'
+          'callback': 'onClick'
         }
       ]
-    backButtonParent.appendChild @_backButton.dom()
+    backButtonParent.appendChild @_undoButton.dom()
 
     # next button ( = ok = go to next step, disabled)
     # -> changes to OK button / "finish" state in last step
     @_nextButton = new HG.Button @_hgInstance,
-      'nextOperationStep', ['tooltip-bottom'],
+      'nextStep', ['tooltip-bottom'],
       [
         {
           'id':       'normal'
@@ -212,16 +212,9 @@ class HG.WorkflowWindow
     @_editOperation.onStepComplete @, () ->
       @_nextButton.enable()
 
+    # ----------------------------------------------------------------------------
     @_editOperation.onStepIncomplete @, () ->
       @_nextButton.disable()
-
-    # ----------------------------------------------------------------------------
-    @_editOperation.onAddUndo @, () ->
-      @_backButton.enable()
-
-    # ----------------------------------------------------------------------------
-    @_editOperation.onNoUndoAction @, () ->
-      @_backButton.disable()
 
     # ----------------------------------------------------------------------------
     @_editOperation.onOperationComplete @, () ->
@@ -246,7 +239,7 @@ class HG.WorkflowWindow
     @_editOperation.onFinish @, () ->
       @_abortButton.destroy()
       @_nextButton.destroy()
-      @_backButton.destroy()
+      @_undoButton.destroy()
       @_mainWindow?.j().empty()
       @_mainWindow?.j().remove()
       delete @_mainWindow?

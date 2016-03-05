@@ -31,6 +31,10 @@ class HG.EditOperation
     @addCallback 'onAddUndo'
     @addCallback 'onNoUndoAction'
 
+    # make all actions reversible
+    # -> array for undo managers for each step
+    @_undoManagers = [null, null, null, null]
+    @_fullyAborted = no
 
     ### SETUP CONFIG ###
     @_operation =
@@ -98,41 +102,59 @@ class HG.EditOperation
     ### SETUP UI ###
     new HG.WorkflowWindow @_hgInstance, @_operation
 
-    # listen to input from workflow window buttons
-    @_hgInstance.buttons.nextOperationStep.onNext @, () =>
+    # next step button
+    @_hgInstance.buttons.nextStep.onNext @, () =>
       @_step.finish()
 
-    @_hgInstance.buttons.nextOperationStep.onFinish @, () =>
+    # finish button
+    @_hgInstance.buttons.nextStep.onFinish @, () =>
       @_step.finish()
-      @_finish()
 
-    @_hgInstance.buttons.lastOperationStep.onBack @, () =>
-      @_undoManager.undo()
-      @notifyAll 'onNoUndoAction' if not @_undoManager.hasUndo()
+    # undo button
+    @_hgInstance.buttons.undoStep.onClick @, () =>
+      @_undo()
 
-    # listen to abort button
+    # abort button
     @_hgInstance.buttons.abortOperation.onAbort @, () =>
-      # todo: undo all actions
-      @_abort()
-
-    ### SETUP UPDATE MANAGER (background mechanism) ###
-    @_undoManager = new UndoManager
+      @_undo() while not @_fullyAborted
 
     ### LET'S GO ###
     @_makeStep 1
 
-    # make this reversible
-    @_undoManager.add {
-      undo: =>
-        @_abort()
-    }
 
+  # ============================================================================
+  ## handle undo
 
-    # ==========================================================================
-    # listen to own callbacks, notified from operation step
+  # ----------------------------------------------------------------------------
+  # listen to own callback, notified from operation step
+  # @.onAddUndo @, (action) ->
+    # @_undoManager.add action
 
-    @.onAddUndo @, (action) ->
-      @_undoManager.add action
+  # ----------------------------------------------------------------------------
+  addUndoManager: (undoManager) ->
+    @_undoManagers[@_operation.idx] = undoManager
+
+  # ----------------------------------------------------------------------------
+  getUndoManager: () ->
+    @_undoManagers[@_operation.idx]
+
+  # ----------------------------------------------------------------------------
+  # perform current undo action
+  _undo: () ->
+
+    console.log @_operation.idx, @_undoManagers, @_undoManagers[@_operation.idx].getIndex(),  @_undoManagers[@_operation.idx]
+
+    # if current step has reversible actions
+    # => undo it
+    if @_undoManagers[@_operation.idx].hasUndo()
+      @_undoManagers[@_operation.idx].undo()
+
+    # else current step has no reversible actions
+    # => destroy the step and go one step back
+    else
+      @_step.abort()
+      @_makeStep -1
+
 
 
   ##############################################################################
@@ -142,10 +164,12 @@ class HG.EditOperation
   # ============================================================================
   _makeStep: (direction) ->
 
-    # error handling: break up last step
-    return if (@_operation.idx is 3) and (direction is 1)
+    # error handling: last step -> forward    => finish
+    #                 first step -> backward  => abort
+    return @_finish() if (@_operation.idx is 3) and (direction is 1)
+    return @_abort()  if (@_operation.idx is 0) and (direction is -1)
 
-    # create bool variable: 'step forward? yes / no?'
+    # 'step forward? yes / no?'
     isForward = direction is 1
 
     # get old and new step
@@ -169,19 +193,19 @@ class HG.EditOperation
     # setup new step
     @_operation.idx += direction
     if @_operation.idx is 0
-      @_step = new HG.EditOperationStep.SelectOldAreas @_hgInstance, newStep
+      @_step = new HG.EditOperationStep.SelectOldAreas    @_hgInstance, newStep, isForward
     else if @_operation.idx is 1
-      @_step = new HG.EditOperationStep.CreateNewGeometry @_hgInstance, newStep
+      @_step = new HG.EditOperationStep.CreateNewGeometry @_hgInstance, newStep, isForward
     else if @_operation.idx is 2
-      @_step = new HG.EditOperationStep.CreateNewName @_hgInstance, newStep
+      @_step = new HG.EditOperationStep.CreateNewName     @_hgInstance, newStep, isForward
     else if @_operation.idx is 3
-      @_step = new HG.EditOperationStep.AddChange @_hgInstance, newStep, @_getOperationDescription()
+      @_step = new HG.EditOperationStep.AddChange         @_hgInstance, newStep, isForward
 
     # collect data if step is complete
     if newStep.userInput
       @_step.onFinish @, (stepData) ->
         newStep = stepData
-        @_makeStep direction
+        @_makeStep 1
 
     # go to next step if no input required
     else
@@ -196,8 +220,9 @@ class HG.EditOperation
 
     @notifyAll 'onFinish'
 
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   _abort: () ->
+    @_fullyAborted = yes
     @notifyAll 'onFinish'
 
   # ============================================================================

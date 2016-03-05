@@ -34,10 +34,6 @@ class HG.AreasOnMap
       # listen to area changes from area controller
       if @_hgInstance.areaController
 
-        @_hgInstance.areaController.onCreateArea @, (area) =>
-          @_addGeometry area
-          @_addName area
-
         @_hgInstance.areaController.onCreateAreaGeometry @, (area) =>
           @_addGeometry area
 
@@ -60,10 +56,6 @@ class HG.AreasOnMap
         @_hgInstance.areaController.onDeselectArea @, (area) =>
           @_updateProperties area
           @_map.fitBounds area.geomLayer.getBounds() if FOCUS
-
-        @_hgInstance.areaController.onRemoveArea @, (area) =>
-          @_removeName area
-          @_removeGeometry area
 
         @_hgInstance.areaController.onRemoveAreaGeometry @, (area) =>
           @_removeGeometry area

@@ -15,7 +15,7 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
   constructor: (@_hgInstance, @_stepData, isForward) ->
 
     # inherit functionality from base class
-    super @_hgInstance, @_stepData
+    super @_hgInstance, @_stepData, isForward
 
     # skip steps without user input
     return @finish() if not @_stepData.userInput
@@ -30,17 +30,18 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     # tell AreaController to start selecting maximal X number of areas
     @notifyEditMode 'onEnableMultiSelection', @_stepData.number.max
 
-    # get currently selected area and add it to array
-    @_initSelectedArea = @_areaController.getSelectedAreas()[0]
-    @_selectArea @_initSelectedArea if @_initSelectedArea
 
+    # forward change: only currently selected area and add it to array
+    if isForward
+      @_initSelectedArea = @_areaController.getSelectedAreas()[0]
+      @_selectArea @_initSelectedArea if @_initSelectedArea
 
-    ## for backward step
-    # else
-    #   # put all previously selected areas back on the map
-    #   for area in @_stepData.outData.selectedAreas
-    #     area.select()
-    #     @_areaController.updateArea area
+    # backward change: all areas selected
+    else
+      # put all previously selected areas back on the map
+      for area in @_stepData.outData.selectedAreas
+        @notifyEditMode 'onEndEditArea', area
+        @notifyEditMode 'onSelectArea', area
 
 
     ### REACT ON USER INPUT ###
@@ -67,7 +68,7 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
       @notifyOperation 'onStepComplete'
 
     # make action reversible
-    @notifyOperation 'onAddUndo', {
+    @_undoManager.add {
       # TODO: why does that work ???
       undo: =>
         @notifyEditMode 'onDeselectArea', area.getId()
@@ -88,7 +89,7 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
       @notifyOperation 'onStepIncomplete'
 
     # make action reversible
-    @notifyOperation 'onAddUndo', {
+    @_undoManager.add {
       undo: =>
         @notifyEditMode 'onSelectArea', area.getId()
       redo: =>
