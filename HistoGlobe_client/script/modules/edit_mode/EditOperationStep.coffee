@@ -12,13 +12,24 @@ class HG.EditOperationStep
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, @_stepData) ->
+  constructor: (@_hgInstance, @_stepData, @_isForward) ->
 
-    # handle callbacks
+    # console.log "IN :", @_stepData.id, @_stepData
+
+    ## handle callbacks
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
     @addCallback "onFinish"
+
+    ## handle undo
+    # only add undo manager on forward direction, to be able to undo the actions
+    # when going backwards through the steps
+    if @_isForward
+      @_undoManager = new UndoManager
+      @_hgInstance.editOperation.addUndoManager @_undoManager
+    else
+      @_undoManager = @_hgInstance.editOperation.getUndoManager()
 
 
   # ============================================================================
@@ -44,4 +55,10 @@ class HG.EditOperationStep
   finish: () ->
     @_cleanup()
 
+    # console.log "OUT:", @_stepData.id, @_stepData
+
     @notifyAll 'onFinish', @_stepData
+
+  # ----------------------------------------------------------------------------
+  abort: () ->
+    @_cleanup()
