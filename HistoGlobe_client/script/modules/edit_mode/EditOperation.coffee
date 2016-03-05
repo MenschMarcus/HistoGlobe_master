@@ -28,8 +28,6 @@ class HG.EditOperation
     @addCallback 'onStepTransition'
     @addCallback 'onOperationComplete'
     @addCallback 'onOperationIncomplete'
-    @addCallback 'onAddUndo'
-    @addCallback 'onNoUndoAction'
 
     # make all actions reversible
     # -> array for undo managers for each step
@@ -216,7 +214,6 @@ class HG.EditOperation
     # TODO: convert action list to new data to be stored in the database
     # save data to the server
     console.log @_operation
-    # close operation
 
     @notifyAll 'onFinish'
 
