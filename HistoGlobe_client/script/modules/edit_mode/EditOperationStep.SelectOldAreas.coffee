@@ -20,9 +20,6 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     # skip steps without user input
     return @finish() if not @_stepData.userInput
 
-    # get external modules
-    @_areaController = @_hgInstance.areaController
-
 
     ### SETUP OPERATION ###
 
@@ -33,7 +30,7 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
 
     # forward change: only currently selected area and add it to array
     if isForward
-      @_initSelectedArea = @_areaController.getSelectedAreas()[0]
+      @_initSelectedArea = @_hgInstance.areaController.getSelectedAreas()[0]
       @_selectArea @_initSelectedArea if @_initSelectedArea
 
     # backward change: all areas selected
@@ -47,8 +44,8 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     ### REACT ON USER INPUT ###
     # listen to area (de)selection from AreaController
 
-    @_areaController.onSelectArea @, (area) =>    @_selectArea area
-    @_areaController.onDeselectArea @, (area) =>  @_deselectArea area
+    @_hgInstance.areaController.onSelectArea @, (area) =>    @_selectArea area
+    @_hgInstance.areaController.onDeselectArea @, (area) =>  @_deselectArea area
 
 
   ##############################################################################
@@ -97,11 +94,9 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
   _cleanup: () ->
 
     ### STOP LISTENING ###
-    @_areaController.removeListener 'onSelectArea', @
-    @_areaController.removeListener 'onDeselectArea', @
+    @_hgInstance.areaController.removeListener 'onSelectArea', @
+    @_hgInstance.areaController.removeListener 'onDeselectArea', @
 
     ### CLEANUP OPERATION ###
-    if @_stepData.userInput
-
-      # tell areas on map to stop selecting multiple areas
-      @notifyEditMode 'onDisableMultiSelection'
+    # TODO: is that a problem that it also happens if there was no user input?
+    @notifyEditMode 'onDisableMultiSelection' # if @_stepData.userInput
