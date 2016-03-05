@@ -11,17 +11,17 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, @_stepData, @_operationDescription) ->
+  constructor: (@_hgInstance, @_stepData, @_isForward) ->
 
     # inherit functionality from base class
-    super @_hgInstance, @_stepData
-
+    super @_hgInstance, @_stepData, @_isForward
 
     ### SETUP OPERATION ###
 
-    # hivent box: select existing or create new hivent
+    @notifyEditMode 'onEnableAreaEditMode' if not @_isForward
 
-    @_hiventBox = new HG.NewHiventBox @_hgInstance, @_stepData, @_operationDescription
+    # hivent box: select existing or create new hivent
+    @_hiventBox = new HG.NewHiventBox @_hgInstance, @_stepData, "HORST"
 
     ### INTERACTION ###
     # tell workflow window to change to the finish button
@@ -62,4 +62,4 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
     @_hiventBox.destroy()
 
     # TODO: decide which area to have seleted after everything is over
-    @notifyEditMode 'onDisableAreaEditMode'
+    @notifyEditMode 'onDisableAreaEditMode' if @_isForward

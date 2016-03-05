@@ -16,7 +16,6 @@ class HG.AreaController
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @addCallback 'onCreateArea'
     @addCallback 'onCreateAreaGeometry'
     @addCallback 'onCreateAreaName'
 
@@ -24,12 +23,12 @@ class HG.AreaController
     @addCallback 'onUpdateAreaName'
     @addCallback 'onUpdateAreaStatus'
 
+    @addCallback 'onRemoveAreaGeometry'
+    @addCallback 'onRemoveAreaName'
+
     @addCallback 'onSelectArea'
     @addCallback 'onDeselectArea'
 
-    @addCallback 'onRemoveArea'
-    @addCallback 'onRemoveAreaGeometry'
-    @addCallback 'onRemoveAreaName'
 
 
     # handle config
@@ -44,7 +43,8 @@ class HG.AreaController
     @_hgInstance.areaController = @
 
 
-    @_activeAreas = []            # set of all HG.Area's (id, geometry, name)
+    @_areas = []                  # set of all HG.Area's (id, geometry, name)
+    @_activeAreas = []            # set of all HG.Area's currently active
 
     @_maxSelections = 1           # 1 = single-selection mode, n = multi-selection mode
     @_selectedAreas = []          # array of all currently active areas
@@ -74,8 +74,10 @@ class HG.AreaController
             # error handling: each area must have valid geometry
             if geometry.isValid()
               newArea = new HG.Area id, geometry, name
+              @_areas.push newArea
               @_activeAreas.push newArea
-              @notifyAll 'onCreateArea', newArea
+              @notifyAll 'onCreateAreaGeometry', newArea
+              @notifyAll 'onCreateAreaName', newArea
 
 
       ### INTERFACE ###
@@ -246,7 +248,10 @@ class HG.AreaController
         newArea.inEdit yes
         @_editAreas.push newArea
         @_activeAreas.push newArea
-        @notifyAll 'onCreateArea', newArea
+        @_areas.push newArea
+        @notifyAll 'onCreateAreaGeometry', newArea
+        if name
+          @notifyAll 'onCreateAreaName', newArea
 
         @_DEBUG_OUTPUT 'create area' if DEBUG
 
@@ -312,7 +317,7 @@ class HG.AreaController
         @_DEBUG_OUTPUT 'start edit mode' if DEBUG
 
       # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onFinishEditArea @, (id) ->
+      @_hgInstance.editMode.onEndEditArea @, (id) ->
         area = @getArea id
 
         # error handling: area has to be found
@@ -359,39 +364,63 @@ class HG.AreaController
         @_DEBUG_OUTPUT 'deselect area (from edit mode)' if DEBUG
 
       # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onRemoveArea @, (id) ->
+      @_hgInstance.editMode.onRemoveArea @, (id, completeRemove=no) ->
         area = @getArea id
 
         # error handling: area has to be found
         return if (not area)
 
-        # remove from active areas
-        @_activeAreas.splice (@_activeAreas.indexOf area), 1
-
-        # remove also from editAreas array, in case it was there
-        idx = @_editAreas.indexOf area
-        @_editAreas.splice idx, 1 if idx isnt -1
-
-        # remove also from selected array, in case it was there
+        # remove from selected array, in case it was there
         idx = @_selectedAreas.indexOf area
         @_selectedAreas.splice idx, 1 if idx isnt -1
 
+        # remove from editAreas array, in case it was there
+        idx = @_editAreas.indexOf area
+        @_editAreas.splice idx, 1 if idx isnt -1
+
+        # remove from active areas
+        @_activeAreas.splice (@_activeAreas.indexOf area), 1
+
+        # remove from all areas, in case it is a complete remove
+        if completeRemove
+          @_areas.splice (@_areas.indexOf area), 1
+
         # decide: remove full area (name + geometry) or is only geometry left?
-        if area.getName() isnt null
-          @notifyAll 'onRemoveArea', area
-        else
-          @notifyAll 'onRemoveAreaGeometry', area
+        @notifyAll 'onRemoveAreaGeometry', area
+        if area.getName()
+          @notifyAll 'onRemoveAreaName', area
 
         @_DEBUG_OUTPUT 'remove area' if DEBUG
 
+      # ------------------------------------------------------------------------
+      @_hgInstance.editMode.onRestoreArea @, (id) ->
+        area = @getArea id
+
+        # error handling: area has to be found
+        return if (not area)
+
+        # add back to active areas
+        @_activeAreas.push area
+
+        # restore membership in edit/selected arrays
+        @_editAreas.push area       if area.isInEdit()
+        @_selectedAreas.push area   if area.isSelected()
+
+        # put back on map
+        @notifyAll 'onCreateAreaGeometry', area
+        if area.getName()
+          @notifyAll 'onCreateAreaName', area
+
+        @_DEBUG_OUTPUT 'restore area' if DEBUG
+
 
   # ============================================================================
-  getAreas: () ->           @_activeAreas
+  getAreas: () ->           @_areas
   getSelectedAreas: () ->   @_selectedAreas
 
   # ----------------------------------------------------------------------------
   getArea: (id) ->
-    for area in @_activeAreas
+    for area in @_areas
       if area.getId() is id
         return area
         break
