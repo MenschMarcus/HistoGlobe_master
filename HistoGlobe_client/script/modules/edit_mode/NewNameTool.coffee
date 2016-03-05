@@ -95,10 +95,12 @@ class HG.NewNameTool
 
   # ============================================================================
   destroy: () ->
-    # detach event handlers from map
+
+    # remove interaction: detach event handlers from map
     @_map.off 'zoomend', @_respondToMapZoom
     @_map.off 'drag',    @_respondToMapDrag
-    # remove UI elements + their interaction
+
+    # cleanup UI
     @_okButton.remove()
     @_inputField.remove()
     @_wrapper.remove()

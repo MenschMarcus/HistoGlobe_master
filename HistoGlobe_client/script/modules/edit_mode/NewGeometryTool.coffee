@@ -15,7 +15,9 @@ class HG.NewGeometryTool
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, @_firstIteration) ->
+  constructor: (@_hgInstance, @_firstStep) ->
+
+    @_hgInstance.newGeometryTool = @
 
     # handle callbacks
     HG.mixin @, HG.CallbackContainer
@@ -205,7 +207,7 @@ class HG.NewGeometryTool
     # after first iteration, it is possible to select the leftover area and
     # select it as the leftover geometry
     # precondition: there is certainly only one unselected area in edit mode!
-    if not @_firstIteration
+    if not @_firstStep
 
       @_initFeatureGroup = null
 
@@ -247,8 +249,8 @@ class HG.NewGeometryTool
     # click OK => submit geometry
     @_submitGeomBtn.onClick @, () =>
 
-      # immediately sto listening to on(De)SelectArea, to avoid weird behaviour
-      if not @_firstIteration
+      # immediately stop listening to on(De)SelectArea, to avoid weird behaviour
+      if not @_firstStep
         @_hgInstance.areaController.removeListener 'onSelectArea', @
         @_hgInstance.areaController.removeListener 'onDeselectArea', @
 
@@ -264,16 +266,14 @@ class HG.NewGeometryTool
   # ============================================================================
   destroy: () ->
 
-    # remove interaction
+    # remove interaction: detach event handlers from map
     @_map.off 'draw:created', @_createPolygon
     @_map.off 'draw:deleted', @_deletePolygon
 
-    # UI
+    # cleanup UI
     @_buttonArea.destroy()
     @_map.removeControl @_drawControl
-    delete @_drawControl
     @_map.removeLayer @_featureGroup
-    delete @_featureGroup
 
 
 
@@ -295,7 +295,7 @@ class HG.NewGeometryTool
       @_deleteGeomBtn.enable()
       @_submitGeomBtn.enable()
 
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   _deletePolygon: (e) =>
     # geometry can not be edited/deleted/submitted anymore
     if @_featureGroup.getLayers().length is 0
