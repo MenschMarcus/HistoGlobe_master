@@ -53,7 +53,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
         @_unifySelectedAreas()
       else
         @_unifySelectedAreas_reverse()
-      return @finish()
+      return @finish() # no user input
 
 
     ## change name operation
@@ -63,7 +63,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
         @_stepData.outData.createdAreas.push @_stepData.inData.selectedAreas[0]
       else
         @_stepData.inData.selectedAreas.push @_stepData.outData.createdAreas[0]
-      return @finish()
+      return @finish() # no user input
 
 
     ## delete operation
@@ -72,7 +72,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
         @notifyEditMode 'onRemoveArea', @_stepData.inData.selectedAreas[0]
       else
         @notifyEditMode 'onRestoreArea', @_stepData.inData.selectedAreas[0]
-      return @finish()
+      return @finish() # no user input
 
 
 
@@ -157,7 +157,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
             finish = yes
 
 
-        ## separate geometries operation
+        ## change border operation
         else if @_stepData.operationCommand is 'CHB'
 
           # idea: both areas A and B get a new common border

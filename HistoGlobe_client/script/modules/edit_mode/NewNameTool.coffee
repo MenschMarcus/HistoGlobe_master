@@ -47,6 +47,7 @@ class HG.NewNameTool
     @_inputField = new HG.TextInput @_hgInstance, 'new-name-input', null
     if initName   # set either the text that is given (to just accept it)
       @_inputField.setText initName
+      @_resize()
     else          # or have only a placeholder
       @_inputField.setPlaceholder 'name'
     @_inputField.j().attr 'size', NAME_MIN_SIZE
@@ -84,15 +85,9 @@ class HG.NewNameTool
     # click OK => submit name and position
     @_okButton.onClick @, () =>
       # get center coordinates
-      # offset = @_wrapper.j().position()
-      # width = @_wrapper.j().width()
-      # height = @_wrapper.j().height()
-      # center = L.point offset.left + width / 2, offset.top + height / 2
       center = new L.Point @_wrapper.j().position().left, @_wrapper.j().position().top
-      #                      common name             label position
+      #                      name                    label position
       @notifyAll 'onSubmit', @_inputField.j().val(), @_map.containerPointToLatLng center
-
-    ## from other modules
 
 
 
@@ -112,8 +107,8 @@ class HG.NewNameTool
 
   # ============================================================================
   _recenter: () ->
-    @_wrapper.j().css 'margin-top', -(@_wrapper.j().height() / 2)
-    @_wrapper.j().css 'margin-left', -(@_wrapper.j().width() / 2)
+    @_wrapper.j().css 'margin-top',  -(@_wrapper.j().height() / 2)
+    @_wrapper.j().css 'margin-left', -(@_wrapper.j().width()  / 2)
 
   # ============================================================================
   # preparation functions
