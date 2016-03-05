@@ -21,6 +21,7 @@ class HG.EditOperationStep
     HG.CallbackContainer.call @
 
     @addCallback "onFinish"
+    @addCallback "onAbort"
 
     ## handle undo
     # only add undo manager on forward direction, to be able to undo the actions
@@ -54,11 +55,10 @@ class HG.EditOperationStep
   # (e.g. if last area successfully named)
   finish: () ->
     @_cleanup()
-
-    # console.log "OUT:", @_stepData.id, @_stepData
-
     @notifyAll 'onFinish', @_stepData
 
   # ----------------------------------------------------------------------------
   abort: () ->
+    @_isForward = no  # abort comes from outside, so forward variable has to be explicitly set
     @_cleanup()
+    @notifyAll 'onAbort', @_stepData
