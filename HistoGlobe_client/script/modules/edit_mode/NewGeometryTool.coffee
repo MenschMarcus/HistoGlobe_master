@@ -270,6 +270,10 @@ class HG.NewGeometryTool
     @_map.off 'draw:created', @_createPolygon
     @_map.off 'draw:deleted', @_deletePolygon
 
+    # remove interaction: stop listening to AreaController
+    @_hgInstance.areaController.removeListener 'onSelectArea', @
+    @_hgInstance.areaController.removeListener 'onDeselectArea', @
+
     # cleanup UI
     @_buttonArea.destroy()
     @_map.removeControl @_drawControl

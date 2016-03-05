@@ -268,16 +268,38 @@ class HG.AreaController
       @_hgInstance.editMode.onUpdateAreaGeometry @, (id, geometry) ->
         area = @getArea id
 
-        # error handling: area has to be found and have a valid geometry
-        return if (not area) or (not geometry.isValid())
+        # error handling: area has to be found
+        return if (not area)
+
+        hadGeometryBefore = area.getGeometry().isValid() is true
 
         ## update model
         area.setGeometry geometry
         area.resetRepresentativePoint()   # TODO: better way to adapt label position?
 
-        ## update view
-        @notifyAll 'onUpdateAreaGeometry', area
-        @notifyAll 'onUpdateAreaName', area   # to account for change in label position
+        # no geometry => remove
+        if not geometry.isValid()
+
+          # if there was a geometry before => remove it
+          if hadGeometryBefore
+            @notifyAll 'onRemoveAreaGeometry', area
+            @notifyAll 'onRemoveAreaName', area   if area.getName()
+
+          # else if there was no geometry before => no need to change something
+
+        # geometry given => update it
+        else
+
+          # if geometry was there before => update
+          if hadGeometryBefore
+            @notifyAll 'onUpdateAreaGeometry', area
+            @notifyAll 'onUpdateAreaName', area   if area.getName()
+
+          # if there was no geometry before => create if
+          else
+            @notifyAll 'onCreateAreaGeometry', area
+            @notifyAll 'onCreateAreaName', area   if area.getName()
+
 
         @_DEBUG_OUTPUT 'update area geometry' if DEBUG
 
@@ -299,7 +321,6 @@ class HG.AreaController
 
         # no name => delete it from the map
         if name is null
-          area.resetRepresentativePoint()
 
           # if there was a name before => remove it
           if hadNameBefore

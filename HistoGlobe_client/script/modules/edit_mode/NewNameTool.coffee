@@ -7,7 +7,7 @@ class HG.NewNameTool
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, initName, posLatLng) ->
+  constructor: (@_hgInstance, @_initName, @_initPosition) ->
 
     @_hgInstance.newNameTool = @
 
@@ -47,8 +47,8 @@ class HG.NewNameTool
     @_hgInstance._top_area.appendChild @_wrapper.dom()
 
     @_inputField = new HG.TextInput @_hgInstance, 'new-name-input', null
-    if initName   # set either the text that is given (to just accept it)
-      @_inputField.setText initName
+    if @_initName   # set either the text that is given (to just accept it)
+      @_inputField.setText @_initName
       @_resize()
     else          # or have only a placeholder
       @_inputField.setPlaceholder 'name'
@@ -56,7 +56,7 @@ class HG.NewNameTool
     @_wrapper.appendChild @_inputField
 
     # set position of wrapper = center of country
-    posPx = @_map.latLngToContainerPoint posLatLng
+    posPx = @_map.latLngToContainerPoint @_initPosition
     @_wrapper.j().css 'left', posPx.x
     @_wrapper.j().css 'top',  posPx.y
     @_recenter()
@@ -88,8 +88,9 @@ class HG.NewNameTool
     @_okButton.onClick @, () =>
       # get center coordinates
       center = new L.Point @_wrapper.j().position().left, @_wrapper.j().position().top
-      #                      name                    label position
-      @notifyAll 'onSubmit', @_inputField.j().val(), @_map.containerPointToLatLng center
+      newName = @_inputField.j().val()
+      newPosition = @_map.containerPointToLatLng center
+      @notifyAll 'onSubmit', newName, newPosition, @_initName
 
 
 
