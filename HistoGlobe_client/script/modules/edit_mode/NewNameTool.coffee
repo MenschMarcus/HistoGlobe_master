@@ -9,6 +9,8 @@ class HG.NewNameTool
   # ============================================================================
   constructor: (@_hgInstance, initName, posLatLng) ->
 
+    @_hgInstance.newNameTool = @
+
     # handle callbacks
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @

@@ -72,8 +72,6 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
       # TODO: why does that work ???
       undo: =>
         @notifyEditMode 'onDeselectArea', area.getId()
-      redo: =>
-        @notifyEditMode 'onSelectArea', area.getId()
     }
 
   # ----------------------------------------------------------------------------
@@ -92,8 +90,6 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     @_undoManager.add {
       undo: =>
         @notifyEditMode 'onSelectArea', area.getId()
-      redo: =>
-        @notifyEditMode 'onDeselectArea', area.getId()
     }
 
 

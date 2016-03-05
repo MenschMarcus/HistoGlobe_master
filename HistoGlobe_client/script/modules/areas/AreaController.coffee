@@ -228,7 +228,11 @@ class HG.AreaController
 
         # transform each edit area into a normal area
         for area in @_editAreas
+
+          ## update model
           area.inEdit no
+
+          ## update view
           @notifyAll 'onUpdateAreaStatus', area
 
         # clear edit areas -> all transfered to active areas at this point
@@ -244,11 +248,16 @@ class HG.AreaController
         # error handling: new area must have valid geometry
         return if not geometry.isValid()
 
+        ## update model
         newArea = new HG.Area id, geometry, name
         newArea.inEdit yes
+
+        ## update controller
         @_editAreas.push newArea
         @_activeAreas.push newArea
         @_areas.push newArea
+
+        ## update view
         @notifyAll 'onCreateAreaGeometry', newArea
         if name
           @notifyAll 'onCreateAreaName', newArea
@@ -262,13 +271,13 @@ class HG.AreaController
         # error handling: area has to be found and have a valid geometry
         return if (not area) or (not geometry.isValid())
 
+        ## update model
         area.setGeometry geometry
-        @notifyAll 'onUpdateAreaGeometry', area
+        area.resetRepresentativePoint()   # TODO: better way to adapt label position?
 
-        # TODO: better way to do this?
-        # adapt label position
-        area.resetRepresentativePoint()
-        @notifyAll 'onUpdateAreaName', area
+        ## update view
+        @notifyAll 'onUpdateAreaGeometry', area
+        @notifyAll 'onUpdateAreaName', area   # to account for change in label position
 
         @_DEBUG_OUTPUT 'update area geometry' if DEBUG
 
@@ -283,21 +292,32 @@ class HG.AreaController
 
         hadNameBefore = area.getName()?
 
+        ## update model
         area.setName name
+
+        ## update view
 
         # no name => delete it from the map
         if name is null
           area.resetRepresentativePoint()
-          @notifyAll 'onRemoveAreaName', area
-          return
 
-        # name given => update it (if it was there before) or create it new
-        area.setRepresentativePoint position if position
+          # if there was a name before => remove it
+          if hadNameBefore
+            @notifyAll 'onRemoveAreaName', area
 
-        if hadNameBefore
-          @notifyAll 'onUpdateAreaName', area
-        else # area had no name before
-          @notifyAll 'onCreateAreaName', area
+          # else if there was no name before => no need to change something
+
+        # name given => update it
+        else
+          area.setRepresentativePoint position if position
+
+          # if name was there before => update
+          if hadNameBefore
+            @notifyAll 'onUpdateAreaName', area
+
+          # if there was no name before => create if
+          else
+            @notifyAll 'onCreateAreaName', area
 
         @_DEBUG_OUTPUT 'update area name' if DEBUG
 
@@ -308,10 +328,15 @@ class HG.AreaController
         # error handling: area has to be found
         return if (not area)
 
+        ## update model
         area.inEdit yes
+
+        ## update controller
         idx = @_editAreas.indexOf area
         if idx is -1 # = if area is not in array
           @_editAreas.push area
+
+          ## update view
           @notifyAll 'onUpdateAreaStatus', area
 
         @_DEBUG_OUTPUT 'start edit mode' if DEBUG
@@ -323,10 +348,15 @@ class HG.AreaController
         # error handling: area has to be found
         return if (not area)
 
+        ## update model
         area.inEdit no
+
+        ## update controller
         idx = @_editAreas.indexOf area
         if idx isnt -1  # = if area in array
           @_editAreas.push area
+
+          ## update view
           @notifyAll 'onUpdateAreaStatus', area
 
         @_DEBUG_OUTPUT 'end edit mode' if DEBUG
@@ -338,11 +368,15 @@ class HG.AreaController
         # error handling: area has to be found
         return if (not area)
 
+        ## update model
         area.select()
 
+        ## update controller
         idx = @_selectedAreas.indexOf area
         if idx is -1 # = if area is not in array
           @_selectedAreas.push area
+
+          ## update view
           @notifyAll 'onSelectArea', area
 
         @_DEBUG_OUTPUT 'select area (from edit mode)' if DEBUG
@@ -354,11 +388,15 @@ class HG.AreaController
         # error handling: area has to be found
         return if (not area)
 
+        ## update model
         area.deselect()
 
+        ## update controller
         idx = @_selectedAreas.indexOf area
         if idx isnt -1 # = if area in array
           @_selectedAreas.splice idx, 1
+
+          ## update view
           @notifyAll 'onDeselectArea', area
 
         @_DEBUG_OUTPUT 'deselect area (from edit mode)' if DEBUG
@@ -369,6 +407,8 @@ class HG.AreaController
 
         # error handling: area has to be found
         return if (not area)
+
+        ## update controller
 
         # remove from selected array, in case it was there
         idx = @_selectedAreas.indexOf area
@@ -385,6 +425,8 @@ class HG.AreaController
         if completeRemove
           @_areas.splice (@_areas.indexOf area), 1
 
+        ## update view
+
         # decide: remove full area (name + geometry) or is only geometry left?
         @notifyAll 'onRemoveAreaGeometry', area
         if area.getName()
@@ -399,12 +441,16 @@ class HG.AreaController
         # error handling: area has to be found
         return if (not area)
 
+        ## update controller
+
         # add back to active areas
         @_activeAreas.push area
 
         # restore membership in edit/selected arrays
         @_editAreas.push area       if area.isInEdit()
         @_selectedAreas.push area   if area.isSelected()
+
+        ## update view
 
         # put back on map
         @notifyAll 'onCreateAreaGeometry', area
