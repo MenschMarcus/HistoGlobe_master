@@ -67,7 +67,7 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
 
 
     ### LISTEN TO USER INPUT ###
-    newNameTool.onSubmit @, (name, position) =>
+    newNameTool.onSubmit @, (newName, newPosition, initName) =>
 
       # save the named area
       currentAreaId = @_stepData.inData.createdAreas[@_areaIdx]
@@ -76,9 +76,8 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
       # make action reversible
       @_undoManager.add {
         undo: =>
-          # remove name
-          # @notifyEditMode 'onDeselectArea', currentAreaId
-          @notifyEditMode 'onUpdateAreaName', currentAreaId, null
+          # restore old name
+          @notifyEditMode 'onUpdateAreaName', currentAreaId, initName, newPosition
 
           # go to previous area
           @_cleanup()
@@ -86,8 +85,7 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
       }
 
       # update name
-      @notifyEditMode 'onUpdateAreaName', currentAreaId, name, position
-      # @notifyEditMode 'onSelectArea', currentAreaId
+      @notifyEditMode 'onUpdateAreaName', currentAreaId, newName, newPosition
 
       # go to next name
       @_cleanup()
