@@ -23,6 +23,7 @@ class HG.EditOperation
     HG.CallbackContainer.call @
 
     @addCallback 'onFinish'
+
     @addCallback 'onStepComplete'
     @addCallback 'onStepIncomplete'
     @addCallback 'onStepTransition'
@@ -140,8 +141,6 @@ class HG.EditOperation
   # perform current undo action
   _undo: () ->
 
-    console.log @_operation.idx, @_undoManagers, @_undoManagers[@_operation.idx].getIndex(),  @_undoManagers[@_operation.idx]
-
     # if current step has reversible actions
     # => undo it
     if @_undoManagers[@_operation.idx].hasUndo()
@@ -151,7 +150,6 @@ class HG.EditOperation
     # => destroy the step and go one step back
     else
       @_step.abort()
-      @_makeStep -1
 
 
 
@@ -187,6 +185,7 @@ class HG.EditOperation
     # change workflow window
     if newStep.userInput
       @notifyAll 'onStepTransition', direction
+      @notifyAll 'onStepIncomplete'
 
     # setup new step
     @_operation.idx += direction
@@ -204,6 +203,8 @@ class HG.EditOperation
       @_step.onFinish @, (stepData) ->
         newStep = stepData
         @_makeStep 1
+      @_step.onAbort @, () ->
+        @_makeStep -1
 
     # go to next step if no input required
     else
