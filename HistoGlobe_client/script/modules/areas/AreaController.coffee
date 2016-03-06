@@ -222,6 +222,7 @@ class HG.AreaController
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onCreateArea @, (id, geometry, name=null) ->
+
         # error handling: new area must have valid id and geometry
         return if (not id) or (not geometry.isValid())
 
@@ -239,11 +240,8 @@ class HG.AreaController
       @_hgInstance.editMode.onUpdateAreaGeometry @, (id, newGeometry) ->
         area = @getArea id
 
-        # error handling: area has to be found
-        return if (not area)
-
         ## comparison variables
-        hadGeometryBefore = area.hasGeometry()
+        hadGeometryBefore = area?.hasGeometry()
         hasGeometryNow = newGeometry.isValid() is true
 
         ## update status of area
@@ -251,8 +249,10 @@ class HG.AreaController
         # if there was no geometry before and there is a valid new geometry now
         # => create it
         if (not hadGeometryBefore) and (hasGeometryNow)
-          @_createGeometry area, newGeometry
-          @_createName area if area.hasName()
+
+          area = new HG.Area id, newGeometry
+
+          @_createGeometry area
           @_activate area
           @_startEdit area, no
           @_select area, yes
