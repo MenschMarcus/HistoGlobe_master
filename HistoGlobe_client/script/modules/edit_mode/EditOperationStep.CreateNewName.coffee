@@ -55,32 +55,30 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
 
     # get old and new step
     currentArea = @_areaController.getArea @_stepData.inData.createdAreas[@_areaIdx]
-    id = currentArea.getId()
-    name = currentArea.getName()
-    position = currentArea.getRepresentativePoint()
+    @_currentId = currentArea.getId()
+    @_currentName = currentArea.getName()
+    @_currentPosition = currentArea.getRepresentativePoint()
 
     # delete name, but put it into name tool
-    @notifyEditMode 'onUpdateAreaName', id, null if name
+    @notifyEditMode 'onUpdateAreaName', @_currentId, null if @_currentName
 
     # set up NewNameTool to set name and position of area interactively
-    newNameTool = new HG.NewNameTool @_hgInstance, name, position
+    newNameTool = new HG.NewNameTool @_hgInstance, @_currentName, @_currentPosition
 
 
     ### LISTEN TO USER INPUT ###
     newNameTool.onSubmit @, (newName, newPosition) =>
 
-      currentAreaId = @_stepData.inData.createdAreas[@_areaIdx]
-
       # save the old name
       @_stepData.tempAreas[@_areaIdx] = {
-        'id':       currentAreaId
-        'name':     @_areaController.getArea(currentAreaId).getName()
-        'position': @_areaController.getArea(currentAreaId).getRepresentativePoint()
+        'id':       @_currentId
+        'name':     @_currentName
+        'position': @_currentPosition
       }
 
       # save the named area
-      @_stepData.outData.namedAreas[@_areaIdx] = currentAreaId
-      @notifyEditMode 'onUpdateAreaName', currentAreaId, newName, newPosition
+      @_stepData.outData.namedAreas[@_areaIdx] = @_currentId
+      @notifyEditMode 'onUpdateAreaName', @_currentId, newName, newPosition
 
       # make action reversible
       @_undoManager.add {
