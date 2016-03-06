@@ -319,21 +319,21 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
     oldGeometries = []
     oldIds = []
     for id in @_stepData.inData.selectedAreas
+      area = @_areaController.getArea(id)
       oldIds.push id
-      oldGeometries.push @_areaController.getArea(id).getGeometry()
-      @notifyEditMode 'onRemoveArea', id
-
+      oldGeometries.push area.getGeometry()
       # save in temporary areas to restore them later
       @_stepData.tempAreas.push {
         'id':             id
-        'geometry':       @_areaController.getArea(id).getGeometry()
-        'name':           @_areaController.getArea(id).getName()
+        'geometry':       area.getGeometry()
+        'name':           area.getName()
       }
+      # remove area
+      @notifyEditMode 'onRemoveArea', id
 
     # unify old areas to new area
     unifiedGeometry = @_geometryOperator.union oldGeometries
-    # TODO: give reasonable Area id in next step
-    newId = "UNION"
+    newId = "UNION"       # TODO: give reasonable Area id in next step
     newId += ('_'+areaId) for areaId in oldIds
 
     @_stepData.outData.createdAreas.push newId
