@@ -34,34 +34,32 @@ class HG.AreasOnMap
       # listen to area changes from area controller
       if @_hgInstance.areaController
 
-        @_hgInstance.areaController.onCreateAreaGeometry @, (area) =>
+        @_hgInstance.areaController.onCreateGeometry @, (area) =>
           @_addGeometry area
 
-        @_hgInstance.areaController.onCreateAreaName @, (area) =>
-          @_addName area
+        @_hgInstance.areaController.onCreateName @, (area) =>
+          @_addLabel area
 
-        @_hgInstance.areaController.onUpdateAreaGeometry @, (area) =>
+        @_hgInstance.areaController.onUpdateGeometry @, (area) =>
           @_updateGeometry area
 
-        @_hgInstance.areaController.onUpdateAreaName @, (area) =>
-          @_updateName area
+        @_hgInstance.areaController.onUpdateName @, (area) =>
+          @_updateLabel area
 
-        @_hgInstance.areaController.onUpdateAreaStatus @, (area) =>
+        @_hgInstance.areaController.onUpdateRepresentativePoint @, (area) =>
+          @_updateLabelPosition area
+
+        @_hgInstance.areaController.onUpdateStatus @, (area) =>
           @_updateProperties area
 
-        @_hgInstance.areaController.onSelectArea @, (area) =>
-          @_updateProperties area
+        @_hgInstance.areaController.onSelect @, (area) =>
           @_map.fitBounds area.geomLayer.getBounds() if FOCUS
 
-        @_hgInstance.areaController.onDeselectArea @, (area) =>
-          @_updateProperties area
-          @_map.fitBounds area.geomLayer.getBounds() if FOCUS
-
-        @_hgInstance.areaController.onRemoveAreaGeometry @, (area) =>
+        @_hgInstance.areaController.onRemoveGeometry @, (area) =>
           @_removeGeometry area
 
-        @_hgInstance.areaController.onRemoveAreaName @, (area) =>
-          @_removeName area
+        @_hgInstance.areaController.onRemoveName @, (area) =>
+          @_removeLabel area
 
 
       else
@@ -110,24 +108,24 @@ class HG.AreasOnMap
 
 
   # ----------------------------------------------------------------------------
-  _addName: (area) ->
+  _addLabel: (area) ->
 
     # create label with name and position
-    area.nameLayer = new L.Label()
+    area.labelLayer = new L.Label()
     # TODO: set back @_addLinebreaks
-    area.nameLayer.setContent area.getName()
-    area.nameLayer.setLatLng area.getRepresentativePoint()
+    area.labelLayer.setContent area.getName()
+    area.labelLayer.setLatLng area.getRepresentativePoint()
 
     # create double-link: leaflet label knows HG area and HG area knows leaflet label
-    area.nameLayer.hgArea = area
-    @_map.showLabel area.nameLayer
+    area.labelLayer.hgArea = area
+    @_map.showLabel area.labelLayer
 
     # put text in center of label
-    area.nameLayer.options.offset = [
-      -(area.nameLayer._container.offsetWidth/2),
-      -(area.nameLayer._container.offsetHeight/2)
+    area.labelLayer.options.offset = [
+      -(area.labelLayer._container.offsetWidth/2),
+      -(area.labelLayer._container.offsetHeight/2)
     ]
-    area.nameLayer._updatePosition()
+    area.labelLayer._updatePosition()
 
 
   # ============================================================================
@@ -140,18 +138,19 @@ class HG.AreasOnMap
     area.geomLayer.hgArea = area
 
   # ----------------------------------------------------------------------------
-  _updateName: (area) ->
-    area.nameLayer.setContent area.getName()
-    area.nameLayer.setLatLng area.getRepresentativePoint()
-    # TODO: necessary?
-    area.nameLayer.hgArea = area
+  _updateLabel: (area) ->
+    area.labelLayer.setContent area.getName()
+
+  # ----------------------------------------------------------------------------
+  _updateLabelPosition: (area) ->
+    area.labelLayer.setLatLng area.getRepresentativePoint()
 
     # recenter text
-    area.nameLayer.options.offset = [
-      -(area.nameLayer._container.offsetWidth/2),
-      -(area.nameLayer._container.offsetHeight/2)
+    area.labelLayer.options.offset = [
+      -(area.labelLayer._container.offsetWidth/2),
+      -(area.labelLayer._container.offsetHeight/2)
     ]
-    area.nameLayer._updatePosition()
+    area.labelLayer._updatePosition()
 
   # ----------------------------------------------------------------------------
   _updateProperties: (area) ->
@@ -174,10 +173,10 @@ class HG.AreasOnMap
     area.geomLayer = null
 
   # ----------------------------------------------------------------------------
-  _removeName: (area) ->
+  _removeLabel: (area) ->
     # remove double-link: leaflet layer from area and area from leaflet layer
-    @_map.removeLayer area.nameLayer
-    area.nameLayer = null
+    @_map.removeLayer area.labelLayer
+    area.labelLayer = null
 
 
   ### EVENT HANDLING ###

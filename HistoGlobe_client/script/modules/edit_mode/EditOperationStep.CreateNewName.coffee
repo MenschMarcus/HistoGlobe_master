@@ -67,25 +67,32 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
 
 
     ### LISTEN TO USER INPUT ###
-    newNameTool.onSubmit @, (newName, newPosition, initName) =>
+    newNameTool.onSubmit @, (newName, newPosition) =>
+
+      currentAreaId = @_stepData.inData.createdAreas[@_areaIdx]
+
+      # save the old name
+      @_stepData.tempAreas[@_areaIdx] = {
+        'id':       currentAreaId
+        'name':     @_areaController.getArea(currentAreaId).getName()
+        'position': @_areaController.getArea(currentAreaId).getRepresentativePoint()
+      }
 
       # save the named area
-      currentAreaId = @_stepData.inData.createdAreas[@_areaIdx]
       @_stepData.outData.namedAreas[@_areaIdx] = currentAreaId
+      @notifyEditMode 'onUpdateAreaName', currentAreaId, newName, newPosition
 
       # make action reversible
       @_undoManager.add {
         undo: =>
           # restore old name
-          @notifyEditMode 'onUpdateAreaName', currentAreaId, initName, newPosition
+          area = @_stepData.tempAreas[@_areaIdx]
+          @notifyEditMode 'onUpdateAreaName', area.id, area.name, area.position
 
           # go to previous area
           @_cleanup()
           @_makeNewName -1
       }
-
-      # update name
-      @notifyEditMode 'onUpdateAreaName', currentAreaId, newName, newPosition
 
       # go to next name
       @_cleanup()
