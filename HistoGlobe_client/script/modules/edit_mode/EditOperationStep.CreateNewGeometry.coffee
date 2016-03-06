@@ -245,37 +245,55 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
         # A' = (A \/ B) /\ C    intersection (A u B) with C
         # B' = (A \/ B) - C     difference (A u B) with C
 
-        Aid = @_stepData.inData.selectedAreas[0]
-        Bid = @_stepData.inData.selectedAreas[1]
-        A = @_areaController.getArea(Aid).getGeometry()
-        B = @_areaController.getArea(Bid).getGeometry()
+        A_id = @_stepData.inData.selectedAreas[0]
+        B_id = @_stepData.inData.selectedAreas[1]
+        A_area = @_areaController.getArea A_id
+        B_area = @_areaController.getArea B_id
+
+        A_name = A_area.getName()
+        B_name = B_area.getName()
+        A_point = A_area.getRepresentativePoint()
+        B_point = B_area.getRepresentativePoint()
+
+        A = A_area.getGeometry()
+        B = B_area.getGeometry()
         C = clipGeometry
+
+        # test: which country was covered in clip area?
+        A_covered = @_geometryOperator.isWithin A, C
 
         AuB = @_geometryOperator.union [A, B]
 
-        A2 = @_geometryOperator.intersection AuB, C
-        B2 = @_geometryOperator.difference AuB, C
+        # 2 cases: A first and B first
+        if A_covered
+          A_new = @_geometryOperator.intersection AuB, C
+          B_new = @_geometryOperator.difference AuB, C
+        else  # B is covered
+          B_new = @_geometryOperator.intersection AuB, C
+          A_new = @_geometryOperator.difference AuB, C
 
-        @_stepData.tempAreas.push {
-          'id':          Aid
-          'tempAreas':   C
-          'oldGeometry': A
-          'newGeometry': A2
+        @_stepData.tempAreas[0] = {
+          'id':       A_id
+          'clip':     C
+          'geometry': A
+          'name':     A_name
+          'point':    A_point
         }
-        @_stepData.tempAreas.push {
-          'id':          Bid
-          'tempAreas':   C
-          'oldGeometry': B
-          'newGeometry': B2
+        @_stepData.tempAreas[1] = {
+          'id':       B_id
+          'clip':     C
+          'geometry': B
+          'name':     B_name
+          'point':    B_point
         }
 
-        # update both geometries
-        @notifyEditMode 'onUpdateAreaGeometry', Aid, A2
-        @notifyEditMode 'onUpdateAreaGeometry', Bid, B2
+        # update both areas
+        @notifyEditMode 'onUpdateAreaGeometry', A_id, A_new
+        @notifyEditMode 'onUpdateAreaGeometry', B_id, B_new
 
         # add to workflow
-        @_stepData.outData.createdAreas.push Aid
-        @_stepData.outData.createdAreas.push Bid
+        @_stepData.outData.createdAreas[0] = A_id
+        @_stepData.outData.createdAreas[1] = B_id
 
         # done!
         @_finish = yes
@@ -293,7 +311,8 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
             while @_stepData.tempAreas.length > 0
               @_stepData.outData.createdAreas.pop()
               area = @_stepData.tempAreas.pop()
-              @notifyEditMode 'onUpdateAreaGeometry', area.id, area.oldGeometry
+              @notifyEditMode 'onUpdateAreaGeometry', area.id, area.geometry
+              @notifyEditMode 'onUpdateAreaName', area.id, area.name, area.point
               @notifyEditMode 'onSelectArea', area.id
 
             # go to previous area

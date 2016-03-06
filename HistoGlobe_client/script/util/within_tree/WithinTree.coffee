@@ -14,6 +14,8 @@ class HG.WithinTree
   constructor: () ->
     @_nodes = []
 
+    @_geometryOperator = new HG.GeometryOperator
+
     # inititally create ROOT node
     @_root = new HG.WithinTreeNode 'ROOT'
     @_nodes.push @_root
@@ -117,30 +119,9 @@ class HG.WithinTree
 
   # ============================================================================
   _isWithin: (nodeA, nodeB) ->
-    # approach from set theory:
-    #   A \union B = B <=> A \in B <=> A \intersect B = A
-    #   A \union B = A <=> B \in A <=> A \intersect B = B
-    # only one of the two tests required, because they are the same
-    #                  A \union B = B            <=>            A \intersect B = A
-    #   {x : x \in A \or x \in B} = {x: x \in B} <=> {x: x \in A \and x \in B} = {x: x \in A}
-    #               {\nexist x in A: x \notin B} <=> {\nexist x in A: x \notin B}
-    #                                          1 <=> 1  q.e.d.
-    # if A \union B = B => A \in B
-
-    # simple theory, a little harder praxis: A polyline technically does not
-    # "contain" anything, because it doesn't have an area. Therefore, a Polygon
-    # has to be created first
-    # N.B. input into this function MUST be a polyline
-    # (I experienced some cases in which it did not work with polygons)
-
-    polylineA = nodeA.getPolyline().jsts()
-    polylineB = nodeB.getPolyline().jsts()
-
-    # examine the problem HERE
-    A = new jsts.geom.Polygon polylineA
-    B = new jsts.geom.Polygon polylineB
-
-    B.contains A
+    A = nodeA.getPolyline()
+    B = nodeB.getPolyline()
+    @_geometryOperator.isWithin A, B
 
   # ============================================================================
   _getNode: (id) ->
