@@ -209,10 +209,7 @@ class HG.AreaController
         # deselect each area
         # -> except for the one specified by edit mode to be kept selected
         @_cleanSelectedAreas selectedAreaId
-
-        # transform each edit area into a normal area
-        @_endEdit area for area in @_editAreas
-
+        @_cleanEditAreas()
 
         @_DEBUG_OUTPUT 'end edit mode (after)' if DEBUG
 
@@ -503,9 +500,24 @@ class HG.AreaController
         continue
 
       # normal case: deselect
-      area.deselect()
-      @notifyAll 'onDeselect', area
-      @_selectedAreas.splice(loopIdx, 1)
+      area.deselect()                                           # model
+      @_selectedAreas.splice(loopIdx, 1)                        # controller
+      @notifyAll 'onUpdateStatus', area                         # view
+      @notifyAll 'onDeselect', area                             # view
+
+      loopIdx--
+
+  # ----------------------------------------------------------------------------
+  _cleanEditAreas: () ->
+    # manuel while loop, because selected areas shrinks while operating in it
+    loopIdx = @_editAreas.length-1
+    while loopIdx >= 0
+
+      area = @_editAreas[loopIdx]
+
+      area.inEdit no                                            # model
+      @_editAreas.splice(loopIdx, 1)                            # controller
+      @notifyAll 'onUpdateStatus', area                        # view
 
       loopIdx--
 
