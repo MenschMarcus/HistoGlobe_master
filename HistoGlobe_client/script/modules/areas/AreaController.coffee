@@ -1,7 +1,7 @@
 window.HG ?= {}
 
 # debug output?
-DEBUG = yes
+DEBUG = no
 
 class HG.AreaController
 

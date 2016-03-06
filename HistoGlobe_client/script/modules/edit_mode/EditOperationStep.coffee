@@ -54,6 +54,8 @@ class HG.EditOperationStep
   # in the workflow window and by the operation itself
   # (e.g. if last area successfully named)
   finish: () ->
+
+    console.log "OUT:", @_stepData.id, @_stepData
     @_cleanup()
     @notifyAll 'onFinish', @_stepData
 
