@@ -47,12 +47,12 @@ class HG.NewNameTool
     @_hgInstance._top_area.appendChild @_wrapper.dom()
 
     @_inputField = new HG.TextInput @_hgInstance, 'new-name-input', null
+    @_inputField.j().attr 'size', NAME_MIN_SIZE
     if initName   # set either the text that is given (to just accept it)
       @_inputField.setText initName
       @_resize()
     else          # or have only a placeholder
       @_inputField.setPlaceholder 'name'
-    @_inputField.j().attr 'size', NAME_MIN_SIZE
     @_wrapper.appendChild @_inputField
 
     # set position of wrapper = center of country
