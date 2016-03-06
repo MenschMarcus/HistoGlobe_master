@@ -61,12 +61,12 @@ class HG.HistoGraph
     ### LISTENER ###
     @_hgInstance.onAllModulesLoaded @, () =>
 
-      @_hgInstance.areaController.onSelectArea @, (country) =>
+      @_hgInstance.areaController.onSelect @, (area) =>
         @show()
-        @showHistory country
+        @showHistory area
 
       # no active country => no graph
-      @_hgInstance.areaController.onSelectArea @, (country) =>
+      @_hgInstance.areaController.onSelect @, (area) =>
         @hide()
 
 

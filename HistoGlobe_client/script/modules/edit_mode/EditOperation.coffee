@@ -59,7 +59,7 @@ class HG.EditOperation
             userInput:        no
             number:           {}
             operationCommand: operationConfig.id
-            clipAreas:        []
+            tempAreas:        []
             inData:           {}
             outData: {
               createdAreas:   []
@@ -69,6 +69,7 @@ class HG.EditOperation
             id:               'SET_NEW_NAME'
             title:            null
             userInput:        no
+            tempAreas:        []
             inData:           {}
             outData: {
               namedAreas:     []

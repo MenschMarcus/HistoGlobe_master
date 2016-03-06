@@ -14,7 +14,7 @@ class HG.EditOperationStep
   # ============================================================================
   constructor: (@_hgInstance, @_stepData, @_isForward) ->
 
-    # console.log "IN :", @_stepData.id, @_stepData
+    console.log "IN :", @_stepData.id, @_stepData
 
     ## handle callbacks
     HG.mixin @, HG.CallbackContainer

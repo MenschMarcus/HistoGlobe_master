@@ -31,7 +31,7 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     # forward change: only currently selected area and add it to array
     if isForward
       @_initSelectedArea = @_hgInstance.areaController.getSelectedAreas()[0]
-      @_selectArea @_initSelectedArea if @_initSelectedArea
+      @_select @_initSelectedArea if @_initSelectedArea
 
     # backward change: all areas selected
     else
@@ -44,8 +44,8 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     ### REACT ON USER INPUT ###
     # listen to area (de)selection from AreaController
 
-    @_hgInstance.areaController.onSelectArea @, (area) =>    @_selectArea area
-    @_hgInstance.areaController.onDeselectArea @, (area) =>  @_deselectArea area
+    @_hgInstance.areaController.onSelect @, (area) =>    @_select area
+    @_hgInstance.areaController.onDeselect @, (area) =>  @_deselect area
 
 
   ##############################################################################
@@ -53,7 +53,7 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
   ##############################################################################
 
   # ============================================================================
-  _selectArea: (area) ->
+  _select: (area) ->
     # error handling
     idx = @_stepData.outData.selectedAreas.indexOf area.getId()
     return if idx isnt -1
@@ -72,7 +72,7 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     }
 
   # ----------------------------------------------------------------------------
-  _deselectArea: (area) ->
+  _deselect: (area) ->
     # error handling
     idx = @_stepData.outData.selectedAreas.indexOf area.getId()
     return if idx is -1
@@ -94,8 +94,8 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
   _cleanup: () ->
 
     ### STOP LISTENING ###
-    @_hgInstance.areaController.removeListener 'onSelectArea', @
-    @_hgInstance.areaController.removeListener 'onDeselectArea', @
+    @_hgInstance.areaController.removeListener 'onSelect', @
+    @_hgInstance.areaController.removeListener 'onDeselect', @
 
     ### CLEANUP OPERATION ###
     # TODO: is that a problem that it also happens if there was no user input?

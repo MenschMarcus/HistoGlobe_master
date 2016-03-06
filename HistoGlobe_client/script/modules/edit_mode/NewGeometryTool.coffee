@@ -212,7 +212,7 @@ class HG.NewGeometryTool
       @_initFeatureGroup = null
 
       # select leftover area: make this one the selected
-      @_hgInstance.areaController.onSelectArea @, (area) =>
+      @_hgInstance.areaController.onSelect @, (area) =>
 
         # clear feature group
         # CAUTION! potential usability flaw
@@ -229,7 +229,7 @@ class HG.NewGeometryTool
 
 
       # deselect leftover area: restore layeers drawn before
-      @_hgInstance.areaController.onDeselectArea @, (area) =>
+      @_hgInstance.areaController.onDeselect @, (area) =>
 
         # make this one the selected "drawn" area
         @_featureGroup.removeLayer area.geomLayer
@@ -251,15 +251,21 @@ class HG.NewGeometryTool
 
       # immediately stop listening to on(De)SelectArea, to avoid weird behaviour
       if not @_firstStep
-        @_hgInstance.areaController.removeListener 'onSelectArea', @
-        @_hgInstance.areaController.removeListener 'onDeselectArea', @
+        @_hgInstance.areaController.removeListener 'onSelect', @
+        @_hgInstance.areaController.removeListener 'onDeselect', @
 
       geometries = []
-      geometries.push @_geometryReader.read layer for layer in @_featureGroup.getLayers()
+      for layer in @_featureGroup.getLayers()
+        geometries.push @_geometryReader.read layer
+
+      # problem: if original geometry from NewGeometryTool is handed back to the
+      # EditOperationStep, it is a reference to it, i.e. if featureGroup gets
+      # deleted, also the geometry on the map gets deleted. That is horrible
+      # but logical behaviour => deep copy
+
 
       # merge all of them together
       # -> only works if they are (poly)polygons, not for polylines or points
-
       @notifyAll 'onSubmit', @_geometryOperator.merge geometries
 
 
@@ -271,13 +277,13 @@ class HG.NewGeometryTool
     @_map.off 'draw:deleted', @_deletePolygon
 
     # remove interaction: stop listening to AreaController
-    @_hgInstance.areaController.removeListener 'onSelectArea', @
-    @_hgInstance.areaController.removeListener 'onDeselectArea', @
+    @_hgInstance.areaController.removeListener 'onSelect', @
+    @_hgInstance.areaController.removeListener 'onDeselect', @
 
     # cleanup UI
     @_buttonArea.destroy()
     @_map.removeControl @_drawControl
-    @_map.removeLayer @_featureGroup
+    @_map.removeLayer @_featureGroup    # THIS IS THE EVIL !!!
 
 
 
@@ -359,3 +365,46 @@ class HG.NewGeometryTool
   #   snapToleranceText = new HG.Div null, ['tt-snap-option-text']
   #   snapToleranceText.j().html "snap <br/>tolerance"
   #   snapToleranceWrapper.appendChild snapToleranceText
+
+  # ============================================================================
+  _cloneLayer: (layer) ->
+    options = layer.options
+    # Tile layers
+    if layer instanceof L.TileLayer
+      return L.tileLayer(layer._url, options)
+    if layer instanceof L.ImageOverlay
+      return L.imageOverlay(layer._url, layer._bounds, options)
+    # Marker layers
+    if layer instanceof L.Marker
+      return L.marker(layer.getLatLng(), options)
+    if layer instanceof L.circleMarker
+      return L.circleMarker(layer.getLatLng(), options)
+    # Vector layers
+    if layer instanceof L.Rectangle
+      return L.rectangle(layer.getBounds(), options)
+    if layer instanceof L.Polygon
+      return L.polygon(layer.getLatLngs(), options)
+    if layer instanceof L.Polyline
+      return L.polyline(layer.getLatLngs(), options)
+    # MultiPolyline is removed in leaflet 0.8-dev
+    if L.MultiPolyline and layer instanceof L.MultiPolyline
+      return L.polyline(layer.getLatLngs(), options)
+    # MultiPolygon is removed in leaflet 0.8-dev
+    if L.MultiPolygon and layer instanceof L.MultiPolygon
+      return L.multiPolygon(layer.getLatLngs(), options)
+    if layer instanceof L.Circle
+      return L.circle(layer.getLatLng(), layer.getRadius(), options)
+    if layer instanceof L.GeoJSON
+      return L.geoJson(layer.toGeoJSON(), options)
+    # layer/feature groups
+    if layer instanceof L.LayerGroup or layer instanceof L.FeatureGroup
+      layergroup = L.layerGroup()
+      layer.eachLayer (inner) ->
+        layergroup.addLayer cloneLayer(inner)
+        return
+      return layergroup
+    throw 'Unknown layer, cannot clone this layer'
+    return
+
+  if typeof exports == 'object'
+    module.exports = cloneLayer
