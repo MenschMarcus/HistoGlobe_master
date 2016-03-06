@@ -179,6 +179,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
         existingAreaId = @_stepData.inData.selectedAreas[0]
         existingGeometry = @_areaController.getArea(existingAreaId).getGeometry()
+        existingName = @_areaController.getArea(existingAreaId).getName()
         clipGeometry = inGeometry
 
         # clip incoming geometry (= clipGeometry) to selected geometry
@@ -203,26 +204,29 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
         @_stepData.tempAreas.push {
           'id':           existingAreaId
-          'clipGeometry': clipGeometry
-          'oldGeometry':  existingGeometry
-          'newGeometry':  updatedGeometry
+          'clip':         clipGeometry
+          'geometry':     existingGeometry
+          'name':         existingName
+          'usedRest':     @_finish    # bool: has user just clicked on rest?
         }
 
 
         # make action reversible
         @_undoManager.add {
           undo: =>
+            # cleanup
+            @_hgInstance.newGeometryTool?.destroy()
+            @_hgInstance.newGeometryTool = null
+
             # delete new area
             createdAreaId = @_stepData.outData.createdAreas.pop()
             @notifyEditMode 'onRemoveArea', createdAreaId
 
             # restore old state of original area
             existingArea = @_stepData.tempAreas.pop()
-            @notifyEditMode 'onUpdateAreaGeometry', existingArea.id, existingArea.oldGeometry
-
-            # cleanup
-            @_hgInstance.newGeometryTool?.destroy()
-            @_hgInstance.newGeometryTool = null
+            @notifyEditMode 'onUpdateAreaGeometry', existingArea.id, existingArea.geometry
+            @notifyEditMode 'onUpdateAreaName', existingArea.id, existingArea.name
+            @notifyEditMode 'onDeselectArea', existingArea.id
 
             # go to previous area
             @_finish = no

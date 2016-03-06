@@ -99,6 +99,14 @@ class HG.GeometryOperator
   areEqual: (A, B) ->
     (A.jsts().compareTo(B.jsts())) is 0
 
+  # ----------------------------------------------------------------------------
+  copy: (geometry) ->
+    # nasty way to deep cpoy a string
+    # credits to: AffluentOwl
+    # http://stackoverflow.com/questions/31712808/how-to-force-javascript-to-deep-copy-a-string
+    geometryCopy = (' ' + geometry.wkt()).slice(1)
+    @_geometryReader.read geometryCopy
+
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
