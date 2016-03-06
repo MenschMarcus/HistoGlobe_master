@@ -25,6 +25,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
     @notifyEditMode 'onEnableAreaEditMode' if @_isForward
 
+# ------------------------------------------------------------------------------
     # some operations work directly on selected areas from first step
     # PROBLEM: AreaController deselects them by disabling multi-selection mode
     # SOLUTION: bring them manually into edit mode and select them
@@ -40,8 +41,10 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
             @notifyEditMode 'onSelectArea', area
 
 
+
     ### AUTOMATIC PROCESSING ###
 
+# ------------------------------------------------------------------------------
     ## unification operation
     if @_stepData.operationCommand is 'UNI'
       if @_isForward
@@ -50,32 +53,43 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
         @_unifySelectedAreas_reverse()
       return @finish() # no user input
 
+
+# ------------------------------------------------------------------------------
     ## change name operation
     else if @_stepData.operationCommand is 'CHN'
+
       # nothing to do => hand area further to next / previous step
       if @_isForward
         @_stepData.outData.createdAreas.push @_stepData.inData.selectedAreas[0]
       else
         @_stepData.inData.selectedAreas.push @_stepData.outData.createdAreas[0]
+
       return @finish() # no user input
 
+
+# ------------------------------------------------------------------------------
     ## delete operation
     else if @_stepData.operationCommand is 'DEL'
+
       if @_isForward
         id = @_stepData.inData.selectedAreas[0]
-        @notifyEditMode 'onRemoveArea', @_stepData.inData.selectedAreas[0]
+        area = @_areaController.getArea id
         # save in temporary areas to restore them later
-        @_stepData.tempAreas.push {
+        @_stepData.tempAreas[0] = {
           'id':             id
-          'geometry':       @_areaController.getArea(id).getGeometry()
-          'name':           @_areaController.getArea(id).getName()
+          'geometry':       area.getGeometry()
+          'name':           area.getName()
         }
-      else
+        @notifyEditMode 'onRemoveArea', id
+
+      else # backward
         area = @_stepData.tempAreas[0]
-        @notifyEditMode 'onRestoreArea', area.id, area.geometry, area.name
+        @notifyEditMode 'onCreateArea', area.id, area.geometry, area.name
+
       return @finish() # no user input
 
 
+# ------------------------------------------------------------------------------
     ### SETUP OPERATION (2) ###
     @_finish = no
 
