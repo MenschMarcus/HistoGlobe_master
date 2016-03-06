@@ -36,7 +36,6 @@ class HG.EditMode
     @addCallback 'onSelectArea'
     @addCallback 'onDeselectArea'
     @addCallback 'onRemoveArea'
-    @addCallback 'onRestoreArea'
 
 
     # init config

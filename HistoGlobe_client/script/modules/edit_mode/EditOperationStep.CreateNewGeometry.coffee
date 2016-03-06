@@ -30,9 +30,9 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
     # SOLUTION: bring them manually into edit mode and select them
 
     if @_isForward
-      if  (@_stepData.operationCommand is 'SEP') or
-          (@_stepData.operationCommand is 'CHB') or
-          (@_stepData.operationCommand is 'CHN')
+      if (@_stepData.operationCommand is 'SEP') or
+         (@_stepData.operationCommand is 'CHB') or
+         (@_stepData.operationCommand is 'CHN')
 
         # set each area as selected and editable
         for area in @_stepData.inData.selectedAreas
@@ -62,9 +62,17 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
     ## delete operation
     else if @_stepData.operationCommand is 'DEL'
       if @_isForward
+        id = @_stepData.inData.selectedAreas[0]
         @notifyEditMode 'onRemoveArea', @_stepData.inData.selectedAreas[0]
+        # save in temporary areas to restore them later
+        @_stepData.tempAreas.push {
+          'id':             id
+          'geometry':       @_areaController.getArea(id).getGeometry()
+          'name':           @_areaController.getArea(id).getName()
+        }
       else
-        @notifyEditMode 'onRestoreArea', @_stepData.inData.selectedAreas[0]
+        area = @_stepData.tempAreas[0]
+        @notifyEditMode 'onRestoreArea', area.id, area.geometry, area.name
       return @finish() # no user input
 
 
@@ -103,10 +111,10 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
     ### LISTEN TO USER INPUT ###
     newGeometryTool.onSubmit @, (inGeometry) =>
 
-      ## create new country operation
+      ## add new area operation
       if @_stepData.operationCommand is 'ADD'
 
-        newGeometry = inGeometry
+        clipGeometry = inGeometry
 
         # clip new geometry to existing geometries
         # check for intersection with each active area on the map
@@ -121,24 +129,24 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
           # if new geometry intersects with an existing geometry
           # => clip the existing geometry to the new geometry and update its area
-          intersectionGeometry = @_geometryOperator.intersection newGeometry, existingGeometry
+          intersectionGeometry = @_geometryOperator.intersection clipGeometry, existingGeometry
           if intersectionGeometry.isValid()
 
-            clipGeometry = @_geometryOperator.difference existingGeometry, newGeometry
-            @_stepData.clipAreas.push {
+            newGeometry = @_geometryOperator.difference existingGeometry, clipGeometry
+            @_stepData.tempAreas.push {
               'id':           existingAreaId
-              'oldGeometry':  existingGeometry
-              'newGeometry':  clipGeometry
+              'clip':         clipGeometry
+              'geometry':     existingGeometry
             }
-            @notifyEditMode 'onUpdateAreaGeometry', existingAreaId, clipGeometry
+            @notifyEditMode 'onUpdateAreaGeometry', existingAreaId, newGeometry
 
           loopIdx--
 
         # insert new geometry into new area and add to HistoGlobe
-        newId = 'NEW_AREA' # TODO: refine this id in next step
-        @notifyEditMode 'onCreateArea', newId, newGeometry, null
-        @notifyEditMode 'onSelectArea', newId
-        @_stepData.outData.createdAreas.push newId
+        addAreaId = 'NEW_AREA' # TODO: refine this id in next step
+        @_stepData.outData.createdAreas.push addAreaId
+        @notifyEditMode 'onCreateArea', addAreaId, clipGeometry, null
+        @notifyEditMode 'onSelectArea', addAreaId
 
         # finish criterion: only one step necessary
         @_finish = yes
@@ -150,21 +158,23 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
             @_stepData.outData.createdAreas = []
 
             # delete new area
-            @notifyEditMode 'onRemoveArea', newId, yes
+            @notifyEditMode 'onRemoveArea', newId
 
             # restore old areas
-            for area in @_stepData.clipAreas
-              @notifyEditMode 'onUpdateAreaGeometry', area.id, area.oldGeometry
+            for area in @_stepData.tempAreas
+              @notifyEditMode 'onUpdateAreaGeometry', area.id, area.geometry
+
+            # cleanup
+            @_hgInstance.newGeometryTool?.destroy()
+            @_hgInstance.newGeometryTool = null
 
             # go to previous area
             @_finish = no
-            @_cleanup()
             @_makeNewGeometry -1
         }
 
 
-
-      ## separate geometries operation
+      ## separate areas operation
       else if @_stepData.operationCommand is 'SEP'
 
         existingAreaId = @_stepData.inData.selectedAreas[0]
@@ -181,16 +191,43 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
         # update existing geometry
         updatedGeometry = @_geometryOperator.difference existingGeometry, clipGeometry
-        # if something is still left, update it
-        if updatedGeometry.isValid()
-          @notifyEditMode 'onUpdateAreaGeometry', existingAreaId, updatedGeometry
-          @notifyEditMode 'onDeselectArea', existingAreaId
-        # if nothing is left, delete it
-        else
-          @notifyEditMode 'onRemoveArea', existingAreaId
+        # update geometry
+        # N.B: no difference between geometry left or no geometry left,
+        # because "onRemoveArea" does not set the geometry to null
+        # -> it could not be restored afterwards
+        @notifyEditMode 'onUpdateAreaGeometry', existingAreaId, updatedGeometry
+        @notifyEditMode 'onDeselectArea', existingAreaId
 
-          # finish criterion: existing area is completely split up
-          @_finish = yes
+        # finish criterion: existing area is completely split up
+        @_finish = yes  if not updatedGeometry.isValid()
+
+        @_stepData.tempAreas.push {
+          'id':           existingAreaId
+          'clipGeometry': clipGeometry
+          'oldGeometry':  existingGeometry
+          'newGeometry':  updatedGeometry
+        }
+
+
+        # make action reversible
+        @_undoManager.add {
+          undo: =>
+            # delete new area
+            createdAreaId = @_stepData.outData.createdAreas.pop()
+            @notifyEditMode 'onRemoveArea', createdAreaId
+
+            # restore old state of original area
+            existingArea = @_stepData.tempAreas.pop()
+            @notifyEditMode 'onUpdateAreaGeometry', existingArea.id, existingArea.oldGeometry
+
+            # cleanup
+            @_hgInstance.newGeometryTool?.destroy()
+            @_hgInstance.newGeometryTool = null
+
+            # go to previous area
+            @_finish = no
+            @_makeNewGeometry -1
+        }
 
 
       ## change border operation
@@ -212,13 +249,15 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
         A2 = @_geometryOperator.intersection AuB, C
         B2 = @_geometryOperator.difference AuB, C
 
-        @_stepData.clipAreas.push {
+        @_stepData.tempAreas.push {
           'id':          Aid
+          'tempAreas':   C
           'oldGeometry': A
           'newGeometry': A2
         }
-        @_stepData.clipAreas.push {
+        @_stepData.tempAreas.push {
           'id':          Bid
+          'tempAreas':   C
           'oldGeometry': B
           'newGeometry': B2
         }
@@ -243,20 +282,26 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
             @_stepData.outData.createdAreas = []
 
             # restore old areas
-            for area in @_stepData.clipAreas
+            for area in @_stepData.tempAreas
               @notifyEditMode 'onUpdateAreaGeometry', area.id, area.oldGeometry
               @notifyEditMode 'onSelectArea', area.id
+
+            # cleanup
+            @_hgInstance.newGeometryTool?.destroy()
+            @_hgInstance.newGeometryTool = null
 
             # go to previous area
             @_finish = no
             @_areaIdx = 0 # manual setting, because CHB step does two areas at once
-            @_cleanup()
             @_makeNewGeometry -1
         }
 
 
+      # cleanup
+      @_hgInstance.newGeometryTool?.destroy()
+      @_hgInstance.newGeometryTool = null
+
       # go to next geometry
-      @_cleanup()
       @_makeNewGeometry 1
 
 
@@ -272,14 +317,23 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
       oldGeometries.push @_areaController.getArea(id).getGeometry()
       @notifyEditMode 'onRemoveArea', id
 
+      # save in temporary areas to restore them later
+      @_stepData.tempAreas.push {
+        'id':             id
+        'geometry':       @_areaController.getArea(id).getGeometry()
+        'name':           @_areaController.getArea(id).getName()
+      }
+
     # unify old areas to new area
     unifiedGeometry = @_geometryOperator.union oldGeometries
     # TODO: give reasonable Area id in next step
     newId = "UNION"
     newId += ('_'+areaId) for areaId in oldIds
+
+    @_stepData.outData.createdAreas.push newId
+
     @notifyEditMode 'onCreateArea', newId, unifiedGeometry, null
     @notifyEditMode 'onSelectArea', newId
-    @_stepData.outData.createdAreas.push newId
 
 
   # ----------------------------------------------------------------------------
@@ -288,11 +342,11 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
     # remove unified area
     unifiedAreaId = @_stepData.outData.createdAreas[0]
     @_stepData.outData.createdAreas = []
-    @notifyEditMode 'onRemoveArea', unifiedAreaId, yes
+    @notifyEditMode 'onRemoveArea', unifiedAreaId
 
     # restore previously selected areas
-    for id in @_stepData.inData.selectedAreas
-      @notifyEditMode 'onRestoreArea', id
+    for area in @_stepData.tempAreas
+      @notifyEditMode 'onCreateArea', area.id, area.geometry, area.name
 
 
   # ============================================================================

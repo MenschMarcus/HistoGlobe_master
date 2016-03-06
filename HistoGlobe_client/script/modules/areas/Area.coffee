@@ -21,6 +21,7 @@ class HG.Area
         @_representativePoint = {'lat': null, 'lng': null}
       ) ->
 
+    @_active = no       # is area currently on the map?
     @_selected = no     # is area currently selected?
     @_focused = no      # is area currently in focus (hovered)?
     @_inEdit = no       # is area in edit mode?
@@ -34,10 +35,12 @@ class HG.Area
   # ----------------------------------------------------------------------------
   setGeometry: (geom) ->            @_geometry = geom
   getGeometry: () ->                @_geometry
+  hasGeometry: () ->                @_geometry.isValid()
 
   # ----------------------------------------------------------------------------
   setName: (name) ->                @_name = name
   getName: () ->                    @_name
+  hasName: () ->                    @_name isnt null
 
   # ----------------------------------------------------------------------------
   resetRepresentativePoint: () ->   @_representativePoint = @_geometry.getCenter yes
@@ -48,13 +51,18 @@ class HG.Area
   getStyle: () ->                   @_getStyle()
 
   # ============================================================================
-  deselect: () ->                   @_selected = no
+  activate: () ->                   @_active = yes
+  deactivate: () ->                 @_active = no
+  isActive: () ->                   @_active
+
+  # ----------------------------------------------------------------------------
   select: () ->                     @_selected = yes
+  deselect: () ->                   @_selected = no
   isSelected: () ->                 @_selected
 
   # ----------------------------------------------------------------------------
-  unfocus: () ->                    @_focused = no
   focus: () ->                      @_focused = yes
+  unfocus: () ->                    @_focused = no
   isFocused: () ->                  @_focused
 
   # ----------------------------------------------------------------------------
