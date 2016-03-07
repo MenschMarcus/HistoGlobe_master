@@ -18,11 +18,9 @@ class HG.NowMarker
     # add module to HG instance
     @_hgInstance.nowMarker = @
 
-    @_hgContainer = @_hgInstance.getContainer()
-
     # create now marker
     @_nowMarker = new HG.Div 'nowMarker', 'no-text-select'
-    @_hgContainer.appendChild @_nowMarker.dom()
+    @_hgInstance.getContainer().appendChild @_nowMarker.dom()
 
     # initialize position and content
     @_resetPosition()
