@@ -6,14 +6,11 @@
     "minYear": 1900,
     "maxYear": 2015,
     "nowYear": 1989,
-    "startLatLong": [50.9869531, 11.3205004],
+    "startPoint": [50.9869531, 11.3205004],
     "configPath": "../HistoGlobe_client/config/",
     "graphicsPath": "common/graphics/",
-    "minZoom": 3,
-    "maxZoom": 7,
-    "startZoom": 4,
-    "tiles": "common/tiles/tiles",
-    "tilesHC": "common/tiles/tiles_high_contrast"
+    "tiles": "common/tiles/normal",
+    "tilesHC": "common/tiles/high_contrast"
   },
 
 
@@ -31,8 +28,10 @@
     "image": "common/graphics/logo.png"
   },
 
-  "Map":
-  {
+  "Map": {
+    "minZoom": 3,
+    "maxZoom": 7,
+    "startZoom": 4
   },
 
   "ControlButtonsTop": {

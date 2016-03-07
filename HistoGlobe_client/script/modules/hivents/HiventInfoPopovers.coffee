@@ -33,25 +33,24 @@ class HG.HiventInfoPopovers
     @_hiventsOnMap = hgInstance.hiventsOnMap
     @_hiventsOnGlobe = hgInstance.hiventsOnGlobe
     @_hiventsOnTimeline = hgInstance.hiventsOnTimeline
-    @_globe = hgInstance.globe
-    @_mapArea = hgInstance._map_area
+    @_spatialDisplay = hgInstance.spatialDisplay
 
     if @_hiventsOnMap
       @_hiventsOnMap.onMarkerAdded (marker) =>
         if marker.parentDiv
           useMarkerPosition = if marker.getHiventHandle().getHivent().lat.length > 1 then false else true
-          @_addPopover marker, @_hgInstance.mapCanvas, useMarkerPosition
+          @_addPopover marker, @_hgInstance.getSpatialCanvas(), useMarkerPosition
 
     if @_hiventsOnGlobe
       @_hiventsOnGlobe.onMarkerAdded (marker) =>
         if marker.parentDiv
-          @_addPopover marker, @_globe._globeCanvas, true
+          @_addPopover marker, @_hgInstance.getSpatialCanvas(), true
 
     if @_hiventsOnTimeline
       @_hiventsOnTimeline.onMarkerAdded (marker) =>
         if marker.parentDiv
           unless marker.getHiventHandle().getHivent().lat? or marker.getHiventHandle().getHivent().long?
-            @_addPopover marker, @_hgInstance.mapCanvas, false
+            @_addPopover marker, @_hgInstance.getSpatialCanvas(), false
 
   # ============================================================================
   getPopovers: (object, callbackFunc) ->

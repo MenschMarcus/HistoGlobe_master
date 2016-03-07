@@ -19,8 +19,6 @@ class HG.Globe extends HG.SpatialDisplay
     @addCallback "onMove"
     @addCallback "onLoaded"
 
-    @_globeCanvas = null
-
     @_tile_path = ""
 
 
@@ -29,13 +27,11 @@ class HG.Globe extends HG.SpatialDisplay
     super hgInstance
 
     unless hgInstance.browserDetector
-      console.error "Failed to initialize Globe: Module browserDetector not detected!"
-      return
+      return console.error "Failed to initialize Globe: Module browserDetector not detected!"
 
     if hgInstance.browserDetector.webglSupported
       hgInstance.globe = @
-      @_tile_path = hgInstance._config.tiles
-      @_globeCanvas = hgInstance.mapCanvas
+      @_tile_path = @_config.tiles
       @_areaController = hgInstance.areaController
 
       @_initMembers()
@@ -52,10 +48,10 @@ class HG.Globe extends HG.SpatialDisplay
 
         if hgInstance.buttons.highContrast?
           hgInstance.buttons.highContrast.onEnter @, () =>
-            @_tile_path = hgInstance._config.tilesHighContrast
+            @_tile_path = @_config.tilesHighContrast
 
           hgInstance.buttons.highContrast.onLeavr @, () =>
-            @_tile_path = hgInstance._config.tiles
+            @_tile_path = @_config.tiles
 
 
         if hgInstance.controlButtons?
@@ -484,7 +480,7 @@ class HG.Globe extends HG.SpatialDisplay
   _render: ->
 
     #offset = 0
-    #rightOffset = parseFloat($(@_globeCanvas).css("right").replace('px',''))
+    #rightOffset = parseFloat($(@_canvas).css("right").replace('px',''))
     #offset = rightOffset if rightOffset
 
     mouseRel =
@@ -630,7 +626,7 @@ class HG.Globe extends HG.SpatialDisplay
     if @_isRunning
 
       offset = 0
-      rightOffset = parseFloat($(@_globeCanvas).css("right").replace('px',''))
+      rightOffset = parseFloat($(@_canvas).css("right").replace('px',''))
       offset = rightOffset if rightOffset
 
       event.preventDefault()
@@ -655,7 +651,7 @@ class HG.Globe extends HG.SpatialDisplay
     if @_isRunning
 
       offset = 0
-      rightOffset = parseFloat($(@_globeCanvas).css("right").replace('px',''))
+      rightOffset = parseFloat($(@_canvas).css("right").replace('px',''))
       offset = rightOffset if rightOffset
 
       @_mousePos =

@@ -135,7 +135,7 @@ class HG.Timeline
   # GETTER
 
   getNowDate: ->      @_nowDate
-  getParentDiv: ->    @_parentDiv
+  getTimelineArea: -> @_parentDiv
   getSlider: ->       @_tlSlider
 
 

@@ -31,7 +31,7 @@ class HG.NewGeometryTool
     @_geometryReader = new HG.GeometryReader
     @_geometryOperator = new HG.GeometryOperator
 
-    iconPath = @_hgInstance._config.graphicsPath + 'buttons/'
+    iconPath = @_hgInstance.config.graphicsPath + 'buttons/'
 
     ### SETUP LEAFLET DRAW ###
 

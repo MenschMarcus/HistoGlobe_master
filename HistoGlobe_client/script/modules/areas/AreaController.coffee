@@ -31,7 +31,6 @@ class HG.AreaController
     @addCallback 'onDeselect'
 
 
-
     # handle config
     defaultConfig =
       JSONPaths: undefined,
@@ -45,7 +44,7 @@ class HG.AreaController
     @_hgInstance.areaController = @
 
     # concat strings
-    @_config.JSONPaths[0] = @_hgInstance.getConfig().configPath + @_config.JSONPaths[0]
+    @_config.JSONPaths[0] = @_hgInstance.config.configPath + @_config.JSONPaths[0]
 
 
     ### INIT MEMBERS ###

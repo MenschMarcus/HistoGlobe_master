@@ -66,9 +66,9 @@ class HG.Imprint
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
-    parentDiv = @_hgInstance._config.container
-    parentDiv.appendChild @_link.dom()
-    parentDiv.appendChild @_imprintOverlay.dom()
+    parentDiv = @_hgInstance.getContainer()
+    parentDiv.appendChild @_link
+    parentDiv.appendChild @_imprintOverlay
 
 
   # ============================================================================

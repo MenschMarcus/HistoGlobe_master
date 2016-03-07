@@ -46,7 +46,7 @@ class HG.HistoGraph
     # create wrapper (put above timeline, hidden)
     @_wrapper = new HG.Div 'histograph-wrapper', null
     @_wrapper.j().hide()
-    @_hgInstance.timeline.getParentDiv().appendChild @_wrapper
+    @_hgInstance.timeline.getTimelineArea().appendChild @_wrapper
 
     # create transparent center line
     @_line = new HG.Div 'histograph-line', null
