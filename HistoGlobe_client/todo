@@ -4,8 +4,6 @@ GENERAL UI
 1 3 label collision on the map
 
 GENERAL EDIT OPERATION WORKFLOW
-1 2 get abort button to work
-1 3 make all actions reversible
 
 SELECTION STEP
 
@@ -13,7 +11,6 @@ GEOMETRY STEP
 2 1 for CHB: make sure two selected countries actually border each other
 2 2 for SEP: next step button enabled after first polygon is drawn => clicking on it uses the rest of the geometry as old area that has not changed (same as clicking the area)
 1 3 for CHB: more intuitive workflow to change border vs. create new territory
-3 3 for CHB: does it work with >2 countries?
 
 NAME STEP
 3 1 unify Soviet Union -> name not visible (make it always in viewport)

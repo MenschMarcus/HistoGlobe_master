@@ -29,7 +29,7 @@ class HG.Timeline
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
-    # add timeline to HG instance
+    # add module to HG instance
     @_hgInstance.timeline = @
 
     # get dimensions of timeline
@@ -65,12 +65,8 @@ class HG.Timeline
       @_hgInstance.minGUIButton?.onOpenGUI @, () ->
         @_showCategories()
 
-      # now marker changing
-      @_hgInstance.timeline?.onNowChanged @, (date) =>
-        @_nowMarker.upDate date
 
-
-    ### UI ELEMENTS ###
+    ### SETUP UI ELEMENTS ###
 
     # parent, wrapper, slider, date markers
     @_parentDiv = new HG.Div 'timeline-area', ['no-text-select']
@@ -89,7 +85,6 @@ class HG.Timeline
 
     # now marker
     @_nowDate = @_yearToDate @_config.nowYear
-    @_nowMarker = new HG.NowMarker @_parentDiv
 
     # zoom buttons
     if @_config.zoomButtons
@@ -337,13 +332,11 @@ class HG.Timeline
   _updateLayout: ->
     @_tl.dom().style.width = window.innerWidth + "px"
     @_tlSlider.dom().style.width = (@_timelineLength() + window.innerWidth) + "px"
-    @_nowMarker.resetPos (window.innerWidth / 2) + "px"
     @_moveToDate @_nowDate, 0
     @_timeline_swiper.reInit()
 
   _updateNowDate: (fireCallbacks = true) ->
     @_nowDate = @_cropDateToMinMax new Date(@_yearToDate(@_config.minYear).getTime() + (-1) * @_timeline_swiper.getWrapperTranslate("x") * @_millisPerPixel())
-    @_nowMarker.upDate @_nowDate
     if fireCallbacks
       @notifyAll "onNowChanged", @_nowDate
       @notifyAll "onIntervalChanged", @_getTimeFilter()
