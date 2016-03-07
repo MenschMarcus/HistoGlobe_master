@@ -28,7 +28,6 @@ class HG.HistoGlobe
     @addCallback "onMapAreaSizeChangeEnd"
 
     @map = null
-    @sidebar = null
 
     @_config = null
 
@@ -45,8 +44,6 @@ class HG.HistoGlobe
       tiles: '../HistoGlobe_client/config/common/tiles/tiles'
       tilesHighContrast: '../HistoGlobe_client/config/common/tiles/tiles_high_contrast'
       graphicsPath: '../HistoGlobe_client/config/common/graphics/'
-      sidebarEnabled: "true"
-      sidebarCollapsed: "auto"
 
     # issue: HGConfig provides rose variables, but for colors it does not return
     # the hex code '#rrggbb', but an object with r, g, b, a and val attributes
@@ -81,13 +78,7 @@ class HG.HistoGlobe
 
       @_createMap()
 
-      if @_config.sidebarEnabled
-        @_createSidebar()
-        @_createCollapseButton()
-
       $(window).on 'resize', @_onResize
-
-      @_collapsed = true
 
       # Auxiliary function for module loading. Tries to create an object by the
       # name of "moduleName", passing "moduleConfig" to the object's constructor.
@@ -129,11 +120,6 @@ class HG.HistoGlobe
       @notifyAll "onAllModulesLoaded"
 
       @_updateLayout()
-
-      if @_config.sidebarCollapsed is "false"
-        @_collapse()
-      else if @_config.sidebarCollapsed is "auto" and @isInMobileMode()
-        @_collapse()
     )
 
 
@@ -149,20 +135,15 @@ class HG.HistoGlobe
   # Checks whether or not the application is running in mobile mode.
   # ============================================================================
   isInMobileMode: =>
-    window.innerWidth < HGConfig.sidebar_width.val + HGConfig.map_min_width.val
+    window.innerWidth < HGConfig.map_min_width.val
 
   # ============================================================================
   # Returns the effective size of the map area.
   # ============================================================================
   getMapAreaSize: () ->
-    if @_collapsed
-      return size =
-        x: window.innerWidth - HGConfig.sidebar_collapsed_width.val
-        y: $(@_top_area).outerHeight()
-    else
-      return size =
-        x: window.innerWidth - HGConfig.sidebar_width.val
-        y: $(@_top_area).outerHeight()
+    return size =
+      x: window.innerWidth
+      y: $(@_top_area).outerHeight()
 
   # ============================================================================
   # Returns the DOM element containing all HistoGLobe visuals
@@ -203,29 +184,6 @@ class HG.HistoGlobe
         else
           $(@mapCanvas).removeClass("no-animation")
 
-    if @_config.sidebarEnabled
-      @_top_swiper.wrapperTransitionEnd(@_onSlideEnd, true)
-
-  # ============================================================================
-  _createSidebar: ->
-    @_sidebar_area = @_createElement @_top_area_wrapper, "div", "sidebar-area"
-    @_sidebar_area.className = "swiper-slide"
-
-    @sidebar = new HG.Sidebar
-    @addModule @sidebar
-
-
-  # ============================================================================
-  _createCollapseButton: ->
-    @_collapse_area_left = @_createElement @_map_area, "div", "collapse-area-left"
-
-    @_collapse_button = @_createElement @_map_area, "i", "collapse-button"
-    @_collapse_button.className = "fa fa-arrow-circle-o-left fa-2x"
-
-    $(@_collapse_button).tooltip {title: "Seitenleiste öffnen/schließen", placement: "left", container:"body"}
-
-    $(@_collapse_button).click @_collapse
-    $(@_collapse_area_left).click @_collapse
 
   # ============================================================================
   # Creates 2D Map. For more information, please see Display2D.coffe.
@@ -243,58 +201,6 @@ class HG.HistoGlobe
     @addModule @map
 
   # ============================================================================
-  stringToDate: (string) ->
-    res = (string + "").split(".")
-    i = res.length
-    d = new Date(1900, 0, 1)
-    if i > 0
-        d.setFullYear(res[i - 1])
-    else
-        alert "Error: were not able to convert string to date."
-    if i > 1
-        d.setMonth(res[i - 2] - 1)
-    if i > 2
-        d.setDate(res[i - 3])
-    d
-
-  # ============================================================================
-  _collapse: =>
-    @_collapsed = not @_collapsed
-
-    if @_collapsed
-      @_top_swiper.swipePrev()
-    else
-      @_top_swiper.swipeNext()
-
-  # ============================================================================
-  _onSlideEnd: () =>
-    if @_last_slide_pos != @_top_swiper.slides[0].getOffset().left
-      @_last_slide_pos = @_top_swiper.slides[0].getOffset().left
-
-      @_collapsed = @_last_slide_pos >= 0
-
-      if @_collapsed
-        @_collapse_button.className = "fa fa-arrow-circle-o-left fa-2x"
-        @_collapse_area_left.style.width = "0px"
-      else
-        @_collapse_button.className = "fa fa-arrow-circle-o-right fa-2x"
-        if @isInMobileMode()
-          @_collapse_area_left.style.width = "#{HGConfig.map_collapsed_width.val}px"
-
-      @notifyAll "onMapAreaSizeChangeEnd", window.innerWidth - HGConfig.sidebar_collapsed_width.val + @_last_slide_pos
-
-  # ============================================================================
-  _onSlide: (transform) =>
-    if (transform.x < 0)
-      @mapCanvas.style.right = "#{transform.x/2}px"
-    else
-      @mapCanvas.style.right = 0
-
-    @notifyAll "onTopAreaSlide", transform.x
-    @notifyAll "onMapAreaSizeChange", window.innerWidth - HGConfig.sidebar_collapsed_width.val + transform.x
-
-
-  # ============================================================================
   _onResize: () =>
     @_updateLayout()
 
@@ -304,23 +210,14 @@ class HG.HistoGlobe
     height = window.innerHeight - $(@_top_area).offset().top
 
     map_height = height - HGConfig.timeline_height.val
-    map_width = width - if @_config.sidebarEnabled then HGConfig.sidebar_collapsed_width.val else 0
-    sidebar_width = HGConfig.sidebar_width.val
-
-    if @isInMobileMode()
-      sidebar_width = width - HGConfig.map_collapsed_width.val
+    map_width = width
 
     @_map_area.style.width = "#{map_width}px"
     @_map_area.style.height = "#{map_height}px"
 
-    if @_config.sidebarEnabled
-      @sidebar.resize sidebar_width, map_height
     @map.resize map_width, map_height
 
     @_top_swiper.reInit()
-
-    unless @_collapsed
-      @_top_swiper.swipeNext()
 
   # ============================================================================
   _createElement: (container, type, id) ->

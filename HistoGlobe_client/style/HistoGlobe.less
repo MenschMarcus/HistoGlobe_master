@@ -6,12 +6,11 @@
 @import "../build/config.less";
 
 @import "modules/modules.less";
-@import "util/util.less";
 
 
 ///////////////////////// LAYOUT /////////////////////////
 
-// ------------------- COMMON CLASSES -------------------
+// COMMON CLASSES --------------------------------------------------------------
 
 @font-face {
   font-family: roman_caps;
@@ -59,7 +58,7 @@ body {
 }
 
 
-// --------------------------- MAP ---------------------------
+// MAP -------------------------------------------------------------------------
 
 #top-area {
   position: absolute;
@@ -77,10 +76,6 @@ body {
   overflow: hidden;
 
   box-shadow: 0 0 @shadow_radius rgba(0,0,0,@shadow_intensity);
-
-  .transition-property(right);
-  .transition-duration(@sidebar_aimation_speed);
-  .transition-timing-function(ease-in-out);
 }
 
 #map-canvas {
@@ -89,13 +84,10 @@ body {
   width: 100%;
   height: 100%;
   background-color: #555;
-
-  .transition-property(right);
-  .transition-duration(@sidebar_aimation_speed);
 }
 
 
-// ------------------------ TIMELINE ------------------------
+// TIMELINE --------------------------------------------------------------------
 #timeline-area {
   position: absolute;
   overflow: hidden;
@@ -107,48 +99,7 @@ body {
 }
 
 
-// ----------------------- COLLAPSE BUTTON ------------------------
-#collapse-button {
-  position: absolute;
-
-  padding-right: 10px;
-  font-size: @sidebar_collapse_button_size;
-  top: 10px;
-  right: 0px;
-  cursor: pointer;
-
-  z-index: 100;
-
-  color: #666;
-
-  &:hover {
-    color: #000;
-  }
-}
-
-#collapse-area-left {
-  position: absolute;
-  top:0;
-  height: 100%;
-  cursor: -webkit-grab;
-  z-index: 99;
-}
-
-#collapse-area-left {
-  right: 0;
-}
-
-.no-text-select {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-
-// ----------------------- TOOLTIPS ------------------------
+// TOOLTIPS --------------------------------------------------------------------
 // bootstrap-override
 
 .tooltip-inner {
@@ -200,7 +151,7 @@ body {
 
 
 
-// ----------------------- INPUT FIELDS ------------------------
+// INPUT FIELDS ----------------------------------------------------------------
 
 .hg-input
 {
@@ -216,4 +167,16 @@ body {
 .hg-input:focus
 {
   box-shadow: 0 0 @shadow_radius 3px @color_active;
+}
+
+
+// HELPER ----------------------------------------------------------------------
+
+.no-text-select {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
