@@ -342,7 +342,7 @@ class HG.AreasOnGlobe
         area.Mesh3D = mesh
 
       area.Material3D = mesh.material
-      
+
       '''area.onStyleChange @, @_updateAreaStyle'''
 
       mesh.Area = area
@@ -434,7 +434,7 @@ class HG.AreasOnGlobe
 
   # ============================================================================
   _hideArea: (area, aniTime) ->
-    
+
     #@_visibleAreas.splice(@_visibleAreas.indexOf(area), 1)
 
     if area.Material3D?
@@ -468,7 +468,7 @@ class HG.AreasOnGlobe
 
       final_color = @_rgbify if @_inHighContrast then area.getStyle().areaColor_hc else area.getStyle().areaColor
       final_opacity = if area.isActive() then area.getStyle().areaOpacity else 0.0
-      
+
       area.Material3D.color.r = final_color[0]/255
       area.Material3D.color.g = final_color[1]/255
       area.Material3D.color.b = final_color[2]/255
@@ -862,9 +862,9 @@ class HG.AreasOnGlobe
     countryIntersects = raycaster.intersectObjects(@_sceneCountries.children)
 
     if countryIntersects.length > 0
-      HG.Display.CONTAINER.style.cursor = "pointer"
+      HG.SpatialDisplay.CONTAINER.style.cursor = "pointer"
     else
-      HG.Display.CONTAINER.style.cursor = "auto"
+      HG.SpatialDisplay.CONTAINER.style.cursor = "auto"
 
     for mat in @_intersectedMaterials
       mat.opacity = mat.opacity - 0.2

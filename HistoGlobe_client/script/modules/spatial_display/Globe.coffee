@@ -1,6 +1,6 @@
 window.HG ?= {}
 
-class HG.Globe extends HG.Display
+class HG.Globe extends HG.SpatialDisplay
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
@@ -8,7 +8,7 @@ class HG.Globe extends HG.Display
 
   # ============================================================================
   constructor: () ->
-    HG.Display.call @
+    HG.SpatialDisplay.call @
 
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
@@ -346,10 +346,10 @@ class HG.Globe extends HG.Display
 
   # ============================================================================
   _initWindowGeometry: ->
-    @_width                = HG.Display.CONTAINER.parentNode.offsetWidth
-    @_myHeight             = HG.Display.CONTAINER.parentNode.offsetHeight
-    @_canvasOffsetX        = HG.Display.CONTAINER.parentNode.offsetLeft
-    @_canvasOffsetY        = HG.Display.CONTAINER.parentNode.offsetTop
+    @_width                = HG.SpatialDisplay.CONTAINER.parentNode.offsetWidth
+    @_myHeight             = HG.SpatialDisplay.CONTAINER.parentNode.offsetHeight
+    @_canvasOffsetX        = HG.SpatialDisplay.CONTAINER.parentNode.offsetLeft
+    @_canvasOffsetY        = HG.SpatialDisplay.CONTAINER.parentNode.offsetTop
 
   # ============================================================================
   _initGlobe: ->
@@ -443,9 +443,9 @@ class HG.Globe extends HG.Display
     @_renderer.setClearColor             BACKGROUND, 1.0
     @_renderer.setSize                   @_width, @_myHeight
     @_renderer.domElement.style.position = "absolute"
-    @_renderer.domElement.style.zIndex = "#{HG.Display.Z_INDEX}"
+    @_renderer.domElement.style.zIndex = "#{HG.SpatialDisplay.Z_INDEX}"
 
-    HG.Display.CONTAINER.appendChild @_renderer.domElement
+    HG.SpatialDisplay.CONTAINER.appendChild @_renderer.domElement
 
     @_camera               = new THREE.PerspectiveCamera @_currentFOV,
                                                         @_width / @_myHeight,
@@ -525,7 +525,7 @@ class HG.Globe extends HG.Display
 
       else
         @_dragStartPos = null
-        HG.Display.CONTAINER.style.cursor = "auto"
+        HG.SpatialDisplay.CONTAINER.style.cursor = "auto"
 
     else if @_mouseSpeed.x isnt 0.0 and @_mouseSpeed.y isnt 0.0
 
@@ -643,7 +643,7 @@ class HG.Globe extends HG.Display
       #@_dragStartTime = new Date()
 
       if @_dragStartPos?
-        HG.Display.CONTAINER.style.cursor = "move"
+        HG.SpatialDisplay.CONTAINER.style.cursor = "move"
         @_springiness = 0.1
         @_targetCameraPos.x = @_currentCameraPos.x
         @_targetCameraPos.y = @_currentCameraPos.y
@@ -668,7 +668,7 @@ class HG.Globe extends HG.Display
     if @_isRunning
 
       event.preventDefault()
-      HG.Display.CONTAINER.style.cursor = "auto"
+      HG.SpatialDisplay.CONTAINER.style.cursor = "auto"
       @_springiness = 0.9
       @_dragStartPos = null
       @_myDragStartCamera = null
@@ -688,11 +688,11 @@ class HG.Globe extends HG.Display
 
   # ============================================================================
   _onWindowResize: (event) =>
-    @_camera.aspect = HG.Display.CONTAINER.parentNode.offsetWidth /
-                      HG.Display.CONTAINER.parentNode.offsetHeight
+    @_camera.aspect = HG.SpatialDisplay.CONTAINER.parentNode.offsetWidth /
+                      HG.SpatialDisplay.CONTAINER.parentNode.offsetHeight
     @_camera.updateProjectionMatrix()
-    @_renderer.setSize HG.Display.CONTAINER.parentNode.offsetWidth,
-                       HG.Display.CONTAINER.parentNode.offsetHeight
+    @_renderer.setSize HG.SpatialDisplay.CONTAINER.parentNode.offsetWidth,
+                       HG.SpatialDisplay.CONTAINER.parentNode.offsetHeight
     @_initWindowGeometry()
 
 
