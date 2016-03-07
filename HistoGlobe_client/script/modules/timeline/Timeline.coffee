@@ -36,8 +36,6 @@ class HG.Timeline
     @_config.maxYear = @_hgInstance.getMinMaxYear()[1]
     @_config.nowYear = @_hgInstance.getStartYear()
 
-    @_hgContainer = @_hgInstance.getContainer()
-
     # init members
     @_nowDate = @_yearToDate @_config.nowYear
 
@@ -71,7 +69,7 @@ class HG.Timeline
 
     # parent, wrapper, slider, date markers
     @_parentDiv = new HG.Div 'timeline-area', ['no-text-select']
-    @_hgContainer.appendChild @_parentDiv.dom()
+    @_hgInstance.getContainer().appendChild @_parentDiv
 
     @_tl = new HG.Div 'tl', ['swiper-container', 'no-text-select']
     @_parentDiv.appendChild @_tl

@@ -35,7 +35,7 @@ class HG.Help
   hgInit: (@_hgInstance) ->
     @_hgInstance.help = @
 
-    @_hgInstance.getContainer().appendChild @_div.dom()
+    @_hgInstance.getContainer().appendChild @_div
 
     if @_config.autoShow
       @_hgInstance.onAllModulesLoaded @, () =>

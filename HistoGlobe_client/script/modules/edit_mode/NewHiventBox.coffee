@@ -19,7 +19,7 @@ class HG.NewHiventBox
     ### SETUP UI ###
 
     @_hiventBox = new HG.Div 'new-hivent-box', null
-    @_hgInstance._top_area.appendChild @_hiventBox.dom()
+    @_hgInstance.getTopArea().appendChild @_hiventBox
 
     ## 1) choose between select existing and create new hivent
     @_makeDecisionStep()

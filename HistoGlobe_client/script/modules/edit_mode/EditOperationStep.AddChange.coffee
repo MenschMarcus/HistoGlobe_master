@@ -40,7 +40,7 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
 
     # @_popover = new HG.HiventInfoPopover(
     #     hiventHandle,
-    #     @_hgInstance._top_area,
+    #     @_hgInstance.getTopArea(),
     #     @_hgInstance,
     #     1,
     #     yes

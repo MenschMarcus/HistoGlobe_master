@@ -28,14 +28,14 @@ class HG.SearchBoxArea
 
     @_container = document.createElement 'div'
     @_container.className = "search-box-area"
-    @_hgInstance._top_area.appendChild @_container
+    @_hgInstance.getTopArea().appendChild @_container
     @_allTopics = @_hgInstance.timeline._config.topics
 
     @_hgInstance.hg_logo = @
 
     @_logo_container = document.createElement 'div'
     @_logo_container.className = "logo-area"
-    @_hgInstance._top_area.appendChild @_logo_container
+    @_hgInstance.getTopArea().appendChild @_logo_container
 
     @_search_results = null
     @_search_opt_event = false
