@@ -74,7 +74,7 @@ class HG.HistoGlobe
       # overridden by the loaded config or kept as default.
       hgConf = config["HistoGlobe"]
       @_config = $.extend {}, defaultConfig, hgConf
-      @_config.container =  document.getElementById @_config.container
+      @_config.container = document.getElementById @_config.container
 
       # GUI creation
       @_createTopArea()
@@ -93,13 +93,19 @@ class HG.HistoGlobe
       # name of "moduleName", passing "moduleConfig" to the object's constructor.
       # If the creation was successful, "hgInit" is called on the new module.
       load_module = (moduleName, moduleConfig) =>
+
+        # error handling: ignore comment modules:
+        # "### COMMENT ###"
+        return if moduleName.startsWith('#') and moduleName.endsWith('#')
+
         defaultConf =
           enabled : true
 
         moduleConfig = $.extend {}, defaultConf, moduleConfig
 
         # Check if there exists a module by the specified name. To ensure custom
-        # modules are found one must add them to the HG scope
+        # modules they must be added them to the HG scope
+        # usage: class HG.ModuleName
         if window["HG"][moduleName]?
           # Only load modules which are enabled
           if moduleConfig.enabled
