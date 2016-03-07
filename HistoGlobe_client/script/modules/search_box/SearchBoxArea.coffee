@@ -94,14 +94,6 @@ class HG.SearchBoxArea
         sr.scrollTop = (window.current_active_element * 44) - sr.offsetHeight + 150
         #$("#search-results").animate({ scrollTop: (window.current_active_element * 43) + "px" });
 
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-    @_hgInstance.onTopAreaSlide @, (t) =>
-      if @_hgInstance.isInMobileMode()
-        @_container.style.left = "#{t*0.5}px"
-      else
-        @_container.style.left = "0px"
-
   # ============================================================================
 
   addLogo: (config) ->

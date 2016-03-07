@@ -177,7 +177,7 @@ class HG.EditMode
         {
           'id':       'normal',
           'tooltip':  "Add New Hivent",
-          'iconOwn':  @_hgInstance._config.graphicsPath + 'buttons/new_hivent.svg',
+          'iconOwn':  @_hgInstance.config.graphicsPath + 'buttons/new_hivent.svg',
           'callback': 'onClick'
         }
       ]
@@ -194,7 +194,7 @@ class HG.EditMode
           {
             'id':       'normal',
             'tooltip':  operation.title,
-            'iconOwn':  @_hgInstance._config.graphicsPath + 'buttons/' + operation.id + '.svg',
+            'iconOwn':  @_hgInstance.config.graphicsPath + 'buttons/' + operation.id + '.svg',
             'callback': 'onClick'
           }
         ]

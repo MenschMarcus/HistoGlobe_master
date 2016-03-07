@@ -14,23 +14,22 @@ class HG.SpatialDisplay
   # hgInit is called by the central HistoGlobe object.
   # Stores basic information and registeres callback listeners.
   # ============================================================================
-  hgInit: (hgInstance) ->
+  hgInit: (@_hgInstance) ->
     # Store the DOM element reserved for displaying map/globe
-    HG.SpatialDisplay.CONTAINER ?= hgInstance.mapCanvas
+    HG.SpatialDisplay.CONTAINER ?= @_hgInstance.getSpatialCanvas()
     @overlayContainer = null
 
     # If all modules are loaded, check whether the module "HiventInfoAtTag" is
     # present and if so, register for notification on URL hash changes.
-    hgInstance.onAllModulesLoaded @, () =>
+    @_hgInstance.onAllModulesLoaded @, () =>
 
-      hgInstance.hiventInfoAtTag?.onHashChanged @, (key, value) =>
+      @_hgInstance.hiventInfoAtTag?.onHashChanged @, (key, value) =>
         # If the passed URL hash key is "bounds", zoom to the specified area.
         if key is "bounds"
           minMax = value.split ";"
           mins = minMax[0].split ","
           maxs = minMax[1].split ","
           @zoomToBounds(mins[0], mins[1], maxs[0], maxs[1])
-
 
 
   # ============================================================================
@@ -44,6 +43,7 @@ class HG.SpatialDisplay
   # found in the derived classes
   # ============================================================================
   zoomToBounds: (minLong, minLat, maxLong, maxLat) ->
+
 
   ##############################################################################
   #                             STATIC MEMBERS                                 #

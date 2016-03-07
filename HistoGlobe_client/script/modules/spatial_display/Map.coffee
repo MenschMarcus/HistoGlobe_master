@@ -19,6 +19,18 @@ class HG.Map extends HG.SpatialDisplay
 
     @addCallback "onClick"
 
+    # handle config
+    defaultConfig =
+      minZoom: 1
+      maxZoom: 6
+      startZoom: 4
+      maxBounds: undefined
+
+
+    @_config = $.extend {}, defaultConfig, config
+
+
+
   # ============================================================================
   # Inits associated data.
   # ============================================================================
@@ -29,41 +41,35 @@ class HG.Map extends HG.SpatialDisplay
     # call constructor of base class
     super @_hgInstance
 
-    # append pathes
-    # @_config.tiles = @_hgInstance.getConfig().configPath + @_config.tiles
-    # @_config.tilesHC = @_hgInstance.getConfig().configPath + @_config.tilesHC
-
     ### INIT MEMBERS ###
-    @_map       = null
-    @_mapParent = null
-    @_isRunning = false
+    @_isRunning = no
 
     ### SETUP UI ###
-    @_mapParent = document.createElement 'div'
-    @_mapParent.style.width = HG.SpatialDisplay.CONTAINER.offsetWidth + "px"
-    @_mapParent.style.height = HG.SpatialDisplay.CONTAINER.offsetHeight + "px"
-    @_mapParent.style.zIndex = "#{HG.SpatialDisplay.Z_INDEX}"
+    @_mapParent = new HG.Div
+    @_mapParent.dom().style.width = HG.SpatialDisplay.CONTAINER.offsetWidth + "px"
+    @_mapParent.dom().style.height = HG.SpatialDisplay.CONTAINER.offsetHeight + "px"
+    @_mapParent.dom().style.zIndex = "#{HG.SpatialDisplay.Z_INDEX}"
 
     HG.SpatialDisplay.CONTAINER.appendChild @_mapParent
 
     # leaflet
     options =
-      maxZoom:      @_hgInstance._config.maxZoom
-      minZoom:      @_hgInstance._config.minZoom
+      maxZoom:      @_config.maxZoom
+      minZoom:      @_config.minZoom
       zoomControl:  false
-      maxBounds:    @_hgInstance._config.maxBounds
+      maxBounds:    @_config.maxBounds
       worldCopyJump: true
 
-    @_map = L.map @_mapParent, options
-    @_map.setView @_hgInstance._config.startLatLong, @_hgInstance._config.startZoom
+    @_map = L.map @_mapParent.dom(), options
+    @_map.setView @_hgInstance.config.startPoint, @_config.startZoom
     @_map.attributionControl.setPrefix ''
 
-    tileLayer = L.tileLayer(@_hgInstance._config.tiles + '/{z}/{x}/{y}.png')
+    tileLayer = L.tileLayer(@_hgInstance.config.tiles + '/{z}/{x}/{y}.png')
     tileLayer.addTo @_map
 
     @overlayContainer = @_map.getPanes().mapPane
 
-    @_isRunning = true
+    @_isRunning = yes
 
 
     ### INTERACTION ###
@@ -80,14 +86,14 @@ class HG.Map extends HG.SpatialDisplay
 
       if @_hgInstance.buttons.highContrast?
         @_hgInstance.buttons.highContrast.onEnter @, () =>
-          tileLayer.setUrl @_hgInstance._config.tilesHighContrast + '/{z}/{x}/{y}.png'
+          tileLayer.setUrl @_hgInstance.config.tilesHighContrast + '/{z}/{x}/{y}.png'
 
         @_hgInstance.buttons.highContrast.onLeave @, () =>
-          tileLayer.setUrl @_hgInstance._config.tiles + '/{z}/{x}/{y}.png'
+          tileLayer.setUrl @_hgInstance.config.tiles + '/{z}/{x}/{y}.png'
 
     # window
     window.addEventListener 'resize', @_onWindowResize, false
-    @_mapParent.addEventListener 'click', @_onClick, false
+    @_mapParent.dom().addEventListener 'click', @_onClick, false
 
 
   # ============================================================================
@@ -95,15 +101,15 @@ class HG.Map extends HG.SpatialDisplay
   # ============================================================================
   start: ->
     unless @_isRunning
-      @_isRunning = true
-      @_mapParent.style.display = "block"
+      @_isRunning = yes
+      @_mapParent.dom().style.display = "block"
 
   # ============================================================================
   # Deactivates the 2D Display-
   # ============================================================================
   stop: ->
-    @_isRunning = false
-    @_mapParent.style.display = "none"
+    @_isRunning = no
+    @_mapParent.dom().style.display = "none"
 
   # ============================================================================
   # Returns whether the display is active or not.
@@ -115,7 +121,7 @@ class HG.Map extends HG.SpatialDisplay
   # Returns the DOM element associated with the display.
   # ============================================================================
   getCanvas: ->
-    @_mapParent
+    @_mapParent.dom()
 
   # ============================================================================
   # Implementation of setting the center of the current display.
@@ -158,8 +164,8 @@ class HG.Map extends HG.SpatialDisplay
   # Resize the display.
   # ============================================================================
   resize: (width, height) ->
-    @_mapParent.style.width = width + "px"
-    @_mapParent.style.height = height + "px"
+    @_mapParent.dom().style.width = width + "px"
+    @_mapParent.dom().style.height = height + "px"
     @_map.invalidateSize()
 
   ##############################################################################
@@ -168,8 +174,8 @@ class HG.Map extends HG.SpatialDisplay
 
   # ============================================================================
   _onWindowResize: (event) =>
-    @_mapParent.style.width = $(HG.SpatialDisplay.CONTAINER.parentNode).width() + "px"
-    @_mapParent.style.height = $(HG.SpatialDisplay.CONTAINER.parentNode).height() + "px"
+    @_mapParent.dom().style.width = $(HG.SpatialDisplay.CONTAINER.parentNode).width() + "px"
+    @_mapParent.dom().style.height = $(HG.SpatialDisplay.CONTAINER.parentNode).height() + "px"
 
   # ============================================================================
   _onClick: (event) =>

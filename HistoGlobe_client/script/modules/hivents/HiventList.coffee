@@ -131,12 +131,6 @@ class HG.HiventList
     $(window).resize  =>
       @_addHiventList()
 
-    @_hgInstance.onTopAreaSlide @, (t) =>
-      if @_hgInstance.isInMobileMode()
-        @_container.style.left = "#{t*0.5}px"
-      else
-        @_container.style.left = "0px"
-
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #

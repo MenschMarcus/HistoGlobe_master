@@ -35,9 +35,9 @@ class HG.AreasOnGlobe
   hgInit: (hgInstance) ->
     hgInstance.areasOnGlobe = @
 
-    @_aniTime = hgInstance._config.areaAniTime
+    @_aniTime = HGConfig.animation_time.val
 
-    @_globeCanvas = hgInstance.mapCanvas
+    @_globeCanvas = hgInstance.getSpatialCanvas()
 
     @_globe = hgInstance.globe
 

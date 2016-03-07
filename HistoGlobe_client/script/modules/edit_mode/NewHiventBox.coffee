@@ -88,7 +88,7 @@ class HG.NewHiventBox
         {
           'id':       'normal',
           'tooltip':  "Create New Hivent",
-          'iconOwn':  @_hgInstance._config.graphicsPath + 'buttons/new_hivent.svg',
+          'iconOwn':  @_hgInstance.config.graphicsPath + 'buttons/new_hivent.svg',
           'callback': 'onClick'
         }
       ]
