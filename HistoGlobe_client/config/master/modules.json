@@ -6,13 +6,14 @@
     "minYear": 1900,
     "maxYear": 2015,
     "nowYear": 1989,
+    "startLatLong": [50.9869531, 11.3205004],
+    "configPath": "../HistoGlobe_client/config/",
+    "graphicsPath": "common/graphics/",
     "minZoom": 3,
     "maxZoom": 7,
     "startZoom": 4,
-    "startLatLong": [50.9869531, 11.3205004],
-    "tiles": "../HistoGlobe_client/config/common/tiles/tiles",
-    "tilesHighContrast": "../HistoGlobe_client/config/common/tiles/tiles_high_contrast",
-    "graphicsPath": "../HistoGlobe_client/config/common/graphics/"
+    "tiles": "common/tiles/tiles",
+    "tilesHC": "common/tiles/tiles_high_contrast"
   },
 
 
@@ -27,12 +28,11 @@
   "Watermark":
   {
     "id": "HGLogo",
-    "image": "../HistoGlobe_client/config/common/graphics/logo.png"
+    "image": "common/graphics/logo.png"
   },
 
-  "# Map #":
+  "Map":
   {
-
   },
 
   "ControlButtonsTop": {
@@ -61,7 +61,7 @@
 
   "AreaController":
   {
-    "JSONPaths" : ["../HistoGlobe_client/config/common/data/countries.geojson"]
+    "JSONPaths" : ["common/data/countries.geojson"]
   },
 
   "EditMode" :  {},

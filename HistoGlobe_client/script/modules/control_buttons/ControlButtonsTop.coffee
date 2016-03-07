@@ -150,12 +150,70 @@ class HG.ControlButtonsTop
               ]
           )
 
+
     # listen to show/hide of HistoGraph
     @_hgInstance.histoGraph?.onShow @, (elem) =>
       @moveUp elem.height()
 
     @_hgInstance.histoGraph?.onHide @, (elem) =>
       @moveDown elem.height()
+
+
+    ### INTERACTION ###
+
+    # fullscreen
+    @_hgInstance.buttons.fullscreen?.onEnter @, (btn) =>
+      body = document.body
+      if (body.requestFullscreen)
+        body.requestFullscreen()
+      else if (body.msRequestFullscreen)
+        body.msRequestFullscreen()
+      else if (body.mozRequestFullScreen)
+        body.mozRequestFullScreen()
+      else if (body.webkitRequestFullscreen)
+        body.webkitRequestFullscreen()
+      btn.changeState 'fullscreen'
+
+    @_hgInstance.buttons.fullscreen?.onLeave @, (btn) =>
+      body = document.body
+      if (body.requestFullscreen)
+        document.cancelFullScreen()
+      else if (body.msRequestFullscreen)
+        document.msExitFullscreen()
+      else if (body.mozRequestFullScreen)
+        document.mozCancelFullScreen()
+      else if (body.webkitRequestFullscreen)
+        document.webkitCancelFullScreen()
+      btn.changeState 'normal'
+
+    # high contrast mode
+    @_hgInstance.buttons.highContrast?.onEnter @, (btn) =>
+      $(@_hgInstance._config.container).addClass 'highContrast'
+      btn.changeState 'high-contrast'
+
+    @_hgInstance.buttons.highContrast?.onLeave @, (btn) =>
+      $(@_hgInstance._config.container).removeClass 'highContrast'
+      btn.changeState 'normal'
+
+    # min layout mode
+    @_hgInstance.buttons.minLayoutButton?.onRemoveGUI @, (btn) =>
+      $(@_hgInstance._config.container).addClass 'minGUI'
+      btn.changeState 'min-layout'
+
+    @_hgInstance.buttons.minLayoutButton?.onOpenGUI @, (btn) =>
+      $(@_hgInstance._config.container).removeClass 'minGUI'
+      btn.changeState 'normal'
+
+    # graph on globe
+    @_hgInstance.buttons.graph?.onShow @, (btn) =>
+      $(hgInstance._config.container).addClass 'minGUI'
+      btn.changeState 'min-layout'
+
+    @_hgInstance.buttons.graph?.onHide @, (btn) =>
+      $(hgInstance._config.container).removeClass 'minGUI'
+      btn.changeState 'normal'
+
+
 
   # ============================================================================
   moveUp: (height) ->

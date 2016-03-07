@@ -25,6 +25,9 @@ class HG.Watermark
   hgInit: (@_hgInstance) ->
     @_hgInstance.watermark = @
 
+    # append path
+    @_config.image = @_hgInstance.getConfig().configPath + @_config.image
+
     parentDiv = @_hgInstance._config.container
 
     if @_config.image?

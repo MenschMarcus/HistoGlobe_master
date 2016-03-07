@@ -42,8 +42,9 @@ class HG.HistoGlobe
       maxBounds: undefined
       startLatLong: [51.505, 10.09]
       tiles: '../HistoGlobe_client/config/common/tiles/tiles'
-      tilesHighContrast: '../HistoGlobe_client/config/common/tiles/tiles_high_contrast'
-      graphicsPath: '../HistoGlobe_client/config/common/graphics/'
+      tilesHC: '../HistoGlobe_client/config/common/tiles/tiles_high_contrast'
+      configPath: '../HistoGlobe_client/config/'
+      graphicsPath: 'common/graphics/'
 
     # issue: HGConfig provides rose variables, but for colors it does not return
     # the hex code '#rrggbb', but an object with r, g, b, a and val attributes
@@ -71,6 +72,9 @@ class HG.HistoGlobe
       # overridden by the loaded config or kept as default.
       hgConf = config["HistoGlobe"]
       @_config = $.extend {}, defaultConfig, hgConf
+
+      @_config.tiles = @_config.configPath + @_config.tiles
+      @_config.tilesHC = @_config.configPath + @_config.tilesHC
 
       # append root "histoglobe" DOM element to body
       @_config.container = new HG.Div 'histoglobe'
@@ -122,6 +126,7 @@ class HG.HistoGlobe
       # After all modules are loaded, notify whoever is interested
       @notifyAll "onAllModulesLoaded"
 
+
       @_updateLayout()
     )
 
@@ -151,6 +156,7 @@ class HG.HistoGlobe
   # ============================================================================
   # Returns the DOM element containing all HistoGlobe visuals
   # ============================================================================
+  getConfig: () ->      @_config
   getTopArea: () ->     @_top_area
   getContainer: () ->   @_config.container
 
@@ -190,7 +196,7 @@ class HG.HistoGlobe
 
 
   # ============================================================================
-  # Creates 2D Map. For more information, please see Display2D.coffe.
+  # Creates 2D Map. For more information, please see Map.coffe.
   # ============================================================================
 
   _createMap: ->
@@ -200,7 +206,7 @@ class HG.HistoGlobe
     @mapCanvas = new HG.Div 'map-canvas', ['swiper-no-swiping']
     @_map_area.appendChild @mapCanvas
 
-    @map = new HG.Display2D
+    @map = new HG.Map
     @addModule @map
 
   # ============================================================================
