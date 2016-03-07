@@ -51,7 +51,7 @@
 
   "NowMarker" : {},
 
-  "# ControlButtonsTimeline #" :
+  "ControlButtonsTimeline" :
   {
     "zoom": true
   },

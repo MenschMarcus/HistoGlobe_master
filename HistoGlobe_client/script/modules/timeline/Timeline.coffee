@@ -19,7 +19,6 @@ class HG.Timeline
 
     # handle config
     defaultConfig =
-      zoomButtons: true
       minZoom: 1
       maxZoom: 7
       startZoom: 2
@@ -40,6 +39,8 @@ class HG.Timeline
     @_hgContainer = @_hgInstance.getContainer()
 
     # init members
+    @_nowDate = @_yearToDate @_config.nowYear
+
     @_activeTopic     = null
     @_dragged         = false
 
@@ -82,43 +83,6 @@ class HG.Timeline
     @_tlWrapper.appendChild @_tlSlider
 
     @_dateMarkers = []
-
-    # now marker
-    @_nowDate = @_yearToDate @_config.nowYear
-
-    # zoom buttons
-    if @_config.zoomButtons
-      zoomButtonsArea = new HG.ButtonArea @_hgInstance,
-      {
-        'id':           'timeline-zoom-buttons',
-        'posX':         'left',
-        'posY':         'right',
-        'orientation':  'horizontal'
-      }
-      @_parentDiv.appendChild zoomButtonsArea.dom()
-
-      # buttons itself
-      zoomButtonsArea.addButton new HG.Button(@_hgInstance,
-        'timelineZoomOut', ['button-no-background', 'tooltip-top'],
-        [
-          {
-            'id':         'normal',
-            'tooltip':    "Zoom Out Timeline",
-            'iconFA':     'minus'
-            'callback':   'onClick'
-          }
-        ]),'timelineZoom'
-
-      zoomButtonsArea.addButton new HG.Button(@_hgInstance,
-        'timelineZoomIn', ['button-no-background', 'tooltip-top'],
-        [
-          {
-            'id':         'normal',
-            'tooltip':    "Zoom In Timeline",
-            'iconFA':     'plus'
-            'callback':   'onClick'
-          }
-        ]), 'timelineZoom'
 
     # drag timeline
     # = transition of timeline container with swiper.js
