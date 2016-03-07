@@ -102,7 +102,7 @@ class HG.NewGeometryTool
         'posY':         'top'
         'orientation':  'vertical'
       }
-    @_hgInstance._top_area.appendChild @_buttonArea.dom()
+    @_hgInstance.getTopArea().appendChild @_buttonArea.dom()
 
 
     ## buttons themselves

@@ -44,7 +44,7 @@ class HG.NewNameTool
     # => possible, but hard...
 
     @_wrapper = new HG.Div 'new-name-wrapper', null
-    @_hgInstance._top_area.appendChild @_wrapper.dom()
+    @_hgInstance.getTopArea().appendChild @_wrapper
 
     @_inputField = new HG.TextInput @_hgInstance, 'new-name-input', null
     @_inputField.j().attr 'size', NAME_MIN_SIZE

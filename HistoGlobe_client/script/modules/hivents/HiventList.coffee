@@ -34,7 +34,7 @@ class HG.HiventList
     @_alliances_option.className = "hivent-list-alliances"
     @_container = document.createElement 'div'
     @_container.className = "hivent-list-module"
-    @_hgInstance._top_area.appendChild @_container
+    @_hgInstance.getTopArea().appendChild @_container
 
     @_hgInstance.hivent_list_module = @
 

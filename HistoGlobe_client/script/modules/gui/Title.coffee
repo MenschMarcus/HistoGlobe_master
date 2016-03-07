@@ -16,12 +16,12 @@ class HG.Title
 
     # create transparent title bar (insert as second child!, so it is background of everything)
     @_titleBar = new HG.Div 'titlebar', null
-    @_hgInstance._top_area.insertBefore @_titleBar.dom(), @_hgInstance._top_area.firstChild.nextSibling
+    @_hgInstance.getTopArea().dom().insertBefore @_titleBar.dom(), @_hgInstance.getTopArea().dom().firstChild.nextSibling
 
     # create actual title bar (insert as third child!, so it does not cover buttons)
     @_title = new HG.Div 'title', null
     @_title.j().html text if text?
-    @_hgInstance._top_area.insertBefore @_title.dom(), @_hgInstance._top_area.firstChild.nextSibling.nextSibling
+    @_hgInstance.getTopArea().dom().insertBefore @_title.dom(), @_hgInstance.getTopArea().dom().firstChild.nextSibling.nextSibling
 
     @resize()
 

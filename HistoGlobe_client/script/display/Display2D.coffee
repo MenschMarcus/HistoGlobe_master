@@ -31,7 +31,6 @@ class HG.Display2D extends HG.Display
     @_initMembers()
     @_initCanvas()
     @_initEventHandling()
-    # @_initLabels()
 
   # ============================================================================
   # Activates the 2D Display-
@@ -166,17 +165,6 @@ class HG.Display2D extends HG.Display
     @_mapParent.addEventListener 'click', @_onClick, false
 
   # ============================================================================
-  _initLabels: ->
-
-    @_visibleLabels = []
-
-    @_labelController.onShowLabel @, (label) =>
-      @_showLabel label
-
-    @_labelController.onHideLabel @, (label) =>
-      @_hideLabel label
-
-  # ============================================================================
   _onWindowResize: (event) =>
     @_mapParent.style.width = $(HG.Display.CONTAINER.parentNode).width() + "px"
     @_mapParent.style.height = $(HG.Display.CONTAINER.parentNode).height() + "px"
@@ -184,24 +172,3 @@ class HG.Display2D extends HG.Display
   # ============================================================================
   _onClick: (event) =>
     @notifyAll "onClick", event.target
-
-  # ============================================================================
-  _showLabel: (label) =>
-    label.myLeafletLabel = new L.Label();
-    label.myLeafletLabel.setContent label.getName()
-    label.myLeafletLabel.setLatLng label.getLatLng()
-    @_map.showLabel label.myLeafletLabel
-    label.myLeafletLabel.options.offset = [
-      -label.myLeafletLabel._container.offsetWidth/2,
-      -label.myLeafletLabel._container.offsetHeight/2
-    ]
-
-    label.myLeafletLabel._updatePosition()
-    $(label.myLeafletLabel._container).addClass("visible")
-
-
-  # ============================================================================
-  _hideLabel: (label) =>
-    $(label.myLeafletLabel._container).removeClass("visible")
-    @_visibleLabels.splice(@_visibleLabels.indexOf(label), 1)
-    @_map.removeLayer label.myLeafletLabel
