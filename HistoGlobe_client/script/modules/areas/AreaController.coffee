@@ -41,9 +41,14 @@ class HG.AreaController
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
+    # add module to HG instance
     @_hgInstance.areaController = @
 
+    # concat strings
+    @_config.JSONPaths[0] = @_hgInstance.getConfig().configPath + @_config.JSONPaths[0]
 
+
+    ### INIT MEMBERS ###
     @_activeAreas = []            # set of all HG.Area's currently active
 
     @_maxSelections = 1           # 1 = single-selection mode, n = multi-selection mode
@@ -52,6 +57,7 @@ class HG.AreaController
     @_editAreas = []              # stores all areas that are currently in edit mode
 
 
+    ### INTERACTION ###
     @_hgInstance.onAllModulesLoaded @, () =>
 
       # get area view (currently active viewers for the area)
@@ -83,7 +89,7 @@ class HG.AreaController
             @_activate area
 
 
-      ### INTERFACE ###
+      ### TO INTERFACE ###
 
       # ========================================================================
       ## listen to each viewer (have the same interface)

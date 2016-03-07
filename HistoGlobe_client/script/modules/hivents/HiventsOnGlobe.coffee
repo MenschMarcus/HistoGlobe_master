@@ -91,7 +91,7 @@ class HG.HiventsOnGlobe
             group_default: @_hiventLogos["group_default"]
             group_highlighted: @_hiventLogos["group_highlighted"]
 
-          marker    = new HG.HiventMarker3D(handle, @_globe, HG.Display.CONTAINER, @_sceneInterface, logos, @_hgInstance)
+          marker    = new HG.HiventMarker3D(handle, @_globe, HG.SpatialDisplay.CONTAINER, @_sceneInterface, logos, @_hgInstance)
           position  =  @_globe._latLongToCart(
             x:handle.getHivent().long
             y:handle.getHivent().lat,
@@ -109,7 +109,7 @@ class HG.HiventsOnGlobe
           unless foundGroup
             for m in @_hiventMarkers
               if m.getHiventHandle().getHivent().lat[0] == handle.getHivent().lat[0] and m.getHiventHandle().getHivent().long[0] == handle.getHivent().long[0]
-                markerGroup = new HG.HiventMarker3DGroup([marker,m],@_globe, HG.Display.CONTAINER, @_sceneInterface, logos, @_hgInstance)
+                markerGroup = new HG.HiventMarker3DGroup([marker,m],@_globe, HG.SpatialDisplay.CONTAINER, @_sceneInterface, logos, @_hgInstance)
 
                 markerGroup.onMarkerDestruction @, (marker_group) =>
                   #remove group and add last/remaining element to map
@@ -314,7 +314,7 @@ class HG.HiventsOnGlobe
               hivent.onMouseOver(x,y)
 
             tmp_intersects.push hivent
-            HG.Display.CONTAINER.style.cursor = "pointer"
+            HG.SpatialDisplay.CONTAINER.style.cursor = "pointer"
             @_intersected = true
 
     for hivent in @_lastIntersected
@@ -322,7 +322,7 @@ class HG.HiventsOnGlobe
 
 
     if tmp_intersects.length is 0
-      HG.Display.CONTAINER.style.cursor = "auto" if @_intersected
+      HG.SpatialDisplay.CONTAINER.style.cursor = "auto" if @_intersected
       @_intersected = false
     @_lastIntersected = tmp_intersects
 
