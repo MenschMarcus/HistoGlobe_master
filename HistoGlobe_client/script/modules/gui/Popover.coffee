@@ -38,13 +38,13 @@ class HG.Popover
     @_mode = 'A'  # hardcode, bitch!!!
 
     # ============================================================================
-    @_screenWidth = @_config.hgInstance.getMapAreaSize().x
-    @_screenHeight = @_config.hgInstance.getMapAreaSize().y
+    @_screenWidth = @_config.hgInstance.getSpatialCanvasSize().x
+    @_screenHeight = @_config.hgInstance.getSpatialCanvasSize().y
 
     @_width = HGConfig.popover_body_default_width.val
     @_height = HGConfig.popover_body_default_height.val
 
-    @_map_size = @_config.hgInstance.getMapAreaSize()
+    @_map_size = @_config.hgInstance.getSpatialCanvasSize()
 
     @_widthFSBox = @_map_size.x - HGConfig.hiventlist_offset.val #- FULLSCREEN_BOX_LEFT_OFFSET
     @_heightFSBox = 0.82 * @_map_size.y
@@ -208,16 +208,11 @@ class HG.Popover
     @_updateCenterPos()
 
     if @_config.fullscreen
-      size = @_config.hgInstance.getMapAreaSize()
+      size = @_config.hgInstance.getSpatialCanvasSize()
       @_onContainerSizeChange size
 
-      @_config.hgInstance.onMapAreaSizeChangeEnd @, (width) =>
-        if @_mainDiv.style.visibility is "visible"
-          @_onContainerWidthChange width
-
       $(window).on 'resize', () =>
-        if @_mainDiv.style.visibility is "visible"
-          @updateSize()
+        @updateSize() if @_mainDiv.style.visibility is "visible"
 
   # ============================================================================
 
@@ -437,7 +432,7 @@ class HG.Popover
 
   # ============================================================================
   updateSize:() ->
-    size = @_config.hgInstance.getMapAreaSize()
+    size = @_config.hgInstance.getSpatialCanvasSize()
     @_onContainerSizeChange size
 
   # ============================================================================

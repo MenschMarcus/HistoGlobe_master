@@ -20,7 +20,7 @@ class HG.NowMarker
 
     # create now marker
     @_nowMarker = new HG.Div 'nowMarker', 'no-text-select'
-    @_hgInstance.getContainer().appendChild @_nowMarker
+    @_hgInstance.timeline.getTimelineArea().appendChild @_nowMarker
 
     # initialize position and content
     @_resetPosition()

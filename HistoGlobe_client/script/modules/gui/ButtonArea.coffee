@@ -48,12 +48,6 @@ class HG.ButtonArea
 
     @_div = new HG.Div @_config.id, classes
 
-    # listen to slider
-    @_hgInstance.onTopAreaSlide @, (t) =>
-      if @_hgInstance.isInMobileMode()
-        @_div.dom().style.left = '#{t*0.5}px'
-      else
-        @_div.dom().style.left = '0px'
 
   # ============================================================================
   # add button solo: leave out groupName (null) => will be put in single unnamed group

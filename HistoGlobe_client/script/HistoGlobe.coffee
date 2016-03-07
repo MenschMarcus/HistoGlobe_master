@@ -29,8 +29,6 @@ class HG.HistoGlobe
 
     @map = null
 
-    @_config = null
-
     defaultConfig =
       container: "histoglobe"
       nowYear: 2014
@@ -68,22 +66,21 @@ class HG.HistoGlobe
 
       # Config of the central HistoGlobe instance is loaded. $.extend is used to
       # combine the default and the actual config. Thus, all attributes
-      # specified in "defaultConfig" are stored in "@_config" and either being
+      # specified in "defaultConfig" are stored in "@config" and either being
       # overridden by the loaded config or kept as default.
       hgConf = config["HistoGlobe"]
-      @_config = $.extend {}, defaultConfig, hgConf
+      @config = $.extend {}, defaultConfig, hgConf
 
-      @_config.tiles = @_config.configPath + @_config.tiles
-      @_config.tilesHC = @_config.configPath + @_config.tilesHC
+      # append pathes
+      @config.tiles = @config.configPath + @config.tiles
+      @config.tilesHC = @config.configPath + @config.tilesHC
 
       # append root "histoglobe" DOM element to body
-      @_config.container = new HG.Div 'histoglobe'
-      document.body.appendChild @_config.container.dom()  if document.body != null
+      @config.container = new HG.Div 'histoglobe'
+      document.body.appendChild @config.container.dom()  if document.body != null
 
       # GUI creation
       @_createTopArea()
-
-      @_createMap()
 
       $(window).on 'resize', @_onResize
 
@@ -151,23 +148,23 @@ class HG.HistoGlobe
   getMapAreaSize: () ->
     return size =
       x: window.innerWidth
-      y: @_top_area.j().outerHeight()
+      y: @_topArea.j().outerHeight()
 
   # ============================================================================
   # Returns the DOM element containing all HistoGlobe visuals
   # ============================================================================
-  getConfig: () ->      @_config
-  getTopArea: () ->     @_top_area
-  getContainer: () ->   @_config.container
+  getContainer: () ->     @config.container
+  getTopArea: () ->       @_topArea
+  getSpatialCanvas: () -> @_spatialCanvas
 
   # ============================================================================
   # Getter for information on time boundaries/the visualization's start year.
   # ============================================================================
   getMinMaxYear: () ->
-    [@_config.minYear, @_config.maxYear]
+    [@config.minYear, @config.maxYear]
 
   getStartYear: () ->
-    @_config.nowYear
+    @config.nowYear
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
@@ -175,36 +172,17 @@ class HG.HistoGlobe
 
   # ============================================================================
   _createTopArea: ->
-    @_top_area = new HG.Div 'top-area'
-    @_config.container.appendChild @_top_area
-    @_top_area_wrapper = new HG.Div null, ['swiper-wrapper']
-    @_top_area.appendChild @_top_area_wrapper
+    @_topArea = new HG.Div 'top-area'
+    @config.container.appendChild @_topArea
 
-    @_top_swiper = new Swiper '#top-area',
-      mode:'horizontal'
-      slidesPerView: 'auto'
-      noSwiping: true
-      longSwipesRatio: 0.1
-      moveStartThreshold: 10
-      # onSlideReset: @_onSlideEnd
-      onSetWrapperTransform: (s, t) => @_onSlide(t)
-      onSetWrapperTransition: (s, d) =>
-        if d is 0
-          $(@mapCanvas).addClass("no-animation")
-        else
-          $(@mapCanvas).removeClass("no-animation")
+    @_topArea_wrapper = new HG.Div null
+    @_topArea.appendChild @_topArea_wrapper
 
+    @_spatialArea = new HG.Div 'spatial-area'
+    @_topArea_wrapper.appendChild @_spatialArea
 
-  # ============================================================================
-  # Creates 2D Map. For more information, please see Map.coffe.
-  # ============================================================================
-
-  _createMap: ->
-    @_map_area = new HG.Div 'map-area', ['swiper-slide']
-    @_top_area_wrapper.appendChild @_map_area
-
-    @mapCanvas = new HG.Div 'map-canvas', ['swiper-no-swiping']
-    @_map_area.appendChild @mapCanvas
+    @_spatialCanvas = new HG.Div 'spatial-canvas'
+    @_spatialArea.appendChild @_spatialCanvas
 
     @map = new HG.Map
     @addModule @map
@@ -216,13 +194,13 @@ class HG.HistoGlobe
   # ============================================================================
   _updateLayout: =>
     width = window.innerWidth
-    height = window.innerHeight - @_top_area.j().offset().top
+    height = window.innerHeight - @_topArea.j().offset().top
 
     map_height = height - HGConfig.timeline_height.val
     map_width = width
 
-    @_map_area.dom().style.width = "#{map_width}px"
-    @_map_area.dom().style.height = "#{map_height}px"
+    @_spatialArea.dom().style.width = "#{map_width}px"
+    @_spatialArea.dom().style.height = "#{map_height}px"
 
     @map.resize map_width, map_height
 
