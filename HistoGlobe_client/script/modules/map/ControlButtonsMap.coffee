@@ -1,6 +1,6 @@
 window.HG ?= {}
 
-class HG.ControlButtons
+class HG.ControlButtonsMap
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #

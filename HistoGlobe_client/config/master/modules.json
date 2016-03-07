@@ -1,4 +1,6 @@
 {
+  "### MAIN HISTOGLOBE MODULE ###": {},
+
   "HistoGlobe" :
   {
     "container": "histoglobe",
@@ -15,19 +17,15 @@
     "sidebarEnabled": false
   },
 
+
+
+  "### HELPER MODULES ###": {},
+
   "BrowserDetector": {},
 
-  "Timeline" :
-  {
-    "startZoom" : 5,
-    "zoomButtons": true
-  },
 
-  "ControlButtons": {
-    "zoom":         true,
-    "fullscreen":   true,
-    "highContrast": true
-  },
+
+  "### VIEW MODULES = USER INTERFACE -> REACT ON USER INTERACTION ###": {},
 
   "Watermark":
   {
@@ -35,19 +33,39 @@
     "image": "../HistoGlobe_client/config/common/graphics/logo.png"
   },
 
+  "# Map #":
+  {
+
+  },
+
+  "ControlButtonsMap": {
+    "zoom":         true,
+    "fullscreen":   true,
+    "highContrast": true
+  },
+
+  "Timeline" :
+  {
+    "startZoom" : 5
+  },
+
+  "NowMarker" : {},
+
+  "# ControlButtonsTimeline #" :
+  {
+    "zoom": true
+  },
+
+
+
+  "### CONTROLLER MODULES ###": {},
+
+  "AreasOnMap" : {},
+
   "AreaController":
   {
     "JSONPaths" : ["../HistoGlobe_client/config/common/data/countries.geojson"]
   },
-  "AreasOnMap" : {},
-
-  "HiventController" : {},
-  "HiventsOnMap" : {},
-  "HiventsOnTimeline" : {},
-  "HiventTooltips" : {},
-  "HiventInfoPopovers" : {},
-  "HiventPresenter" : {},
-  "HiventInfoAtTag" : {},
 
   "EditMode" :  {},
 
