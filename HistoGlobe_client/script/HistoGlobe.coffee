@@ -71,7 +71,10 @@ class HG.HistoGlobe
       # overridden by the loaded config or kept as default.
       hgConf = config["HistoGlobe"]
       @_config = $.extend {}, defaultConfig, hgConf
-      @_config.container = document.getElementById @_config.container
+
+      # append root "histoglobe" DOM element to body
+      @_config.container = new HG.Div 'histoglobe'
+      document.body.appendChild @_config.container.dom()  if document.body != null
 
       # GUI creation
       @_createTopArea()
@@ -143,13 +146,13 @@ class HG.HistoGlobe
   getMapAreaSize: () ->
     return size =
       x: window.innerWidth
-      y: $(@_top_area).outerHeight()
+      y: @_top_area.j().outerHeight()
 
   # ============================================================================
-  # Returns the DOM element containing all HistoGLobe visuals
+  # Returns the DOM element containing all HistoGlobe visuals
   # ============================================================================
-  getContainer: () ->
-    @_config.container
+  getTopArea: () ->     @_top_area
+  getContainer: () ->   @_config.container
 
   # ============================================================================
   # Getter for information on time boundaries/the visualization's start year.
@@ -166,9 +169,10 @@ class HG.HistoGlobe
 
   # ============================================================================
   _createTopArea: ->
-    @_top_area = @_createElement @_config.container, "div", "top-area"
-    @_top_area_wrapper = @_createElement @_top_area, "div", ""
-    @_top_area_wrapper.className = "swiper-wrapper"
+    @_top_area = new HG.Div 'top-area'
+    @_config.container.appendChild @_top_area
+    @_top_area_wrapper = new HG.Div null, ['swiper-wrapper']
+    @_top_area.appendChild @_top_area_wrapper
 
     @_top_swiper = new Swiper '#top-area',
       mode:'horizontal'
@@ -190,13 +194,12 @@ class HG.HistoGlobe
   # ============================================================================
 
   _createMap: ->
-    @_map_area = @_createElement @_top_area_wrapper, "div", "map-area"
-    @_map_area.className = "swiper-slide"
+    @_map_area = new HG.Div 'map-area', ['swiper-slide']
+    @_top_area_wrapper.appendChild @_map_area
 
-    @mapCanvas = @_createElement @_map_area, "div", "map-canvas"
-    @mapCanvas.className = "swiper-no-swiping"
-
+    @mapCanvas = new HG.Div 'map-canvas', ['swiper-no-swiping']
     @_map_area.appendChild @mapCanvas
+
     @map = new HG.Display2D
     @addModule @map
 
@@ -207,24 +210,17 @@ class HG.HistoGlobe
   # ============================================================================
   _updateLayout: =>
     width = window.innerWidth
-    height = window.innerHeight - $(@_top_area).offset().top
+    height = window.innerHeight - @_top_area.j().offset().top
 
     map_height = height - HGConfig.timeline_height.val
     map_width = width
 
-    @_map_area.style.width = "#{map_width}px"
-    @_map_area.style.height = "#{map_height}px"
+    @_map_area.dom().style.width = "#{map_width}px"
+    @_map_area.dom().style.height = "#{map_height}px"
 
     @map.resize map_width, map_height
 
     @_top_swiper.reInit()
-
-  # ============================================================================
-  _createElement: (container, type, id) ->
-    div = document.createElement type
-    div.id = id
-    container.appendChild div
-    return div
 
   # ============================================================================
   _toHex: (prop) ->

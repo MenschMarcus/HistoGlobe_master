@@ -20,7 +20,7 @@ class HG.NowMarker
 
     # create now marker
     @_nowMarker = new HG.Div 'nowMarker', 'no-text-select'
-    @_hgInstance.getContainer().appendChild @_nowMarker.dom()
+    @_hgInstance.getContainer().appendChild @_nowMarker
 
     # initialize position and content
     @_resetPosition()

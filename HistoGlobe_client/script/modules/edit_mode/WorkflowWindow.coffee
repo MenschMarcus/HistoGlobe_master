@@ -39,7 +39,7 @@ class HG.WorkflowWindow
 
     # main window sits on top of hg title, has more height (to account for extra space needed)
     @_mainWindow = new HG.Div 'ww-main-window'
-    @_hgInstance._top_area.appendChild @_mainWindow.dom()
+    @_hgInstance.getTopArea().appendChild @_mainWindow
 
 
     ### WORKFLOW TABLE ###

@@ -39,7 +39,7 @@ class HG.ControlButtonsTop
       'posY':         'bottom',
       'orientation':  'vertical'
     }
-    @_hgInstance._top_area.appendChild @_buttonArea.dom()
+    @_hgInstance.getTopArea().appendChild @_buttonArea.dom()
 
     # init predefined buttons
     for id, enable of @_config

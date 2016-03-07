@@ -3,7 +3,6 @@
 
   "HistoGlobe" :
   {
-    "container": "histoglobe",
     "minYear": 1900,
     "maxYear": 2015,
     "nowYear": 1989,

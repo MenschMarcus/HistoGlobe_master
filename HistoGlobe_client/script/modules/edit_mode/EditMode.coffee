@@ -68,7 +68,7 @@ class HG.EditMode
       $(testButton.dom()).css 'bottom', '0'
       $(testButton.dom()).css 'right', '0'
       $(testButton.dom()).css 'z-index', 100
-      @_hgInstance._top_area.appendChild testButton.dom()
+      @_hgInstance.getTopArea().appendChild testButton.dom()
       @_testButton = @_hgInstance.buttons.test
       @_testButton.onClick @, () =>
 
@@ -102,7 +102,7 @@ class HG.EditMode
         'orientation':  'horizontal'
         'direction':    'prepend'
       }
-      @_hgInstance._top_area.appendChild @_editButtonArea.dom()
+      @_hgInstance.getTopArea().appendChild @_editButtonArea.dom()
 
       @_editButton = new HG.Button @_hgInstance,
         'editMode', ['tooltip-left'],

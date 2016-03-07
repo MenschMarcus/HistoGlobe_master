@@ -14,7 +14,7 @@ class HG.EditOperationStep
   # ============================================================================
   constructor: (@_hgInstance, @_stepData, @_isForward) ->
 
-    console.log "IN :", @_stepData.id, @_stepData
+    # console.log "IN :", @_stepData.id, @_stepData
 
     ## handle callbacks
     HG.mixin @, HG.CallbackContainer
@@ -55,7 +55,7 @@ class HG.EditOperationStep
   # (e.g. if last area successfully named)
   finish: () ->
 
-    console.log "OUT:", @_stepData.id, @_stepData
+    # console.log "OUT:", @_stepData.id, @_stepData
     @_cleanup()
     @notifyAll 'onFinish', @_stepData
 
