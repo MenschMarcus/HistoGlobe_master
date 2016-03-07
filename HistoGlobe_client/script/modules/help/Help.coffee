@@ -50,8 +50,6 @@ class HG.Help
         icon: "fa-question"
         tooltip: "Hilfe einblenden"
         callback: () =>
-          unless @_hgInstance._collapsed
-            @_hgInstance._collapse()
           @show()
 
       @_button = hgInstance.controlButtons.addButton help

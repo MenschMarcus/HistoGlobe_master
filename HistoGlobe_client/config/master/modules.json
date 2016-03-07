@@ -13,10 +13,8 @@
     "startLatLong": [50.9869531, 11.3205004],
     "tiles": "../HistoGlobe_client/config/common/tiles/tiles",
     "tilesHighContrast": "../HistoGlobe_client/config/common/tiles/tiles_high_contrast",
-    "graphicsPath": "../HistoGlobe_client/config/common/graphics/",
-    "sidebarEnabled": false
+    "graphicsPath": "../HistoGlobe_client/config/common/graphics/"
   },
-
 
 
   "### HELPER MODULES ###": {},
@@ -38,7 +36,7 @@
 
   },
 
-  "ControlButtonsMap": {
+  "ControlButtonsTop": {
     "zoom":         true,
     "fullscreen":   true,
     "highContrast": true

@@ -29,11 +29,10 @@
   right: 10px;
   width: 270px;
   box-shadow: 0px 0px @shadow_radius rgba(0,0,0,@shadow_intensity);
-  font-size: 30pt * @widget_font_size_factor;
-  //border-radius: @widget_border_radius_top_left @widget_border_radius_top_right @widget_border_radius_bottom_right @widget_border_radius_bottom_left;
+  font-size: 30pt * @ui_widget_font_size_factor;
 
   .transition-property(left);
-  .transition-duration(@sidebar_aimation_speed);
+  .transition-duration(@ui_animation_speed);
 
   .hivent-list-headline {
     font-family: @primary_font_face;
@@ -76,7 +75,7 @@
     .legend_table {
       margin-left: 22px;
       .transition-property(max-height);
-      .transition-duration(@sidebar_aimation_speed);
+      .transition-duration(@ui_animation_speed);
     }
 
     .legend_table td {
@@ -117,7 +116,7 @@
     text-align: left;
     outline: none;
     .transition-property(max-height);
-    .transition-duration(@sidebar_aimation_speed);
+    .transition-duration(@ui_animation_speed);
 
 
     ul {
