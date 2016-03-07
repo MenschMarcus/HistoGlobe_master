@@ -132,7 +132,6 @@ class HG.HiventController
     result = null
     distance = -1
     handles = @_hiventHandles
-    handles= handles.concat(@_hgInstance.hiventGalleryWidget.getHiventHandles()) if @_hgInstance.hiventGalleryWidget
 
     for handle in handles
       if handle._state isnt 0 and not (handle.getHivent().id in ignoredIds)
@@ -152,7 +151,6 @@ class HG.HiventController
     result = null
     distance = -1
     handles = @_hiventHandles
-    handles= handles.concat(@_hgInstance.hiventGalleryWidget.getHiventHandles()) if @_hgInstance.hiventGalleryWidget
 
     for handle in handles
       if handle._state isnt 0 and not (handle.getHivent().id in ignoredIds)

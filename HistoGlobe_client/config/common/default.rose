@@ -2,7 +2,7 @@
 //    in *.coffee:  HGConfig.var_name.val
 //    in *.less:    @var_name
 
-// GLOBAL ---------------------------------------------------------
+// GLOBAL ----------------------------------------------------------------------
 
 $primary_font_face                  = sans-serif
 $secondary_font_face                = sans-serif
@@ -30,7 +30,7 @@ $border_radius                      = 15px
 $max_area_selection                 = 50
 
 
-// GENERAL UI -----------------------------------------------------
+// GENERAL UI ------------------------------------------------------------------
 
 $logo_height                        = 43px
 $logo_width                         = 100px
@@ -41,8 +41,11 @@ $button_diameter                    = 40px
 $button_abort_shrink_factor         = 0.75
 $button_spacer_distance             = 20px
 
+$ui_widget_font_size_factor         = 0.6
+$ui_animation_speed                 = 0.3s
 
-// MAP -------------------------------------------------------------
+
+// AREAS ON MAP ----------------------------------------------------------------
 
 $area_full_opacity                  = 0.75
 $area_half_opacity                  = 0.5
@@ -51,7 +54,7 @@ $border_width                       = 0.5px
 $animation_time                     = 150  // [ms]
 
 
-// TIMELINE & NOW MARKER -------------------------------------------
+// TIMELINE & NOW MARKER & CONTROL BUTTONS TIMELINE ----------------------------
 
 $timeline_height                    = 45px
 $timeline_datemarker_size           = 15px
@@ -65,43 +68,29 @@ $now_marker_opacity                 = 0.75
 $now_marker_opacity_hc              = 1
 
 
-// HISTOGRAPH ------------------------------------------------------
+// HISTOGRAPH ------------------------------------------------------------------
 
 $histograph_height                  = 175px
 $histograph_line_width              = 10px
 
 
-// EDIT OPERATION WINDOW -------------------------------------------
+// EDIT OPERATION WINDOW -------------------------------------------------------
 
 $operation_window_height            = 120px
 $operation_step_width               = 175px
 
 $edit_buttons_top_distance          = 88px
 
-// ADD CHANGE WINDOW -----------------------------------------------
 
 
-
-// HIVENT MARKERS --------------------------------------------------
+// HIVENT MARKERS --------------------------------------------------------------
 
 $hivent_marker_color                = rgb(37,121,191)
 $hivent_marker_color_light          = rgb(0,134,246)
 
 
-// POPOVERS --------------------------------------------------------
 
-$window_to_anchor_offset_x          = 0px
-$window_to_anchor_offset_y          = 30px
-$fullscreen_box_top_offset          = 10px
-$fullscreen_box_left_offset         = 120px
-$hiventlist_offset                  = 400px
-$popover_body_default_width         = 450px
-$popover_body_max_width             = 400px
-$popover_body_default_height        = 350px
-$popover_body_max_height            = 400px
-
-
-// IMPRINT OPTIONS -------------------------------------------------
+// IMPRINT OPTIONS -------------------------------------------------------------
 
 $imprint_width            = 800 px
 $imprint_height           = 600 px
@@ -113,6 +102,20 @@ $imprint_height           = 600 px
 // ================================================================
 // TODO: cleanup from here on
 // ================================================================
+
+
+// POPOVERS --------------------------------------------------------------------
+
+$window_to_anchor_offset_x          = 0px
+$window_to_anchor_offset_y          = 30px
+$fullscreen_box_top_offset          = 10px
+$fullscreen_box_left_offset         = 120px
+$hiventlist_offset                  = 400px
+$popover_body_default_width         = 450px
+$popover_body_max_width             = 400px
+$popover_body_default_height        = 350px
+$popover_body_max_height            = 400px
+
 
 // FROM PROJECT STYLE.ROSE ----------------------------------------
 $border_color                       = rgb(255,255,255)
@@ -127,69 +130,8 @@ $text_highlight_color               = rgb(88,168,75)
 
 // MAP OPTIONS -----------------------------------------------------
 
-$map_min_width                      = 300px
-$map_collapsed_width                = 50px
+$map_min_width                      = 650px
 $map_label_size                     = 1.2em
-
-
-// SIDEBAR OPTIONS -------------------------------------------------
-
-$sidebar_collapse_button_size       = 40px
-$sidebar_aimation_speed             = 0.3s
-$sidebar_width                      = 350px
-$sidebar_collapsed_width            = 50px
-$sidebar_scrollbar_width            = 10px
-$sidebar_background_color           = rgb(102,102,102)
-
-
-// WIDGET OPTIONS --------------------------------------------------
-
-$widget_aimation_speed                = 0.3s
-$widget_title_size                    = 35px
-$widget_title_background_color        = rgb(255,255,255)
-$widget_title_text_color              = rgb(51,51,51)
-$widget_background_color              = rgb(255,255,255)
-
-$widget_margin                        = 15px
-$widget_body_padding                  = 15px
-
-
-$widget_title_gradient_effect         = 0%
-
-$widget_border_radius_top_left        = 0px
-$widget_border_radius_top_right       = 0px
-$widget_border_radius_bottom_left     = 0px
-$widget_border_radius_bottom_right    = 0px
-
-
-$widget_font_size_factor              = 0.6
-
-// GALLERY WIDGET
-$gallery_widget_pagination_size       = 20px
-
-// PICTURE_GALLERY WIDGET
-$picture_gallery_widget_image_height  = 200px
-
-// VIP WIDGET
-$vip_widget_size                     = 100px
-$vip_widget_image_height             = 150px
-
-// LOGO WIDGET
-$logo_widget_image_height             = 100px
-
-// STATISTICS WIDGET
-$statistics_widget_min_height         = 175px
-$statistics_widget_margin_top         = 10px
-$statistics_widget_margin_right       = 15px
-$statistics_widget_margin_bottom      = 20px
-$statistics_widget_margin_left        = 40px
-
-$statistics_widget_axis_width         = 2px
-$statistics_widget_tooltip_size       = 1.0em
-
-// EVENT TICKER WIDGET ON ABOVE TIMELINE
-$event_ticker_margin_left    = 10px
-$event_ticker_font_size      = 17px
 
 
 // HIVENT OPTIONS --------------------------------------------------

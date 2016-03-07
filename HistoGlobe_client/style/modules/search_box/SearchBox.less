@@ -6,25 +6,14 @@
   left: 19px;
 
   margin: 5px 5px 5px 0;
-  font-size: 20pt * @widget_font_size_factor;
-  border-radius: @widget_border_radius_top_left @widget_border_radius_top_right @widget_border_radius_bottom_right @widget_border_radius_bottom_left;
+  font-size: 20pt * @ui_widget_font_size_factor;
   z-index: 10;
 
   .logo {
-    color: @widget_title_text_color;
+    color: @color_bg_medium;
     cursor: auto;
     padding: 0px 8px 0 8px;
     text-align: center;
-
-    &:first-child {
-      border-top-left-radius: @widget_border_radius_top_left;
-      border-top-right-radius: @widget_border_radius_top_right;
-    }
-
-    &:last-child {
-      border-bottom-right-radius: @widget_border_radius_bottom_right;
-      border-bottom-left-radius: @widget_border_radius_bottom_left;
-    }
 
     .hg-logo{
       background-color: transparent;
@@ -38,12 +27,11 @@
   right: 10px;
   top: 10px;
 
-  font-size: 20pt * @widget_font_size_factor;
-  border-radius: @widget_border_radius_top_left @widget_border_radius_top_right @widget_border_radius_bottom_right @widget_border_radius_bottom_left;
+  font-size: 20pt * @ui_widget_font_size_factor;
   z-index: 10;
 
   .transition-property(left);
-  .transition-duration(@sidebar_aimation_speed);
+  .transition-duration(@ui_animation_speed);
 
   .search-box {
     top: 5px;

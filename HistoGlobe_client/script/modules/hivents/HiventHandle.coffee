@@ -2,7 +2,7 @@ window.HG ?= {}
 
 # ==============================================================================
 # HiventHandle encapsulates states that are necessary for and triggered by the
-# interaction with Hivents through map, timeline, sidebar and so on. Other
+# interaction with Hivents through map, timeline and so on. Other
 # objects may register listeners for changes and/or trigger state changes.
 # Every HiventHandle is responsible for exactly one Hivent.
 # ==============================================================================

@@ -1,6 +1,6 @@
 window.HG ?= {}
 
-class HG.ControlButtonsMap
+class HG.ControlButtonsTop
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
@@ -14,7 +14,7 @@ class HG.ControlButtonsMap
   #     1. init button itself
   #     2. set functionality of the button (listen to own callback)
   # if control button is used:
-  #   in modules.json in module 'ControlButtonsMap' set id to true
+  #   in modules.json in module 'ControlButtonsTop' set id to true
   # ============================================================================
   constructor: (config) ->
     defaultConfig =
@@ -28,11 +28,13 @@ class HG.ControlButtonsMap
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
+    # add module to HG instance
+    @_hgInstance.controlButtonsTop = @
 
     # idea: module "ControlButtons" a "ButtonArea" consisting of buttons
     @_buttonArea = new HG.ButtonArea @_hgInstance,
     {
-      'id':           'controlButtonsMap',
+      'id':           'controlButtonsTop',
       'posX':         'left',
       'posY':         'bottom',
       'orientation':  'vertical'
