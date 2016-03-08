@@ -26,7 +26,7 @@ class HG.NewGeometryTool
     @addCallback 'onSubmit'
 
     # includes
-    @_map = @_hgInstance.map._map
+    @_map = @_hgInstance.map.getMap()
     @_histoGraph = @_hgInstance.histoGraph
     @_geometryReader = new HG.GeometryReader
     @_geometryOperator = new HG.GeometryOperator
