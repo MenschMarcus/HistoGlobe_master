@@ -19,7 +19,7 @@ class HG.NewNameTool
     @addCallback 'onSubmit'
 
     # setup variables
-    @_map = @_hgInstance.map._map
+    @_map = @_hgInstance.map.getMap()
     @_histoGraph = @_hgInstance.histoGraph
     @_viewCenter = @_map.getCenter()
 

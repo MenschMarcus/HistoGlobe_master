@@ -30,7 +30,6 @@ class HG.Map extends HG.SpatialDisplay
     @_config = $.extend {}, defaultConfig, config
 
 
-
   # ============================================================================
   # Inits associated data.
   # ============================================================================
@@ -91,10 +90,21 @@ class HG.Map extends HG.SpatialDisplay
         @_hgInstance.buttons.highContrast.onLeave @, () =>
           tileLayer.setUrl @_hgInstance.config.tiles + '/{z}/{x}/{y}.png'
 
-    # window
+    # window click and resize
+    # I do not know why there are two different functions, but it works :)
     window.addEventListener 'resize', @_onWindowResize, false
     @_mapParent.dom().addEventListener 'click', @_onClick, false
 
+    @_hgInstance.onWindowResize @, (width, height) =>
+      @_mapParent.dom().style.width = width + "px"
+      @_mapParent.dom().style.height = height + "px"
+      @_map.invalidateSize()
+
+
+  # ============================================================================
+  # Returns the map itself
+  # ============================================================================
+  getMap: () -> @_map
 
   # ============================================================================
   # Activates the 2D Display-
@@ -160,13 +170,9 @@ class HG.Map extends HG.SpatialDisplay
   getCenter: () ->
     [@_map.getCenter().long, @_map.getCenter().lat]
 
-  # ============================================================================
-  # Resize the display.
-  # ============================================================================
-  resize: (width, height) ->
-    @_mapParent.dom().style.width = width + "px"
-    @_mapParent.dom().style.height = height + "px"
-    @_map.invalidateSize()
+
+
+
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #

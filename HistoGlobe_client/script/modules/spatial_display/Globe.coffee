@@ -63,7 +63,7 @@ class HG.Globe extends HG.SpatialDisplay
             icon: "fa-globe"
             tooltip: "Zur 3D-Ansicht wechseln"
             callback: () =>
-              $(hgInstance.map.getCanvas()).animate({opacity: 0.0}, 1000, 'linear')
+              $(hgInstance.getSpatialCanvas()).animate({opacity: 0.0}, 1000, 'linear')
               hgInstance.map.stop()
               $(@getCanvas()).css({opacity: 0.0})
               @start();
@@ -82,7 +82,7 @@ class HG.Globe extends HG.SpatialDisplay
               @stop()
               $(@getCanvas()).css({opacity: 0.0})
               hgInstance.map.start();
-              $(hgInstance.map.getCanvas()).animate({opacity: 1.0}, 1000, 'linear')
+              $(hgInstance.getSpatialCanvas()).animate({opacity: 1.0}, 1000, 'linear')
 
               # find a better place:
               hgInstance.graph_button.hide_button() if hgInstance.graph_button?

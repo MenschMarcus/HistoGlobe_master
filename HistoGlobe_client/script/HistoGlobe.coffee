@@ -22,12 +22,8 @@ class HG.HistoGlobe
 
     # Callback specification
     # Any object may listen for notifictations on any of the below signals.
-    @addCallback "onTopAreaSlide"
-    @addCallback "onAllModulesLoaded"
-    @addCallback "onMapAreaSizeChange"
-    @addCallback "onMapAreaSizeChangeEnd"
-
-    @map = null
+    @addCallback 'onAllModulesLoaded'
+    @addCallback 'onWindowResize'
 
     # issue: HGConfig provides rose variables, but for colors it does not return
     # the hex code '#rrggbb', but an object with r, g, b, a and val attributes
@@ -84,8 +80,6 @@ class HG.HistoGlobe
       @_spatialCanvas = new HG.Div 'spatial-canvas'
       @_spatialArea.appendChild @_spatialCanvas
 
-      @map = new HG.Map
-      @addModule @map
 
       # Auxiliary function for module loading. Tries to create an object by the
       # name of "moduleName", passing "moduleConfig" to the object's constructor.
@@ -191,7 +185,7 @@ class HG.HistoGlobe
     @_spatialArea.dom().style.width = "#{map_width}px"
     @_spatialArea.dom().style.height = "#{map_height}px"
 
-    @map.resize map_width, map_height
+    @notifyAll 'onWindowResize', map_width, map_height
 
   # ============================================================================
   _toHex: (prop) ->
