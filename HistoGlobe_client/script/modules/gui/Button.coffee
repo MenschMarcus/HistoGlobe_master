@@ -83,7 +83,7 @@ class HG.Button
     # HACK: bruteforce method: find tooltip among the first children of body
     # and delete it
     @_button.j().click () =>
-      $('body > .tooltip').remove()
+      tooltip.remove() for tooltip in $('body > .tooltip')
 
 
   # ============================================================================
@@ -128,7 +128,10 @@ class HG.Button
   hide: () ->           @_button.j().hide()
 
   # ============================================================================
-  destroy: () ->        @_button.j().remove()
+  destroy: () ->
+    @_button.j().remove()
+    tooltip.remove() for tooltip in $('body > .tooltip')
+
   remove: () ->         @destroy()
   delete: () ->         @destroy()
 

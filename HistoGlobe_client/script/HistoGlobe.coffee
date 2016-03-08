@@ -54,10 +54,10 @@ class HG.HistoGlobe
         minYear: 1940
         maxYear: 2020
         startPoint: [51.505, 10.09]   # Weimar
-        configPath: '../HistoGlobe_client/config/'
+        configPath:   '../HistoGlobe_client/config/'
         graphicsPath: 'common/graphics/'
-        tiles: 'common/tiles/normal'
-        tilesHC: 'common/tiles/high_contrast'
+        tiles:        'common/tiles/normal'
+        tilesHC:      'common/tiles/high_contrast'
 
       @config = $.extend {}, defaultConfig, config["HistoGlobe"]
 

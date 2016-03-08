@@ -40,6 +40,9 @@
     "highContrast": true
   },
 
+  "AreasOnMap" : {},
+
+
   "Timeline" :
   {
     "startZoom" : 5
@@ -52,20 +55,21 @@
     "zoom": true
   },
 
+  "EditMode" :  {},
+
+  "Imprint": {},
 
 
   "### CONTROLLER MODULES ###": {},
-
-  "AreasOnMap" : {},
 
   "AreaController":
   {
     "JSONPaths" : ["common/data/countries.geojson"]
   },
 
-  "EditMode" :  {},
+  "HiventController":
+  {
+  }
 
 
-
-  "Imprint": {}
 }
