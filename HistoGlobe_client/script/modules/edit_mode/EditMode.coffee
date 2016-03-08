@@ -51,13 +51,6 @@ class HG.EditMode
     # add to HG instance
     @_hgInstance.editMode = @   # N.B. edit mode = edit controller :)
 
-    # error handling
-    if not @_hgInstance.map.getMap()?
-      console.error "Unable to load Edit Mode: There is no map, you idiot! Why would you want to have HistoGlobe without a map ?!?"
-
-    if not @_hgInstance.areaController?
-      console.error "Unable to load Edit Mode: AreaController module is not included in the current hg instance (has to be loaded before EditMode)"
-
 
     ############################################################################
     # TEST PLAYGROUND INIT
