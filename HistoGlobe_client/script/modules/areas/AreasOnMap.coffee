@@ -26,7 +26,7 @@ class HG.AreasOnMap
     @_hgInstance.areasOnMap = @
 
     # init variables
-    @_map = @_hgInstance.map._map
+    @_map = @_hgInstance.map.getMap()
 
     # event handling
     @_hgInstance.onAllModulesLoaded @, () =>

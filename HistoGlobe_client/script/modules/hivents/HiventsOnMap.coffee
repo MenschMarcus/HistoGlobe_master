@@ -50,7 +50,7 @@ class HG.HiventsOnMap
          background-size: cover !important;
          z-index: 100;"
 
-    @_map = hgInstance.map._map
+    @_map = hgInstance.map.getMap()
     @_hiventController = hgInstance.hiventController
 
     if @_hiventController
