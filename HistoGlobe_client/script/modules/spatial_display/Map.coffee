@@ -134,9 +134,16 @@ class HG.Map extends HG.SpatialDisplay
     @_mapParent.dom()
 
   # ============================================================================
+  # Returns the coordinates of the current center of the display.
+  # ============================================================================
+  getCenter: () ->
+    # @_map.getCenter()
+    [@_map.getCenter().lng, @_map.getCenter().lat]
+
+  # ============================================================================
   # Implementation of setting the center of the current display.
   # ============================================================================
-  setCenter: (longLat, offset) ->
+  setCenter: (lngLat, offset) ->
     # center marker ~ 2/3 vertically and horizontally
     if offset? # if offset passed to function
       # Calculate the offset
@@ -145,32 +152,24 @@ class HG.Map extends HG.SpatialDisplay
       bounds_lng = bounds._northEast.lng - bounds._southWest.lng
 
       target =
-        lon: parseFloat(longLat.x) + offset.x * bounds_lng
-        lat: parseFloat(longLat.y) + offset.y * bounds_lat
+        lon: parseFloat(lngLat.x) + offset.x * bounds_lng
+        lat: parseFloat(lngLat.y) + offset.y * bounds_lat
 
       @_map.panTo target
 
     else # no offset? -> center marker
       @_map.panTo
-        lon: longLat.x
-        lat: longLat.y
+        lon: lngLat.x
+        lat: lngLat.y
 
   # ============================================================================
   # Implementation of zooming to a specifig area.
   # ============================================================================
-  zoomToBounds: (minLong, minLat, maxLong, maxLat) ->
+  zoomToBounds: (minLng, minLat, maxLng, maxLat) ->
     @_map.fitBounds [
-      [minLat, minLong],
-      [maxLat, maxLong]
+      [minLat, minLng],
+      [maxLat, maxLng]
     ]
-
-  # ============================================================================
-  # Returns the coordinates of the current center of the display.
-  # ============================================================================
-  getCenter: () ->
-    [@_map.getCenter().long, @_map.getCenter().lat]
-
-
 
 
 
