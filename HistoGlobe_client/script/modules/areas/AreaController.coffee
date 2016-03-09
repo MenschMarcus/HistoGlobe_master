@@ -32,8 +32,7 @@ class HG.AreaController
 
 
     # handle config
-    defaultConfig =
-      JSONPaths: undefined,
+    defaultConfig = {}
 
     @_config = $.extend {}, defaultConfig, config
 
@@ -43,8 +42,8 @@ class HG.AreaController
     # add module to HG instance
     @_hgInstance.areaController = @
 
-    # concat strings
-    @_config.JSONPaths[0] = @_hgInstance.config.configPath + @_config.JSONPaths[0]
+    # external modules
+    @_geometryReader = new HG.GeometryReader
 
 
     ### INIT MEMBERS ###
@@ -67,25 +66,50 @@ class HG.AreaController
       ### INIT AREAS ###
       # initially load them from file
       # TODO: exchange with real fetcching from the database
-      geometryReader = new HG.GeometryReader
+      nowDate = @_hgInstance.timeline.getNowDate()
 
-      for file in @_config.JSONPaths
-        $.getJSON file, (areas) =>
-          for areaObj in areas.features
-            id = areaObj.id
-            geometry = geometryReader.read areaObj.geometry
-            name = areaObj.properties.name          # TODO: better name handling
+      # TODO: if 'GET' is replaced by 'POST', it does not work
+      # problem: csrf something Pissdreckgrützenkacke
+
+      $.ajax
+        url:  'get_initial_areas/'
+        type: 'GET'   # TODO: is supposed to be 'POST'
+        data: nowDate
+
+        # success callback
+        # => load areas here
+        success: (data_str) =>
+
+          # deserialize string to object
+          data = $.parseJSON data_str
+
+          console.log data
+
+          # create an area for each feature
+          $.each data.features, (key, val) =>
+            id =        Math.random()*1000    # TODO: replace by: val.properties.id
+            geometry =  @_geometryReader.read val.geometry
+            name =      val.properties.name
+            # reprPoint = val.properties.repr_point
+
+            console.log name
 
             # error handling: each area must have valid id and geometry
-            continue if not id
-            continue if not geometry.isValid()
+            return if not id
+            return if not geometry.isValid()
 
             # create new area
-            area = new HG.Area id, geometry, name
+            area = new HG.Area id, geometry, name#, reprPoint
 
             @_createGeometry area
             @_createName area if area.hasName()
             @_activate area
+
+
+        error: (xhr, errmsg, err) ->
+          console.log xhr
+          console.log errmsg
+          console.log err
 
 
       ### TO INTERFACE ###
@@ -525,6 +549,7 @@ class HG.AreaController
       @notifyAll 'onUpdateStatus', area                        # view
 
       loopIdx--
+
 
   # ============================================================================
   _DEBUG_OUTPUT: (id) ->

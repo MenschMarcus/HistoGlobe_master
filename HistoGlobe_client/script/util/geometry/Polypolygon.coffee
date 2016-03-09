@@ -21,8 +21,6 @@ class HG.Polypolygon extends HG.Geometry
       @_isValid = no if not newPolygon.isValid()
       @_polygons.push newPolygon
 
-    @_fixHoles() if @_isValid
-
     super @_polygons
 
 
@@ -32,6 +30,12 @@ class HG.Polypolygon extends HG.Geometry
 
   # ============================================================================
   _fixHoles: () ->
+
+    # error handling
+    unless @_isValid
+      return console.error "The Polypolygon is not valid"
+
+
     # structure of underlying polygons is like this:
     # 1. polyline in polygon: outer ring
     # 2+ polyline in polygon: inner ring(s) / hole(s)

@@ -72,19 +72,19 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
     else if @_stepData.operationCommand is 'DEL'
 
       if @_isForward
-        id = @_stepData.inData.selectedAreas[0]
-        area = @_areaController.getArea id
-        # save in temporary areas to restore them later
-        @_stepData.tempAreas[0] = {
-          'id':             id
-          'geometry':       area.getGeometry()
-          'name':           area.getName()
-        }
-        @notifyEditMode 'onRemoveArea', id
+        for area in @_stepData.inData.selectedAreas[0]
+          area = @_areaController.getArea id
+          # save in temporary areas to restore them later
+          @_stepData.tempAreas.push {
+            'id':             id
+            'geometry':       area.getGeometry()
+            'name':           area.getName()
+          }
+          @notifyEditMode 'onRemoveArea', id
 
       else # backward
-        area = @_stepData.tempAreas[0]
-        @notifyEditMode 'onCreateArea', area.id, area.geometry, area.name
+        for area in @_stepData.tempAreas[0]
+          @notifyEditMode 'onCreateArea', area.id, area.geometry, area.name
 
       return @finish() # no user input
 
@@ -129,6 +129,8 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 # ------------------------------------------------------------------------------
       ## add new area operation
       if @_stepData.operationCommand is 'ADD'
+
+        # TODO: check for bug: adding two areas after each other -> what happens?
 
         # clip new geometry to existing geometries
         # check for intersection with each active area on the map

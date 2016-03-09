@@ -40,7 +40,7 @@ class HG.EditMode
 
     # init config
     defaultConfig =
-      editOperationsPath: 'HistoGlobe_client/config/common/editOperations.json'
+      editOperationsPath: 'common/editOperations.json'
 
     @_config = $.extend {}, defaultConfig, config
 
@@ -51,6 +51,8 @@ class HG.EditMode
     # add to HG instance
     @_hgInstance.editMode = @   # N.B. edit mode = edit controller :)
 
+    # append pathes
+    @_config.editOperationsPath = @_hgInstance.config.configPath + @_config.editOperationsPath
 
     ############################################################################
     # TEST PLAYGROUND INIT
