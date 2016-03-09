@@ -55,21 +55,18 @@
     "zoom": true
   },
 
-  "EditMode" :  {},
+  "EditMode" :  {
+    "editOperationsPath": "common/editOperations.json"
+  },
 
   "Imprint": {},
 
 
   "### CONTROLLER MODULES ###": {},
 
-  "AreaController":
-  {
-    "JSONPaths" : ["common/data/countries.geojson"]
-  },
+  "AreaController":   {},
 
-  "HiventController":
-  {
-  }
+  "HiventController": {}
 
 
 }
