@@ -35,7 +35,7 @@ class Area(models.Model):
 
   # overriding the default manager with a GeoManager instance.
   # didn't quite understand what this is for...
-  # objects =               models.GeoManager         ()
+  objects =         models.GeoManager         ()
 
 
   def __unicode__(self):

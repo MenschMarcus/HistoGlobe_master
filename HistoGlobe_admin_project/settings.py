@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMPLATE_PATH = os.path.join(BASE_DIR, '')    # for some weird reason I don't quite get 'HistoGlobe_client' is already in the correct folder, so nothing to add here
 STATIC_PATH = os.path.join(BASE_DIR, 'HistoGlobe_client')
@@ -45,14 +46,16 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'chromelogger.DjangoMiddleware',   # to use my own logger
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # TODO: put Csrf back in and implement in on the client side
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
+    'django.middleware.security.SecurityMiddleware'
 )
 
 ROOT_URLCONF =      'HistoGlobe_admin_project.urls'
@@ -75,7 +78,7 @@ TEMPLATES = [
           'django.template.context_processors.request',
           'django.contrib.auth.context_processors.auth',
           'django.contrib.messages.context_processors.messages',
-          'django.core.context_processors.csrf'
+          # 'django.core.context_processors.csrf'
         ],
       },
     },
@@ -103,7 +106,6 @@ DATABASES = {
     'PORT':     '',
   }
 }
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/

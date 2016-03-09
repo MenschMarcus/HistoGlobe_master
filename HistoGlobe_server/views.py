@@ -12,8 +12,16 @@ from django.shortcuts import render
 from django.contrib.gis.geos import *
 from django.core.serializers import serialize
 
+from django.contrib.gis import measure
+from django.contrib.gis.geos import Point
+from django.contrib.gis.measure import D # ``D`` is a shortcut for ``Distance``
+
 from datetime import date
 import re
+
+import chromelogger as console
+console.log("HELLO")
+console.get_header()
 
 from HistoGlobe_server.models import *
 
@@ -34,9 +42,18 @@ def index(request):
 # initial set of areas
 def get_initial_areas(request):
 
-  print(request)
+  viewport_center = Point(
+      float(request.POST.get('centerLat')),
+      float(request.POST.get('centerLng'))
+    )
 
-  request_date = date(1989,1,1)  # what is the data structure for the request ???
+  request_date = date(
+      int(request.POST.get('dateY')),
+      int(request.POST.get('dateM')),
+      int(request.POST.get('dateD'))
+    )
+
+  chunk_id = 1
 
   # look for snapshot closest to the requested date
   closest_snapshot = get_closest_snapshot(request_date)
@@ -48,8 +65,9 @@ def get_initial_areas(request):
 
   # do more magic I do not want to think about now...
 
-  # return all areas
-  areas = closest_snapshot.areas.all()
+  # get set of areas for this part of the request
+  # areas = closest_snapshot.areas.filter(name='Germany')
+  areas = get_output_chunk(closest_snapshot, viewport_center, chunk_id)
 
   out = prepare_areas_output(areas)
 
@@ -81,6 +99,16 @@ def get_changes(start_date, end_date):
 
   return []
 
+
+# ------------------------------------------------------------------------------
+def get_output_chunk(snapshot, viewport_center, chunk_id):
+  ref_pt = viewport_center
+  dist = {'km': 2000}
+  areas = Area.objects.filter(repr_point__distance_lte=(ref_pt, measure.D(**dist)))
+  areas_sortes = areas.distance(ref_pt).order_by('distance')
+
+  return areas
+
 # ------------------------------------------------------------------------------
 def prepare_areas_output(areas):
 
@@ -91,6 +119,7 @@ def prepare_areas_output(areas):
     geometry_field='geom',
     fields=('id', 'name', 'repr_point')
   )
+
   # TODO: Why does it serialize the id??? why is this such a pain???
 
   # replacement of POINT wkt string to array

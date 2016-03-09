@@ -66,15 +66,21 @@ class HG.AreaController
       ### INIT AREAS ###
       # initially load them from file
       # TODO: exchange with real fetcching from the database
-      nowDate = @_hgInstance.timeline.getNowDate()
 
-      # TODO: if 'GET' is replaced by 'POST', it does not work
-      # problem: csrf something Pissdreckgrützenkacke
+      request =
+        dateY:      @_hgInstance.timeline.getNowDate().getFullYear()
+        dateM:      @_hgInstance.timeline.getNowDate().getMonth()+1
+        dateD:      @_hgInstance.timeline.getNowDate().getDate()
+        centerLng:  @_hgInstance.map.getCenter()[0]
+        centerLat:  @_hgInstance.map.getCenter()[1]
+
+      # DEBUG: prevent server request
+      # return
 
       $.ajax
         url:  'get_initial_areas/'
-        type: 'GET'   # TODO: is supposed to be 'POST'
-        data: nowDate
+        type: 'POST'
+        data: request
 
         # success callback
         # => load areas here
@@ -82,8 +88,6 @@ class HG.AreaController
 
           # deserialize string to object
           data = $.parseJSON data_str
-
-          console.log data
 
           # create an area for each feature
           $.each data.features, (key, val) =>
@@ -106,7 +110,7 @@ class HG.AreaController
             @_activate area
 
 
-        error: (xhr, errmsg, err) ->
+        error: (xhr, errmsg, err) =>
           console.log xhr
           console.log errmsg
           console.log err
