@@ -1,107 +1,132 @@
+"""
+  This file contains the data model and their relations
+  If this is changed, run
+  $ python manage.py makemigrations
+  $ python manage.py migrate
+"""
+
+
 from django.contrib.gis.db import models
 from djgeojson.fields import *
-
-class WorldBorder(models.Model):
-    # Regular Django fields corresponding to the attributes in the
-    # world borders shapefile.
-    name      = models.CharField(max_length=50)
-    area      = models.IntegerField(null=True)
-    pop2005   = models.IntegerField('Population 2005', null=True)
-    fips      = models.CharField('FIPS Code', max_length=2, null=True)
-    iso2      = models.CharField('2 Digit ISO', max_length=2, null=True)
-    iso3      = models.CharField('3 Digit ISO', max_length=3, null=True)
-    un        = models.IntegerField('United Nations Code', null=True)
-    region    = models.IntegerField('Region Code', null=True)
-    subregion = models.IntegerField('Sub-Region Code', null=True)
-    lng       = models.FloatField(null=True)
-    lat       = models.FloatField(null=True)
-
-    # GeoDjango-specific: a geometry field (MultiPolygonField), and
-    # overriding the default manager with a GeoManager instance.
-    geom      = models.MultiPolygonField()
-    objects   = models.GeoManager()
-
-    # Returns the string representation of the model.
-    def __unicode__(self):              # __unicode__ on Python 2
-        return self.name
+from datetime import date
 
 
-# ============================================================================ #
-# =============== S H O P H I S T I C A T E D   M O D E L ==================== #
-# ============================================================================ #
 
-'''
-# DIMENSION OF TIME (main organizational dimension)
-# Hivent stores historical happenings at which the countries of Earth change
+# ==============================================================================
+### SPATIAL / ATTRIBUTE DIMENSION ###
+
+# ------------------------------------------------------------------------------
+# Area stores geometry, representative point and name of an Area
+# geometry:
+#   TODO: currently MultiPolygon -> to be changes to more sophisticated model later
+# representative point:
+#   TODO: calculate reasonable name position with intelligent algorithm
+# name:
+#   common name,    e.g. 'Germany'
+#   official name,  e.g. 'Federal Republic of Germany"
+#   TODO: currently only English -> to be extended
+
+class Area(models.Model):
+  geom =            models.MultiPolygonField  (default='MULTIPOLYGON EMPTY')
+  repr_point =      models.PointField         (null=True)
+  lng =             models.FloatField         (default='0')
+  lat =             models.FloatField         (default='0')
+  name =            models.CharField          (max_length=100)
+
+  # overriding the default manager with a GeoManager instance.
+  # didn't quite understand what this is for...
+  # objects =               models.GeoManager         ()
+
+
+  def __unicode__(self):
+    return self.name
+
+
+
+# ==============================================================================
+### TEMPORAL DIMENSION ###
+# (main organizational dimension)
+
+# ------------------------------------------------------------------------------
+## Hivent stores historical happenings at which the countries of Earth change
 
 class Hivent(models.Model):
-  name =        models.CharField(max_length=150)
-  date =        models.DateField(default=date.today)
-  location =    models.PointField(null=True)
-  description = models.CharField(max_length=1000)
+  name =            models.CharField          (max_length=150)
+  start_date =      models.DateField          (default=date.today)
+  end_date =        models.DateField          (null=True)
+  effect_date =     models.DateField          (default=start_date)
+  secession_date =  models.DateField          (null=True)
+  location_name =   models.CharField          (null=True, max_length=150)
+  location_point =  models.PointField         (null=True)
+  location_area =   models.MultiPolygonField  (null=True)
+  description =     models.CharField          (null=True, max_length=1000)
+  link =            models.CharField          (max_length=300)
+  link_date =       models.DateField          (default=date.today)
 
   def __unicode__(self):
     return self.name
 
-# DIMENSION OF SPACE
-# Shape stores only the geometry of a Unit
-# TODO: currently MultiPolygon -> to be changes to more sophisticated model later
-
-class Shape(models.Model):
-  geom =        models.MultiPolygonField()
-  objects =     models.GeoManager()         # didn't quite understand what this is for...
-
-
-  def __unicode__(self):
-    return self.geom
-
-
-# DIMENSION OF ATTRIBUTE
-# Name stores names of a Unit in different languages
-# off = official name, e.g. 'Federal Republic of Germany"
-# com = common name, e.g. 'Germany'
-# additionally stores position of name
-
-class Name(models.Model):
-  pos =         models.PointField(null=True)
-  en_off =      models.CharField(max_length=100)
-  en_com =      models.CharField(max_length=50)
-
-  def __unicode__(self):
-    return self.en_comm
-
-# TODO: currently only English -> to be extended
-# TODO: calculate reasonable name position with intelligent algorithm
+  class Meta:
+    ordering = ['-effect_date']  # descending order (2000 -> 0 -> -2000 -> ...)
 
 
 # ------------------------------------------------------------------------------
-# HELPER CLASSES / ENTITIES
-# ------------------------------------------------------------------------------
+## Snapshot stores a complete image of all areas at a single moment in history
+## --> needed for initialization of event-based spatio-temporal data model
 
-
-# AdminUnit combines dimensions of space (shape) and attribute (space) per unit
-
-class AdminUnit(models.Model):
-  name =        models.ForeignKey(Name)
-  shape =       models.ForeignKey(Shape)
+class Snapshot(models.Model):
+  date =        models.DateField              (null=False)
+  areas =       models.ManyToManyField        (Area)
 
   def __unicode__(self):
-    return self.name
+    return self.date
+
+  class Meta:
+    ordering = ['-date']  # descending order (2000 -> 0 -> -2000 -> ...)
 
 
-# Change stores one explicit change of Units of an Hivent (1 old Unit -> 1 new Unit)
-# for unifications, splitups, and border changes several changes can be assigned to one unit
-  # e.g. 'CSSR' -> 'CZE' + 'SVK' => two changes for 'CSSR'
+
+
+# ==============================================================================
+### CONNECTION TABLES ###
+
+# ------------------------------------------------------------------------------
+# A change belongs to an Hivent and defines an explicit change of Areas
+# -> see more in ChangeAreas
+# Hivent 1:n Change
 
 class Change(models.Model):
   hivent =      models.ForeignKey(Hivent)
-  old_unit =    models.ForeignKey(AdminUnit, related_name='old_unit')
-  new_unit =    models.ForeignKey(AdminUnit, related_name='new_unit')
 
   def __unicode__(self):
     return '%s: %s -> %s' % (self.hivent, self.old, self.new)
 
+
+# ------------------------------------------------------------------------------
+## Change stores one explicit change of Areas of an Hivent
+## (1 old Area -> 1 new Area)
+## for specific historical geographic operations differently many changes can be
+## assigned to one Area
+##  add area:       - -> A
+##  unification:    A1 -> B, A2 -> B, ... , An .-> B
+##  separation:     A -> B1, A -> B2, ... , A -> Bn
+##  border change:  A -> A', B -> B'
+##  name change;    A -> A'
+##  delete area:    A -> -
+## e.g. 'CSSR' -> 'CZE' + 'SVK' => two changes for 'CSSR'
+
+class ChangeAreas(models.Model):
+  change =      models.ForeignKey(Change, related_name='change')
+  old_area =    models.ForeignKey(Area, related_name='old_area')
+  new_area =    models.ForeignKey(Area, related_name='new_area')
+
+  def __unicode__(self):
+    return '%s: %s -> %s' % (self.change, self.old, self.new)
+
+
+
+
+# ------------------------------------------------------------------------------
 # TODO: 'historical descendant' to create hierarchy of countries?
   # e.g. unified Germany if a descendant of West and East Germany
   # West Germany was a descendant of Nazi Germany, but East Germany formally was not -> "new country"
-'''

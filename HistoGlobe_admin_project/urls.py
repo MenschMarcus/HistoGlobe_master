@@ -16,8 +16,12 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 
+
+"""
+  TODO: how did the whole url pattern magic work ?!?
+"""
+
 urlpatterns = [
-  url(r'^admin/', include(admin.site.urls)),
-  url(r'^HistoGlobe/', include('HistoGlobe_server.urls')),
-  url(r'', include('HistoGlobe_server.urls'))  
+  url(r'^admin/',       include(admin.site.urls)),
+  url(r'',              include('HistoGlobe_server.urls'))
 ]

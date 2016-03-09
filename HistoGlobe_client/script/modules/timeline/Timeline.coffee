@@ -135,6 +135,9 @@ class HG.Timeline
   # GETTER
 
   getNowDate: ->      @_nowDate
+  getInterval: ->     [@_minVisibleDate(), @_maxVisibleDate]
+
+  # ----------------------------------------------------------------------------
   getTimelineArea: -> @_parentDiv
   getSlider: ->       @_tlSlider
 

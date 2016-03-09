@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'djgeojson',
+
     'HistoGlobe_server'
 )
 
@@ -54,9 +55,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
 )
 
-ROOT_URLCONF = 'HistoGlobe_admin_project.urls'
+ROOT_URLCONF =      'HistoGlobe_admin_project.urls'
 
-WSGI_APPLICATION = 'HistoGlobe_admin_project.wsgi.application'
+WSGI_APPLICATION =  'HistoGlobe_admin_project.wsgi.application'
 
 
 # Template (HTML)
@@ -65,19 +66,20 @@ WSGI_APPLICATION = 'HistoGlobe_admin_project.wsgi.application'
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [ TEMPLATE_PATH ],  # 'HistoGlobe_client' folder
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
+      'BACKEND': 'django.template.backends.django.DjangoTemplates',
+      'DIRS': [ TEMPLATE_PATH ],  # 'HistoGlobe_client' folder
+      'APP_DIRS': True,
+      'OPTIONS': {
+        'context_processors': [
+          'django.template.context_processors.debug',
+          'django.template.context_processors.request',
+          'django.contrib.auth.context_processors.auth',
+          'django.contrib.messages.context_processors.messages',
+          'django.core.context_processors.csrf'
+        ],
+      },
     },
-]
+  ]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
@@ -92,14 +94,14 @@ STATICFILES_DIRS = (
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE':   'django.contrib.gis.db.backends.postgis',
-        'NAME':     'hg_db',
-        'USER':     'hg_user',
-        'PASSWORD': 'hg_pwd',
-        'HOST':     'localhost',
-        'PORT':     '',
-    }
+  'default': {
+    'ENGINE':   'django.contrib.gis.db.backends.postgis',
+    'NAME':     'histoglobe_database',
+    'USER':     'histoglobe_user',
+    'PASSWORD': '12345',
+    'HOST':     'localhost',
+    'PORT':     '',
+  }
 }
 
 
@@ -107,8 +109,7 @@ DATABASES = {
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
-USE_I18N = True
-USE_L10N = True
-USE_TZ = True
-
+TIME_ZONE     = 'UTC'
+USE_I18N      = True
+USE_L10N      = True
+USE_TZ        = True
