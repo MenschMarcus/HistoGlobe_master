@@ -4,7 +4,7 @@
   "HistoGlobe" :
   {
     "minYear": 1900,
-    "maxYear": 2015,
+    "maxYear": 2020,
     "nowYear": 1989,
     "startPoint": [50.9869531, 11.3205004],
     "configPath": "../HistoGlobe_client/config/",

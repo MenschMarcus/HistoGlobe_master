@@ -2,6 +2,7 @@ window.HG ?= {}
 
 # debug output?
 DEBUG = no
+LOAD = no
 
 class HG.AreaController
 
@@ -78,7 +79,8 @@ class HG.AreaController
         chunkSize:  50        # = number of areas per response
 
       # recursively load chunks of areas from the server
-      @_loadAreasFromServer request
+      if LOAD
+        @_loadAreasFromServer request
 
 
       ### TO INTERFACE ###

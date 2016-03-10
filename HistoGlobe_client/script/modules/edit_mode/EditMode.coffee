@@ -1,7 +1,7 @@
 window.HG ?= {}
 
 # DEBUG: take out if not needed anymore
-TEST_BUTTON = no
+TEST_BUTTON = yes
 
 # ==============================================================================
 # EditMode registers clicks on edit operation buttons -> init operation
@@ -68,16 +68,15 @@ class HG.EditMode
       @_testButton.onClick @, () =>
 
         # TEST PLAYGROUND START HERE
+        path = 'common/example.json'
+        path = @_hgInstance.config.configPath + path
 
-        areas = @_hgInstance.areaController._activeAreas
-        for area, idx in areas
-          console.log idx, area.getName()
-          console.log area.getGeometry()._polygons[0].jsts().getArea()
-
+        $.getJSON(path, (data) =>
+          console.log data
+        )
 
         # TEST PLAYGROUND END HERE
     ############################################################################
-
 
     # init everything
     $.getJSON(@_config.editOperationsPath, (operationConfig) =>

@@ -186,7 +186,7 @@ class HG.NewHiventBox
       nowDate = date.toLocaleDateString()
       hiventDate.setValue nowDate
       # save to data
-      @_stepData.outData.hiventInfo.name = nowDate
+      @_stepData.outData.hiventInfo.startDate = nowDate
 
     # timeline <- hivent box
     hiventDate.onChange @, (dateString) ->

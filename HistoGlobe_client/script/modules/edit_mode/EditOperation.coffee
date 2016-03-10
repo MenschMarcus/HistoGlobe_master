@@ -223,8 +223,27 @@ class HG.EditOperation
   # ============================================================================
   _finish: () ->
     # TODO: convert action list to new data to be stored in the database
-    # save data to the server
-    console.log "SAVE TO SERVER:", @_operation
+
+    output = {
+      hivent: @_operation.steps[3].outData.hiventInfo
+      change: {
+        oldAreas: @_operation.steps[0].outData.selectedAreas
+        newAreas: []
+      }
+    }
+
+    for area in @_operation.steps[2].outData.namedAreas
+      newArea = @_hgInstance.areaController.getArea area
+      output.change.newAreas.push {
+        name:       newArea.getName()
+        geometry:   newArea.getGeometry().coordinates()
+        reprPoint:  newArea.getRepresentativePoint()
+      }
+
+    console.log "SAVE TO SERVER:", JSON.stringify output
+    console.log "SAVE TO SERVER:", output
+
+    # TODO: update with reasonable id from server
 
     @notifyAll 'onFinish'
 
