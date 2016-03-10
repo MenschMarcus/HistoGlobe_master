@@ -69,13 +69,11 @@ class HG.EditMode
 
         # TEST PLAYGROUND START HERE
 
-        stepData = {
-            id:               'ADD_CHNG'
-            title:            "add change <br /> to historical event"
-            userInput:        yes
-            inData:           {}
-          }
-        new HG.AddChangeStep @_hgInstance, stepData
+        areas = @_hgInstance.areaController._activeAreas
+        for area, idx in areas
+          console.log idx, area.getName()
+          console.log area.getGeometry()._polygons[0].jsts().getArea()
+
 
         # TEST PLAYGROUND END HERE
     ############################################################################

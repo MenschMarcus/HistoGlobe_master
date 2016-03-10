@@ -41,6 +41,8 @@ class HG.GeometryOperator
         idx++
       tempGeometry
 
+    # TODO: remove sliver polygons = maintain topological correctness
+
   # ----------------------------------------------------------------------------
   intersection: (A, B) ->
     # >1 geometries empty => return empty geometry
