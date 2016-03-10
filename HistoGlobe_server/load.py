@@ -34,7 +34,7 @@ from models import Snapshot
 # TODO: update area mapping shapefile
 area_mapping = {
   'geom' :      'MULTIPOLYGON',
-  'name' :      'name'
+  'name' :      'name_long'
 }
 
 countries_full =    'ne_10m_admin_0_countries.shp'   # source: Natural Earth Data

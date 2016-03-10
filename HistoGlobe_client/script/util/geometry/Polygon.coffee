@@ -19,6 +19,13 @@ class HG.Polygon extends HG.Geometry
     for polyline in inCoordinates
       newPolyline = new HG.Polyline polyline
       @_isValid = no if not newPolyline.isValid()
+
+      # do not allow for sliver polygons!
+      # i.e. if is polyline has a very small area, it gets omitted
+      # -> has to be transformed to POlygon first to calculate the area
+      if (new jsts.geom.Polygon(newPolyline.jsts())).getArea() < MIN_AREA_SIZE
+        continue
+
       @_polylines.push newPolyline
 
     ## hole restructuring
@@ -30,3 +37,14 @@ class HG.Polygon extends HG.Geometry
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
+
+
+
+
+
+
+  ##############################################################################
+  #                             STATIC INTERFACE                               #
+  ##############################################################################
+
+  MIN_AREA_SIZE = 0.00000001

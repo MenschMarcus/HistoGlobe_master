@@ -18,6 +18,7 @@ from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D # ``D`` is a shortcut for ``Distance``
 
 from datetime import date
+import time
 import re
 import json
 
@@ -149,15 +150,12 @@ def prepare_output(areas, chunk_size, chunks_complete):
 
   area_counter = 0
   for area in areas:
-
-    console.log(area.name)
-
     json_str += '{'
     json_str +=   '"type":"Feature",'
     json_str +=   '"properties":'
     json_str +=   '{'
-    json_str +=     '"id":'           + str(area.id)     + ','
-    json_str +=     '"name":"'        + str(area.name)   + '",'
+    json_str +=     '"id":'           + str(area.id)                     + ','
+    json_str +=     '"name":"'        + str(area.name.encode('utf-8'))   + '",'   # N.B: encode with utf-8
     json_str +=     '"repr_point":'
     json_str +=     '{'
     json_str +=       '"lat":'        + str(area.repr_point.coords[0]) + ','
@@ -176,3 +174,18 @@ def prepare_output(areas, chunk_size, chunks_complete):
   json_str += '}'
 
   return json_str
+
+
+
+# ------------------------------------------------------------------------------
+# timestamp framework
+
+# timestamp_1 = time.time()
+# timestamp_2 = time.time()
+# ...
+# timestamp_n = time.time()
+
+# console.log(
+#   timestamp_2-timestamp_1,
+#   timestamp_3-timestamp_2,
+#   timestamp_4-timestamp_3,)

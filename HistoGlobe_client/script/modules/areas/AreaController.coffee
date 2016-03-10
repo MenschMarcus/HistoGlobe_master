@@ -63,6 +63,7 @@ class HG.AreaController
       areaViewer.push @_hgInstance.areasOnMap     if @_hgInstance.areasOnMap?
       areaViewer.push @_hgInstance.areasOnGlobe   if @_hgInstance.areasOnGlobe?
 
+
       ### INIT AREAS ###
       # initially load them from file
       # TODO: exchange with real fetcching from the database
@@ -74,7 +75,7 @@ class HG.AreaController
         centerLat:  @_hgInstance.map.getCenter()[0]
         centerLng:  @_hgInstance.map.getCenter()[1]
         chunkId:    0         # initial
-        chunkSize:  5         # = number of areas per response
+        chunkSize:  50        # = number of areas per response
 
       # recursively load chunks of areas from the server
       @_loadAreasFromServer request
@@ -538,17 +539,17 @@ class HG.AreaController
         # create an area for each feature
         $.each data.features, (key, val) =>
 
-          id =        Math.random()*1000    # TODO: replace by: val.properties.id
+          id =        val.properties.id
           geometry =  @_geometryReader.read val.geometry
           name =      val.properties.name
-          # reprPoint = val.properties.repr_point
+          reprPoint = val.properties.repr_point
 
           # error handling: each area must have valid id and geometry
           return if not id
           return if not geometry.isValid()
 
           # create new area
-          area = new HG.Area id, geometry, name#, reprPoint
+          area = new HG.Area id, geometry, name, reprPoint
 
           @_createGeometry area
           @_createName area if area.hasName()
