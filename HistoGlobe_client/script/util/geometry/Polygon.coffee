@@ -47,4 +47,4 @@ class HG.Polygon extends HG.Geometry
   #                             STATIC INTERFACE                               #
   ##############################################################################
 
-  MIN_AREA_SIZE = 0.00000001
+  MIN_AREA_SIZE = 0.0000001
