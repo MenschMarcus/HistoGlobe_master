@@ -11,6 +11,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.contrib.gis.geos import *
 from django.core.serializers import serialize
+import chromelogger as console
 
 from django.contrib.gis import measure
 from django.contrib.gis.geos import Point
@@ -18,10 +19,7 @@ from django.contrib.gis.measure import D # ``D`` is a shortcut for ``Distance``
 
 from datetime import date
 import re
-
-import chromelogger as console
-console.log("HELLO")
-console.get_header()
+import json
 
 from HistoGlobe_server.models import *
 
@@ -53,7 +51,8 @@ def get_initial_areas(request):
       int(request.POST.get('dateD'))
     )
 
-  chunk_id = 1
+  chunk_id = int(request.POST.get('chunkId'))
+  chunk_size = int(request.POST.get('chunkSize'))
 
   # look for snapshot closest to the requested date
   closest_snapshot = get_closest_snapshot(request_date)
@@ -67,9 +66,9 @@ def get_initial_areas(request):
 
   # get set of areas for this part of the request
   # areas = closest_snapshot.areas.filter(name='Germany')
-  areas = get_output_chunk(closest_snapshot, viewport_center, chunk_id)
+  [areas, chunk_size, chunks_complete] = get_output_chunk(closest_snapshot, viewport_center, chunk_id, chunk_size)
 
-  out = prepare_areas_output(areas)
+  out = prepare_output(areas, chunk_size, chunks_complete)
 
   return HttpResponse(out)
 
@@ -101,41 +100,79 @@ def get_changes(start_date, end_date):
 
 
 # ------------------------------------------------------------------------------
-def get_output_chunk(snapshot, viewport_center, chunk_id):
-  ref_pt = viewport_center
-  dist = {'km': 2000}
-  areas = Area.objects.filter(repr_point__distance_lte=(ref_pt, measure.D(**dist)))
-  areas_sortes = areas.distance(ref_pt).order_by('distance')
+def get_output_chunk(snapshot, viewport_center, chunk_id, chunk_size):
 
-  return areas
+  # assign a distance value to the viewport center for all areas
+  # ->  find all areas that are in a distance of 42000 km (= earths diameter)
+  #     to the viewport center = find all areas
+  ref_pt = viewport_center
+  dist = {'km': 42000}
+  areas = Area.objects.filter(repr_point__distance_lte=(ref_pt, measure.D(**dist)))
+
+  # sort areas by their new distance value
+  areas_sorted = areas.distance(ref_pt).order_by('distance')
+
+
+  # check if total number of areas reached
+  chunks_complete = False
+  num_areas =       areas_sorted.count()
+  start_id =        chunk_id
+  end_id =          chunk_id + chunk_size
+
+  # if so, reset variables and state that chunks are complete
+  if end_id >= num_areas:
+    chunks_complete = True
+    end_id = num_areas
+    chunk_size = end_id-start_id
+
+  return [
+    areas_sorted[start_id:end_id],
+    chunk_size,
+    chunks_complete
+  ]
 
 # ------------------------------------------------------------------------------
-def prepare_areas_output(areas):
+def prepare_output(areas, chunk_size, chunks_complete):
 
-  # transformation to json string
-  json_str = serialize(
-    'geojson',
-    areas,
-    geometry_field='geom',
-    fields=('id', 'name', 'repr_point')
-  )
+  # javascript  python
+  # object      dictionary
+  # array       list
+  # crap... write my own serializer, this thing is a regex pain in the ass !!!
+  # it looks horrible, but it is the only way I could see while avoiding
+  # serializing and deserializing the geometry (see #1 geometry as json string)
 
-  # TODO: Why does it serialize the id??? why is this such a pain???
+  json_str  = '{'
+  json_str +=   '"type":"FeatureCollection",'
+  json_str +=   '"crs":{"type": "name","properties":{"name":"EPSG:4326"}},'
+  json_str +=   '"loadingComplete":'  + str(chunks_complete).lower() + ','
+  json_str +=   '"features":['          # 'True' -> 'true' resp. 'False' -> 'false'
 
-  # replacement of POINT wkt string to array
-  # complicated (?) regex explained here
-  # 1) overhead           "SRID=4326;POINT\s\(
-  # 2) lng coordinate     (-?(?:\.\d+|\d+(?:\.\d*)?))
-  # 3) whitespace         \s
-  # 4) lat coordinate     (-?(?:\.\d+|\d+(?:\.\d*)?))
-  # 5) overhead           \)"
-  # -> replace by object: {lat lng}
-  # N.B: flip groups around, because notion of lat/lng is (again) flipped
+  area_counter = 0
+  for area in areas:
 
-  return re.sub(
-    r'"SRID=4326;POINT\s\((-?(?:\.\d+|\d+(?:\.\d*)?))\s(-?(?:\.\d+|\d+(?:\.\d*)?))\)"',
-    '{"lat":\g<1>, "lng":\g<2>}',
-    json_str
-  )
+    console.log(area.name)
+
+    json_str += '{'
+    json_str +=   '"type":"Feature",'
+    json_str +=   '"properties":'
+    json_str +=   '{'
+    json_str +=     '"id":'           + str(area.id)     + ','
+    json_str +=     '"name":"'        + str(area.name)   + '",'
+    json_str +=     '"repr_point":'
+    json_str +=     '{'
+    json_str +=       '"lat":'        + str(area.repr_point.coords[0]) + ','
+    json_str +=       '"lng":'        + str(area.repr_point.coords[1])
+    json_str +=    '}'
+    json_str +=   '},'
+    json_str += '"geometry":'         + area.geom.json  #1 geometry as json string
+    json_str += '}'
+
+    # decide if final ',' has to be appended
+    area_counter += 1
+    if area_counter < chunk_size:
+      json_str += ','
+
+  json_str +=   ']'
+  json_str += '}'
 
   return json_str

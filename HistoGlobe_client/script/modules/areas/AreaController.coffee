@@ -71,49 +71,13 @@ class HG.AreaController
         dateY:      @_hgInstance.timeline.getNowDate().getFullYear()
         dateM:      @_hgInstance.timeline.getNowDate().getMonth()+1
         dateD:      @_hgInstance.timeline.getNowDate().getDate()
-        centerLng:  @_hgInstance.map.getCenter()[0]
-        centerLat:  @_hgInstance.map.getCenter()[1]
+        centerLat:  @_hgInstance.map.getCenter()[0]
+        centerLng:  @_hgInstance.map.getCenter()[1]
+        chunkId:    0         # initial
+        chunkSize:  5         # = number of areas per response
 
-      # DEBUG: prevent server request
-      # return
-
-      $.ajax
-        url:  'get_initial_areas/'
-        type: 'POST'
-        data: request
-
-        # success callback
-        # => load areas here
-        success: (data_str) =>
-
-          # deserialize string to object
-          data = $.parseJSON data_str
-
-          # create an area for each feature
-          $.each data.features, (key, val) =>
-            id =        Math.random()*1000    # TODO: replace by: val.properties.id
-            geometry =  @_geometryReader.read val.geometry
-            name =      val.properties.name
-            # reprPoint = val.properties.repr_point
-
-            console.log name
-
-            # error handling: each area must have valid id and geometry
-            return if not id
-            return if not geometry.isValid()
-
-            # create new area
-            area = new HG.Area id, geometry, name#, reprPoint
-
-            @_createGeometry area
-            @_createName area if area.hasName()
-            @_activate area
-
-
-        error: (xhr, errmsg, err) =>
-          console.log xhr
-          console.log errmsg
-          console.log err
+      # recursively load chunks of areas from the server
+      @_loadAreasFromServer request
 
 
       ### TO INTERFACE ###
@@ -553,6 +517,57 @@ class HG.AreaController
       @notifyAll 'onUpdateStatus', area                        # view
 
       loopIdx--
+
+
+
+  # ============================================================================
+  # recursively load all areas from the server
+  _loadAreasFromServer: (request) ->
+    $.ajax
+      url:  'get_initial_areas/'
+      type: 'POST'
+      data: request
+
+      # success callback
+      # => load areas here
+      success: (data_str) =>
+
+        # deserialize string to object
+        data = $.parseJSON data_str
+
+        # create an area for each feature
+        $.each data.features, (key, val) =>
+
+          id =        Math.random()*1000    # TODO: replace by: val.properties.id
+          geometry =  @_geometryReader.read val.geometry
+          name =      val.properties.name
+          # reprPoint = val.properties.repr_point
+
+          # error handling: each area must have valid id and geometry
+          return if not id
+          return if not geometry.isValid()
+
+          # create new area
+          area = new HG.Area id, geometry, name#, reprPoint
+
+          @_createGeometry area
+          @_createName area if area.hasName()
+          @_activate area
+
+
+        # increment to next load (if not finished yet)
+        # RECURSION PARTỲ !!!
+        if not data.loadingComplete
+          request.chunkId += request.chunkSize
+          @_loadAreasFromServer request
+
+      # error callback
+      error: (xhr, errmsg, err) =>
+        console.log xhr
+        console.log errmsg
+        console.log err
+
+
 
 
   # ============================================================================

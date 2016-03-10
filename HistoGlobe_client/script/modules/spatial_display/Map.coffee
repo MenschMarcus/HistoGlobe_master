@@ -51,7 +51,12 @@ class HG.Map extends HG.SpatialDisplay
 
     HG.SpatialDisplay.CONTAINER.appendChild @_mapParent
 
-    # leaflet
+    # TODO: integreate mapbox
+    # -> use TileMill to style layers
+    # leaflet + mapbox
+    # accessToken = 'pk.eyJ1IjoibWVuc2NobWFyY3VzIiwiYSI6ImNpZ3p6c2x5NDB3Y200bW0za2cxZzJ0YXoifQ.B8RX1-Sj6v_tmGe-_kP6zQ'
+    # style = 'mapbox://styles/menschmarcus/cillef2ly00419vknx2mifdqx'
+
     options =
       maxZoom:      @_config.maxZoom
       minZoom:      @_config.minZoom
@@ -61,11 +66,28 @@ class HG.Map extends HG.SpatialDisplay
 
     @_map = L.map @_mapParent.dom(), options
     @_map.setView @_hgInstance.config.startPoint, @_config.startZoom
-    @_map.attributionControl.setPrefix ''
 
     tileLayer = L.tileLayer(@_hgInstance.config.tiles + '/{z}/{x}/{y}.png')
     tileLayer.addTo @_map
 
+
+    # old version
+    # options =
+    #   maxZoom:      @_config.maxZoom
+    #   minZoom:      @_config.minZoom
+    #   zoomControl:  false
+    #   maxBounds:    @_config.maxBounds
+    #   worldCopyJump: true
+
+    # @_map = L.map @_mapParent.dom(), options
+    # @_map.setView @_hgInstance.config.startPoint, @_config.startZoom
+
+    # tileLayer = L.tileLayer(@_hgInstance.config.tiles + '/{z}/{x}/{y}.png')
+    # tileLayer.addTo @_map
+
+
+    # random shit ???
+    @_map.attributionControl.setPrefix ''
     @overlayContainer = @_map.getPanes().mapPane
 
     @_isRunning = yes

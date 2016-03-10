@@ -31,16 +31,20 @@ from models import Snapshot
 # ==============================================================================
 ### VARIABLES ###
 
+# TODO: update area mapping shapefile
 area_mapping = {
   'geom' :      'MULTIPOLYGON',
-  'lng' :       'LON',
-  'lat' :       'LAT',
-  'name' :      'NAME',
+  'name' :      'name'
 }
 
-world_shp = os.path.abspath(os.path.join(
-  os.path.dirname(HistoGlobe_server.__file__),
-  'data', 'TM_WORLD_BORDERS-0.3.shp')
+countries_full =    'ne_10m_admin_0_countries.shp'   # source: Natural Earth Data
+countries_reduced = 'ne_50m_admin_0_countries.shp'   # source: Natural Earth Data
+
+shapefile = os.path.abspath(os.path.join(
+    os.path.dirname(HistoGlobe_server.__file__),
+    'data',
+    countries_reduced
+  )
 )
 
 
@@ -53,7 +57,7 @@ def run(verbose=True):
 
   areas = LayerMapping(
     Area,
-    world_shp,
+    shapefile,
     area_mapping,
     transform=False,
     encoding='utf-8'
@@ -75,5 +79,5 @@ def run(verbose=True):
   ### POPULATE REPRESENTATIVE POINT ###
 
   for area in Area.objects.all():
-    area.repr_point = Point(area.lat, area.lng)
+    area.repr_point = area.geom.point_on_surface
     area.save()
