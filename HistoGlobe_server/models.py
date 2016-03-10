@@ -29,8 +29,6 @@ from datetime import date
 class Area(models.Model):
   geom =            models.MultiPolygonField  (default='MULTIPOLYGON EMPTY')
   repr_point =      models.PointField         (null=True)
-  lng =             models.FloatField         (default='0')
-  lat =             models.FloatField         (default='0')
   name =            models.CharField          (max_length=100)
 
   # overriding the default manager with a GeoManager instance.
