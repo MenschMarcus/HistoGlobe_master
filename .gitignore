@@ -24,3 +24,4 @@ HistoGlobe_client/style/histoglobe.min.css
 
 ### SAMPLE FILE
 HistoGlobe_client/script/util/EmptyClass.coffee
+HistoGlobe_client/config/common/example.json
