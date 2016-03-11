@@ -70,9 +70,7 @@ class HG.AreaController
       # TODO: exchange with real fetcching from the database
 
       request =
-        dateY:      @_hgInstance.timeline.getNowDate().getFullYear()
-        dateM:      @_hgInstance.timeline.getNowDate().getMonth()+1
-        dateD:      @_hgInstance.timeline.getNowDate().getDate()
+        date:       moment(@_hgInstance.timeline.getNowDate()).format()
         centerLat:  @_hgInstance.map.getCenter()[0]
         centerLng:  @_hgInstance.map.getCenter()[1]
         chunkId:    0         # initial
@@ -526,20 +524,20 @@ class HG.AreaController
   # ============================================================================
   # recursively load all areas from the server
   _loadAreasFromServer: (request) ->
+
     $.ajax
       url:  'get_initial_areas/'
       type: 'POST'
-      data: request
+      data: JSON.stringify request
 
-      # success callback
-      # => load areas here
-      success: (data_str) =>
+      # success callback: load areas here
+      success: (response) =>
 
         # deserialize string to object
-        data = $.parseJSON data_str
+        dataObj = $.parseJSON response
 
         # create an area for each feature
-        $.each data.features, (key, val) =>
+        $.each dataObj.features, (key, val) =>
 
           id =        val.properties.id
           geometry =  @_geometryReader.read val.geometry
@@ -560,15 +558,15 @@ class HG.AreaController
 
         # increment to next load (if not finished yet)
         # RECURSION PARTỲ !!!
-        if not data.loadingComplete
+        if not dataObj.loadingComplete
           request.chunkId += request.chunkSize
           @_loadAreasFromServer request
 
-      # error callback
+      # callback: print error message
       error: (xhr, errmsg, err) =>
         console.log xhr
-        console.log errmsg
-        console.log err
+        console.log errmsg, err
+        console.log xhr.responseText
 
 
 
