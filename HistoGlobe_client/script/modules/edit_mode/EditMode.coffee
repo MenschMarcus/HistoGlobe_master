@@ -68,11 +68,28 @@ class HG.EditMode
       @_testButton.onClick @, () =>
 
         # TEST PLAYGROUND START HERE
-        path = 'common/example.json'
-        path = @_hgInstance.config.configPath + path
+        examplePath = 'common/example.json'
+        examplePath = @_hgInstance.config.configPath + examplePath
 
-        $.getJSON(path, (data) =>
-          console.log data
+        $.getJSON(examplePath, (request) =>
+
+          # save to server
+          $.ajax
+            url:  'save_hivent/'
+            type: 'POST'
+            data: JSON.stringify request
+
+            # success callback: add id to hivent and save it in hivent controller
+            success: (response) =>
+              console.log response
+              data = $.parseJSON response
+              console.log data
+
+            # error callback: print error
+            error: (xhr, errmsg, err) =>
+              console.log xhr
+              console.log errmsg, err
+              console.log xhr.responseText
         )
 
         # TEST PLAYGROUND END HERE
