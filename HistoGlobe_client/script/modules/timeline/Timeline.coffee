@@ -145,6 +145,7 @@ class HG.Timeline
   # ============================================================================
   # SETTER
 
+  # TODO: MOMENT.JS
   setNowDate: (date) ->
     @_moveToDate date, 1
     @_updateDateMarkers()
@@ -153,6 +154,7 @@ class HG.Timeline
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
 
+  # TODO: MOMENT.JS
   # ============================================================================
   _moveToDate: (date, delay=0, successCallback=undefined) ->
     if @_yearToDate(@_config.minYear).getTime() > date.getTime()
@@ -176,6 +178,7 @@ class HG.Timeline
       setTimeout(successCallback, delay * 1000) if successCallback?
 
 
+  # TODO: MOMENT.JS
   # ============================================================================
   _getTimeFilter: ->
     timefilter = []
@@ -189,6 +192,7 @@ class HG.Timeline
     timefilter
 
 
+  # TODO: MOMENT.JS
   # ============================================================================
   _millisPerPixel: ->
     mpp = (@_yearsToMillis(@_config.maxYear - @_config.minYear) / window.innerWidth) / @_config.startZoom
@@ -212,6 +216,7 @@ class HG.Timeline
       return @_yearsToMillis(5 * Math.pow(10, x))
 
 
+  # TODO: MOMENT.JS
   # ============================================================================
   # helper functions: calculations date and position
   _dateToPosition: (date) ->
@@ -271,6 +276,8 @@ class HG.Timeline
       date = @_yearToDate @_config.maxYear
     date
 
+
+  # TODO: MOMENT.JS
   # ============================================================================
   # move and zoom
   _zoom: (delta, e=null, layout=true) =>
@@ -292,6 +299,7 @@ class HG.Timeline
     zoomed
 
 
+  # TODO: MOMENT.JS
   # ============================================================================
   # UI
   _updateLayout: ->

@@ -10,14 +10,13 @@
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.contrib.gis.geos import *
-from django.core.serializers import serialize
 import chromelogger as console
 
 from django.contrib.gis import measure
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D # ``D`` is a shortcut for ``Distance``
 
-from datetime import date
+from datetime import datetime, date
 import time
 import re
 import json
@@ -30,30 +29,58 @@ context_dict = {}
 
 # ==============================================================================
 ### INTERFACE ###
+# basic idea of client-server interaction
+# POST: client sends data to be processed by the server and awaits an answer
+# GET:  client requires data from the server and awaits an answer
+#
+### data structures
+#   client -> server (reuqest):
+#     - stringified JSON of arrays and objects (can be multi-dimensional)
+#       JSON.stringify request
+#       ->  access on the server by:
+#           json.loads(request.body)                    # needs: import json
+#   client <- server (response):
+#     - list or dictionary (no tuples or anything else, please!) stringified
+#       HttpResponse(json.dumps(response_data))
+#       ->  access on the client by:
+#           success: (reponse) =>
+#             data = $.parseJSON response
+#
+#
+### date interoperabiliy: use RFC 3339 (date = '%Y-%m-%dT%H:%M:%S')
+#   client -> server:
+#     moment(date).format()                             # needs: third-party script moment.js
+#     ->  access on the server by:
+#         datetime.strptime(date_string, DATE_FORMAT)   # needs: from datetime import datetime
+#   client <- server:
+#     date_object.strftime(DATE_FORMAT)
+#     date_string.strftime(DATE_FORMAT)
+#     ->  access on the client by:
+#         moment(dateString)
+
+# ValueError
 
 # ------------------------------------------------------------------------------
-# simple index view redirecting to index of HistoGlobe
+# simple view redirecting to index of HistoGlobe
 def index(request):
   return render(request, 'HistoGlobe_client/index.htm', context_dict)
-
 
 # ------------------------------------------------------------------------------
 # initial set of areas
 def get_initial_areas(request):
 
+  # deserialize object string -> dictionary
+  data_dict = json.loads(request.body)
+
   viewport_center = Point(
-      float(request.POST.get('centerLat')),
-      float(request.POST.get('centerLng'))
+      float(data_dict['centerLat']),
+      float(data_dict['centerLng'])
     )
 
-  request_date = date(
-      int(request.POST.get('dateY')),
-      int(request.POST.get('dateM')),
-      int(request.POST.get('dateD'))
-    )
+  request_date = get_date_object(data_dict['date'])
 
-  chunk_id = int(request.POST.get('chunkId'))
-  chunk_size = int(request.POST.get('chunkSize'))
+  chunk_id = int(data_dict['chunkId'])
+  chunk_size = int(data_dict['chunkSize'])
 
   # look for snapshot closest to the requested date
   closest_snapshot = get_closest_snapshot(request_date)
@@ -74,11 +101,146 @@ def get_initial_areas(request):
   return HttpResponse(out)
 
 
+# ------------------------------------------------------------------------------
+# save hivent and change to database
+def save_hivent(request):
+
+  # console.log(request.body)
+  data_dict = json.loads(request.body)
+
+  # decide: existing or new hivent?
+
+  ### existing hivent
+  # TODO
+  # get hivent from model
+
+  ### new hivent
+  hivent = data_dict['hivent']
+
+
+  # TODO: validate by try .. catch
+
+  ## name
+  if validate_string(hivent['name']) is False:
+    return HttpResponse("The name of the Hivent is not valid")
+
+
+  ## dates
+
+  # start date has to be valid
+  if validate_date(hivent['start_date']) is False:
+    return HttpResponse("The start date of the Hivent is not valid")
+
+  # end date can be either None or valid -> but then it must be later than the end date
+  if ('end_date' in hivent) and (hivent['end_date'] is not None):
+    if validate_date(hivent['end_date']) is False:
+      return HttpResponse("The end date of the Hivent is not valid")
+    if get_date_object(hivent['end_date']) < get_date_object(hivent['start_date']):
+      return HttpResponse("The end date of the Hivent can not be before the start date")
+
+  # effect date is either itself or the start date
+  if ('effect_date' in hivent) and (hivent['effect_date'] is not None):
+    if validate_date(hivent['effect_date']) is False:
+      return HttpResponse("The effect date of the Hivent is not valid")
+  else:
+    hivent['effect_date'] = hivent['start_date']
+
+  # end date can be either None or valid -> but then it must be later than the effect date
+  if ('secession_date' in hivent) and (hivent['secession_date'] is not None):
+    if validate_date(hivent['secession_date']) is False:
+      return HttpResponse("The secession date of the Hivent is not valid")
+    if get_date_object(hivent['secession_date']) < get_date_object(hivent['effect_date']):
+      return HttpResponse("The secession date of the Hivent can not be before the effect date")
+
+
+  ## location
+
+  # location name can be either a string or None
+  if 'location_name' in hivent:
+    if validate_string(hivent['location_name']) is False:
+      return HttpResponse('The location name you were giving to the Hivent is not valid')
+
+
+  # TODO: location point
+  # TODO: location area
+
+  ## description
+  # description can be either a string or None
+
+  if 'description' in hivent:
+    if validate_string(hivent['description']) is False:
+      return HttpResponse('The description you were giving to the Hivent is not valid')
+
+  ## link
+  # link can be either a string or None
+
+  if 'link' in hivent:
+    # TODO: check if it is a valid url
+    if validate_string(hivent['link']) is False:
+      return HttpResponse('The link you were giving to the Hivent is not valid')
+    # if it is valid, it gets today as the date
+    hivent['link_date'] = get_date_string(date.today())
+
+
+  ### save in database
+  console.log(hivent)
+
+
+  ### add hivent id as an output
+  out = {}
+  out['id'] = 42
+
+  ## add change to hivent
+
+  # return whole hivent including its changes in a list of lists
+
+  return HttpResponse(json.dumps(out))  # N.B: mind the HttpResponse(function)
+
+
 # ==============================================================================
 ### HELPER FUNCTIONS ###
 
+# ==============================================================================
+# dates: date string <-> date object, date string validation
+DATE_FORMAT = '%Y-%m-%dT%H:%M:%S'
+
+# ------------------------------------------------------------------------------
+def get_date_object(date_string):
+  return datetime.strptime(date_string, DATE_FORMAT)
+
+# ------------------------------------------------------------------------------
+def get_date_string(date_object):
+  return date_object.strftime(DATE_FORMAT)
+
+# ------------------------------------------------------------------------------
+def validate_date(date_string):
+  try:
+    datetime.strptime(date_string, DATE_FORMAT)
+  except ValueError:
+    return False
+
+  # everything is fine
+  return True
+
+
+# ==============================================================================
+# strings: validation
+
+# ------------------------------------------------------------------------------
+def validate_string(in_string):
+  if not isinstance(in_string, basestring):
+    return ("Not a string")
+  if (in_string == ''):
+    return False
+
+  # everything is fine
+  return True
+
+# ==============================================================================
+# output for init areas
 # ------------------------------------------------------------------------------
 def get_closest_snapshot(request_date):
+
   current_snapshot = Snapshot.objects.first()
   current_snapshot_distance = current_snapshot.date - request_date
 
@@ -93,6 +255,7 @@ def get_closest_snapshot(request_date):
 
 # ------------------------------------------------------------------------------
 def get_changes(start_date, end_date):
+
   for hivent in Hivent.objects.all():
     if (hivent.effect_date >= start_date) and (hivent.effect_date < start_date):
       print("Horst")

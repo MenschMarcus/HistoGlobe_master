@@ -25,7 +25,8 @@ class HG.NewHiventBox
     @_makeDecisionStep()
 
     ## 2.1) select existing hivent
-    # TODO
+    @_hgInstance.buttons.existingHiventSearch.onClick @, () ->
+      # TODO: write id into out data and be ready :-)
 
     ## 2.2) create new hivent
     @_hgInstance.buttons.newHiventInBox.onClick @, () ->
@@ -52,7 +53,7 @@ class HG.NewHiventBox
     @_hiventBox.appendChild selectExistingWrapper
 
     selectExistingText = new HG.Div null, ['new-hivent-box-text']
-    selectExistingText.j().html "Select Existing Hivent"
+    selectExistingText.j().html "Select Existing Historical Event"
     selectExistingWrapper.appendChild selectExistingText
 
     searchBox = new HG.TextInput @_hgInstance, 'selectExitingHivent', ['new-hivent-input']
@@ -95,7 +96,7 @@ class HG.NewHiventBox
     createNewHiventWrapper.appendChild newHiventButton.dom()
 
     createNewHiventText = new HG.Div null, ['new-hivent-box-text']
-    createNewHiventText.j().html "create new Hivent"
+    createNewHiventText.j().html "create new Historical Event"
     createNewHiventWrapper.appendChild createNewHiventText
 
 
@@ -147,6 +148,7 @@ class HG.NewHiventBox
     ## buttons
     # TODO: are the buttons really necessary or can't I reuse the buttons from the workflow window?
     # is against "direct manipulation" paradigm, but kind of makes sense
+    # -> no! I should include them
     # abortButton = new HG.Button @_hgInstance,
         # 'addChangeAbort', ['button-abort'],
     #   [
@@ -183,10 +185,9 @@ class HG.NewHiventBox
     ## synchronize hivent date with timeline
     # timeline -> hivent box
     @_hgInstance.timeline.onNowChanged @, (date) ->
-      nowDate = date.toLocaleDateString()
+      nowDate = moment(date).format()
       hiventDate.setValue nowDate
-      # save to data
-      @_stepData.outData.hiventInfo.startDate = nowDate
+      @_stepData.outData.hiventInfo.start_date = nowDate
 
     # timeline <- hivent box
     hiventDate.onChange @, (dateString) ->
@@ -197,27 +198,22 @@ class HG.NewHiventBox
         "YYYY"
       ]
       if moment(dateString, formats, true).isValid()
-        nowDate = moment(dateString, formats, true).toDate()
-        @_hgInstance.timeline.setNowDate nowDate
-        # save to data
-        @_stepData.outData.hiventInfo.name = nowDate
+        @_hgInstance.timeline.setNowDate moment(dateString).toDate()
+        @_stepData.outData.hiventInfo.start_date = moment(dateString).format()
 
     # hack: it is possible to finish this step without changing the date
-    # => date has to be initially written into outpu
-    @_stepData.outData.hiventInfo.name = @_hgInstance.timeline.getNowDate().toLocaleDateString()
+    # => date has to be initially written into output
+    @_stepData.outData.hiventInfo.start_date = moment(@_hgInstance.timeline.getNowDate()).format()
 
     ## convert location to lat/lng coordinates
-    # TODO: later
+    # TODO: geocoding
     hiventLocation.onChange @, (location) ->
-      # save to data
-      @_stepData.outData.hiventInfo.location = location
+      @_stepData.outData.hiventInfo.location_name = location
 
     ## save the description
     hiventDescription.onChange @, (description) ->
-      # save to data
       @_stepData.outData.hiventInfo.description = description
 
     ## save the link
     hiventLink.onChange @, (link) ->
-      # save to data
-      @_stepData.outData.hiventInfo.link = link
+      @_stepData.outData.hiventInfo.link_url = link
