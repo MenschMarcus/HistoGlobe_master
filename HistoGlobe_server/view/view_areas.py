@@ -10,6 +10,12 @@
 
 # GeoDjango
 from django.contrib.gis.geos import Point
+from django.contrib.gis import measure
+from django.contrib.gis.measure import D # ``D`` is a shortcut for ``Distance``
+
+# utils
+import chromelogger as console
+
 
 # own
 from HistoGlobe_server.models import Area
@@ -31,10 +37,9 @@ def create_area(area):
     return False
 
   # representative point
-  [lat, lng] = utils.validate_coordinates(area['repr_point']['lat'], area['repr_point']['lng'])
-  if lat == False:
+  repr_point = utils.validate_point(area['repr_point'])
+  if repr_point == False:
     return False
-  repr_point = Point(lat, lng)
 
   new_area = Area(
       name =        name,

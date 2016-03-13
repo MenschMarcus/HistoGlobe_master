@@ -61,8 +61,8 @@ class Hivent(models.Model):
   location_point =  models.PointField         (null=True)
   location_area =   models.MultiPolygonField  (null=True)
   description =     models.CharField          (null=True, max_length=1000)
-  link_url =        models.CharField          (max_length=300)
-  link_date =       models.DateTimeField      (default=timezone.now)
+  link_url =        models.CharField          (null=True, max_length=300)
+  link_date =       models.DateTimeField      (null=True, default=timezone.now)
 
 
   def __unicode__(self):

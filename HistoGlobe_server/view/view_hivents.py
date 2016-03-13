@@ -17,6 +17,9 @@
 from django.forms.models import model_to_dict
 import datetime
 
+# utils
+import chromelogger as console
+
 # own
 import utils
 from HistoGlobe_server.models import Hivent, Change, ChangeAreas, Area
@@ -105,13 +108,17 @@ def validate_hivent(hivent):
 
 
   ## link
-  # link must be a valid URL
+  # link can be either a valid URL or None
   if 'link_url' in hivent:
     if utils.validate_url(hivent['link_url']) is False:
       return [False, ('The link you were giving to the Hivent is not valid')]
 
     # link_url is OK, link_date is set to today (= just checked)
     hivent['link_date'] = utils.get_date_string(datetime.date.today())
+
+  else:
+    hivent['link_url'] = None
+    hivent['link_date'] = None
 
   # everything is fine => return hivent
   return [hivent, None]
@@ -221,7 +228,8 @@ def get_hivent(hivent_id):
   hivent['effect_date'] =       utils.get_date_string(hivent['effect_date'])
   if hivent['secession_date'] != None:
     hivent['secession_date'] =  utils.get_date_string(hivent['secession_date'])
-  hivent['link_date'] =         utils.get_date_string(hivent['link_date'])
+  if hivent['link_date'] != None:
+    hivent['link_date'] =         utils.get_date_string(hivent['link_date'])
 
   return hivent
 
