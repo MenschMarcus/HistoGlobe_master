@@ -54,9 +54,8 @@ class HG.EditMode
     # append pathes
     @_config.editOperationsPath = @_hgInstance.config.configPath + @_config.editOperationsPath
 
-    ############################################################################
-    # TEST PLAYGROUND INIT
 
+    ############################################################################
     if TEST_BUTTON
       testButton = new HG.Button @_hgInstance, 'test', null, [{'iconFA': 'question','callback': 'onClick'}]
       $(testButton.dom()).css 'position', 'absolute'
@@ -81,7 +80,6 @@ class HG.EditMode
 
             # success callback: add id to hivent and save it in hivent controller
             success: (response) =>
-              console.log response
               data = $.parseJSON response
               console.log data
 
@@ -94,6 +92,7 @@ class HG.EditMode
 
         # TEST PLAYGROUND END HERE
     ############################################################################
+
 
     # init everything
     $.getJSON(@_config.editOperationsPath, (operationConfig) =>

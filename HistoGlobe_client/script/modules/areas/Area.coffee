@@ -18,7 +18,7 @@ class HG.Area
         @_id,
         @_geometry,
         @_name = null,
-        @_representativePoint = {'lat': null, 'lng': null}
+        @_representativePoint = null
       ) ->
 
     @_active = no       # is area currently on the map?
@@ -26,48 +26,49 @@ class HG.Area
     @_focused = no      # is area currently in focus (hovered)?
     @_inEdit = no       # is area in edit mode?
 
-    @resetRepresentativePoint()
+    @resetRepresentativePoint() unless @_representativePoint
 
 
   # ============================================================================
-  getId: () ->                      @_id
+  setId: (id) ->                      @_id = id
+  getId: () ->                        @_id
 
   # ----------------------------------------------------------------------------
-  setGeometry: (geom) ->            @_geometry = geom
-  getGeometry: () ->                @_geometry
-  hasGeometry: () ->                @_geometry.isValid()
+  setGeometry: (geom) ->              @_geometry = geom
+  getGeometry: () ->                  @_geometry
+  hasGeometry: () ->                  @_geometry.isValid()
 
   # ----------------------------------------------------------------------------
-  setName: (name) ->                @_name = name
-  getName: () ->                    @_name
-  hasName: () ->                    @_name isnt null
+  setName: (name) ->                  @_name = name
+  getName: () ->                      @_name
+  hasName: () ->                      @_name isnt null
 
   # ----------------------------------------------------------------------------
-  resetRepresentativePoint: () ->   @_representativePoint = @_geometry.getCenter yes
-  setRepresentativePoint: (pos) ->  @_representativePoint = pos
-  getRepresentativePoint: () ->     @_representativePoint
+  resetRepresentativePoint: () ->     @_representativePoint = @_geometry.getCenter()
+  setRepresentativePoint: (point) ->  @_representativePoint = point
+  getRepresentativePoint: () ->       @_representativePoint
 
   # ----------------------------------------------------------------------------
-  getStyle: () ->                   @_getStyle()
+  getStyle: () ->                     @_getStyle()
 
   # ============================================================================
-  activate: () ->                   @_active = yes
-  deactivate: () ->                 @_active = no
-  isActive: () ->                   @_active
+  activate: () ->                     @_active = yes
+  deactivate: () ->                   @_active = no
+  isActive: () ->                     @_active
 
   # ----------------------------------------------------------------------------
-  select: () ->                     @_selected = yes
-  deselect: () ->                   @_selected = no
-  isSelected: () ->                 @_selected
+  select: () ->                       @_selected = yes
+  deselect: () ->                     @_selected = no
+  isSelected: () ->                   @_selected
 
   # ----------------------------------------------------------------------------
-  focus: () ->                      @_focused = yes
-  unfocus: () ->                    @_focused = no
-  isFocused: () ->                  @_focused
+  focus: () ->                        @_focused = yes
+  unfocus: () ->                      @_focused = no
+  isFocused: () ->                    @_focused
 
   # ----------------------------------------------------------------------------
-  inEdit: (inEdit = no) ->          @_inEdit = inEdit
-  isInEdit: () ->                   @_inEdit
+  inEdit: (inEdit = no) ->            @_inEdit = inEdit
+  isInEdit: () ->                     @_inEdit
 
 
   ##############################################################################

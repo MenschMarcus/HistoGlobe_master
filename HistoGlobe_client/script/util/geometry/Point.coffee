@@ -65,4 +65,5 @@ class HG.Point extends HG.Geometry
     else
       [@_lng, @_lng, @_lat, @_lat]
 
+  # ----------------------------------------------------------------------------
   _getCenter: (inLatLng=no) -> @_getCoordinates inLatLng

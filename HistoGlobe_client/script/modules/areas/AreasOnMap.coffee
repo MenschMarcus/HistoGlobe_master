@@ -114,7 +114,7 @@ class HG.AreasOnMap
     area.labelLayer = new L.Label()
     # TODO: set back @_addLinebreaks
     area.labelLayer.setContent area.getName()
-    area.labelLayer.setLatLng area.getRepresentativePoint()
+    area.labelLayer.setLatLng area.getRepresentativePoint().latLng()
 
     # create double-link: leaflet label knows HG area and HG area knows leaflet label
     area.labelLayer.hgArea = area
@@ -143,7 +143,7 @@ class HG.AreasOnMap
 
   # ----------------------------------------------------------------------------
   _updateLabelPosition: (area) ->
-    area.labelLayer.setLatLng area.getRepresentativePoint()
+    area.labelLayer.setLatLng area.getRepresentativePoint().latLng()
 
     # recenter text
     area.labelLayer.options.offset = [

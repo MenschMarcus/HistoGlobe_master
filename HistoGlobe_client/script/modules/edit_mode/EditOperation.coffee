@@ -225,19 +225,21 @@ class HG.EditOperation
     # TODO: convert action list to new data to be stored in the database
 
     output = {
-      hivent: @_operation.steps[3].outData.hiventInfo
+      hivent:       @_operation.steps[3].outData.hiventInfo
       change: {
-        oldAreas: @_operation.steps[0].outData.selectedAreas
-        newAreas: []
+        operation:  @_operation.id
+        old_areas:  @_operation.steps[0].outData.selectedAreas
+        new_areas:  []
       }
     }
 
     for area in @_operation.steps[2].outData.namedAreas
       newArea = @_hgInstance.areaController.getArea area
       output.change.newAreas.push {
+        id:         newArea.getId()
         name:       newArea.getName()
-        geometry:   newArea.getGeometry().coordinates()
-        reprPoint:  newArea.getRepresentativePoint()
+        geometry:   newArea.getGeometry().wkt()
+        repr_point: newArea.getRepresentativePoint().wkt()
       }
 
     console.log "SAVE TO SERVER:", JSON.stringify output
