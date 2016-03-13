@@ -95,7 +95,6 @@ def run(verbose=True):
   ### CREATE FIRST SNAPSHOT ###
 
   # save initial snapshot
-  date =
   s1 = Snapshot(date=timezone.now())
   s1.save()
 
