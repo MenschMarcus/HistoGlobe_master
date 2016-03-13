@@ -73,7 +73,7 @@ class HG.Geometry
   # ----------------------------------------------------------------------------
   # bounding box structure: minLng, maxLng, minLat, maxLat
   getBoundingBox: (inLatLng=no) ->  @_getBoundingBox inLatLng
-  getCenter: () ->                  new HG.Point(@_getCenter inLatLng)
+  getCenter: () ->                  new HG.Point(@_getCenter())
         # it seems weird that I can construct an object of a subclass
         # in its own baseclass, but I won't complain!
 
