@@ -8,7 +8,8 @@
 
 from django.contrib.gis.db import models
 from djgeojson.fields import *
-from datetime import date
+from django.utils import timezone
+import rfc3339
 
 
 
@@ -50,16 +51,17 @@ class Area(models.Model):
 
 class Hivent(models.Model):
   name =            models.CharField          (max_length=150)
-  start_date =      models.DateField          (default=date.today)
-  end_date =        models.DateField          (null=True)
-  effect_date =     models.DateField          (default=start_date)
-  secession_date =  models.DateField          (null=True)
+  start_date =      models.DateTimeField      (null=True)
+  end_date =        models.DateTimeField      (null=True)
+  effect_date =     models.DateTimeField      (default=timezone.now)
+  secession_date =  models.DateTimeField      (null=True)
   location_name =   models.CharField          (null=True, max_length=150)
   location_point =  models.PointField         (null=True)
   location_area =   models.MultiPolygonField  (null=True)
   description =     models.CharField          (null=True, max_length=1000)
-  link =            models.CharField          (max_length=300)
-  link_date =       models.DateField          (default=date.today)
+  link_url =        models.CharField          (max_length=300)
+  link_date =       models.DateTimeField      (default=timezone.now)
+
 
   def __unicode__(self):
     return self.name
@@ -73,11 +75,11 @@ class Hivent(models.Model):
 ## --> needed for initialization of event-based spatio-temporal data model
 
 class Snapshot(models.Model):
-  date =        models.DateField              (null=False)
+  date =        models.DateTimeField          (default=timezone.now)
   areas =       models.ManyToManyField        (Area)
 
   def __unicode__(self):
-    return self.date
+    return rfc3339.rfc3339(self.date)
 
   class Meta:
     ordering = ['-date']  # descending order (2000 -> 0 -> -2000 -> ...)
@@ -94,10 +96,11 @@ class Snapshot(models.Model):
 # Hivent 1:n Change
 
 class Change(models.Model):
-  hivent =      models.ForeignKey(Hivent)
+  hivent =      models.ForeignKey             (Hivent, related_name='hivent')
+  operation =   models.CharField              (default='XXX', max_length=3)
 
   def __unicode__(self):
-    return '%s: %s -> %s' % (self.hivent, self.old, self.new)
+    return '%s: %s' % (self.hivent.id, self.operation)
 
 
 # ------------------------------------------------------------------------------
@@ -114,12 +117,12 @@ class Change(models.Model):
 ## e.g. 'CSSR' -> 'CZE' + 'SVK' => two changes for 'CSSR'
 
 class ChangeAreas(models.Model):
-  change =      models.ForeignKey(Change, related_name='change')
-  old_area =    models.ForeignKey(Area, related_name='old_area')
-  new_area =    models.ForeignKey(Area, related_name='new_area')
+  change =      models.ForeignKey             (Change, related_name='change')
+  old_area =    models.ForeignKey             (Area, related_name='old_area')
+  new_area =    models.ForeignKey             (Area, related_name='new_area')
 
   def __unicode__(self):
-    return '%s: %s -> %s' % (self.change, self.old, self.new)
+    return self.change.id
 
 
 
