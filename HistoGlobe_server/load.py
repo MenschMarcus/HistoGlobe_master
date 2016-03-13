@@ -26,6 +26,7 @@ from django.contrib.gis.geos import *
 import HistoGlobe_server
 from models import Area
 from models import Snapshot
+from django.utils import timezone
 
 
 # ==============================================================================
@@ -53,6 +54,32 @@ shapefile = os.path.abspath(os.path.join(
 
 def run(verbose=True):
 
+  ### CREATE DATABASE ###
+  """
+  ## setup postgres database and user
+  sudo su - postgres
+  psql
+  CREATE DATABASE histoglobe_database;
+  CREATE USER HistoGlobe_user WITH PASSWORD '12345';
+  ALTER ROLE HistoGlobe_user SET client_encoding TO 'utf8';
+  ALTER ROLE HistoGlobe_user SET default_transaction_isolation TO 'read committed';
+  ALTER ROLE HistoGlobe_user SET timezone TO 'UTC';
+  \c histoglobe_database
+  CREATE EXTENSION postgis;
+  CREATE EXTENSION postgis_topology;
+  CREATE EXTENSION fuzzystrmatch;
+  CREATE EXTENSION postgis_tiger_geocoder;
+
+  ## load model migrate
+  python manage.py makemigrations
+  python manage.py migrate
+
+  ## prepare
+  python manage.py shell
+  from HistoGlobe_server import load
+  load.run()
+  """
+
   ### INIT AREAS ###
 
   areas = LayerMapping(
@@ -68,7 +95,8 @@ def run(verbose=True):
   ### CREATE FIRST SNAPSHOT ###
 
   # save initial snapshot
-  s1 = Snapshot(date='2015-01-01')
+  date =
+  s1 = Snapshot(date=timezone.now())
   s1.save()
 
   # populate snapshot with all areas in the database

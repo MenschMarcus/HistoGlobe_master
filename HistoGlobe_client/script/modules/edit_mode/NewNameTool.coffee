@@ -56,7 +56,7 @@ class HG.NewNameTool
     @_wrapper.appendChild @_inputField
 
     # set position of wrapper = center of country
-    posPx = @_map.latLngToContainerPoint initPosition
+    posPx = @_map.latLngToContainerPoint initPosition.latLng()
     @_wrapper.j().css 'left', posPx.x
     @_wrapper.j().css 'top',  posPx.y
     @_recenter()
@@ -89,7 +89,7 @@ class HG.NewNameTool
       # get center coordinates
       center = new L.Point @_wrapper.j().position().left, @_wrapper.j().position().top
       newName = @_inputField.j().val()
-      newPosition = @_map.containerPointToLatLng center
+      newPosition = new HG.Point(@_map.containerPointToLatLng center)
       @notifyAll 'onSubmit', newName, newPosition
 
 

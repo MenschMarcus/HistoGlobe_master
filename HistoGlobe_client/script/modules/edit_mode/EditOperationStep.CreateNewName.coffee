@@ -73,7 +73,7 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
       @_stepData.tempAreas[@_areaIdx] = {
         'id':       @_currentId
         'name':     @_currentName
-        'position': @_currentPosition
+        'point':    @_currentPosition
       }
 
       # save the named area
@@ -85,7 +85,7 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
         undo: =>
           # restore old name
           area = @_stepData.tempAreas[@_areaIdx]
-          @notifyEditMode 'onUpdateAreaName', area.id, area.name, area.position
+          @notifyEditMode 'onUpdateAreaName', area.id, area.name, area.point
 
           # go to previous area
           @_cleanup()

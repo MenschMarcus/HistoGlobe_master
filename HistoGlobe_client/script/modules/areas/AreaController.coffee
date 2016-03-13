@@ -2,7 +2,7 @@ window.HG ?= {}
 
 # debug output?
 DEBUG = no
-LOAD = no
+LOAD = yes
 
 class HG.AreaController
 
@@ -542,7 +542,7 @@ class HG.AreaController
           id =        val.properties.id
           geometry =  @_geometryReader.read val.geometry
           name =      val.properties.name
-          reprPoint = val.properties.repr_point
+          reprPoint = @_geometryReader.read val.properties.repr_point
 
           # error handling: each area must have valid id and geometry
           return if not id
