@@ -224,7 +224,7 @@ class HG.EditOperation
   _finish: () ->
     # TODO: convert action list to new data to be stored in the database
 
-    output = {
+    request = {
       hivent:       @_operation.steps[3].outData.hiventInfo
       change: {
         operation:  @_operation.id
@@ -235,16 +235,35 @@ class HG.EditOperation
 
     for area in @_operation.steps[2].outData.namedAreas
       newArea = @_hgInstance.areaController.getArea area
-      output.change.new_areas.push {
+      request.change.new_areas.push {
         id:         newArea.getId()
         name:       newArea.getName()
         geometry:   newArea.getGeometry().wkt()
         repr_point: newArea.getRepresentativePoint().wkt()
       }
 
-    console.log "SAVE TO SERVER:", output
 
-    # TODO: update with reasonable id from server
+    # save hivent + changes + new areas to server
+    $.ajax
+      url:  'save_operation/'
+      type: 'POST'
+      data: JSON.stringify request
+
+      # success callback: add id to hivent and save it in hivent controller
+      success: (response) =>
+        data = $.parseJSON response
+        console.log data
+
+        # TODO: update new areas with id from server
+
+        # TODO: add new hivent, save in hivent controller
+
+      # error callback: print error
+      error: (xhr, errmsg, err) =>
+        console.log xhr
+        console.log errmsg, err
+        console.log xhr.responseText
+
 
     @notifyAll 'onFinish'
 

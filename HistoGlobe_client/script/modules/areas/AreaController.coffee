@@ -2,7 +2,7 @@ window.HG ?= {}
 
 # debug output?
 DEBUG = no
-LOAD = no
+LOAD = yes
 
 class HG.AreaController
 

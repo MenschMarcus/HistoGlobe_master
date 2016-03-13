@@ -1,12 +1,24 @@
+"""
+  This file contains all kinds of universal helper functions
+  - date object <-> date string conversion
+  - date, string, url and geometry validation
+"""
+
+# ==============================================================================
+### INCLUDES ###
+
 # Django
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
+
+# utils
+import chromelogger as console
 
 # datetime
 import rfc3339      # for date object -> date string
 import iso8601      # for date string -> date object
 
-from django.contrib.gis.geos import WKTReader
+from django.contrib.gis.geos import WKTReader, MultiPolygon
 
 
 
@@ -29,7 +41,7 @@ def validate_date(date_string):
     return False
 
   # everything is fine
-  return True
+  return date_string
 
 
 # ==============================================================================
@@ -43,7 +55,7 @@ def validate_string(in_string):
     return False
 
   # everything is fine
-  return True
+  return in_string
 
 # ------------------------------------------------------------------------------
 def validate_url(in_url):
@@ -54,7 +66,7 @@ def validate_url(in_url):
     return False
 
   # everything is fine
-  return True
+  return in_url
 
 
 
@@ -62,10 +74,14 @@ def validate_url(in_url):
 # geometry: validation
 
 # ------------------------------------------------------------------------------
+# problem: output MUST be a MultiPolygon!
 def validate_geometry(in_geom):
   wkt_reader = WKTReader()
   try:
     geom = wkt_reader.read(in_geom)
+    if geom.geom_type != 'MultiPolygon':
+      geom = MultiPolygon(geom)
+
   except ValueError:
     return False
 
@@ -74,12 +90,15 @@ def validate_geometry(in_geom):
 
 
 # ------------------------------------------------------------------------------
-def validate_coordinates(lat, lng):
+def validate_point(in_point):
+  wkt_reader = WKTReader()
   try:
-    isinstance(lat, (int, long, float, complex))
-    isinstance(lng, (int, long, float, complex))
+    point = wkt_reader.read(in_point)
   except ValueError:
     return [False]
+
+  lng = point.x
+  lat = point.y
 
   # check for correct interval
   if (lat < -90) or (lat > 90):
@@ -88,9 +107,7 @@ def validate_coordinates(lat, lng):
     return [False]
 
   # everything is fine
-  return [lat, lng]
-
-
+  return point
 
 # ==============================================================================
 # timestamp framework
@@ -104,35 +121,3 @@ def validate_coordinates(lat, lng):
 #   timestamp_2-timestamp_1,
 #   timestamp_3-timestamp_2,
 #   timestamp_4-timestamp_3,)
-
-
-
-
-# ------------------------------------------------------------------------------
-def create_area(area):
-
-  # name
-  if utils.validate_string(area['name']) == False:
-    return False
-  else:
-    name = area['name']
-
-  # geometry
-  geom = utils.validate_geometry(area['geometry'])
-  if geom == False:
-    return False
-
-  # representative point
-  [lat, lng] = utils.validate_coordinates(area['repr_point']['lat'], area['repr_point']['lng'])
-  if lat == False:
-    return False
-  repr_point = Point(lat, lng)
-
-  new_area = Area(
-      name =        name,
-      geom =        geom,
-      repr_point =  repr_point
-    )
-  new_area.save()
-
-  return new_area

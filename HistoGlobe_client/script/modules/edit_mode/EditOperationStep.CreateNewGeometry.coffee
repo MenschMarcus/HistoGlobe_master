@@ -72,7 +72,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
     else if @_stepData.operationCommand is 'DEL'
 
       if @_isForward
-        for area in @_stepData.inData.selectedAreas[0]
+        for id in @_stepData.inData.selectedAreas
           area = @_areaController.getArea id
           # save in temporary areas to restore them later
           @_stepData.tempAreas.push {

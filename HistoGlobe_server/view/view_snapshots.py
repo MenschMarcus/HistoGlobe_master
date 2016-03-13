@@ -3,6 +3,9 @@
 
 # Django
 
+# utils
+import chromelogger as console
+
 # own
 import utils
 from HistoGlobe_server.models import Snapshot

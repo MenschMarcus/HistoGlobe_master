@@ -14,9 +14,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 
 # GeoDjango
-from django.contrib.gis import measure
-from django.contrib.gis.geos import *
-from django.contrib.gis.measure import D # ``D`` is a shortcut for ``Distance``
+from django.contrib.gis.geos import Point
 
 # utils
 import chromelogger as console
@@ -91,7 +89,7 @@ def get_initial_areas(request):
   ## PROCESSING
 
   # look for snapshot closest to the requested date
-  closest_snapshot = get_closest_snapshot(now_date)
+  closest_snapshot = view_snapshots.get_closest_snapshot(now_date)
 
   # accumulate all changes in events since this date
   start_date = max(now_date, closest_snapshot.date)
