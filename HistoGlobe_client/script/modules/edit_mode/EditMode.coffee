@@ -74,7 +74,7 @@ class HG.EditMode
 
           # save to server
           $.ajax
-            url:  'save_hivent/'
+            url:  'save_operation/'
             type: 'POST'
             data: JSON.stringify request
 

@@ -235,14 +235,13 @@ class HG.EditOperation
 
     for area in @_operation.steps[2].outData.namedAreas
       newArea = @_hgInstance.areaController.getArea area
-      output.change.newAreas.push {
+      output.change.new_areas.push {
         id:         newArea.getId()
         name:       newArea.getName()
         geometry:   newArea.getGeometry().wkt()
         repr_point: newArea.getRepresentativePoint().wkt()
       }
 
-    console.log "SAVE TO SERVER:", JSON.stringify output
     console.log "SAVE TO SERVER:", output
 
     # TODO: update with reasonable id from server

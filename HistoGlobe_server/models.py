@@ -5,6 +5,8 @@
   $ python manage.py migrate
 """
 
+# ==============================================================================
+### INCLUDES ###
 
 from django.contrib.gis.db import models
 from djgeojson.fields import *
@@ -118,11 +120,11 @@ class Change(models.Model):
 
 class ChangeAreas(models.Model):
   change =      models.ForeignKey             (Change, related_name='change')
-  old_area =    models.ForeignKey             (Area, related_name='old_area')
-  new_area =    models.ForeignKey             (Area, related_name='new_area')
+  old_area =    models.ForeignKey             (Area, related_name='old_area', null=True)
+  new_area =    models.ForeignKey             (Area, related_name='new_area', null=True)
 
   def __unicode__(self):
-    return self.change.id
+    return self.change
 
 
 
