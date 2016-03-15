@@ -7,7 +7,7 @@ class HG.NewNameTool
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, initName, initPosition) ->
+  constructor: (@_hgInstance, initShortName, initFormalName, initPosition) ->
 
     @_hgInstance.newNameTool = @
 
@@ -43,13 +43,15 @@ class HG.NewNameTool
     #   (-) position does not update on zoom / pan of the map
     # => possible, but hard...
 
+    # TODO: work on formal name
+
     @_wrapper = new HG.Div 'new-name-wrapper', null
     @_hgInstance.getTopArea().appendChild @_wrapper
 
     @_inputField = new HG.TextInput @_hgInstance, 'new-name-input', null
     @_inputField.j().attr 'size', NAME_MIN_SIZE
-    if initName   # set either the text that is given (to just accept it)
-      @_inputField.setText initName
+    if initShortName   # set either the text that is given (to just accept it)
+      @_inputField.setText initShortName
       @_resize()
     else          # or have only a placeholder
       @_inputField.setPlaceholder 'name'
@@ -88,10 +90,11 @@ class HG.NewNameTool
     @_okButton.onClick @, () =>
       # get center coordinates
       center = new L.Point @_wrapper.j().position().left, @_wrapper.j().position().top
-      newName = @_inputField.j().val()
+      newShortName = @_inputField.j().val()
+      # TODO: work on formal name
+      newFormalName = newShortName
       newPosition = new HG.Point(@_map.containerPointToLatLng center)
-      @notifyAll 'onSubmit', newName, newPosition
-
+      @notifyAll 'onSubmit', newShortName, newFormalName, newPosition
 
 
   # ============================================================================

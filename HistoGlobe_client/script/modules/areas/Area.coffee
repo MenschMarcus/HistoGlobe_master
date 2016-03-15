@@ -17,9 +17,9 @@ class HG.Area
   # ============================================================================
   constructor: (
         @_id,
-        @_nameShort = null,
-        @_nameFormal = null,
         @_geometry,
+        shortName = null,
+        formalName = null,
         @_representativePoint = null
         @_internationalStatus = 'F', # what is the international status of the area?
           # >1945: member of UN?
@@ -33,6 +33,12 @@ class HG.Area
           # 'N' = not recognized by area with international status 'F'
         @_territoryOf = null        # is the area (e.g. overseas) territory of another area?
       ) ->
+
+    # handling name object
+    @_name = {
+      short:  shortName
+      formal: formalName
+    }
 
     @_active = no               # is area currently on the map?
     @_selected = no             # is area currently selected?
@@ -53,9 +59,18 @@ class HG.Area
   hasGeometry: () ->                  @_geometry.isValid()
 
   # ----------------------------------------------------------------------------
-  # TODO: überarbeiten
-  setName: (name) ->                  @_name = name
-  getName: () ->                      @_nameShort
+  setShortName: (name) ->
+    @_name ?= {}
+    @_name.short = name
+
+  setFormalName: (name) ->
+    @_name ?= {}
+    @_name.formal = name
+
+  getShortName: () ->                 @_name.short
+  getFormalName: () ->                @_name.formal
+
+  removeName: () ->                   @_name = null
   hasName: () ->                      @_name isnt null
 
   # ----------------------------------------------------------------------------
@@ -169,6 +184,12 @@ class HG.Area
         # else not focused
           # (N) normal area + unselected + not focused => initial configuration
           # => no change
+
+        # check if internationally recognized
+        if @_sovereigntyStatus is 'P'
+          style.areaColor = HGConfig.color_disabled.val
+        if @_sovereigntyStatus is 'N'
+          style.areaColor = HGConfig.color_disabled_active.val
 
 
     return style
