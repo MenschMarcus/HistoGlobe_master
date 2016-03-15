@@ -191,11 +191,15 @@ def prepare_output(areas, chunk_size, chunks_complete):
     json_str +=   '"type":"Feature",'
     json_str +=   '"properties":'
     json_str +=   '{'
-    json_str +=     '"id":'           + str(area.id)                     + ','
-    json_str +=     '"name":"'        + str(area.name.encode('utf-8'))   + '",'   # N.B: encode with utf-8!
-    json_str +=     '"repr_point":'   + area.repr_point.json    #1 json string
+    json_str +=     '"id":'                   + str(area.id)                          + ','
+    json_str +=     '"name_short":"'          + str(area.name_short.encode('utf-8'))  + '",'   # N.B: encode with utf-8!
+    json_str +=     '"name_formal":"'         + str(area.name_formal.encode('utf-8')) + '",'   # N.B: encode with utf-8!
+    json_str +=     '"representative_point":' + area.repr_point.json                  + ','
+    json_str +=     '"international_status":"'+ str(area.international_status)        + '",'
+    json_str +=     '"sovereignty_status":"'  + str(area.sovereignty_status)          + '",'
+    json_str +=     '"territory_of":"'        + str(area.territory_of)                + '"'
     json_str +=   '},'
-    json_str +=   '"geometry":'       + area.geom.json          #1 json string
+    json_str +=   '"geometry":'               + area.geom.json    #1 json string
     json_str += '}'
 
     # decide if final ',' has to be appended
