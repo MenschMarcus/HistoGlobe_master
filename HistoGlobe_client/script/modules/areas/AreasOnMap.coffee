@@ -113,7 +113,7 @@ class HG.AreasOnMap
     # create label with name and position
     area.labelLayer = new L.Label()
     # TODO: set back @_addLinebreaks
-    area.labelLayer.setContent area.getName()
+    area.labelLayer.setContent area.getShortName()
     area.labelLayer.setLatLng area.getRepresentativePoint().latLng()
 
     # create double-link: leaflet label knows HG area and HG area knows leaflet label
@@ -139,7 +139,7 @@ class HG.AreasOnMap
 
   # ----------------------------------------------------------------------------
   _updateLabel: (area) ->
-    area.labelLayer.setContent area.getName()
+    area.labelLayer.setContent area.getShortName()
 
   # ----------------------------------------------------------------------------
   _updateLabelPosition: (area) ->

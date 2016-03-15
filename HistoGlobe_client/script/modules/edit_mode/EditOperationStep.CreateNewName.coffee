@@ -56,36 +56,38 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
     # get old and new step
     currentArea = @_areaController.getArea @_stepData.inData.createdAreas[@_areaIdx]
     @_currentId = currentArea.getId()
-    @_currentName = currentArea.getName()
+    @_currentShortName = currentArea.getShortName()
+    @_currentFormalName = currentArea.getFormalName()
     @_currentPosition = currentArea.getRepresentativePoint()
 
     # delete name, but put it into name tool
-    @notifyEditMode 'onUpdateAreaName', @_currentId, null if @_currentName
+    @notifyEditMode 'onUpdateAreaName', @_currentId, null, null if currentArea.hasName()
 
     # set up NewNameTool to set name and position of area interactively
-    newNameTool = new HG.NewNameTool @_hgInstance, @_currentName, @_currentPosition
+    newNameTool = new HG.NewNameTool @_hgInstance, @_currentShortName, @_currentFormalName, @_currentPosition
 
 
     ### LISTEN TO USER INPUT ###
-    newNameTool.onSubmit @, (newName, newPosition) =>
+    newNameTool.onSubmit @, (newShortName, newFormalName, newPosition) =>
 
       # save the old name
       @_stepData.tempAreas[@_areaIdx] = {
-        'id':       @_currentId
-        'name':     @_currentName
-        'point':    @_currentPosition
+        'id':         @_currentId
+        'shortName':  @_currentShortName
+        'formalName': @_currentFormalName
+        'point':      @_currentPosition
       }
 
       # save the named area
       @_stepData.outData.namedAreas[@_areaIdx] = @_currentId
-      @notifyEditMode 'onUpdateAreaName', @_currentId, newName, newPosition
+      @notifyEditMode 'onUpdateAreaName', @_currentId, newShortName, newFormalName, newPosition
 
       # make action reversible
       @_undoManager.add {
         undo: =>
           # restore old name
           area = @_stepData.tempAreas[@_areaIdx]
-          @notifyEditMode 'onUpdateAreaName', area.id, area.name, area.point
+          @notifyEditMode 'onUpdateAreaName', area.id, area.shortName, area.formalName, area.point
 
           # go to previous area
           @_cleanup()
