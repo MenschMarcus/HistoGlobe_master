@@ -30,17 +30,22 @@ import rfc3339
 #   TODO: currently only English -> to be extended
 
 class Area(models.Model):
-  geom =            models.MultiPolygonField  (default='MULTIPOLYGON EMPTY')
-  repr_point =      models.PointField         (null=True)
-  name =            models.CharField          (max_length=100)
+  name_short =            models.CharField          (max_length=100, default='')
+  name_formal =           models.CharField          (max_length=150, default='')
+  geom =                  models.MultiPolygonField  (default='MULTIPOLYGON EMPTY')
+  repr_point =            models.PointField         (null=True)
+  international_status =  models.CharField          (null=True, max_length=1)
+  sovereignty_status =    models.CharField          (null=True, max_length=1)
+  territory_of =          models.ForeignKey         ('self', null=True)
+
 
   # overriding the default manager with a GeoManager instance.
   # didn't quite understand what this is for...
-  objects =         models.GeoManager         ()
+  objects =               models.GeoManager         ()
 
 
   def __unicode__(self):
-    return self.name
+    return self.name_short
 
 
 
@@ -52,7 +57,7 @@ class Area(models.Model):
 ## Hivent stores historical happenings at which the countries of Earth change
 
 class Hivent(models.Model):
-  name =            models.CharField          (max_length=150)
+  name =            models.CharField          (max_length=150, default='')
   start_date =      models.DateTimeField      (null=True)
   end_date =        models.DateTimeField      (null=True)
   effect_date =     models.DateTimeField      (default=timezone.now)

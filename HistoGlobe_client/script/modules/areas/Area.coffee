@@ -2,6 +2,7 @@ window.HG ?= {}
 
 # ============================================================================
 # MODEL class
+# DTO => direct access to memeber variables
 # contains data about each Area in the system
 # geom = geojson object
 # name = string,
@@ -16,15 +17,28 @@ class HG.Area
   # ============================================================================
   constructor: (
         @_id,
+        @_nameShort = null,
+        @_nameFormal = null,
         @_geometry,
-        @_name = null,
         @_representativePoint = null
+        @_internationalStatus = 'F', # what is the international status of the area?
+          # >1945: member of UN?
+          # 'F' = full member,
+          # 'O' = observer member,
+          # 'P' = member of at least one specialized agency
+          # 'N' = no UN member at all
+        @_sovereigntyStatus = 'F',   # what is the status of its sovereignity?
+          # 'F' = fully recognized by areas with international status 'F'
+          # 'P' = partially recognized by at least one area with international status 'F'
+          # 'N' = not recognized by area with international status 'F'
+        @_territoryOf = null        # is the area (e.g. overseas) territory of another area?
       ) ->
 
-    @_active = no       # is area currently on the map?
-    @_selected = no     # is area currently selected?
-    @_focused = no      # is area currently in focus (hovered)?
-    @_inEdit = no       # is area in edit mode?
+    @_active = no               # is area currently on the map?
+    @_selected = no             # is area currently selected?
+    @_focused = no              # is area currently in focus (hovered)?
+    @_inEdit = no               # is area in edit mode?
+
 
     @resetRepresentativePoint() unless @_representativePoint
 
@@ -39,8 +53,9 @@ class HG.Area
   hasGeometry: () ->                  @_geometry.isValid()
 
   # ----------------------------------------------------------------------------
+  # TODO: überarbeiten
   setName: (name) ->                  @_name = name
-  getName: () ->                      @_name
+  getName: () ->                      @_nameShort
   hasName: () ->                      @_name isnt null
 
   # ----------------------------------------------------------------------------

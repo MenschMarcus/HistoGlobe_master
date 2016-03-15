@@ -2,7 +2,6 @@ window.HG ?= {}
 
 # debug output?
 DEBUG = no
-LOAD = yes
 
 class HG.AreaController
 
@@ -43,9 +42,6 @@ class HG.AreaController
     # add module to HG instance
     @_hgInstance.areaController = @
 
-    # external modules
-    @_geometryReader = new HG.GeometryReader
-
 
     ### INIT MEMBERS ###
     @_activeAreas = []            # set of all HG.Area's currently active
@@ -64,21 +60,15 @@ class HG.AreaController
       areaViewer.push @_hgInstance.areasOnMap     if @_hgInstance.areasOnMap?
       areaViewer.push @_hgInstance.areasOnGlobe   if @_hgInstance.areasOnGlobe?
 
-
       ### INIT AREAS ###
-      # initially load them from file
-      # TODO: exchange with real fetcching from the database
+      @_areaLoader = new HG.AreaLoader @_hgInstance
+      areas = @_areaLoader.loadInit()
 
-      request =
-        date:       moment(@_hgInstance.timeline.getNowDate()).format()
-        centerLat:  @_hgInstance.map.getCenter()[0]
-        centerLng:  @_hgInstance.map.getCenter()[1]
-        chunkId:    0         # initial
-        chunkSize:  50        # = number of areas per response
-
-      # recursively load chunks of areas from the server
-      if LOAD
-        @_loadAreasFromServer request
+      @_areaLoader.onFinishLoading @, (area) ->
+        console.log area
+        @_createGeometry area
+        @_createName area if area.hasName()
+        @_activate area
 
 
       ### TO INTERFACE ###
@@ -221,6 +211,7 @@ class HG.AreaController
         # error handling: new area must have valid id and geometry
         return if (not id) or (not geometry.isValid())
 
+        # TODO: überarbeiten
         area = new HG.Area id, geometry, name
 
         @_createGeometry area
@@ -245,6 +236,7 @@ class HG.AreaController
         # => create it
         if (not hadGeometryBefore) and (hasGeometryNow)
 
+          # TODO: überarbeiten
           area = new HG.Area id, newGeometry
 
           @_createGeometry area
@@ -518,57 +510,6 @@ class HG.AreaController
       @notifyAll 'onUpdateStatus', area                        # view
 
       loopIdx--
-
-
-
-  # ============================================================================
-  # recursively load all areas from the server
-  _loadAreasFromServer: (request) ->
-
-    $.ajax
-      url:  'get_initial_areas/'
-      type: 'POST'
-      data: JSON.stringify request
-
-      # success callback: load areas here
-      success: (response) =>
-
-        # deserialize string to object
-        dataObj = $.parseJSON response
-
-        # create an area for each feature
-        $.each dataObj.features, (key, val) =>
-
-          id =        val.properties.id
-          geometry =  @_geometryReader.read val.geometry
-          name =      val.properties.name
-          reprPoint = @_geometryReader.read val.properties.repr_point
-
-          # error handling: each area must have valid id and geometry
-          return if not id
-          return if not geometry.isValid()
-
-          # create new area
-          area = new HG.Area id, geometry, name, reprPoint
-
-          @_createGeometry area
-          @_createName area if area.hasName()
-          @_activate area
-
-
-        # increment to next load (if not finished yet)
-        # RECURSION PARTỲ !!!
-        if not dataObj.loadingComplete
-          request.chunkId += request.chunkSize
-          @_loadAreasFromServer request
-
-      # callback: print error message
-      error: (xhr, errmsg, err) =>
-        console.log xhr
-        console.log errmsg, err
-        console.log xhr.responseText
-
-
 
 
   # ============================================================================
