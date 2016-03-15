@@ -63,9 +63,9 @@ class HG.AreaLoader
         $.each dataObj.features, (key, val) =>
 
           id =                    val.properties.id
-          nameShort =             val.properties.name_short
-          nameFormal =            val.properties.name_formal
           geometry =              @_geometryReader.read val.geometry
+          shortName =             val.properties.name_short
+          formalName =            val.properties.name_formal
           representativePoint =   @_geometryReader.read val.properties.representative_point
           internationalStatus =   val.properties.international_status
           sovereigntyStatus =     val.properties.sovereignty_status
@@ -77,7 +77,7 @@ class HG.AreaLoader
 
           # create new area
           @notifyAll 'onFinishLoading', new HG.Area(
-            id, nameShort, nameFormal, geometry, representativePoint,
+            id, geometry, shortName, formalName, representativePoint,
             internationalStatus, sovereigntyStatus, territoryOf)
 
 

@@ -65,7 +65,6 @@ class HG.AreaController
       areas = @_areaLoader.loadInit()
 
       @_areaLoader.onFinishLoading @, (area) ->
-        console.log area
         @_createGeometry area
         @_createName area if area.hasName()
         @_activate area
@@ -206,13 +205,13 @@ class HG.AreaController
       # handle new, updated and old areas
 
       # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onCreateArea @, (id, geometry, name=null) ->
+      @_hgInstance.editMode.onCreateArea @, (id, geometry, shortName=null, formalName=null) ->
 
         # error handling: new area must have valid id and geometry
         return if (not id) or (not geometry.isValid())
 
         # TODO: überarbeiten
-        area = new HG.Area id, geometry, name
+        area = new HG.Area id, geometry, shortName, formalName,
 
         @_createGeometry area
         @_createName area if area.hasName()
@@ -269,7 +268,7 @@ class HG.AreaController
       # ------------------------------------------------------------------------
       # name and position come always together from edit mode, so both properties
       # can exceptionally be treated in the same function
-      @_hgInstance.editMode.onUpdateAreaName @, (id, newName=null, newPosition=null) ->
+      @_hgInstance.editMode.onUpdateAreaName @, (id, newShortName=null, newFormalName=null, newPosition=null) ->
         area = @getArea id
 
         # error handling: area has to be found
@@ -277,20 +276,20 @@ class HG.AreaController
 
         ## update model
         hadNameBefore = area.hasName()
-        hasNameNow = newName isnt null
+        hasNameNow = newShortName isnt null
 
         ## update area status
 
         # if there was no name before and there is a valid new name now
         # => create it
         if (not hadNameBefore) and (hasNameNow)
-          @_createName area, newName
+          @_createName area, newShortName, newFormalName
           @_updateRepresentativePoint area, newPosition if newPosition
 
         # if there was a name before and there is a valid new name now
         # => update it
         else if (hadNameBefore) and (hasNameNow)
-          @_updateName area, newName
+          @_updateName area, newShortName, newFormalName
           @_updateRepresentativePoint area, newPosition if newPosition
 
         # if there was a name before and there is no valid new name now
@@ -400,13 +399,15 @@ class HG.AreaController
     @notifyAll 'onRemoveGeometry', area                         # view
 
   # ============================================================================
-  _createName: (area, name=null) ->
-    area.setName name if name                                   # model
+  _createName: (area, shortName=null, formalName=null) ->
+    area.setShortName shortName if shortName                    # model
+    area.setFormalName formalName if formalName                 # model
     @notifyAll 'onCreateName', area                             # view
 
   # ----------------------------------------------------------------------------
-  _updateName: (area, name) ->
-    area.setName name                                           # model
+  _updateName: (area, shortName, formalName) ->
+    area.setShortName shortName                                 # model
+    area.setFormalName formalName                               # model
     @notifyAll 'onUpdateName', area                             # view
 
   # ----------------------------------------------------------------------------
@@ -419,7 +420,7 @@ class HG.AreaController
 
   # ----------------------------------------------------------------------------
   _removeName: (area) ->
-    area.setName null                                           # model
+    area.removeName()                                           # model
     @notifyAll 'onRemoveName', area                             # view
 
   # ============================================================================

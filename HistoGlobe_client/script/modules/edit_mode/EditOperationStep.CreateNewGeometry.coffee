@@ -78,13 +78,14 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
           @_stepData.tempAreas.push {
             'id':             id
             'geometry':       area.getGeometry()
-            'name':           area.getName()
+            'shortName':      area.getShortName()
+            'formalName':     area.getFormalName()
           }
           @notifyEditMode 'onRemoveArea', id
 
       else # backward
         for area in @_stepData.tempAreas[0]
-          @notifyEditMode 'onCreateArea', area.id, area.geometry, area.name
+          @notifyEditMode 'onCreateArea', area.id, area.geometry, area.shortName, area.formalName
 
       return @finish() # no user input
 
@@ -140,9 +141,10 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
         existingAreas = @_areaController.getAreas()
         loopIdx = existingAreas.length-1
         while loopIdx >= 0
-          existingAreaId = existingAreas[loopIdx].getId()
-          existingGeometry = existingAreas[loopIdx].getGeometry()
-          existingName = existingAreas[loopIdx].getName()
+          existingAreaId =      existingAreas[loopIdx].getId()
+          existingGeometry =    existingAreas[loopIdx].getGeometry()
+          existingShortName =   existingAreas[loopIdx].getShortName()
+          existingFormalName =  existingAreas[loopIdx].getFormalName()
 
           # if new geometry intersects with an existing geometry
           intersectionGeometry = @_geometryOperator.intersection clipGeometry, existingGeometry
@@ -154,7 +156,8 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
               'id':           existingAreaId
               'clip':         clipGeometry
               'geometry':     existingGeometry
-              'name':         existingName
+              'shortName':    existingShortName
+              'formalName':   existingFormalName
             }
             @notifyEditMode 'onUpdateAreaGeometry', existingAreaId, newGeometry
 
@@ -184,7 +187,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
             while @_stepData.tempAreas.length > 0
               area = @_stepData.tempAreas.pop()
               @notifyEditMode 'onUpdateAreaGeometry', area.id, area.geometry
-              @notifyEditMode 'onUpdateAreaName', area.id, area.name
+              @notifyEditMode 'onUpdateAreaName', area.id, area.shortName, area.formalName
 
             # go to previous area
             @_finish = no
@@ -199,7 +202,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
         existingAreaId = @_stepData.inData.selectedAreas[0]
         existingGeometry = @_areaController.getArea(existingAreaId).getGeometry()
-        existingName = @_areaController.getArea(existingAreaId).getName()
+        existingShortName = @_areaController.getArea(existingAreaId).getShortName()
 
         # clip incoming geometry (= clipGeometry) to selected geometry
         # -> create new area
@@ -225,7 +228,8 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
           'id':           existingAreaId
           'clip':         clipGeometry
           'geometry':     existingGeometry
-          'name':         existingName
+          'shortName':    existingShortName
+          'formalName':   existingFormalName
           'usedRest':     @_finish    # bool: has user just clicked on rest?
         }
 
@@ -243,7 +247,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
             # restore old state of original area
             existingArea = @_stepData.tempAreas.pop()
             @notifyEditMode 'onUpdateAreaGeometry', existingArea.id, existingArea.geometry
-            @notifyEditMode 'onUpdateAreaName', existingArea.id, existingArea.name
+            @notifyEditMode 'onUpdateAreaName', existingArea.id, existingArea.shortName, existingArea.formalName
             @notifyEditMode 'onDeselectArea', existingArea.id
 
             # go to previous area
@@ -266,8 +270,10 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
         A_area = @_areaController.getArea A_id
         B_area = @_areaController.getArea B_id
 
-        A_name = A_area.getName()
-        B_name = B_area.getName()
+        A_shortName = A_area.getShortName()
+        B_shortName = B_area.getShortName()
+        A_formalName = A_area.getFormalName()
+        B_formalName = B_area.getFormalName()
         A_point = A_area.getRepresentativePoint()
         B_point = B_area.getRepresentativePoint()
 
@@ -289,18 +295,20 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
           A_new = @_geometryOperator.difference AuB, C
 
         @_stepData.tempAreas[0] = {
-          'id':       A_id
-          'clip':     C
-          'geometry': A
-          'name':     A_name
-          'point':    A_point
+          'id':           A_id
+          'clip':         C
+          'geometry':     A
+          'shortName':    A_shortName
+          'formmalName':  A_formalName
+          'point':        A_point
         }
         @_stepData.tempAreas[1] = {
-          'id':       B_id
-          'clip':     C
-          'geometry': B
-          'name':     B_name
-          'point':    B_point
+          'id':           B_id
+          'clip':         C
+          'geometry':     B
+          'shortName':    B_shortName
+          'formmalName':  B_formalName
+          'point':        B_point
         }
 
         # update both areas
@@ -328,7 +336,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
               @_stepData.outData.createdAreas.pop()
               area = @_stepData.tempAreas.pop()
               @notifyEditMode 'onUpdateAreaGeometry', area.id, area.geometry
-              @notifyEditMode 'onUpdateAreaName', area.id, area.name, area.point
+              @notifyEditMode 'onUpdateAreaName', area.id, area.shortName, area.formalName, area.point
               @notifyEditMode 'onSelectArea', area.id
 
             # go to previous area
@@ -361,7 +369,8 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
       @_stepData.tempAreas.push {
         'id':             id
         'geometry':       area.getGeometry()
-        'name':           area.getName()
+        'shortName':      area.getShortName()
+        'formalName':     area.getFormalName()
       }
       # remove area
       @notifyEditMode 'onRemoveArea', id
@@ -387,7 +396,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
     # restore previously selected areas
     for area in @_stepData.tempAreas
-      @notifyEditMode 'onCreateArea', area.id, area.geometry, area.name
+      @notifyEditMode 'onCreateArea', area.id, area.geometry, area.shortName, area.formalName
 
 
   # ============================================================================
