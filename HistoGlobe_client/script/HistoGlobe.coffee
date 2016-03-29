@@ -17,6 +17,7 @@ class HG.HistoGlobe
   # ============================================================================
   constructor: (pathToJson) ->
 
+    # init callback mechanism
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
@@ -24,6 +25,9 @@ class HG.HistoGlobe
     # Any object may listen for notifictations on any of the below signals.
     @addCallback 'onAllModulesLoaded'
     @addCallback 'onWindowResize'
+
+    # include
+    @_domElemCreator = new HG.DOMElementCreator
 
     # issue: HGConfig provides rose variables, but for colors it does not return
     # the hex code '#rrggbb', but an object with r, g, b, a and val attributes
@@ -68,16 +72,16 @@ class HG.HistoGlobe
 
       ### SETUP GUI ###
 
-      @config.container = new HG.Div 'histoglobe'
-      document.body.appendChild @config.container.dom()  if document.body != null
+      @config.container = @_domElemCreator.create 'div', 'histoglobe'
+      document.body.appendChild @config.container  if document.body != null
 
-      @_topArea = new HG.Div 'top-area'
+      @_topArea = @_domElemCreator.create 'div', 'top-area'
       @config.container.appendChild @_topArea
 
-      @_spatialArea = new HG.Div 'spatial-area'
+      @_spatialArea = @_domElemCreator.create 'div', 'spatial-area'
       @_topArea.appendChild @_spatialArea
 
-      @_spatialCanvas = new HG.Div 'spatial-canvas'
+      @_spatialCanvas = @_domElemCreator.create 'div', 'spatial-canvas'
       @_spatialArea.appendChild @_spatialCanvas
 
 
@@ -118,7 +122,7 @@ class HG.HistoGlobe
         window.hgConf=config
 
       # After all modules are loaded, notify whoever is interested
-      @notifyAll "onAllModulesLoaded"
+      @notifyAll 'onAllModulesLoaded'
 
       # resize event handling
       $(window).on 'resize', @_onResize
@@ -162,7 +166,7 @@ class HG.HistoGlobe
   getSpatialCanvasSize: () ->
     return {
       x: window.innerWidth
-      y: @_top_area.j().outerHeight()
+      y: $(@_top_area).outerHeight()
     }
 
 
@@ -177,13 +181,13 @@ class HG.HistoGlobe
   # ============================================================================
   _updateLayout: =>
     width = window.innerWidth
-    height = window.innerHeight - @_topArea.j().offset().top
+    height = window.innerHeight - $(@_topArea).offset().top
 
     map_height = height - HGConfig.timeline_height.val
     map_width = width
 
-    @_spatialArea.dom().style.width = "#{map_width}px"
-    @_spatialArea.dom().style.height = "#{map_height}px"
+    @_spatialArea.style.width = "#{map_width}px"
+    @_spatialArea.style.height = "#{map_height}px"
 
     @notifyAll 'onWindowResize', map_width, map_height
 

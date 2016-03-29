@@ -173,7 +173,7 @@ class HG.Popover
       content.className = "guiPopoverContent"
 
       if @_config.content?
-        content.appendChild @_config.content#.dom()
+        content.appendChild @_config.content
       else
         content.innerHTML = @_config.contentHTML
 
