@@ -27,8 +27,8 @@ class HG.Button
   #
   # usage
   #   @_hgInstance.buttons.buttonName.onCallbackName @, () =>
-  # ============================================================================
 
+  # ============================================================================
   constructor: (@_hgInstance, id, classes=[], states, existParent=null) ->
 
     # error handling
