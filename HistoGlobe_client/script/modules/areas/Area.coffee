@@ -26,7 +26,7 @@ class HG.Area
 
     # what is the status of its sovereignity?
     @_sovereigntyStatus =   new HG.StateVar ['F', 'P', 'N']
-    # 'F' = recognized by all fully sovereign states
+    # 'F' = recognized by all fully sovereign states (default)
     # 'P' = partially recognized by at least one fully sovereign state
     # 'N' = not recognized by any fully sovereign state
     @_sovereigntyStatus.set areaData.sovereigntyStatus

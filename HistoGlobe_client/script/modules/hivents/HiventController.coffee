@@ -57,8 +57,6 @@ class HG.HiventController
         @notifyAll "onHiventAdded", hiventHandle
         @_handlesNeedSorting = true
 
-        console.log hiventHandle
-
 
     # Register listeners to update filters or react on updated filters.
     # @_hgInstance.timeline.onIntervalChanged @, (timeFilter) =>
