@@ -3,7 +3,7 @@ window.HG ?= {}
 # ============================================================================
 # <input type='number' name='id'>
 
-class HG.NumberInput extends HG.DOMElement
+class HG.NumberInput
 
   # ============================================================================
   constructor: (@_hgInstance, id=null, classes=[]) ->
@@ -20,10 +20,11 @@ class HG.NumberInput extends HG.DOMElement
 
     @addCallback 'onChange'
 
-    # construct object of subclass with superclass
-    super 'input', id, classes, [['type', 'number'], ['name', id]]
+    # create dom element
+    domElemCreator = new HG.DOMElementCreator
+    elem = domElemCreator.create 'input', id, classes, [['type', 'number'], ['name', id]]
 
     # change
-    $(@_elem).on 'keyup mouseup', (e) =>
+    $(elem).on 'keyup mouseup', (e) =>
       # tell everyone the new value
       @notifyAll 'onChange', e.currentTarget.value

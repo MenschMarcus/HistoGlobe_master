@@ -30,8 +30,10 @@ class HG.NewGeometryTool
     @_histoGraph = @_hgInstance.histoGraph
     @_geometryReader = new HG.GeometryReader
     @_geometryOperator = new HG.GeometryOperator
+    @_domElemCreator = new HG.DOMElementCreator
 
     iconPath = @_hgInstance.config.graphicsPath + 'buttons/'
+
 
     ### SETUP LEAFLET DRAW ###
 
@@ -74,9 +76,7 @@ class HG.NewGeometryTool
     # leaflet already has buttons to control the draw action
     # but I want them to behave just like any other HG Button
     # SOLUTION:
-    # 1. extend the HG.DOMElement -> HG.Anchor class to also accept existing
-    # dom elements and transform then into HG.DOMElements
-    # 2. extend the HG.Button class to also accept existing HG.DOMElements as
+    # extend the HG.Button class to also accept existing HG.DOMElements as
     # parent divs for the button
     # -> very hacky, but elegant solution ;)
 
@@ -102,7 +102,7 @@ class HG.NewGeometryTool
         'posY':         'top'
         'orientation':  'vertical'
       }
-    @_hgInstance.getTopArea().appendChild @_buttonArea.dom()
+    @_hgInstance.getTopArea().appendChild @_buttonArea.getDOMElement()
 
 
     ## buttons themselves
@@ -116,7 +116,7 @@ class HG.NewGeometryTool
             'iconOwn':        iconPath + 'geom_add.svg'
             'callback':       'onClick'
           }
-        ], @_transformToHGDOMElement leafletButtons[0]    # use existing leaflet "add polygon" button
+        ], @_makeHGButton leafletButtons[0]    # use existing leaflet "add polygon" button
     @_buttonArea.addButton @_newGeomBtn, 'new-geom-add-group'
 
     @_reuseGeomBtn = new HG.Button @_hgInstance,
@@ -156,7 +156,7 @@ class HG.NewGeometryTool
             'iconFA':         'edit'
             'callback':       'onClick'
           }
-        ], @_transformToHGDOMElement leafletButtons[1]    # use existing leaflet "edit polygon" button
+        ], @_makeHGButton leafletButtons[1]    # use existing leaflet "edit polygon" button
     @_buttonArea.addButton @_editGeomBtn, 'new-geom-edit-group'
 
     @_deleteGeomBtn = new HG.Button @_hgInstance,
@@ -168,7 +168,7 @@ class HG.NewGeometryTool
             'iconFA':         'trash-o'
             'callback':       'onClick'
           }
-        ], @_transformToHGDOMElement leafletButtons[2]  # use existing leaflet "delete polygon" button
+        ], @_makeHGButton leafletButtons[2]  # use existing leaflet "delete polygon" button
     @_buttonArea.addButton @_deleteGeomBtn, 'new-geom-edit-group'
 
     @_buttonArea.addSpacer()
@@ -313,11 +313,11 @@ class HG.NewGeometryTool
       @_submitGeomBtn.disable()
 
   # ============================================================================
-  _transformToHGDOMElement: (inButton) ->
+  _makeHGButton: (inButton) ->
     $(inButton).removeClass()
     $(inButton).detach()        # removes element from DOM to place it somewhere else
     $(inButton).addClass 'button'
-    new HG.Anchor null, null, null, inButton
+    inButton
 
 
 
@@ -355,11 +355,11 @@ class HG.NewGeometryTool
 
   #   # snap tolerance
   #   snapToleranceInput = new HG.NumberInput @_hgInstance, 'snapTolerance', ['tt-snap-option-input']
-  #   snapToleranceInput.dom().setAttribute 'value', 5.0
-  #   snapToleranceInput.dom().setAttribute 'maxlength', 3
-  #   snapToleranceInput.dom().setAttribute 'step', 0.1
-  #   snapToleranceInput.dom().setAttribute 'min', 0.0
-  #   snapToleranceInput.dom().setAttribute 'max', 10.0
+  #   snapToleranceInput.getDOMElement().setAttribute 'value', 5.0
+  #   snapToleranceInput.getDOMElement().setAttribute 'maxlength', 3
+  #   snapToleranceInput.getDOMElement().setAttribute 'step', 0.1
+  #   snapToleranceInput.getDOMElement().setAttribute 'min', 0.0
+  #   snapToleranceInput.getDOMElement().setAttribute 'max', 10.0
   #   snapToleranceWrapper.appendChild snapToleranceInput
   #   snapToleranceText = new HG.Div null, ['tt-snap-option-text']
   #   snapToleranceText.j().html "snap <br/>tolerance"
