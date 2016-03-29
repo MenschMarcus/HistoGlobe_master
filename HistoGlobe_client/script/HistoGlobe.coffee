@@ -92,7 +92,7 @@ class HG.HistoGlobe
 
         # error handling: ignore comment modules:
         # "### COMMENT ###"
-        return if moduleName.startsWith('#') and moduleName.endsWith('#')
+        return if moduleName.startsWith('#')
 
         defaultConf =
           enabled : true

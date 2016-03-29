@@ -6,7 +6,7 @@ window.HG ?= {}
 # usage:
 # 1)  initialize StateVar with an array of all possible states
 #     whereas the first value is the default and fallback value
-#       myVar = new HG.StateVar = ['stateA', 'stateB']
+#       myVar = new HG.StateVar ['stateA', 'stateB']
 # 2)  set the variable with any value
 #     if value is available, take it, if not, take fallback value
 #       myVar.set 'stateX'

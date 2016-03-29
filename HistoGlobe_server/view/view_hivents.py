@@ -7,6 +7,8 @@
   - get complete hivent + changes + change areas by hivent id
   - get changes in between start and end date
 
+  hivent  <-1:n->  changes  <-1:n->  change_areas = {old_area, new_area}
+
 """
 
 
@@ -203,13 +205,26 @@ def save_change_areas(change, operation, old_areas, new_areas):
 
 
 # ------------------------------------------------------------------------------
-def get_hivent(hivent_id):
+def get_all_hivents():
+  hivent_models = Hivent.objects.all()
 
-  # hivent  <-1:n->  changes  <-1:n->  change_areas = {old_area, new_area}
+  hivents = []
+  for hivent_model in hivent_models:
+    hivents.append(prepare_hivent(hivent_model))
+
+  return hivents
+
+# ------------------------------------------------------------------------------
+def get_hivent(hivent_id):
 
   # N.B: Model.objects.filter() does not return exact match
   # => need to use .get()
-  hivent_model = Hivent.objects.get(id=hivent_id)
+  prepare_hivent(Hivent.objects.get(id=hivent_id))
+
+
+# ------------------------------------------------------------------------------
+def prepare_hivent(hivent_model):
+
   hivent = model_to_dict(hivent_model)
   changes = []
   for change_model in Change.objects.filter(hivent=hivent_model):
