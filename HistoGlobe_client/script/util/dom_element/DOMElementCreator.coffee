@@ -7,12 +7,8 @@ class HG.DOMElementCreator
   ##############################################################################
 
   # replace:
-  # HG.Anchor
   # HG.Div
-  # HG.Icon
-  # HG.Img
   # HG.Span
-
 
   # ============================================================================
   constructor: () ->
@@ -21,15 +17,6 @@ class HG.DOMElementCreator
   # e.g. <i>, <span>, <
   create: (elemType=null, id=null, classes=[], attributes=[]) ->
     @_constructElement elemType, id, classes, attributes
-
-  # ============================================================================
-  a: (id=null, classes=[], href) ->
-    @_constructElement 'a', id, classes, [['href', href]]
-
-  # ============================================================================
-  img: (id=null, classes=[], source) ->
-    @_constructElement 'img', id, classes, [['src', source]]
-
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
