@@ -15,31 +15,26 @@ class HG.Area
   ##############################################################################
 
   # ============================================================================
-  constructor: (
-        @_id,
-        @_geometry,
-        shortName = null,
-        formalName = null,
-        @_representativePoint = null
-        @_internationalStatus = 'F', # what is the international status of the area?
-          # >1945: member of UN?
-          # 'F' = full member,
-          # 'O' = observer member,
-          # 'P' = member of at least one specialized agency
-          # 'N' = no UN member at all
-        @_sovereigntyStatus = 'F',   # what is the status of its sovereignity?
-          # 'F' = fully recognized by areas with international status 'F'
-          # 'P' = partially recognized by at least one area with international status 'F'
-          # 'N' = not recognized by area with international status 'F'
-        @_territoryOf = null        # is the area (e.g. overseas) territory of another area?
-      ) ->
-
-    # handling name object
+  constructor: (areaData) ->
+    @_id =                  areaData.id
+    @_geometry =            areaData.geometry
     @_name = {
-      short:  shortName
-      formal: formalName
+      short:                areaData.shortName                    ?= null
+      formal:               areaData.formalName                   ?= null
     }
+    @_representativePoint = areaData.representativePoint          ?= null
 
+    # what is the status of its sovereignity?
+    @_sovereigntyStatus =   new HG.StateVar ['F', 'P', 'N']
+    # 'F' = recognized by all fully sovereign states
+    # 'P' = partially recognized by at least one fully sovereign state
+    # 'N' = not recognized by any fully sovereign state
+    @_sovereigntyStatus.set areaData.sovereigntyStatus
+
+    # is the area (e.g. overseas) territory of another area?
+    @_territoryOf =         areaData.territoryOf                  ?= null
+
+    # area status
     @_active = no               # is area currently on the map?
     @_selected = no             # is area currently selected?
     @_focused = no              # is area currently in focus (hovered)?
@@ -186,9 +181,9 @@ class HG.Area
           # => no change
 
         # check if internationally recognized
-        if @_sovereigntyStatus is 'P'
+        if @_sovereigntyStatus.get() is 'P'
           style.areaColor = HGConfig.color_disabled.val
-        if @_sovereigntyStatus is 'N'
+        if @_sovereigntyStatus.get() is 'N'
           style.areaColor = HGConfig.color_disabled_active.val
 
 

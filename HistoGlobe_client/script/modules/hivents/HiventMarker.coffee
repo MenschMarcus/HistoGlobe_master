@@ -26,6 +26,7 @@ class HG.HiventMarker
 
     @_hiventHandle = hiventHandle
 
+  # ============================================================================
   hgInit: (hgInstance) ->
     @_hgInstance = hgInstance
 

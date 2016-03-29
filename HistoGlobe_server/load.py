@@ -122,7 +122,6 @@ def run(verbose=True):
       area = Area.objects.get(name_short=row['init_source_name'])
       area.name_short =            row['name_short'].decode('utf-8')
       area.name_formal =           row['name_formal'].decode('utf-8')
-      area.international_status =  row['international_status']
       area.sovereignty_status =    row['sovereignty_status']
       area.save()
       print("Area " + str(area.id) + ': ' + area.name_short + " saved")
@@ -194,7 +193,6 @@ def run(verbose=True):
             name_short =            row['name_short'].decode('utf-8'),
             name_formal =           row['name_formal'].decode('utf-8'),
             geom =                  new_geom,
-            international_status =  row['international_status'],
             sovereignty_status =    row['sovereignty_status']
           )
 

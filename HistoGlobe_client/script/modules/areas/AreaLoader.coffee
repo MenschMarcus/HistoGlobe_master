@@ -11,7 +11,7 @@ class HG.AreaLoader
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance) ->
+  constructor: () ->
 
     # handle callbacks
     HG.mixin @, HG.CallbackContainer
@@ -19,14 +19,11 @@ class HG.AreaLoader
 
     @addCallback 'onFinishLoading'
 
-    # external module
+    # includes
     @_geometryReader = new HG.GeometryReader
 
   # ============================================================================
-  loadInit: () ->
-
-    # initially load them from file
-    # TODO: exchange with real fetcching from the database
+  loadInit: (@_hgInstance) ->
 
     request =
       date:       moment(@_hgInstance.timeline.getNowDate()).format()
@@ -62,23 +59,22 @@ class HG.AreaLoader
         # create an area for each feature
         $.each dataObj.features, (key, val) =>
 
-          id =                    val.properties.id
-          geometry =              @_geometryReader.read val.geometry
-          shortName =             val.properties.name_short
-          formalName =            val.properties.name_formal
-          representativePoint =   @_geometryReader.read val.properties.representative_point
-          internationalStatus =   val.properties.international_status
-          sovereigntyStatus =     val.properties.sovereignty_status
-          territoryOf =           val.properties.territory_of
+          # prepare data
+          areaData = {
+            id :                    val.properties.id
+            geometry :              @_geometryReader.read val.geometry
+            shortName :             val.properties.name_short
+            formalName :            val.properties.name_formal
+            representativePoint :   @_geometryReader.read val.properties.representative_point
+            sovereigntyStatus :     val.properties.sovereignty_status
+            territoryOf :           val.properties.territory_of
+          }
 
           # error handling: each area must have valid id and geometry
-          return if not id
-          return if not geometry.isValid()
+          return if (not areaData.id) or (not areaData.geometry.isValid())
 
           # create new area
-          @notifyAll 'onFinishLoading', new HG.Area(
-            id, geometry, shortName, formalName, representativePoint,
-            internationalStatus, sovereigntyStatus, territoryOf)
+          @notifyAll 'onFinishLoading', new HG.Area areaData
 
 
         # finish recursion when loading is complete
@@ -89,7 +85,7 @@ class HG.AreaLoader
         @_loadAreasFromServer request
 
 
-      # callback: print error message
+      # error callback: print error message
       error: (xhr, errmsg, err) =>
         console.log xhr
         console.log errmsg, err

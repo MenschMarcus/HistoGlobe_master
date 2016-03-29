@@ -37,13 +37,7 @@ class HG.AreaController
     @_config = $.extend {}, defaultConfig, config
 
 
-  # ============================================================================
-  hgInit: (@_hgInstance) ->
-    # add module to HG instance
-    @_hgInstance.areaController = @
-
-
-    ### INIT MEMBERS ###
+    # init members
     @_activeAreas = []            # set of all HG.Area's currently active
 
     @_maxSelections = 1           # 1 = single-selection mode, n = multi-selection mode
@@ -52,12 +46,18 @@ class HG.AreaController
     @_editAreas = []              # stores all areas that are currently in edit mode
 
 
+  # ============================================================================
+  hgInit: (@_hgInstance) ->
+    # add module to HG instance
+    @_hgInstance.areaController = @
+
+
     ### INTERACTION ###
     @_hgInstance.onAllModulesLoaded @, () =>
 
       ### INIT AREAS ###
-      @_areaLoader = new HG.AreaLoader @_hgInstance
-      areas = @_areaLoader.loadInit()
+      @_areaLoader = new HG.AreaLoader
+      areas = @_areaLoader.loadInit @_hgInstance
 
       @_areaLoader.onFinishLoading @, (area) ->
         @_createGeometry area
