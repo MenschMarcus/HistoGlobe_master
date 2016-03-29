@@ -14,7 +14,9 @@ class HG.Help
 
     @_config = $.extend {}, defaultConfig, config
 
-    @_div = new HG.Div null, ['help-overlay']
+    @_domElemCreator = new HG.DOMElementCreator
+
+    @_div = @_domElemCreator.create 'div', null, ['help-overlay']
 
     @_div.j().click () =>
       @hide()
@@ -64,7 +66,7 @@ class HG.Help
 
   # ============================================================================
   addHelp:(element) ->
-    image = new HG.Img null, 'help-image', element.image
+    image = @_domElemCreator.create 'img', null, 'help-image', [['src', element.image]]
     @_div.appendChild image
 
     image.j().load () =>

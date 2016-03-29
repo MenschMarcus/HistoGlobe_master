@@ -9,22 +9,25 @@ class HG.Imprint
   # ============================================================================
   constructor: () ->
 
-    # create imprint link
-    @_link = new HG.Div 'imprint-link', 'no-text-select'
-    @_link.j().html "Impressum &nbsp; &copy; HistoGlobe   2010-" + new Date().getFullYear()
+    # include
+    domElemCreator = new HG.DOMElementCreator
 
-    @_link.j().click () =>
+    # create imprint link
+    @_link = domElemCreator.create 'div', 'imprint-link', 'no-text-select'
+    $(@_link).html "Impressum &nbsp; &copy; HistoGlobe   2010-" + new Date().getFullYear()
+
+    $(@_link).click () =>
       @showBox()
 
     # create imprint
-    @_imprintOverlay = new HG.Div 'imprint-overlay'
-    @_imprintBox = new HG.Div 'imprint-box'
+    @_imprintOverlay = domElemCreator.create 'div', 'imprint-overlay'
+    @_imprintBox = domElemCreator.create 'div', 'imprint-box'
 
-    @_imprintClose = new HG.Span null, 'close-button'
-    @_imprintClose.j().html 'x'
+    @_imprintClose = domElemCreator.create 'span', null, 'close-button'
+    $(@_imprintClose).html 'x'
 
-    @_imprintText = new HG.Div 'imprint-text'
-    @_imprintText.dom().innerHTML = '
+    @_imprintText = domElemCreator.create 'div', 'imprint-text'
+    @_imprintText.innerHTML = '
       <h1>Impressum</h1>
       <p>Angaben gemäß § 5 TMG</p>
       <h2>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV:</h2>
@@ -58,24 +61,24 @@ class HG.Imprint
 
 
     # event handling
-    @_imprintClose.j().click () =>
+    $(@_imprintClose).click () =>
       @hideBox()
 
-    @_imprintOverlay.j().fadeOut 0
+    $(@_imprintOverlay).fadeOut 0
 
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
-    parentDiv = @_hgInstance.getContainer()
-    parentDiv.appendChild @_link
-    parentDiv.appendChild @_imprintOverlay
+    @_hgInstance.getContainer().appendChild @_link
+    # TODO: append this only on click, so that it is not always there
+    @_hgInstance.getContainer().appendChild @_imprintOverlay
 
 
   # ============================================================================
   showBox:() ->
-    @_imprintOverlay.j().fadeIn()
+    $(@_imprintOverlay).fadeIn()
 
   # ============================================================================
   hideBox:() ->
-    @_imprintOverlay.j().fadeOut()
+    $(@_imprintOverlay).fadeOut()
 
