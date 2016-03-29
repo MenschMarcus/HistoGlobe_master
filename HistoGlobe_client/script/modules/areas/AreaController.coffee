@@ -205,8 +205,12 @@ class HG.AreaController
         # error handling: new area must have valid id and geometry
         return if (not id) or (not geometry.isValid())
 
-        # TODO: überarbeiten
-        area = new HG.Area id, geometry, shortName, formalName
+        area = new HG.Area {
+          id:         id
+          geometry:   geometry
+          shortName:  shortName
+          formalName: formalName
+        }
 
         @_createGeometry area
         @_createName area if area.hasName()
@@ -231,7 +235,10 @@ class HG.AreaController
         if (not hadGeometryBefore) and (hasGeometryNow)
 
           # TODO: überarbeiten
-          area = new HG.Area id, newGeometry
+          area = new HG.Area {
+            id:         id
+            geometry:   newGeometry
+          }
 
           @_createGeometry area
           @_activate area
