@@ -25,12 +25,11 @@ class HG.WorkflowWindow
   #   newGeo:   set geometry of new country/-ies? (bool)
   #   newName:  set name of new country/-ies? (bool)
   constructor: (@_hgInstance, operation) ->
-
     # add to hg instance
     @_hgInstance.workflowWindow = @
 
-    @_editOperation = @_hgInstance.editOperation
-
+    # include
+    domElemCreator = new HG.DOMElementCreator
 
     @_currStep = -1   # start without marker
     @_totalSteps = 0
@@ -38,7 +37,7 @@ class HG.WorkflowWindow
     ### MAIN WINDOW ###
 
     # main window sits on top of hg title, has more height (to account for extra space needed)
-    @_mainWindow = new HG.Div 'ww-main-window'
+    @_mainWindow = domElemCreator.create 'div', 'ww-main-window'
     @_hgInstance.getTopArea().appendChild @_mainWindow
 
 
@@ -51,17 +50,17 @@ class HG.WorkflowWindow
 
     ## rows ##
     # create graph and description divs that dynamically adjust to their content
-    @_graphRow = new HG.Div 'ww-graph-wrapper'
+    @_graphRow = domElemCreator.create 'div', 'ww-graph-wrapper'
     @_mainWindow.appendChild @_graphRow
 
-    @_descriptionRow = new HG.Div 'ww-description-wrapper'
+    @_descriptionRow = domElemCreator.create 'div', 'ww-description-wrapper'
     @_mainWindow.appendChild @_descriptionRow
 
     ## columns ##
 
     # back column
-    @_graphRow.appendChild new HG.Div null, ['ww-graph-row', 'ww-button-col']
-    backButtonParent = new HG.Div null, ['ww-description-row', 'ww-button-col']
+    @_graphRow.appendChild domElemCreator.create 'div', null, ['ww-graph-row', 'ww-button-col']
+    backButtonParent = domElemCreator.create 'div', null, ['ww-description-row', 'ww-button-col']
     @_descriptionRow.appendChild backButtonParent
 
     # step columns
@@ -69,17 +68,17 @@ class HG.WorkflowWindow
     for step in operation.steps
       # only setup a column for steps that require user input
       if step.userInput
-        @_graphRow.appendChild new HG.Div null, ['ww-graph-row', 'ww-step-col']
-        descr = new HG.Div null, ['ww-description-row', 'ww-step-col', 'ww-description-cell']
-        descr.j().html step.title
+        @_graphRow.appendChild domElemCreator.create 'div', null, ['ww-graph-row', 'ww-step-col']
+        descr = domElemCreator.create 'div', null, ['ww-description-row', 'ww-step-col', 'ww-description-cell']
+        $(descr).html step.title
         @_descriptionRow.appendChild descr
-        @_stepDescr.push descr.j()
+        @_stepDescr.push $(descr)
         @_totalSteps++
 
     # next column
-    abortButtonParent = new HG.Div 'abort-button-parent', ['ww-graph-row', 'ww-button-col']
+    abortButtonParent = domElemCreator.create 'div', 'abort-button-parent', ['ww-graph-row', 'ww-button-col']
     @_graphRow.appendChild abortButtonParent
-    nextButtonParent = new HG.Div 'next-button-parent', ['ww-description-row', 'ww-button-col']
+    nextButtonParent = domElemCreator.create 'div', 'next-button-parent', ['ww-description-row', 'ww-button-col']
     @_descriptionRow.appendChild nextButtonParent
 
     ## graph bar ##
@@ -89,7 +88,7 @@ class HG.WorkflowWindow
     #   three disabled buttons indicating the steps
     #   one moving active marker stating the current step
 
-    cells = @_graphRow.j().children().toArray()  # contains all graph cells
+    cells = $(@_graphRow).children().toArray()  # contains all graph cells
     cells.shift()     # removes first element (empty)
     cells.pop()       # removes last element (abort)
 
@@ -110,7 +109,7 @@ class HG.WorkflowWindow
       maxY = $(cell).position().top + $(cell).height()
 
     # create canvas
-    @_graphCanvas = d3.select @_graphRow.dom()
+    @_graphCanvas = d3.select @_graphRow
       .append 'svg'
       .attr 'id', 'graph-canvas'
       .style 'left', minX
@@ -198,9 +197,9 @@ class HG.WorkflowWindow
 
     # recenter the window
     posLeft = $('#title').position().left + $('#title').width()/2
-    marginLeft = -@_mainWindow.j().width()/2         # half of own window width
-    @_mainWindow.j().css 'left', posLeft
-    @_mainWindow.j().css 'margin-left', marginLeft
+    marginLeft = -$(@_mainWindow).width()/2         # half of own window width
+    $(@_mainWindow).css 'left', posLeft
+    $(@_mainWindow).css 'margin-left', marginLeft
 
     # initially no way to get forward
     @_nextButton.disable()
@@ -209,25 +208,25 @@ class HG.WorkflowWindow
     ### INTERACTION ###
 
     # ----------------------------------------------------------------------------
-    @_editOperation.onStepComplete @, () ->
+    @_hgInstance.editOperation.onStepComplete @, () ->
       @_nextButton.enable()
 
     # ----------------------------------------------------------------------------
-    @_editOperation.onStepIncomplete @, () ->
+    @_hgInstance.editOperation.onStepIncomplete @, () ->
       @_nextButton.disable()
 
     # ----------------------------------------------------------------------------
-    @_editOperation.onOperationComplete @, () ->
+    @_hgInstance.editOperation.onOperationComplete @, () ->
       @_nextButton.enable()
       @_nextButton.changeState 'finish'
 
     # ----------------------------------------------------------------------------
-    @_editOperation.onOperationIncomplete @, () ->
+    @_hgInstance.editOperation.onOperationIncomplete @, () ->
       @_nextButton.disable()
       @_nextButton.changeState 'normal'
 
     # ----------------------------------------------------------------------------
-    @_editOperation.onStepTransition @, (dir) ->
+    @_hgInstance.editOperation.onStepTransition @, (dir) ->
       @_currStep += dir
       unless @_currStep is -1
         @_moveStepMarker()
@@ -236,12 +235,12 @@ class HG.WorkflowWindow
         @destroy()
 
     # ----------------------------------------------------------------------------
-    @_editOperation.onFinish @, () ->
+    @_hgInstance.editOperation.onFinish @, () ->
       @_abortButton.destroy()
       @_nextButton.destroy()
       @_undoButton.destroy()
-      @_mainWindow?.j().empty()
-      @_mainWindow?.j().remove()
+      $(@_mainWindow?).empty()
+      $(@_mainWindow?).remove()
       delete @_mainWindow?
 
 

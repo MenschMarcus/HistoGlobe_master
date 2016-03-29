@@ -18,8 +18,11 @@ class HG.NowMarker
     # add module to HG instance
     @_hgInstance.nowMarker = @
 
+    # include
+    domElemCreator = new HG.DOMElementCreator
+
     # create now marker
-    @_nowMarker = new HG.Div 'nowMarker', 'no-text-select'
+    @_nowMarker = domElemCreator.create 'div', 'nowMarker', 'no-text-select'
     @_hgInstance.timeline.getTimelineArea().appendChild @_nowMarker
 
     # initialize position and content
@@ -43,12 +46,12 @@ class HG.NowMarker
 
   # ============================================================================
   _upDate: (date) ->
-    @_nowMarker.j().html date.toLocaleDateString DATE_LOCALE, DATE_OPTIONS
+    $(@_nowMarker).html date.toLocaleDateString DATE_LOCALE, DATE_OPTIONS
 
 
   # ============================================================================
   _resetPosition: (pos) ->
-    @_nowMarker.dom().style.left = (window.innerWidth / 2) + "px"
+    @_nowMarker.style.left = (window.innerWidth / 2) + "px"
 
 
   ##############################################################################

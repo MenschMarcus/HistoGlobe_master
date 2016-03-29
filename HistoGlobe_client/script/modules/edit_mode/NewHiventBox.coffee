@@ -16,9 +16,12 @@ class HG.NewHiventBox
     @addCallback 'onReady'
     @addCallback 'onUnready'
 
+    # include
+    @_domElemCreator = new HG.DOMElementCreator
+
     ### SETUP UI ###
 
-    @_hiventBox = new HG.Div 'new-hivent-box', null
+    @_hiventBox = @_domElemCreator.create 'div', 'new-hivent-box', null
     @_hgInstance.getTopArea().appendChild @_hiventBox
 
     ## 1) choose between select existing and create new hivent
@@ -31,7 +34,7 @@ class HG.NewHiventBox
     ## 2.2) create new hivent
     @_hgInstance.buttons.newHiventInBox.onClick @, () ->
       # cleanup box and repupulate with new form
-      @_hiventBox.j().empty()
+      $(@_hiventBox).empty()
       @_makeNewHiventForm()
 
 
@@ -49,11 +52,11 @@ class HG.NewHiventBox
 
     ## option A) select existing hivent
 
-    selectExistingWrapper = new HG.Div null, ['new-hivent-box-selection-wrapper']
+    selectExistingWrapper = @_domElemCreator.create 'div', null, ['new-hivent-box-selection-wrapper']
     @_hiventBox.appendChild selectExistingWrapper
 
-    selectExistingText = new HG.Div null, ['new-hivent-box-text']
-    selectExistingText.j().html "Select Existing Historical Event"
+    selectExistingText = @_domElemCreator.create 'div', null, ['new-hivent-box-text']
+    $(selectExistingText).html "Select Existing Historical Event"
     selectExistingWrapper.appendChild selectExistingText
 
     searchBox = new HG.TextInput @_hgInstance, 'selectExitingHivent', ['new-hivent-input']
@@ -69,18 +72,18 @@ class HG.NewHiventBox
           'callback':   'onClick'
         }
       ]
-    selectExistingWrapper.appendChild searchIcon.dom()
+    selectExistingWrapper.appendChild searchIcon.getDOMElement()
 
 
     ## OR
-    orHalf = new HG.Div null, ['new-hivent-box-selection-center', 'new-hivent-box-text']
-    orHalf.j().html "OR"
+    orHalf = @_domElemCreator.create 'div', null, ['new-hivent-box-selection-center', 'new-hivent-box-text']
+    $(orHalf).html "OR"
     @_hiventBox.appendChild orHalf
 
 
     ## option B) create new hivent
 
-    createNewHiventWrapper = new HG.Div 'create-new-hivent', ['new-hivent-box-selection-wrapper']
+    createNewHiventWrapper = @_domElemCreator.create 'div', 'create-new-hivent', ['new-hivent-box-selection-wrapper']
     @_hiventBox.appendChild createNewHiventWrapper
 
     newHiventButton = new HG.Button @_hgInstance,
@@ -93,10 +96,10 @@ class HG.NewHiventBox
           'callback': 'onClick'
         }
       ]
-    createNewHiventWrapper.appendChild newHiventButton.dom()
+    createNewHiventWrapper.appendChild newHiventButton.getDOMElement()
 
-    createNewHiventText = new HG.Div null, ['new-hivent-box-text']
-    createNewHiventText.j().html "create new Historical Event"
+    createNewHiventText = @_domElemCreator.create 'div', null, ['new-hivent-box-text']
+    $(createNewHiventText).html "create new Historical Event"
     createNewHiventWrapper.appendChild createNewHiventText
 
 
@@ -106,43 +109,43 @@ class HG.NewHiventBox
 
     ### SETUP UI ###
 
-    formWrapper = new HG.Div 'new-hivent-info-wrapper', ['new-hivent-box-selection-wrapper']
+    formWrapper = @_domElemCreator.create 'div', 'new-hivent-info-wrapper', ['new-hivent-box-selection-wrapper']
     @_hiventBox.appendChild formWrapper
 
     ## name
     hiventName = new HG.TextInput @_hgInstance, 'newHiventName', ['new-hivent-information']
     hiventName.setPlaceholder "Name of the Historical Event"
-    formWrapper.appendChild hiventName.dom()
+    formWrapper.appendChild hiventName.getDOMElement()
 
     ## date
     hiventDate = new HG.TextInput @_hgInstance, 'newHiventDate', ['new-hivent-information']
     hiventDate.setValue @_hgInstance.timeline.getNowDate().toLocaleDateString()
-    formWrapper.appendChild hiventDate.dom()
+    formWrapper.appendChild hiventDate.getDOMElement()
 
     ## location
     # TODO: create marker on the map, get GPS coordinates from it
     # TODO: detect location name and put marker on the map
     hiventLocation = new HG.TextInput @_hgInstance, 'newHiventLocation', ['new-hivent-information']
     hiventLocation.setPlaceholder "Location (optional)"
-    formWrapper.appendChild hiventLocation.dom()
+    formWrapper.appendChild hiventLocation.getDOMElement()
 
     ## description
     hiventDescription = new HG.TextInputArea @_hgInstance, 'newHiventDescription', ['new-hivent-information'], [null, 5]
     hiventDescription.setPlaceholder "Description of the Hivent (take your space...)"
-    formWrapper.appendChild hiventDescription.dom()
+    formWrapper.appendChild hiventDescription.getDOMElement()
 
     ## link
     # TODO: style nicely
     hiventLink = new HG.TextInput @_hgInstance, 'newHiventLink', ['new-hivent-information']
     hiventLink.setPlaceholder "Link to wikipedia article"
-    formWrapper.appendChild hiventLink.dom()
+    formWrapper.appendChild hiventLink.getDOMElement()
 
     ## changes
     # TODO: put in information about current change
     # TODO: connect this with hg action language
-    hiventChanges = new HG.Div 'newHiventChanges', ['new-hivent-information']
-    hiventChanges.j().html @_operationDescription
-    formWrapper.appendChild hiventChanges.dom()
+    hiventChanges = @_domElemCreator.create 'div', 'newHiventChanges', ['new-hivent-information']
+    $(hiventChanges).html @_operationDescription
+    formWrapper.appendChild hiventChanges
 
 
     ## buttons
@@ -157,7 +160,7 @@ class HG.NewHiventBox
     #       'callback': 'onClick'
     #     }
     #   ]
-    # formWrapper.appendChild abortButton.dom()
+    # formWrapper.appendChild abortButton.getDOMElement()
 
     # okButton = new HG.Button @_hgInstance,
         # 'addChangeOK', null,
@@ -167,7 +170,7 @@ class HG.NewHiventBox
     #       'callback': 'onClick'
     #     }
     #   ]
-    # formWrapper.appendChild okButton.dom()
+    # formWrapper.appendChild okButton.getDOMElement()
 
 
     ### INTERACTION ###

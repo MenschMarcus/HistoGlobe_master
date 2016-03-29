@@ -45,3 +45,6 @@ class HG.Switch
         $(elem).addClass 'switch-on'
         state = on
         @notifyAll 'onSwitchOn'
+
+  # ============================================================================
+  getDOMElement: () ->        @_elem

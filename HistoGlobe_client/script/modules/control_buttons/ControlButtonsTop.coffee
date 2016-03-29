@@ -188,29 +188,29 @@ class HG.ControlButtonsTop
 
     # high contrast mode
     @_hgInstance.buttons.highContrast?.onEnter @, (btn) =>
-      @_hgInstance.getContainer().j().addClass 'highContrast'
+      $(@_hgInstance.getContainer()).addClass 'highContrast'
       btn.changeState 'high-contrast'
 
     @_hgInstance.buttons.highContrast?.onLeave @, (btn) =>
-      @_hgInstance.getContainer().j().removeClass 'highContrast'
+      $(@_hgInstance.getContainer()).removeClass 'highContrast'
       btn.changeState 'normal'
 
     # min layout mode
     @_hgInstance.buttons.minLayoutButton?.onRemoveGUI @, (btn) =>
-      @_hgInstance.getContainer().j().addClass 'minGUI'
+      $(@_hgInstance.getContainer()).addClass 'minGUI'
       btn.changeState 'min-layout'
 
     @_hgInstance.buttons.minLayoutButton?.onOpenGUI @, (btn) =>
-      @_hgInstance.getContainer().j().removeClass 'minGUI'
+      $(@_hgInstance.getContainer()).removeClass 'minGUI'
       btn.changeState 'normal'
 
     # graph on globe
     @_hgInstance.buttons.graph?.onShow @, (btn) =>
-      @_hgInstance.getContainer().j().addClass 'minGUI'
+      $(@_hgInstance.getContainer()).addClass 'minGUI'
       btn.changeState 'min-layout'
 
     @_hgInstance.buttons.graph?.onHide @, (btn) =>
-      @_hgInstance.getContainer().j().removeClass 'minGUI'
+      $(@_hgInstance.getContainer()).removeClass 'minGUI'
       btn.changeState 'normal'
 
 

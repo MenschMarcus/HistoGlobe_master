@@ -40,14 +40,17 @@ class HG.Map extends HG.SpatialDisplay
     # call constructor of base class
     super @_hgInstance
 
+    # include
+    domElemCreator = new HG.DOMElementCreator
+
     ### INIT MEMBERS ###
     @_isRunning = no
 
     ### SETUP UI ###
-    @_mapParent = new HG.Div
-    @_mapParent.dom().style.width = HG.SpatialDisplay.CONTAINER.offsetWidth + "px"
-    @_mapParent.dom().style.height = HG.SpatialDisplay.CONTAINER.offsetHeight + "px"
-    @_mapParent.dom().style.zIndex = "#{HG.SpatialDisplay.Z_INDEX}"
+    @_mapParent = domElemCreator.create 'div'
+    @_mapParent.style.width = HG.SpatialDisplay.CONTAINER.offsetWidth + "px"
+    @_mapParent.style.height = HG.SpatialDisplay.CONTAINER.offsetHeight + "px"
+    @_mapParent.style.zIndex = "#{HG.SpatialDisplay.Z_INDEX}"
 
     HG.SpatialDisplay.CONTAINER.appendChild @_mapParent
 
@@ -64,7 +67,7 @@ class HG.Map extends HG.SpatialDisplay
       maxBounds:    @_config.maxBounds
       worldCopyJump: true
 
-    @_map = L.map @_mapParent.dom(), options
+    @_map = L.map @_mapParent, options
     @_map.setView @_hgInstance.config.startPoint, @_config.startZoom
 
     tileLayer = L.tileLayer(@_hgInstance.config.tiles + '/{z}/{x}/{y}.png')
@@ -79,7 +82,7 @@ class HG.Map extends HG.SpatialDisplay
     #   maxBounds:    @_config.maxBounds
     #   worldCopyJump: true
 
-    # @_map = L.map @_mapParent.dom(), options
+    # @_map = L.map @_mapParent, options
     # @_map.setView @_hgInstance.config.startPoint, @_config.startZoom
 
     # tileLayer = L.tileLayer(@_hgInstance.config.tiles + '/{z}/{x}/{y}.png')
@@ -115,11 +118,11 @@ class HG.Map extends HG.SpatialDisplay
     # window click and resize
     # I do not know why there are two different functions, but it works :)
     window.addEventListener 'resize', @_onWindowResize, false
-    @_mapParent.dom().addEventListener 'click', @_onClick, false
+    @_mapParent.addEventListener 'click', @_onClick, false
 
     @_hgInstance.onWindowResize @, (width, height) =>
-      @_mapParent.dom().style.width = width + "px"
-      @_mapParent.dom().style.height = height + "px"
+      @_mapParent.style.width = width + "px"
+      @_mapParent.style.height = height + "px"
       @_map.invalidateSize()
 
 
@@ -134,14 +137,14 @@ class HG.Map extends HG.SpatialDisplay
   start: ->
     unless @_isRunning
       @_isRunning = yes
-      @_mapParent.dom().style.display = "block"
+      @_mapParent.style.display = "block"
 
   # ============================================================================
   # Deactivates the 2D Display-
   # ============================================================================
   stop: ->
     @_isRunning = no
-    @_mapParent.dom().style.display = "none"
+    @_mapParent.style.display = "none"
 
   # ============================================================================
   # Returns whether the display is active or not.
@@ -153,7 +156,7 @@ class HG.Map extends HG.SpatialDisplay
   # Returns the DOM element associated with the display.
   # ============================================================================
   getCanvas: ->
-    @_mapParent.dom()
+    @_mapParent
 
   # ============================================================================
   # Returns the coordinates of the current center of the display.
@@ -201,8 +204,8 @@ class HG.Map extends HG.SpatialDisplay
 
   # ============================================================================
   _onWindowResize: (event) =>
-    @_mapParent.dom().style.width = $(HG.SpatialDisplay.CONTAINER.parentNode).width() + "px"
-    @_mapParent.dom().style.height = $(HG.SpatialDisplay.CONTAINER.parentNode).height() + "px"
+    @_mapParent.style.width = $(HG.SpatialDisplay.CONTAINER.parentNode).width() + "px"
+    @_mapParent.style.height = $(HG.SpatialDisplay.CONTAINER.parentNode).height() + "px"
 
   # ============================================================================
   _onClick: (event) =>

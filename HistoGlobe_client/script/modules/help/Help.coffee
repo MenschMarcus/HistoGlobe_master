@@ -18,7 +18,7 @@ class HG.Help
 
     @_div = @_domElemCreator.create 'div', null, ['help-overlay']
 
-    @_div.j().click () =>
+    $(@_div).click () =>
       @hide()
       window.setTimeout () =>
         $(@_button).attr('title', "Hilfe wieder einblenden").tooltip('fixTitle').tooltip('show');
@@ -28,7 +28,7 @@ class HG.Help
       , 500
 
 
-    @_div.j().fadeOut 0
+    $(@_div).fadeOut 0
 
     for e in @_config.elements
       @addHelp e
@@ -58,34 +58,34 @@ class HG.Help
 
   # ============================================================================
   show:() ->
-    @_div.j().fadeIn()
+    $(@_div).fadeIn()
 
   # ============================================================================
   hide:() ->
-    @_div.j().fadeOut()
+    $(@_div).fadeOut()
 
   # ============================================================================
   addHelp:(element) ->
     image = @_domElemCreator.create 'img', null, 'help-image', [['src', element.image]]
     @_div.appendChild image
 
-    image.j().load () =>
-      image.j().css {"max-width": image.naturalWidth + "px"}
-      image.j().css {"width": element.width}
+    $(image).load () =>
+      $(image).css {"max-width": image.naturalWidth + "px"}
+      $(image).css {"width": element.width}
 
     if element.anchorX is "left"
-      image.j().css {"left":element.offsetX + "px"}
+      $(image).css {"left":element.offsetX + "px"}
     else if element.anchorX is "right"
-      image.j().css {"right":element.offsetX + "px"}
+      $(image).css {"right":element.offsetX + "px"}
     else if element.anchorX is "center"
-      image.j().css {"left": element.offsetX + "px", "right": 0, "margin-right": "auto", "margin-left": "auto"}
+      $(image).css {"left": element.offsetX + "px", "right": 0, "margin-right": "auto", "margin-left": "auto"}
 
     if element.anchorY is "top"
-      image.j().css {"top":element.offsetY + "px"}
+      $(image).css {"top":element.offsetY + "px"}
     else if element.anchorY is "bottom"
-      image.j().css {"bottom":element.offsetY + "px"}
+      $(image).css {"bottom":element.offsetY + "px"}
     else if element.anchorY is "center"
-      image.j().css {"top": element.offsetY + "px", "bottom": 0, "margin-bottom": "auto", "margin-top": "auto"}
+      $(image).css {"top": element.offsetY + "px", "bottom": 0, "margin-bottom": "auto", "margin-top": "auto"}
 
 
 

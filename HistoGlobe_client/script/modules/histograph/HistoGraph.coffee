@@ -28,6 +28,9 @@ class HG.HistoGraph
 
     @_config = $.extend {}, defaultConfig, config
 
+    # include
+    @_domElemCreator = new HG.DOMElementCreator
+
     # init variables
     @_initHistory = no
     @_graphVisible = no
@@ -39,22 +42,21 @@ class HG.HistoGraph
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
-
-    # add HistoGraph to HG instance
+    # add to HG instance
     @_hgInstance.histoGraph = @
 
     # create wrapper (put above timeline, hidden)
-    @_wrapper = new HG.Div 'histograph-wrapper', null
-    @_wrapper.j().hide()
+    @_wrapper = @_domElemCreator.create 'div', 'histograph-wrapper', null
+    $(@_wrapper).hide()
     @_hgInstance.timeline.getTimelineArea().appendChild @_wrapper
 
     # create transparent center line
-    @_line = new HG.Div 'histograph-line', null
-    @_line.j().hide()
+    @_line = @_domElemCreator.create 'div', 'histograph-line', null
+    $(@_line).hide()
     @_wrapper.appendChild @_line
 
     # create canvas itself
-    @_canvas = d3.select @_wrapper.dom()
+    @_canvas = d3.select @_wrapper
       .append 'svg'
       .attr 'id', 'histograph-canvas'
 
@@ -73,16 +75,16 @@ class HG.HistoGraph
   # ============================================================================
   show: () ->
     if not @_graphVisible
-      @_wrapper.j().show()
-      @_line.j().show()
-      @notifyAll 'onShow', @_wrapper.j()
+      $(@_wrapper).show()
+      $(@_line).show()
+      @notifyAll 'onShow', $(@_wrapper)
       @_graphVisible = yes
 
   hide: () ->
     if @_graphVisible
-      @_wrapper.j().hide()
-      @_line.j().hide()
-      @notifyAll 'onHide', @_wrapper.j()
+      $(@_wrapper).hide()
+      $(@_line).hide()
+      @notifyAll 'onHide', $(@_wrapper)
       @_graphVisible = no
 
   # ============================================================================
@@ -128,8 +130,8 @@ class HG.HistoGraph
       .classed 'graph-country-line', true
       .attr 'x1', 0
       .attr 'x2', $(window).width()
-      .attr 'y1', @_wrapper.j().height()/2
-      .attr 'y2', @_wrapper.j().height()/2
+      .attr 'y1', $(@_wrapper).height()/2
+      .attr 'y2', $(@_wrapper).height()/2
       .on 'mouseover', () -> d3.select(@).style 'stroke', HGConfig.color_highlight.val
       .on 'mouseout', () -> d3.select(@).style 'stroke', HGConfig.color_white.val
       .on 'click', () -> d3.select(@).style 'stroke', HGConfig.color_active.val
@@ -141,7 +143,7 @@ class HG.HistoGraph
       .append 'text'
       .classed 'graph-country-label', true
       .attr 'x', 15
-      .attr 'y', @_wrapper.j().height()/2 - 5
+      .attr 'y', $(@_wrapper).height()/2 - 5
       .text (d) -> d.name
 
   _updateLines: (d) ->
@@ -160,8 +162,8 @@ class HG.HistoGraph
     # @_canvas.append 'circle'
     #   .classed 'graph-hivent', true
     #   .attr 'r', 10
-    #   .attr 'cx', @_wrapper.j().width()/2
-    #   .attr 'cy', @_wrapper.j().height()/2
+    #   .attr 'cx', $(@_wrapper).width()/2
+    #   .attr 'cy', $(@_wrapper).height()/2
     #   .on 'mouseover', () -> d3.select(@).style 'fill', HGConfig.color_highlight.val
     #   .on 'mouseout', () -> d3.select(@).style 'fill', HGConfig.color_white.val
     #   .on 'click', () -> d3.select(@).style 'fill', HGConfig.color_active.val
