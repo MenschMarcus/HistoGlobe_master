@@ -10,18 +10,20 @@ class HG.Title
 
   # ============================================================================
   constructor: (@_hgInstance, text=null) ->
-
     # add to HG instance
     @_hgInstance.editTitle = @
 
+    # include
+    domElemCreator = new HG.DOMElementCreator
+
     # create transparent title bar (insert as second child!, so it is background of everything)
-    @_titleBar = new HG.Div 'titlebar', null
-    @_hgInstance.getTopArea().dom().insertBefore @_titleBar.dom(), @_hgInstance.getTopArea().dom().firstChild.nextSibling
+    @_titleBar = domElemCreator.create 'div', 'titlebar', null
+    @_hgInstance.getTopArea().insertBefore @_titleBar, @_hgInstance.getTopArea().firstChild.nextSibling
 
     # create actual title bar (insert as third child!, so it does not cover buttons)
-    @_title = new HG.Div 'title', null
-    @_title.j().html text if text?
-    @_hgInstance.getTopArea().dom().insertBefore @_title.dom(), @_hgInstance.getTopArea().dom().firstChild.nextSibling.nextSibling
+    @_title = domElemCreator.create 'div', 'title', null
+    $(@_title).html text if text?
+    @_hgInstance.getTopArea().insertBefore @_title, @_hgInstance.getTopArea().firstChild.nextSibling.nextSibling
 
     @resize()
 
@@ -29,8 +31,8 @@ class HG.Title
     $(window).on 'resize', @resize
 
   # ============================================================================
-  set: (txt) ->   @_title.j().html txt
-  clear: () ->    @_title.j().html ''
+  set: (txt) ->   $(@_title).html txt
+  clear: () ->    $(@_title).html ''
 
   # ============================================================================
   # TODO: make independent from edit mode
@@ -41,15 +43,15 @@ class HG.Title
       HGConfig.logo_width.val -
       $('#editButtons').width()
     # PAIN IN THE AAAAAAAAAAASS!
-    @_title.dom().style.width = width + 'px'
+    @_title.style.width = width + 'px'
     @_hgInstance._onResize()
 
 
   # ============================================================================
   destroy: () ->
-    @_titleBar?.j().empty()
-    @_titleBar?.j().remove()
+    $(@_titleBar?).empty()
+    $(@_titleBar?).remove()
     delete @_titleBar?
-    @_title?.j().empty()
-    @_title?.j().remove()
+    $(@_title?).empty()
+    $(@_title?).remove()
     delete @_title?

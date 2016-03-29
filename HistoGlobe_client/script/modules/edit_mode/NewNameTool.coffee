@@ -18,7 +18,8 @@ class HG.NewNameTool
     @addCallback 'onChangeName'
     @addCallback 'onSubmit'
 
-    # setup variables
+    # includes / variables
+    @_domElemCreator = new HG.DOMElementCreator
     @_map = @_hgInstance.map.getMap()
     @_histoGraph = @_hgInstance.histoGraph
     @_viewCenter = @_map.getCenter()
@@ -45,11 +46,11 @@ class HG.NewNameTool
 
     # TODO: work on formal name
 
-    @_wrapper = new HG.Div 'new-name-wrapper', null
+    @_wrapper = @_domElemCreator.create 'div', 'new-name-wrapper', null
     @_hgInstance.getTopArea().appendChild @_wrapper
 
     @_inputField = new HG.TextInput @_hgInstance, 'new-name-input', null
-    @_inputField.j().attr 'size', NAME_MIN_SIZE
+    $(@_inputField).attr 'size', NAME_MIN_SIZE
     if initShortName   # set either the text that is given (to just accept it)
       @_inputField.setText initShortName
       @_resize()
@@ -59,8 +60,8 @@ class HG.NewNameTool
 
     # set position of wrapper = center of country
     posPx = @_map.latLngToContainerPoint initPosition.latLng()
-    @_wrapper.j().css 'left', posPx.x
-    @_wrapper.j().css 'top',  posPx.y
+    $(@_wrapper).css 'left', posPx.x
+    $(@_wrapper).css 'top',  posPx.y
     @_recenter()
 
     @_okButton = new HG.Button @_hgInstance,
@@ -70,7 +71,7 @@ class HG.NewNameTool
           'iconFA':   'check'
         }
       ]
-    @_wrapper.appendChild @_okButton.dom()
+    @_wrapper.appendChild @_okButton.getDOMElement()
 
 
     ### INTERACTION ###
@@ -78,19 +79,19 @@ class HG.NewNameTool
 
     # seamless interaction
     @_makeDraggable()
-    @_inputField.j().on 'keydown keyup click each', @_resize
+    $(@_inputField).on 'keydown keyup click each', @_resize
     @_map.on 'drag',    @_respondToMapDrag
     @_map.on 'zoomend', @_respondToMapZoom
 
     # type name => change name
-    @_inputField.j().on 'keyup mouseup', (e) =>
-      @notifyAll 'onChangeName', @_inputField.j().val()
+    $(@_inputField).on 'keyup mouseup', (e) =>
+      @notifyAll 'onChangeName', $(@_inputField).val()
 
     # click OK => submit name and position
     @_okButton.onClick @, () =>
       # get center coordinates
-      center = new L.Point @_wrapper.j().position().left, @_wrapper.j().position().top
-      newShortName = @_inputField.j().val()
+      center = new L.Point $(@_wrapper).position().left, $(@_wrapper).position().top
+      newShortName = $(@_inputField).val()
       # TODO: work on formal name
       newFormalName = newShortName
       newPosition = new HG.Point(@_map.containerPointToLatLng center)
@@ -115,8 +116,8 @@ class HG.NewNameTool
 
   # ============================================================================
   _recenter: () ->
-    @_wrapper.j().css 'margin-top',  -(@_wrapper.j().height() / 2)
-    @_wrapper.j().css 'margin-left', -(@_wrapper.j().width()  / 2)
+    $(@_wrapper).css 'margin-top',  -($(@_wrapper).height() / 2)
+    $(@_wrapper).css 'margin-left', -($(@_wrapper).width()  / 2)
 
   # ============================================================================
   # preparation functions
@@ -128,19 +129,19 @@ class HG.NewNameTool
     # credits to: A. Wolff
     # http://stackoverflow.com/questions/22814073/how-to-make-an-input-field-draggable
     # http://jsfiddle.net/9SPvQ/2/
-    @_wrapper.j().draggable start: (event, ui) ->
+    $(@_wrapper).draggable start: (event, ui) ->
       $(this).data 'preventBehaviour', true
 
-    @_inputField.j().on 'mousedown', (e) =>
+    $(@_inputField).on 'mousedown', (e) =>
       mdown = document.createEvent 'MouseEvents'
       mdown.initMouseEvent 'mousedown', true, true, window, 0, e.screenX, e.screenY, e.clientX, e.clientY, true, false, false, true, 0, null
-      @_wrapper.dom().dispatchEvent mdown
+      @_wrapper.dispatchEvent mdown
       return # for some reason this has to be there ?!?
 
-    @_inputField.j().on 'click', (e) =>
-      if @_wrapper.j().data 'preventBehaviour'
+    $(@_inputField).on 'click', (e) =>
+      if $(@_wrapper).data 'preventBehaviour'
         e.preventDefault()
-        @_wrapper.j().data 'preventBehaviour', false
+        $(@_wrapper).data 'preventBehaviour', false
       return # for some reason this has to be there ?!?
 
   # ============================================================================
@@ -148,8 +149,8 @@ class HG.NewNameTool
     # TODO: set actual width, independent from font-size
     # TODO: animate to the new width -> works not with 'size' but only with 'width' (size is not a CSS property)
     #                ensures width >= 1                             magic factor to scale width with increasing size
-    width = Math.max NAME_MIN_SIZE, (@_inputField.j().val().length)*SIZE_TO_WIDTH_FACTOR
-    @_inputField.j().attr 'size', width
+    width = Math.max NAME_MIN_SIZE, ($(@_inputField).val().length)*SIZE_TO_WIDTH_FACTOR
+    $(@_inputField).attr 'size', width
     @_recenter()
 
   # ============================================================================
@@ -165,13 +166,13 @@ class HG.NewNameTool
       (ctrNew.y - ctrOld.y)
     ]
     # project movement to wrapper
-    inputOld = @_wrapper.j()
+    inputOld = $(@_wrapper)
     inputNew = L.point(
       (inputOld.position().left) - ctrDist[0], # x
       (inputOld.position().top) - ctrDist[1]  # y
     )
-    @_wrapper.j().css 'left', inputNew.x
-    @_wrapper.j().css 'top', inputNew.y
+    $(@_wrapper).css 'left', inputNew.x
+    $(@_wrapper).css 'top', inputNew.y
     # refresh
     @_viewCenter = mapNew
 

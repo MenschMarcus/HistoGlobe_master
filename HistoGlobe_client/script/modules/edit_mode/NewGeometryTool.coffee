@@ -282,7 +282,7 @@ class HG.NewGeometryTool
     # cleanup UI
     @_buttonArea.destroy()
     @_map.removeControl @_drawControl
-    @_map.removeLayer @_featureGroup    # THIS IS THE EVIL !!!
+    @_map.removeLayer @_featureGroup
 
 
 
@@ -328,29 +328,29 @@ class HG.NewGeometryTool
   #   # snap to points?, snap to lines? and snap tolerance
 
   #   # horizontal wrapper containing all three options
-  #   snapOptionWrapper = new HG.Div 'tt-snap-option-wrapper-out', null
+  #   snapOptionWrapper = @_domElemCreator.create 'div', 'tt-snap-option-wrapper-out', null
   #   @_wrapper.appendChild snapOptionWrapper
 
   #   # wrapper for each option containing input box + description
-  #   snapToPointsWrapper = new HG.Div null, ['tt-snap-option-wrapper-in']
+  #   snapToPointsWrapper = @_domElemCreator.create 'div', null, ['tt-snap-option-wrapper-in']
   #   snapOptionWrapper.appendChild snapToPointsWrapper
-  #   snapToLinesWrapper = new HG.Div null, ['tt-snap-option-wrapper-in']
+  #   snapToLinesWrapper = @_domElemCreator.create 'div', null, ['tt-snap-option-wrapper-in']
   #   snapOptionWrapper.appendChild snapToLinesWrapper
-  #   snapToleranceWrapper = new HG.Div null, ['tt-snap-option-wrapper-in']
+  #   snapToleranceWrapper = @_domElemCreator.create 'div', null, ['tt-snap-option-wrapper-in']
   #   snapOptionWrapper.appendChild snapToleranceWrapper
 
   #   # snap to points
   #   snapToPointsSwitch = new HG.Switch @_hgInstance, 'snapToPoints', ['tt-snap-option-switch']
   #   snapToPointsWrapper.appendChild snapToPointsSwitch
-  #   snapToPointsText = new HG.Div null, ['tt-snap-option-text']
-  #   snapToPointsText.j().html "snap to <br/>points"
+  #   snapToPointsText = @_domElemCreator.create 'div', null, ['tt-snap-option-text']
+  #   $(snapToPointsText).html "snap to <br/>points"
   #   snapToPointsWrapper.appendChild snapToPointsText
 
   #   # snap to lines
   #   snapToLinesSwitch = new HG.Switch @_hgInstance, 'snapToLines', ['tt-snap-option-switch']
   #   snapToLinesWrapper.appendChild snapToLinesSwitch
-  #   snapToLinesText = new HG.Div null, ['tt-snap-option-text']
-  #   snapToLinesText.j().html "snap to <br/>lines"
+  #   snapToLinesText = @_domElemCreator.create 'div', null, ['tt-snap-option-text']
+  #   $(snapToLinesText).html "snap to <br/>lines"
   #   snapToLinesWrapper.appendChild snapToLinesText
 
   #   # snap tolerance
@@ -361,6 +361,6 @@ class HG.NewGeometryTool
   #   snapToleranceInput.getDOMElement().setAttribute 'min', 0.0
   #   snapToleranceInput.getDOMElement().setAttribute 'max', 10.0
   #   snapToleranceWrapper.appendChild snapToleranceInput
-  #   snapToleranceText = new HG.Div null, ['tt-snap-option-text']
-  #   snapToleranceText.j().html "snap <br/>tolerance"
+  #   snapToleranceText = @_domElemCreator.create 'div', null, ['tt-snap-option-text']
+  #   $(snapToleranceText).html "snap <br/>tolerance"
   #   snapToleranceWrapper.appendChild snapToleranceText

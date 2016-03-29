@@ -28,3 +28,6 @@ class HG.NumberInput
     $(elem).on 'keyup mouseup', (e) =>
       # tell everyone the new value
       @notifyAll 'onChange', e.currentTarget.value
+
+  # ============================================================================
+  getDOMElement: () ->        @_elem
