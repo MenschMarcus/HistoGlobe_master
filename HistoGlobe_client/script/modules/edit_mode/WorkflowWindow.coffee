@@ -239,8 +239,8 @@ class HG.WorkflowWindow
       @_abortButton.destroy()
       @_nextButton.destroy()
       @_undoButton.destroy()
-      $(@_mainWindow?).empty()
-      $(@_mainWindow?).remove()
+      $(@_mainWindow)?.empty()
+      $(@_mainWindow)?.remove()
       delete @_mainWindow?
 
 

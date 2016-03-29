@@ -49,9 +49,5 @@ class HG.Title
 
   # ============================================================================
   destroy: () ->
-    $(@_titleBar?).empty()
-    $(@_titleBar?).remove()
-    delete @_titleBar?
-    $(@_title?).empty()
-    $(@_title?).remove()
-    delete @_title?
+    $(@_titleBar)?.remove()
+    $(@_title)?.remove()
