@@ -3,7 +3,7 @@ window.HG ?= {}
 # ============================================================================
 # <input type='text' name='id'>
 
-class HG.TextInputArea extends HG.DOMElement
+class HG.TextInputArea
 
   # ============================================================================
   constructor: (@_hgInstance, id=null, classes=[], dimensions=[]) ->
@@ -20,9 +20,11 @@ class HG.TextInputArea extends HG.DOMElement
 
     @addCallback 'onChange'
 
-    # construct object of subclass with superclass
     classes.push 'hg-input'
-    super 'textarea', id, classes, [['rows', dimensions[0]], ['cols', dimensions[1]], ['name', id]]
+
+    # create dom element
+    domElemCreator = new HG.DOMElementCreator
+    @_elem = domElemCreator.create 'textarea', id, classes, [['rows', dimensions[0]], ['cols', dimensions[1]], ['name', id]]
 
     # change
     $(@_elem).on 'keyup mouseup', (e) =>
@@ -31,8 +33,7 @@ class HG.TextInputArea extends HG.DOMElement
 
 
   # ============================================================================
-  setPlaceholder: (text) ->
-    $(@_elem).attr 'placeholder', text
+  setPlaceholder: (text) ->   $(@_elem).attr 'placeholder', text
 
   # ----------------------------------------------------------------------------
   getValue: () ->             @_elem.value

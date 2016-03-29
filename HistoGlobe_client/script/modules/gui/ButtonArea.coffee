@@ -9,6 +9,9 @@ class HG.ButtonArea
   # ============================================================================
   constructor : (@_hgInstance, config) ->
 
+    # include
+    @_domElemCreator = new HG.DOMElementCreator
+
     # handle config
     defaultConfig =
       id:           null                    # id of the DOM element (no underscore)
@@ -46,19 +49,22 @@ class HG.ButtonArea
     if @_config.classes
       classes.push c for c in @_config.classes
 
-    @_div = new HG.Div @_config.id, classes
+    @_div = @_domElemCreator.create 'div', @_config.id, classes
 
+
+  # ============================================================================
+  getDOMElement: ()  -> @_div
 
   # ============================================================================
   # add button solo: leave out groupName (null) => will be put in single unnamed group
   # add button to group: set groupName
   addButton: (button, groupName) ->
     # select group (sets group name manually if no group name)
-    name = if groupName then groupName else button.dom().id + '-group'
+    name = if groupName then groupName else button.getDOMElement().id + '-group'
 
     # create button in group
     group = @_addGroup name
-    group.appendChild button.dom()
+    group.appendChild button.getDOMElement()
 
   # ============================================================================
   addButtonGroup: (name) ->
@@ -75,8 +81,8 @@ class HG.ButtonArea
       group = @_addGroup groupName
     else
       group = @_addGroup 'spacer'+@_spacerCtr
-    spacer = new HG.Div null, ['spacer']
-    group.appendChild spacer.dom()
+    spacer = @_domElemCreator.create 'div', null, ['spacer']
+    group.appendChild spacer
     @_spacerCtr++
 
   # ============================================================================
@@ -93,7 +99,6 @@ class HG.ButtonArea
       @_div.j().animate {'right': '+=' + dist}
 
   # ============================================================================
-  dom: ()  -> @_div.dom()
   destroy: () -> @_div.destroy()
 
   ##############################################################################
@@ -111,19 +116,19 @@ class HG.ButtonArea
       # add to UI
       classes = ['buttons-group']
       classes.push 'buttons-group-horizontal' if @_orientation.get() is 'horizontal'
-      group = new HG.Div id, classes
+      group = @_domElemCreator.create 'div', id, classes
 
       # append or prepend button (given in configuration of ButtonArea)
       if @_direction.get() is 'append'
         @_div.appendChild group
-        @_groups.push group.dom()
+        @_groups.push group
 
       else if @_direction.get() is 'prepend'
-        @_div.prependChild group
-        @_groups.pushFront group.dom()
+        @_div.insertBefore group, @_div.firstChild
+        @_groups.pushFront group
 
       # add to group list
-      return group.dom()
+      return group
 
   # ============================================================================
   _removeGroup: (id) ->

@@ -161,7 +161,7 @@ class HG.WorkflowWindow
           'callback': 'onClick'
         }
       ]
-    backButtonParent.appendChild @_undoButton.dom()
+    backButtonParent.appendChild @_undoButton.getDOMElement()
 
     # next button ( = ok = go to next step, disabled)
     # -> changes to OK button / "finish" state in last step
@@ -181,7 +181,7 @@ class HG.WorkflowWindow
           'callback': 'onFinish'
         },
       ]
-    nextButtonParent.appendChild @_nextButton.dom()
+    nextButtonParent.appendChild @_nextButton.getDOMElement()
 
     # abort button
     @_abortButton = new HG.Button @_hgInstance,
@@ -194,7 +194,7 @@ class HG.WorkflowWindow
           'callback': 'onAbort'
         }
       ]
-    abortButtonParent.appendChild @_abortButton.dom()
+    abortButtonParent.appendChild @_abortButton.getDOMElement()
 
     # recenter the window
     posLeft = $('#title').position().left + $('#title').width()/2

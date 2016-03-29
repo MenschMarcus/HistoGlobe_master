@@ -3,7 +3,7 @@ window.HG ?= {}
 # ============================================================================
 # <input type='text' name='id'>
 
-class HG.TextInput extends HG.DOMElement
+class HG.TextInput
 
   # ============================================================================
   constructor: (@_hgInstance, id=null, classes=[]) ->
@@ -20,18 +20,20 @@ class HG.TextInput extends HG.DOMElement
 
     @addCallback 'onChange'
 
-    # construct object of subclass with superclass
     classes.push 'hg-input'
-    super 'input', id, classes, [['type', 'text'], ['name', id]]
+
+    # create dom element
+    domElemCreator = new HG.DOMElementCreator
+    @_elem = domElemCreator.create 'input', id, classes, [['type', 'text'], ['name', id]]
 
     # change
-    @_j.on 'keyup mouseup', (e) =>
+    $(@_elem).on 'keyup mouseup', (e) =>
       # tell everyone the new value
       @notifyAll 'onChange', e.currentTarget.value
 
 
   # ============================================================================
-  setPlaceholder: (text) ->   @_j.attr 'placeholder', text
+  setPlaceholder: (text) ->   $(@_elem).attr 'placeholder', text
 
   # ----------------------------------------------------------------------------
   getValue: () ->             @_elem.value
