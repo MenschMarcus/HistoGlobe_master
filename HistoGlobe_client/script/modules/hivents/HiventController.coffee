@@ -41,31 +41,38 @@ class HG.HiventController
   # ============================================================================
   # Issues configuration depending on the current HistoGlobe instance.
   # ============================================================================
-  hgInit: (hgInstance) ->
-    @_hgInstance = hgInstance
-
-    # init AB tests
-    @_ab = hgInstance.abTest?.config
-
-    # Register HiventController at the current HistoGlobe instance.
+  hgInit: (@_hgInstance) ->
+    # add module to HistoGlobe instance
     @_hgInstance.hiventController = @
 
+    ### INTERACTION ###
+    @_hgInstance.onAllModulesLoaded @, () =>
+
+      ### INIT Hivents ###
+      @_hiventLoader = new HG.HiventLoader
+      areas = @_hiventLoader.loadInit()
+
+      @_hiventLoader.onFinishLoading @, (hiventHandle) ->
+        @_hiventHandles.push hiventHandle
+        @notifyAll "onHiventAdded", hiventHandle
+        @_handlesNeedSorting = true
+
+        console.log hiventHandle
+
+
     # Register listeners to update filters or react on updated filters.
-    @_hgInstance.timeline.onIntervalChanged @, (timeFilter) =>
-      @setTimeFilter timeFilter
+    # @_hgInstance.timeline.onIntervalChanged @, (timeFilter) =>
+    #   @setTimeFilter timeFilter
 
-    @_hgInstance.categoryFilter?.onFilterChanged @,(categoryFilter) =>
-      @_currentCategoryFilter = categoryFilter
-      @_filterHivents()
-    @_hgInstance.categoryFilter?.onPrefixFilterChanged @,(categoryFilter) =>
-      @_currentCategoryFilter = categoryFilter
-      @_filterHivents()
+    # @_hgInstance.categoryFilter?.onFilterChanged @,(categoryFilter) =>
+    #   @_currentCategoryFilter = categoryFilter
+    #   @_filterHivents()
+    # @_hgInstance.categoryFilter?.onPrefixFilterChanged @,(categoryFilter) =>
+    #   @_currentCategoryFilter = categoryFilter
+    #   @_filterHivents()
 
-    @_categoryFilter = hgInstance.categoryFilter if hgInstance.categoryFilter
+    # @_categoryFilter = hgInstance.categoryFilter if hgInstance.categoryFilter
 
-    # @loadHiventsFromJSON()
-    @loadHiventsFromDSV()
-    # @loadHiventsFromDatabase()
 
   # ============================================================================
   # Returns all stored HiventHandles.
@@ -159,129 +166,6 @@ class HG.HiventController
           distance = diff
           result = handle
     return result
-
-  ############################### INIT FUNCTIONS ###############################
-
-  # ============================================================================
-  # loadHiventsFromDatabase: (config) ->
-  #   defaultConfig =
-  #     hiventServerName: ""
-  #     hiventDatabaseName: ""
-  #     hiventTableName: ""
-  #     multimediaServerName: ""
-  #     multimediaDatabaseName: ""
-  #     multimediaTableName: ""
-
-  #   config = $.extend {}, defaultConfig, config
-
-  #   dbInterface = new HG.HiventDatabaseInterface(config.hiventServerName, config.hiventDatabaseName)
-  #   dbInterface.getHivents {
-  #     tableName: config.hiventTableName,
-  #     upperLimit: 100,
-  #     success:
-  #       (data) =>
-  #         builder = new HG.HiventBuilder config
-  #         rows = data.split "\n"
-  #         for row in rows
-  #           builder.constructHiventFromDBString row, (hivent) =>
-  #             if hivent
-  #               handle = new HG.HiventHandle hivent
-  #               @_hiventHandles.push handle
-  #               callback handle for callback in @_onHiventAddedCallbacks
-  #               @_filterHivents()
-
-  #   }
-
-  # ============================================================================
-  # loadHiventsFromJSON: (config) ->
-  #   defaultConfig =
-  #     hiventJSONPaths: []
-  #     multimediaJSONPaths: []
-
-  #   config = $.extend {}, defaultConfig, config
-
-  #   for hiventJSONPath in config.hiventJSONPaths
-  #     $.getJSON(hiventJSONPath, (hivents) =>
-  #       builder = new HG.HiventBuilder config
-  #       for h in hivents
-  #         builder.constructHiventFromJSON h, (hivent) =>
-  #           if hivent
-  #             handle = new HG.HiventHandle hivent
-  #             @_hiventHandles.push handle
-  #             callback handle for callback in @_onHiventAddedCallbacks
-  #             @_filterHivents()
-
-  #     )
-
-  # ============================================================================
-  # Loads Hivent data from all delimiter seperated files specified in
-  # HiventController's config. For each loaded Hivent, a HiventHandle is created
-  # and pushed into the internal array @_hiventHandles.
-  # ============================================================================
-  loadHiventsFromDSV: () ->
-    if @_config.dsvConfigs?
-
-      # Loop over all files occuring in the configuration
-      for dsvConfig in @_config.dsvConfigs
-        defaultConfig =
-          path: ""
-          delimiter: "|"
-          ignoredLines: [] # line indices starting at 1
-          # indexMapping specifies at which column the respective attribute can
-          # be found.
-          indexMapping:
-            id          : 0
-            name        : 1
-            description : 2
-            startDate   : 3
-            endDate     : 4
-            displayDate : 5
-            location    : 6
-            lat         : 7
-            long        : 8
-            category    : 9
-            multimedia  : 10
-            # TODO: add link and region
-
-        dsvConfig = $.extend {}, defaultConfig, dsvConfig
-
-        # Configuration for parsing dsv files.
-        parse_config =
-          delimiter: dsvConfig.delimiter
-          header: false
-
-        # Auxiliary function to encapsulate loading from dsv files.
-        buildHivent = (config) =>
-          # ---------------------------------------------------
-          # async: false bremst den Hivent Controller aus, bis die config.path (data) geladen sind
-          $.ajaxSetup({
-            async: false
-          });
-          # kann aber auch raus ... zur Not
-          # ---------------------------------------------------
-
-          # Asynchronously read the file.
-          $.get config.path,
-            (data) =>
-              # If the file has been loaded successfully, parse it.
-              parseResult = $.parse data, parse_config
-
-              # HiventBuilder is started for each line containing Hivent data.
-              builder = new HG.HiventBuilder config, @_hgInstance.multimediaController
-              for result, i in parseResult.results
-                unless i+1 in config.ignoredLines
-                  builder.constructHiventFromArray result, (hivent) =>
-                    if hivent
-                      handle = new HG.HiventHandle hivent
-                      @_hiventHandles.push handle
-                      @notifyAll "onHiventAdded", handle
-                      @_handlesNeedSorting = true
-
-              @_filterHivents() # if in doubt, indent
-
-        buildHivent dsvConfig
-
-        @_currentCategoryFilter = @_categoryFilter.getCurrentFilter()
 
 
   # ============================================================================

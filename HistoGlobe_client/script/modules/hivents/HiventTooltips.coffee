@@ -2,14 +2,14 @@ window.HG ?= {}
 
 class HG.HiventTooltips
 
+  # TODO: merge into HiventMarker
+
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
   ##############################################################################
 
   # ============================================================================
   constructor: () ->
-    @_hiventsOnTimeline = null
-    @_hiventsOnMap = null
 
   # ============================================================================
   hgInit: (hgInstance) ->
@@ -33,6 +33,7 @@ class HG.HiventTooltips
         if marker.parentDiv
           @_addMapTooltip marker
 
+
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
@@ -53,17 +54,10 @@ class HG.HiventTooltips
     hivent = handle.getHivent()
     $(hiventInfo).tooltip {title: "#{marker.locationName} - #{hivent.displayDate}<br />#{hivent.name}", html:true, placement: "top", container:"#histoglobe"}
 
-    showTooltip = (displayPosition) =>
-      hiventInfo.style.left = displayPosition.x + "px"
-      hiventInfo.style.top = displayPosition.y + 5 - HGConfig.hivent_marker_2D_height.val/2 + "px"
-      #$(hiventInfo).tooltip "show"
 
-    hideTooltip = (displayPosition) =>
-      $(hiventInfo).tooltip "hide"
-
-    handle.onMark marker, showTooltip
-    handle.onUnMark marker, hideTooltip
-    handle.onActive marker, hideTooltip
+    handle.onMark marker, @_showTooltip
+    handle.onUnMark marker, @_hideTooltip
+    handle.onActive marker, @_hideTooltip
     marker.onDestruction @, () =>
       hiventInfo.parentNode.removeChild hiventInfo
 
@@ -83,19 +77,20 @@ class HG.HiventTooltips
     hivent = handle.getHivent()
     $(hiventInfo).tooltip {title: "#{hivent.displayDate}<br />#{hivent.name}", html:true, placement: "top", container:"#histoglobe"}
 
-    showTooltip = (displayPosition) =>
-      hiventInfo.style.left = displayPosition.x + "px"
-      hiventInfo.style.bottom = displayPosition.y + 25 + "px"
-      #$(hiventInfo).tooltip "show"
-
-    hideTooltip = (displayPosition) =>
-      $(hiventInfo).tooltip "hide"
-
-    handle.onMark marker, showTooltip
-    handle.onUnMark marker, hideTooltip
-    handle.onActive marker, hideTooltip
+    handle.onMark marker, @_showTooltip
+    handle.onUnMark marker, @_hideTooltip
+    handle.onActive marker, @_hideTooltip
     marker.onDestruction @, () =>
       hiventInfo.parentNode.removeChild hiventInfo
+
+  # ============================================================================
+  _showTooltip = (displayPosition) =>
+    hiventInfo.style.left = displayPosition.x + "px"
+    hiventInfo.style.top = displayPosition.y + 5 - HGConfig.hivent_marker_2D_height.val/2 + "px"
+    #$(hiventInfo).tooltip "show"
+
+  _hideTooltip = (displayPosition) =>
+    $(hiventInfo).tooltip "hide"
 
   ##############################################################################
   #                             STATIC MEMBERS                                 #

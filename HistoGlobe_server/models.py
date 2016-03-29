@@ -34,7 +34,6 @@ class Area(models.Model):
   name_formal =           models.CharField          (max_length=150, default='')
   geom =                  models.MultiPolygonField  (default='MULTIPOLYGON EMPTY')
   repr_point =            models.PointField         (null=True)
-  international_status =  models.CharField          (null=True, max_length=1)
   sovereignty_status =    models.CharField          (null=True, max_length=1)
   territory_of =          models.ForeignKey         ('self', null=True)
 

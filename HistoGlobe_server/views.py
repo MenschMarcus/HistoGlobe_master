@@ -30,36 +30,37 @@ from view import view_snapshots
 from view import view_hivents
 
 # ==============================================================================
-### INTERFACE ###
-# basic idea of client-server interaction
-# POST: client sends data to be processed by the server and awaits an answer
-# GET:  client requires data from the server and awaits an answer
-#
-### data structures
-#   client -> server (reuqest):
-#     - stringified JSON of arrays and objects (can be multi-dimensional)
-#       JSON.stringify request
-#       ->  access on the server by:
-#           json.loads(request.body)                    # needs: import json
-#   client <- server (response):
-#     - list or dictionary (no tuples or anything else, please!) stringified
-#       HttpResponse(json.dumps(response_data))
-#       ->  access on the client by:
-#           success: (reponse) =>
-#             data = $.parseJSON response
-#
-#
-### date interoperabiliy: use RFC 3339 (date = 'YYYY-MM-DDTHH:MM:SS.sss+UTC')
-#
-#   client -> server:
-#     moment(dateObject).format()           # needs: moment.js
-#     ->  access on the server by:
-#         iso8601.parse_date(date_string)   # needs: import iso8601
-#   client <- server:
-#     rfc3339(date_object)                  # needs: from rfc3339 import rfc3339
-#     ->  access on the client by:
-#         moment(dateString)
+"""
+## INTERFACE ##
+basic idea of client-server interaction
+POST: client sends data to be processed by the server and awaits an answer
+GET:  client requires data from the server and awaits an answer
 
+# data structures
+  client -> server (reuqest):
+    - stringified JSON of arrays and objects (can be multi-dimensional)
+      JSON.stringify request
+      ->  access on the server by:
+          json.loads(request.body)                    # needs: import json
+  client <- server (response):
+    - list or dictionary (no tuples or anything else, please!) stringified
+      HttpResponse(json.dumps(response_data))
+      ->  access on the client by:
+          success: (reponse) =>
+            data = $.parseJSON response
+
+
+# date interoperabiliy: use RFC 3339 (date = 'YYYY-MM-DDTHH:MM:SS.sss+UTC')
+
+  client -> server:
+    moment(dateObject).format()           # needs: moment.js
+    ->  access on the server by:
+        iso8601.parse_date(date_string)   # needs: import iso8601
+  client <- server:
+    rfc3339(date_object)                  # needs: from rfc3339 import rfc3339
+    ->  access on the client by:
+        moment(dateString)
+"""
 
 # ------------------------------------------------------------------------------
 # simple view redirecting to index of HistoGlobe
@@ -104,10 +105,20 @@ def get_initial_areas(request):
 
 
   ## OUTPUT
+  return HttpResponse(prepare_area_output(areas, chunk_size, chunks_complete))
 
-  out = prepare_output(areas, chunk_size, chunks_complete)
 
-  return HttpResponse(out)
+# ------------------------------------------------------------------------------
+def get_initial_hivents(request):
+
+  ## INPUT
+  # -> none, just fetch all hivents
+
+  ## PROCESSING
+  hivents = view_hivents.get_all_hivents()
+
+  ## OUTPUT
+  return HttpResponse(json.dumps(hivents))
 
 
 # ------------------------------------------------------------------------------
@@ -171,7 +182,7 @@ def save_operation(request):
 
 
 # ------------------------------------------------------------------------------
-def prepare_output(areas, chunk_size, chunks_complete):
+def prepare_area_output(areas, chunk_size, chunks_complete):
 
   # javascript  python
   # object      dictionary
@@ -195,7 +206,6 @@ def prepare_output(areas, chunk_size, chunks_complete):
     json_str +=     '"name_short":"'          + str(area.name_short.encode('utf-8'))  + '",'   # N.B: encode with utf-8!
     json_str +=     '"name_formal":"'         + str(area.name_formal.encode('utf-8')) + '",'   # N.B: encode with utf-8!
     json_str +=     '"representative_point":' + area.repr_point.json                  + ','
-    json_str +=     '"international_status":"'+ str(area.international_status)        + '",'
     json_str +=     '"sovereignty_status":"'  + str(area.sovereignty_status)          + '",'
     json_str +=     '"territory_of":"'        + str(area.territory_of)                + '"'
     json_str +=   '},'
