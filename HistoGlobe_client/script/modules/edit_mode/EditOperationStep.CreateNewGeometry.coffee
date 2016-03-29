@@ -84,7 +84,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
           @notifyEditMode 'onRemoveArea', id
 
       else # backward
-        for area in @_stepData.tempAreas[0]
+        for area in @_stepData.tempAreas
           @notifyEditMode 'onCreateArea', area.id, area.geometry, area.shortName, area.formalName
 
       return @finish() # no user input

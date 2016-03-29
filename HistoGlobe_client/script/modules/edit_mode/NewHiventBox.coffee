@@ -61,7 +61,7 @@ class HG.NewHiventBox
 
     searchBox = new HG.TextInput @_hgInstance, 'selectExitingHivent', ['new-hivent-input']
     searchBox.setPlaceholder "find existing hivent by name, date, location, ..."
-    selectExistingWrapper.appendChild searchBox
+    selectExistingWrapper.appendChild searchBox.getDOMElement()
 
     searchIcon = new HG.Button @_hgInstance,
       'existingHiventSearch', ['button-no-background'],

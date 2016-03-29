@@ -45,3 +45,8 @@ class HG.TextInput
   # ----------------------------------------------------------------------------
   setValue: (text) ->         @_elem.value = text
   setText: (text) ->          @setValue text
+
+  # ============================================================================
+  destroy: () ->              $(@_elem).remove()
+  remove: () ->               @destroy()
+  delete: () ->               @destroy()

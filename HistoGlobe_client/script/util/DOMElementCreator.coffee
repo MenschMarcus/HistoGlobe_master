@@ -12,16 +12,8 @@ class HG.DOMElementCreator
   # ============================================================================
   # e.g. <i>, <span>, <
   create: (elemType=null, id=null, classes=[], attributes=[]) ->
-    @_constructElement elemType, id, classes, attributes
 
-  ##############################################################################
-  #                            PRIVATE INTERFACE                               #
-  ##############################################################################
-
-  # ============================================================================
-  _constructElement: (elemType, id=null, classes=[], attributes=[]) ->
-
-    # error handling: must be element type given
+    # error handling: element type must be given
     return if not elemType
 
     # error handling: if only one class as string given, make it an array

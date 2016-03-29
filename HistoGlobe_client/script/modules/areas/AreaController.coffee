@@ -55,11 +55,6 @@ class HG.AreaController
     ### INTERACTION ###
     @_hgInstance.onAllModulesLoaded @, () =>
 
-      # get area view (currently active viewers for the area)
-      areaViewer = []             # all viewer classes manipulating and viewing areas
-      areaViewer.push @_hgInstance.areasOnMap     if @_hgInstance.areasOnMap?
-      areaViewer.push @_hgInstance.areasOnGlobe   if @_hgInstance.areasOnGlobe?
-
       ### INIT AREAS ###
       @_areaLoader = new HG.AreaLoader @_hgInstance
       areas = @_areaLoader.loadInit()
@@ -74,67 +69,67 @@ class HG.AreaController
 
       # ========================================================================
       ## listen to each viewer (have the same interface)
-      for view in areaViewer
+      # -> start only with AreasOnMap
 
-        # ----------------------------------------------------------------------
-        # hover areas => focus?
-        view.onFocusArea @, (area) ->
+      # ----------------------------------------------------------------------
+      # hover areas => focus?
+      @_hgInstance.areasOnMap.onFocusArea @, (area) ->
 
-          # error handling: ignore if area is already focused
-          return if area.isFocused()
+        # error handling: ignore if area is already focused
+        return if area.isFocused()
 
-          # edit mode: only unselected areas in edit mode can be focused
-          if @_areaEditMode is on
-            if (area.isInEdit()) and (not area.isSelected())
-              @_focus area
-
-          # normal mode: each area can be hovered
-          else  # @_areaEditMode is off
+        # edit mode: only unselected areas in edit mode can be focused
+        if @_areaEditMode is on
+          if (area.isInEdit()) and (not area.isSelected())
             @_focus area
 
-
-        # ----------------------------------------------------------------------
-        # unhover areas => unfocus!
-        view.onUnfocusArea @, (area) ->
-          @_unfocus area
+        # normal mode: each area can be hovered
+        else  # @_areaEditMode is off
+          @_focus area
 
 
-        # ----------------------------------------------------------------------
-        # click area => (de)select
-        view.onSelectArea @, (area) ->
-
-          # area must be focussed in order for it to be selected
-          # => no distinction between edit mode and normal mode necessary anymore
-          return if not area.isFocused()
+      # ----------------------------------------------------------------------
+      # unhover areas => unfocus!
+      @_hgInstance.areasOnMap.onUnfocusArea @, (area) ->
+        @_unfocus area
 
 
-          # single-selection mode: toggle selected area
-          if @_maxSelections is 1
+      # ----------------------------------------------------------------------
+      # click area => (de)select
+      @_hgInstance.areasOnMap.onSelectArea @, (area) ->
 
-            # area is selected => deselect
-            if area.isSelected()
-              @_deselect area
-
-            # area is deselected => toggle currently selected area <-> new selection
-            else  # not area.isSelected()
-              @_deselect @_selectedAreas[0] if @_selectedAreas.length is 1
-              @_select area
+        # area must be focussed in order for it to be selected
+        # => no distinction between edit mode and normal mode necessary anymore
+        return if not area.isFocused()
 
 
-          # multi-selection mode: add to selected area until max limit is reached
-          else  # @_maxSelections > 1
+        # single-selection mode: toggle selected area
+        if @_maxSelections is 1
 
-            # area is selected => deselect
-            if area.isSelected()
-              @_deselect area
+          # area is selected => deselect
+          if area.isSelected()
+            @_deselect area
 
-            # area is not selected and maximum number of selections not reached => select it
-            else if @_selectedAreas.length < @_maxSelections
-              @_select area
+          # area is deselected => toggle currently selected area <-> new selection
+          else  # not area.isSelected()
+            @_deselect @_selectedAreas[0] if @_selectedAreas.length is 1
+            @_select area
 
-            # else: area not selected but selection limit reached => no selection
 
-          @_DEBUG_OUTPUT 'select area (from view)' if DEBUG
+        # multi-selection mode: add to selected area until max limit is reached
+        else  # @_maxSelections > 1
+
+          # area is selected => deselect
+          if area.isSelected()
+            @_deselect area
+
+          # area is not selected and maximum number of selections not reached => select it
+          else if @_selectedAreas.length < @_maxSelections
+            @_select area
+
+          # else: area not selected but selection limit reached => no selection
+
+        @_DEBUG_OUTPUT 'select area (from view)' if DEBUG
 
 
       # ========================================================================
@@ -211,7 +206,7 @@ class HG.AreaController
         return if (not id) or (not geometry.isValid())
 
         # TODO: überarbeiten
-        area = new HG.Area id, geometry, shortName, formalName,
+        area = new HG.Area id, geometry, shortName, formalName
 
         @_createGeometry area
         @_createName area if area.hasName()
