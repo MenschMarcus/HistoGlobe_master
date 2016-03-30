@@ -24,6 +24,9 @@ $shadow_radius                      = 10px
 $shadow_intensity                   = 0.65
 
 $max_area_selection                 = 50
+$time_leap_threshold                = 20  // years
+$change_queue_interval              = 100 // ms
+$area_animation_time                = 750 // ms
 
 
 // GENERAL UI ------------------------------------------------------------------

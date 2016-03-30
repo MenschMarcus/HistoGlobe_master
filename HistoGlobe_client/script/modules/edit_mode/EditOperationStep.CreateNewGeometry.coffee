@@ -138,7 +138,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
         # TODO: make more efficient later
 
         # manual loop, because some areas might be deleted on the way
-        existingAreas = @_areaController.getAreas()
+        existingAreas = @_areaController.getActiveAreas()
         loopIdx = existingAreas.length-1
         while loopIdx >= 0
           existingAreaId =      existingAreas[loopIdx].getId()
