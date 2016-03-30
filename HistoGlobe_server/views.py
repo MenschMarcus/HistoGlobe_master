@@ -68,20 +68,19 @@ def index(request):
   return render(request, 'HistoGlobe_client/index.htm', {})
 
 # ------------------------------------------------------------------------------
-# initial set of areas
-def get_initial_areas(request):
+def get_init_areas(request):
 
   ## INPUT
 
   # deserialize object string -> dictionary
   request_data = json.loads(request.body)
 
+  now_date = utils.get_date_object(request_data['date'])
+
   viewport_center = Point(
       float(request_data['centerLat']),
       float(request_data['centerLng'])
     )
-
-  now_date = utils.get_date_object(request_data['date'])
 
   chunk_id = int(request_data['chunkId'])
   chunk_size = int(request_data['chunkSize'])
@@ -89,7 +88,7 @@ def get_initial_areas(request):
 
   ## PROCESSING
 
-  # look for snapshot closest to the requested date
+  # for initialization: look for snapshot closest to the requested date
   closest_snapshot = view_snapshots.get_closest_snapshot(now_date)
 
   # accumulate all changes in events since this date
@@ -103,13 +102,22 @@ def get_initial_areas(request):
   # TODO: get explicitly from snapshot
   [areas, chunk_size, chunks_complete] = view_areas.get_area_chunk(viewport_center, chunk_id, chunk_size)
 
-
   ## OUTPUT
   return HttpResponse(prepare_area_output(areas, chunk_size, chunks_complete))
 
+# ------------------------------------------------------------------------------
+def get_rest_areas(request):
+
+  # deserialize object string -> dictionary
+  request_data = json.loads(request.body)
+
+  areas = Area.objects.exclude(id__in=request_data['activeAreas'])
+
+  return HttpResponse(prepare_area_output(areas, 0, True))
+
 
 # ------------------------------------------------------------------------------
-def get_initial_hivents(request):
+def get_hivents(request):
 
   ## INPUT
   # -> none, just fetch all hivents

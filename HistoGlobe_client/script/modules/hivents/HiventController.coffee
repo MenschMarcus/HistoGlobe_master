@@ -17,11 +17,23 @@ class HG.HiventController
   # ============================================================================
   constructor: (config) ->
 
+    ## init callbacks
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @addCallback "onHiventAdded"
+    @addCallback 'onHiventAdded'
+    @addCallback 'onChangeAreas'
 
+
+    ## init config
+    defaultConfig =
+      dsvConfigs: undefined
+      numHiventsInView: 10
+
+    @_config = $.extend {}, defaultConfig, config
+
+
+    ## init member variables
     @_hiventHandles           = []
     @_handlesNeedSorting      = false
 
@@ -31,11 +43,7 @@ class HG.HiventController
     @_currentCategoryFilter   = null  # [category_a, category_b, ...]
     @_categoryFilter          = null
 
-    defaultConfig =
-      dsvConfigs: undefined
-      numHiventsInView: 10
-
-    @_config = $.extend {}, defaultConfig, config
+    @_nowDate = null                  # current date
 
 
   # ============================================================================
@@ -56,6 +64,59 @@ class HG.HiventController
         @_hiventHandles.push hiventHandle
         @notifyAll "onHiventAdded", hiventHandle
         @_handlesNeedSorting = true
+
+
+    ### VIEW ###
+
+    ## update areas on now changed
+    @_hgInstance.timeline.onNowChanged @, (nowDate) =>
+
+      # error handling: inititally nowDate is not set => set and ignore
+      if not @_nowDate
+        @_nowDate = nowDate
+        return
+
+      # get change dates
+      oldDate = @_nowDate
+      newDate = nowDate
+      # change direction: forwards (+1) or backwards (-1)
+      changeDir = if oldDate < newDate then +1 else -1
+
+      # opposite direction: swap old and new date, so it can be assumed that always oldDate < newDate
+      if changeDir is -1
+        tempDate = oldDate
+        oldDate = newDate
+        newDate = tempDate
+
+      # distance user has scrolled
+      timeLeap = Math.abs(oldDate.getFullYear() - newDate.getFullYear())
+
+      # go through all changes in (reversed) order
+      # check if the change date is inside the change range from the old to the new date
+      # as soon as one change is inside, all changes will be executed until one change is outside the range
+      # -> then termination of the loop
+      inChangeRange = no
+      changes = []
+
+      for handle in @_hiventHandles
+        hivent = handle.getHivent()
+        if (hivent.effectDate >= oldDate) and (hivent.effectDate < newDate)
+          changes.push change for change in hivent.changes
+
+          # state that a change is found => entered change range of hivents
+          inChangeRange = yes
+          # => as soon as loop gets out of change range, there will not be any
+          # hivent following
+          # => loop can be broken
+        else
+          break if inChangeRange
+
+      # tell everyone if new changes
+      @notifyAll 'onChangeAreas', changes, timeLeap if changes.length isnt 0
+
+      # update now date
+      @_nowDate = nowDate
+
 
 
     # Register listeners to update filters or react on updated filters.
