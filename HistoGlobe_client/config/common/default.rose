@@ -2,7 +2,16 @@
 //    in *.coffee:  HGConfig.var_name.val
 //    in *.less:    @var_name
 
-// GLOBAL ----------------------------------------------------------------------
+
+// GLOBAL TWEAKING -------------------------------------------------------------
+
+$max_area_selection                 = 50
+$time_leap_threshold                = 20  // years
+$change_queue_interval              = 50  // ms
+$area_animation_time                = 750 // ms
+
+
+// GLOBAL STYLE ----------------------------------------------------------------
 
 $primary_font_face                  = sans-serif
 $secondary_font_face                = sans-serif
@@ -22,11 +31,6 @@ $color_disabled_active              = rgb(140,140,140)
 $border_radius                      = 15px
 $shadow_radius                      = 10px
 $shadow_intensity                   = 0.65
-
-$max_area_selection                 = 50
-$time_leap_threshold                = 20  // years
-$change_queue_interval              = 100 // ms
-$area_animation_time                = 750 // ms
 
 
 // GENERAL UI ------------------------------------------------------------------
