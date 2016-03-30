@@ -66,15 +66,20 @@ class HG.AreaController
       @_areaLoader.loadInit @_hgInstance
 
       @_areaLoader.onLoadInitArea @, (area) ->
+        # update model
+        area.activate()
+        # update view
+        @notifyAll 'onCreateGeometry', area
+        @notifyAll 'onCreateName', area if area.hasName()
+        # update controller
         @_areas.push area
-        @_createGeometry area
-        @_createName area if area.hasName()
-        @_activate area
+        @_activeAreas.push area
 
       # load inactive areas in the background
       @_areaLoader.onFinishLoadingInitAreas @, () ->
         @_areaLoader.loadRest @_hgInstance
         @_areaLoader.onLoadRestArea @, (area) ->
+          # update controller
           @_areas.push area
 
 
@@ -93,17 +98,26 @@ class HG.AreaController
         # edit mode: only unselected areas in edit mode can be focused
         if @_areaEditMode is on
           if (area.isInEdit()) and (not area.isSelected())
-            @_focus area
+            # update model
+            area.focus()
+            # update view
+            @notifyAll 'onUpdateStatus', area
 
         # normal mode: each area can be hovered
         else  # @_areaEditMode is off
-          @_focus area
+          # update model
+          area.focus()
+          # update view
+          @notifyAll 'onUpdateStatus', area
 
 
       # ----------------------------------------------------------------------
       # unhover areas => unfocus!
       @_hgInstance.areasOnMap.onUnfocusArea @, (area) ->
-        @_unfocus area
+        # update model
+        area.unfocus()
+        # update view
+        @notifyAll 'onUpdateStatus', area
 
 
       # ----------------------------------------------------------------------
@@ -114,30 +128,54 @@ class HG.AreaController
         # => no distinction between edit mode and normal mode necessary anymore
         return if not area.isFocused()
 
-
-        # single-selection mode: toggle selected area
-        if @_maxSelections is 1
-
-          # area is selected => deselect
-          if area.isSelected()
-            @_deselect area
-
-          # area is deselected => toggle currently selected area <-> new selection
-          else  # not area.isSelected()
-            @_deselect @_selectedAreas[0] if @_selectedAreas.length is 1
-            @_select area
+        # area is selected => deselect
+        if area.isSelected()
+          # update model
+          area.deselect()
+          # update controller
+          @_selectedAreas.splice((@_selectedAreas.indexOf area), 1)
+          # update view
+          @notifyAll 'onUpdateStatus', area
+          @notifyAll 'onDeselect', area
 
 
-        # multi-selection mode: add to selected area until max limit is reached
-        else  # @_maxSelections > 1
+        # area is not selected => decide if it can be selected
+        else
 
-          # area is selected => deselect
-          if area.isSelected()
-            @_deselect area
+          # single-selection mode: toggle selected area
+          if @_maxSelections is 1
+            ## deselect currently selected area
+            if @_selectedAreas.length is 1
+              # update model
+              @_selectedAreas[0].deselect()
+              # update view
+              @notifyAll 'onUpdateStatus', @_selectedAreas[0]
+              @notifyAll 'onDeselect', @_selectedAreas[0]
+              # update controller
+              @_selectedAreas = []
 
-          # area is not selected and maximum number of selections not reached => select it
-          else if @_selectedAreas.length < @_maxSelections
-            @_select area
+            ## select newly selected area
+            # update model
+            area.select()
+            # update controller
+            @_selectedAreas.push area
+            # update view
+            @notifyAll 'onUpdateStatus', area
+            @notifyAll 'onSelect', area
+
+
+          # multi-selection mode: add to selected area until max limit is reached
+          else  # @_maxSelections > 1
+
+            # area is not selected and maximum number of selections not reached => select it
+            if @_selectedAreas.length < @_maxSelections
+              # update model
+              area.select()
+              # update controller
+              @_selectedAreas.push area
+              # update view
+              @notifyAll 'onUpdateStatus', area
+              @notifyAll 'onSelect', area
 
           # else: area not selected but selection limit reached => no selection
 
@@ -150,17 +188,17 @@ class HG.AreaController
       ## perform area changes
       # ------------------------------------------------------------------------
 
-      @_hgInstance.hiventController.onChangeAreas @, (changes, timeLeap) ->
+      @_hgInstance.hiventController.onChangeAreas @, (changes, changeDir, timeLeap) ->
 
         for change in changes
 
           # prepare change
           newChange = {
-            timestamp   : null      # timestamp at wich changes shall be executed
-            oldAreas    : []        # areas to be deleted
-            newAreas    : []        # areas to be added
-            transArea   : null      # regions to be faded out when change is done
-            transBorder : null      # borders to be faded out when change is done
+            timestamp         : new Date()  # timestamp at wich changes shall be executed
+            oldAreas          : []          # areas to be deleted
+            newAreas          : []          # areas to be added
+            transitionArea    : null        # regions to be faded out when change is done
+            transitionBorder  : null        # borders to be faded out when change is done
           }
 
           # are there anmated transitions?
@@ -188,53 +226,49 @@ class HG.AreaController
             else if change.operation is 'DEL'
               magic = 42
 
-            transArea = @_getTransitionById change.trans_area
-            @notifyAll "onFadeInArea", transArea, yes
-            hasTransition = yes
+            # transitionArea = @_getTransitionById change.trans_area
+            # @notifyAll "onFadeInArea", transitionArea, yes
+            # hasTransition = yes
 
-            transBorder = @_getTransitionById change.trans_border
-            @notifyAll "onFadeInBorder", transBorder, yes
-            hasTransition = yes
+            # transitionBorder = @_getTransitionById change.trans_border
+            # @notifyAll "onFadeInBorder", transitionBorder, yes
+            # hasTransition = yes
 
-
-          # set timestamp
-          ts = new Date()
+          # update timestamp
           if hasTransition
-            ts.setMilliseconds ts.getMilliseconds() + HGConfig.area_animation_time.val
-          newChange.timestamp = ts
+            newChange.timestamp.setMilliseconds newChange.timestamp.getMilliseconds() + HGConfig.area_animation_time.val
 
           # set old / new areas to toggle
           # changeDir = +1 => timeline moves forward => old areas are old areas
           # else      = -1 => timeline moves backward => old areas are new areas
+          tempOldAreas = []
+          tempNewAreas = []
+
           for area in change.newAreas
-            if changeDir is 1 then newAreas.push area else oldAreas.push area
+            if changeDir is 1 then tempNewAreas.push area else tempOldAreas.push area
 
           for area in change.oldAreas
-            if changeDir is 1 then oldAreas.push area else newAreas.push area
+            if changeDir is 1 then tempOldAreas.push area else tempNewAreas.push area
 
           # remove duplicates -> all areas/labels that are both in new or old array
           # TODO: O(n²) in the moment -> does that get better?
-          iNew = 0
-          iOld = 0
-          lenNew = newAreas.length
-          lenOld = oldAreas.length
-          while iNew < lenNew
-            while iOld < lenOld
-              if newAreas[iNew] is oldAreas[iOld]
-                newAreas[iNew] = null
-                oldAreas[iOld] = null
+          itNew = 0
+          itOld = 0
+          lenNew = tempNewAreas.length
+          lenOld = tempOldAreas.length
+          while itNew < lenNew
+            while itOld < lenOld
+              if tempNewAreas[itNew] is tempOldAreas[itOld]
+                tempNewAreas[itNew] = null
+                tempOldAreas[itOld] = null
                 break # duplicates can only be found once => break here
-              ++iOld
-            ++iNew
+              ++itOld
+            ++itNew
 
           # remove nulls and assign to change array
           # TODO: make this nicer
-          for area in oldAreas
-            newChange.oldAreas.push area if area
-
-          for area in newAreas
-            newChange.newAreas.push area if area
-
+          newChange.oldAreas.push area for area in tempOldAreas
+          newChange.newAreas.push area for area in tempNewAreas
 
           # finally enqueue distinct changes
           @_changeQueue.enqueue newChange
@@ -311,17 +345,25 @@ class HG.AreaController
         # error handling: new area must have valid id and geometry
         return if (not id) or (not geometry.isValid())
 
+        # update model
         area = new HG.Area {
           id:         id
           geometry:   geometry
           shortName:  shortName
           formalName: formalName
         }
+        area.activate()
+        area.inEdit yes
 
-        @_createGeometry area
-        @_createName area if area.hasName()
-        @_activate area
-        @_startEdit area
+        # update view
+        @notifyAll 'onCreateGeometry', area
+        @notifyAll 'onCreateName', area if area.hasName()
+        # @notifyAll 'onUpdateStatus', area
+
+        # update controller
+        @_areas.push area
+        @_activeAreas.push area
+        @_editAreas.push area
 
         @_DEBUG_OUTPUT 'create area'
 
@@ -339,35 +381,53 @@ class HG.AreaController
         # if there was no geometry before and there is a valid new geometry now
         # => create it
         if (not hadGeometryBefore) and (hasGeometryNow)
-
-          # TODO: überarbeiten
+          # update model
           area = new HG.Area {
             id:         id
             geometry:   newGeometry
           }
-
-          @_createGeometry area
-          @_activate area
-          @_startEdit area, no
-          @_select area, yes
+          area.activate()
+          area.inEdit yes
+          area.select()
+          # update view
+          @notifyAll 'onCreateGeometry', area
+          @notifyAll 'onSelect', area
+          # update controller
+          @_activeAreas.push area
+          @_editAreas.push area
+          @_selectedAreas.push area
 
         # if there was a geometry before and there is a valid new geometry now
         # => update it
         else if (hadGeometryBefore) and (hasGeometryNow)
-          @_updateGeometry area, newGeometry
-          @_updateRepresentativePoint area, null  if area.hasName()
+          # update model
+          area.setGeometry newGeometry
+          area.resetRepresentativePoint()
+          # update view
+          @notifyAll 'onUpdateGeometry', area
+          @notifyAll 'onUpdateRepresentativePoint', area
 
         # if there was a geometry before and there is no valid new geometry now
         # => remove it
         else if (hadGeometryBefore) and (not hasGeometryNow)
-          @_deselect area, no
-          @_endEdit area, no
-          @_unfocus area, no
-          @_deactivate area
-          @_removeGeometry area
-          @_removeName area if area.hasName()
+          # update model
+          area.setGeometry new HG.Point null # empty geometry
+          area.unfocus()
+          area.deselect()
+          area.inEdit no
+          area.deactivate()
+          # update view
+          @notifyAll 'onRemoveGeometry', area
+          @notifyAll 'onRemoveName', area if area.hasName()
+          # update controller
+          idx = @_activeAreas.indexOf area
+          @_activeAreas.splice idx, 1 if idx isnt -1
+          idx = @_editAreas.indexOf area
+          @_editAreas.splice idx, 1 if idx isnt -1
+          idx = @_selectedAreas.indexOf area
+          @_selectedAreas.splice idx, 1 if idx isnt -1
 
-        # else if there was no geometry before and there is not valid new geometry now
+        # else if there was no geometry before and there is no valid new geometry now
         # => no need to change something
 
         @_DEBUG_OUTPUT 'update area geometry'
@@ -391,20 +451,34 @@ class HG.AreaController
         # if there was no name before and there is a valid new name now
         # => create it
         if (not hadNameBefore) and (hasNameNow)
-          @_createName area, newShortName, newFormalName
-          @_updateRepresentativePoint area, newPosition if newPosition
+          # update model
+          area.setShortName newShortName if newShortName
+          area.setFormalName newFormalName if newFormalName
+          if newPosition
+            area.setRepresentativePoint newPosition
+          else
+            area.resetRepresentativePoint()
+          # update view
+          @notifyAll 'onCreateName', area
 
         # if there was a name before and there is a valid new name now
         # => update it
         else if (hadNameBefore) and (hasNameNow)
-          @_updateName area, newShortName, newFormalName
-          @_updateRepresentativePoint area, newPosition if newPosition
+          # update model
+          area.setShortName newShortName
+          area.setFormalName newFormalName
+          area.setRepresentativePoint newPosition if newPosition
+          # update view
+          @notifyAll 'onUpdateName', area
+          @notifyAll 'onUpdateRepresentativePoint', area if newPosition
 
         # if there was a name before and there is no valid new name now
         # => remove it
         else if (hadNameBefore) and (not hasNameNow)
-          @_removeName area
-
+          # update model
+          area.removeName()
+          # update view
+          @notifyAll 'onRemoveName', area
 
         # else: if there was no name before and there is not valid new name now
         # => no need to change something
@@ -417,7 +491,13 @@ class HG.AreaController
         # error handling: area has to be found and active
         return if (not area) or (not area.isActive())
 
-        @_startEdit area
+        if not area.isInEdit()
+          # update model
+          area.inEdit yes
+          # update view
+          @notifyAll 'onUpdateStatus', area
+          # update controller
+          @_editAreas.push area
 
         @_DEBUG_OUTPUT 'start edit mode'
 
@@ -429,7 +509,13 @@ class HG.AreaController
         # error handling: area has to be found and active
         return if (not area) or (not area.isActive())
 
-        @_endEdit area
+        if area.isInEdit()
+          # update model
+          area.inEdit no
+          # update view
+          @notifyAll 'onUpdateStatus', area
+          # update controller
+          @_editAreas.splice((@_editAreas.indexOf area), 1)
 
         @_DEBUG_OUTPUT 'end edit mode'
 
@@ -441,7 +527,14 @@ class HG.AreaController
         # error handling: area has to be found and active
         return if (not area) or (not area.isActive())
 
-        @_select area
+        if not area.isSelected()
+          # update model
+          area.select()
+          # update controller
+          @_selectedAreas.push area
+          # update view
+          @notifyAll 'onUpdateStatus', area
+          @notifyAll 'onSelect', area
 
         @_DEBUG_OUTPUT 'select area'
 
@@ -453,7 +546,14 @@ class HG.AreaController
         # error handling: area has to be found and active
         return if (not area) or (not area.isActive())
 
-        @_deselect area
+        if area.isSelected()
+          # update model
+          area.deselect()
+          # update controller
+          @_selectedAreas.splice (@_selectedAreas.indexOf area), 1
+          # update view
+          @notifyAll 'onUpdateStatus', area
+          @notifyAll 'onDeselect', area
 
         @_DEBUG_OUTPUT 'deselect area'
 
@@ -465,21 +565,33 @@ class HG.AreaController
         # error handling: area has to be found
         return if (not area)
 
-        @_endEdit area, no
-        @_unfocus area, no
-        @_deselect area, no
-        @_deactivate area
-        @_removeGeometry area
-        @_removeName area if area.hasName()
+        # update model
+        area.setGeometry new HG.Point null # empty geometry
+        area.removeName()
+        area.deactivate()
+        area.inEdit no
+        area.deselect()
+        area.unfocus()
+        # update view
+        @notifyAll 'onRemoveGeometry', area
+        @notifyAll 'onRemoveName', area if area.hasName()
+        # update controller
+        idx = @_selectedAreas.indexOf area
+        @_selectedAreas.splice idx, 1 if idx isnt -1
+        idx = @_editAreas.indexOf area
+        @_editAreas.splice idx, 1 if idx isnt -1
+        idx = @_activeAreas.indexOf area
+        @_activeAreas.splice idx, 1 if idx isnt -1
+        idx = @_areas.indexOf area
+        @_areas.splice idx, 1 if idx isnt -1
 
         @_DEBUG_OUTPUT 'remove area'
 
 
   # ============================================================================
     # infinite loop that executes all changes in the queue
+    # find next ready area change and execute it (one at a time)
     mainLoop = setInterval () =>    # => is important to be able to access global variables (compared to ->)
-
-      # find next ready area change and execute it (one at a time)
 
       # execute change if it is ready
       while not @_changeQueue.isEmpty()
@@ -491,61 +603,39 @@ class HG.AreaController
         change = @_changeQueue.dequeue()
 
         # add all new areas
-        # -> update the style before, so it has the correct style in the mmoment it is on the map
-        if change.newAreas?
-          for id in change.newAreas
-            area = @_getAreaById id
-            if area?
-              area.setActive()
-              @_updateAreaStyle area
-              @notifyAll "onAddArea", area
+        for id in change.newAreas
+          area = @getArea id
+          if area?
+            # update model
+            area.activate()
+            # update view
+            @notifyAll 'onCreateGeometry', area
+            @notifyAll 'onCreateName', area if area.hasName()
+            # update controller
+            @_activeAreas.push area
 
         # remove all old areas
-        # -> update the style before, so it has the correct style in the mmoment it is on the map
-        if change.oldAreas?
-          for id in change.oldAreas
-            area = @_getAreaById id
-            if area?
-              area.setInactive()
-              # @_updateAreaStyle area
-              @notifyAll "onRemoveArea", area
-
-        # add all new labels
-        if change.newLabels?
-          for id in change.newLabels
-            label = @_getLabelById id
-            if label?
-              label.setActive()
-              @_updateLabelStyle label
-              @notifyAll "onAddLabel", label
-
-        # remove all old labels
-        if change.oldLabels?
-          for id in change.oldLabels
-            label = @_getLabelById id
-            if label?
-              label.setInactive()
-              # @_updateLabelStyle label
-              @notifyAll "onRemoveLabel", label
+        for id in change.oldAreas
+          area = @getArea id
+          if area?
+            # update model
+            area.deactivate()
+            # update view
+            @notifyAll 'onRemoveName', area if area.hasName()
+            @notifyAll 'onRemoveGeometry', area
+            # update controller
+            idx = @_activeAreas.indexOf area
+            @_activeAreas.splice idx, 1 if idx isnt -1
 
         # fade-out transition area
-        if change.transArea?
-          @notifyAll "onFadeOutArea", @_getTransitionById change.transArea
+        # if change.transitionArea
+        #   @notifyAll "onFadeOutArea", @_getTransitionById change.transitionArea
 
         # fade-out transition border
-        if change.transBorder?
-          @notifyAll "onFadeOutBorder", @_getTransitionById change.transBorder
+        # if change.transitionBorder
+        #   @notifyAll "onFadeOutBorder", @_getTransitionById change.transitionBorder
 
-        # update style changes
-        if change.updateArea? and change.updateArea.isActive()
-          @notifyAll "onUpdateAreaStyle", change.updateArea, @_isHighContrast
-
-        if change.updateLabel? and change.updateLabel.isActive()
-          @notifyAll "onUpdateLabelStyle", change.updateLabel, @_isHighContrast
-
-
-
-    , 1000 # TODO: change back to 50
+    , HGConfig.change_queue_interval.val
 
 
 
@@ -566,100 +656,6 @@ class HG.AreaController
   ##############################################################################
 
   # ============================================================================
-  _createGeometry: (area, geometry=null) ->
-    area.setGeometry geometry if geometry                       # model
-    @notifyAll 'onCreateGeometry', area                         # view
-
-  # ----------------------------------------------------------------------------
-  _updateGeometry: (area, geometry) ->
-    area.setGeometry geometry                                   # model
-    @notifyAll 'onUpdateGeometry', area                         # view
-
-  # ----------------------------------------------------------------------------
-  _removeGeometry: (area) ->
-    area.setGeometry new HG.Point null # empty geometry         # model
-    @notifyAll 'onRemoveGeometry', area                         # view
-
-  # ============================================================================
-  _createName: (area, shortName=null, formalName=null) ->
-    area.setShortName shortName if shortName                    # model
-    area.setFormalName formalName if formalName                 # model
-    @notifyAll 'onCreateName', area                             # view
-
-  # ----------------------------------------------------------------------------
-  _updateName: (area, shortName, formalName) ->
-    area.setShortName shortName                                 # model
-    area.setFormalName formalName                               # model
-    @notifyAll 'onUpdateName', area                             # view
-
-  # ----------------------------------------------------------------------------
-  _updateRepresentativePoint: (area, point=null) ->
-    if point
-      area.setRepresentativePoint point                         # model
-    else
-      area.resetRepresentativePoint()                           # model
-    @notifyAll 'onUpdateRepresentativePoint', area              # view
-
-  # ----------------------------------------------------------------------------
-  _removeName: (area) ->
-    area.removeName()                                           # model
-    @notifyAll 'onRemoveName', area                             # view
-
-  # ============================================================================
-  _activate: (area) ->
-    if not area.isActive()
-      area.activate()                                           # model
-      @_activeAreas.push area                                   # controller
-
-  # ----------------------------------------------------------------------------
-  _deactivate: (area) ->
-    if area.isActive()
-      area.deactivate()                                         # model
-      @_activeAreas.splice((@_activeAreas.indexOf area), 1)     # controller
-
-  # ============================================================================
-  _select: (area, updateView=yes) ->
-    if not area.isSelected()
-      area.select()                                             # model
-      @_selectedAreas.push area                                 # controller
-      @notifyAll 'onUpdateStatus', area if updateView           # view
-      @notifyAll 'onSelect', area       if updateView           # view
-
-  # ----------------------------------------------------------------------------
-  _deselect: (area, updateView=yes) ->
-    if area.isSelected()
-      area.deselect()                                           # model
-      @_selectedAreas.splice((@_selectedAreas.indexOf area), 1) # controller
-      @notifyAll 'onUpdateStatus', area if updateView           # view
-      @notifyAll 'onDeselect', area     if updateView           # view
-
-  # ============================================================================
-  _focus: (area, updateView=yes) ->
-    area.focus()                                                # model
-    @notifyAll 'onUpdateStatus', area if updateView             # view
-
-  # ----------------------------------------------------------------------------
-  _unfocus: (area, updateView=yes) ->
-    area.unfocus()                                              # model
-    @notifyAll 'onUpdateStatus', area if updateView             # view
-
-  # ============================================================================
-  _startEdit: (area, updateView=yes) ->
-    if not area.isInEdit()
-      area.inEdit yes                                           # model
-      @_editAreas.push area                                     # controller
-      @notifyAll 'onUpdateStatus', area if updateView           # view
-
-  # ----------------------------------------------------------------------------
-  _endEdit: (area, updateView=yes) ->
-    if area.isInEdit()
-      area.inEdit no                                            # model
-      @_editAreas.splice((@_editAreas.indexOf area), 1)         # controller
-      @notifyAll 'onUpdateStatus', area if updateView           # view
-
-
-
-  # ============================================================================
   _cleanSelectedAreas: (exceptionAreaId) ->
     # manuel while loop, because selected areas shrinks while operating in it
     loopIdx = @_selectedAreas.length-1
@@ -673,24 +669,31 @@ class HG.AreaController
         continue
 
       # normal case: deselect
-      area.deselect()                                           # model
-      @_selectedAreas.splice(loopIdx, 1)                        # controller
-      @notifyAll 'onUpdateStatus', area                         # view
-      @notifyAll 'onDeselect', area                             # view
+      # update model
+      area.deselect()
+      # update controller
+      @_selectedAreas.splice loopIdx, 1
+      # update view
+      @notifyAll 'onUpdateStatus', area
+      # update view
+      @notifyAll 'onDeselect', area
 
       loopIdx--
 
   # ----------------------------------------------------------------------------
   _cleanEditAreas: () ->
-    # manuel while loop, because selected areas shrinks while operating in it
+    # manual while loop, because selected areas shrinks while operating in it
     loopIdx = @_editAreas.length-1
     while loopIdx >= 0
 
       area = @_editAreas[loopIdx]
 
-      area.inEdit no                                            # model
-      @_editAreas.splice(loopIdx, 1)                            # controller
-      @notifyAll 'onUpdateStatus', area                        # view
+      # update model
+      area.inEdit no
+      # update controller
+      @_editAreas.splice loopIdx, 1
+      # update view
+      @notifyAll 'onUpdateStatus', area
 
       loopIdx--
 

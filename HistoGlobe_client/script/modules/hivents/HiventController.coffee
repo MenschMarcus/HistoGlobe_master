@@ -112,7 +112,7 @@ class HG.HiventController
           break if inChangeRange
 
       # tell everyone if new changes
-      @notifyAll 'onChangeAreas', changes, timeLeap if changes.length isnt 0
+      @notifyAll 'onChangeAreas', changes, changeDir, timeLeap if changes.length isnt 0
 
       # update now date
       @_nowDate = nowDate

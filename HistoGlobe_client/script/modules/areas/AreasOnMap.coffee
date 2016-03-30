@@ -35,16 +35,24 @@ class HG.AreasOnMap
       if @_hgInstance.areaController
 
         @_hgInstance.areaController.onCreateGeometry @, (area) =>
-          @_addGeometry area
-
-        @_hgInstance.areaController.onCreateName @, (area) =>
-          @_addLabel area
+          @_createGeometry area
 
         @_hgInstance.areaController.onUpdateGeometry @, (area) =>
           @_updateGeometry area
 
+        @_hgInstance.areaController.onRemoveGeometry @, (area) =>
+          @_removeGeometry area
+
+
+        @_hgInstance.areaController.onCreateName @, (area) =>
+          @_createLabel area
+
         @_hgInstance.areaController.onUpdateName @, (area) =>
           @_updateLabel area
+
+        @_hgInstance.areaController.onRemoveName @, (area) =>
+          @_removeLabel area
+
 
         @_hgInstance.areaController.onUpdateRepresentativePoint @, (area) =>
           @_updateLabelPosition area
@@ -52,15 +60,9 @@ class HG.AreasOnMap
         @_hgInstance.areaController.onUpdateStatus @, (area) =>
           @_updateProperties area
 
+
         @_hgInstance.areaController.onSelect @, (area) =>
           @_map.fitBounds area.geomLayer.getBounds() if FOCUS
-
-        @_hgInstance.areaController.onRemoveGeometry @, (area) =>
-          @_removeGeometry area
-
-        @_hgInstance.areaController.onRemoveName @, (area) =>
-          @_removeLabel area
-
 
       else
         console.error "Unable to show areas on the map: AreaController module not detected in HistoGlobe instance!"
@@ -78,7 +80,7 @@ class HG.AreasOnMap
   # (separation for geometry = MultiPolygon and name = Label)
 
   # ----------------------------------------------------------------------------
-  _addGeometry: (area) ->
+  _createGeometry: (area) ->
 
     # styling area in CSS based on its calss is a bad idea,
     # because d3 can not update that => use leaflet layer options
@@ -108,7 +110,7 @@ class HG.AreasOnMap
 
 
   # ----------------------------------------------------------------------------
-  _addLabel: (area) ->
+  _createLabel: (area) ->
 
     # create label with name and position
     area.labelLayer = new L.Label()
