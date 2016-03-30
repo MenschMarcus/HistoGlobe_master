@@ -27,3 +27,4 @@ class HG.Hivent
     @content        = data.content
     @linkUrl        = data.linkUrl
     @linkDate       = data.linkDate
+    @changes        = data.changes

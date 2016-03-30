@@ -38,12 +38,16 @@ class HG.AreaController
 
 
     # init members
+    @_areas = []                  # set of all HG.Area's in the system
+                                  # -> no area gets ever deleted from here
     @_activeAreas = []            # set of all HG.Area's currently active
 
     @_maxSelections = 1           # 1 = single-selection mode, n = multi-selection mode
     @_selectedAreas = []          # array of all currently active areas
     @_areaEditMode = off          # in edit mode normal areas can not be selected
     @_editAreas = []              # stores all areas that are currently in edit mode
+
+    @_changeQueue = new Queue()   # queue for all area changes on the map/globe
 
 
   # ============================================================================
@@ -57,19 +61,27 @@ class HG.AreaController
 
       ### INIT AREAS ###
       @_areaLoader = new HG.AreaLoader
-      areas = @_areaLoader.loadInit @_hgInstance
 
-      @_areaLoader.onFinishLoading @, (area) ->
+      # load active areas
+      @_areaLoader.loadInit @_hgInstance
+
+      @_areaLoader.onLoadInitArea @, (area) ->
+        @_areas.push area
         @_createGeometry area
         @_createName area if area.hasName()
         @_activate area
 
+      # load inactive areas in the background
+      @_areaLoader.onFinishLoadingInitAreas @, () ->
+        @_areaLoader.loadRest @_hgInstance
+        @_areaLoader.onLoadRestArea @, (area) ->
+          @_areas.push area
 
-      ### TO INTERFACE ###
 
-      # ========================================================================
+      ### VIEW ###
+
       ## listen to each viewer (have the same interface)
-      # -> start only with AreasOnMap
+      ## -> start only with AreasOnMap
 
       # ----------------------------------------------------------------------
       # hover areas => focus?
@@ -129,16 +141,110 @@ class HG.AreaController
 
           # else: area not selected but selection limit reached => no selection
 
-        @_DEBUG_OUTPUT 'select area (from view)' if DEBUG
+        @_DEBUG_OUTPUT 'select area (from view)'
 
 
       # ========================================================================
-      ## listen to Edit Mode
+      ### HIVENT CONTROLLER ###
+
+      ## perform area changes
+      # ------------------------------------------------------------------------
+
+      @_hgInstance.hiventController.onChangeAreas @, (changes, timeLeap) ->
+
+        for change in changes
+
+          # prepare change
+          newChange = {
+            timestamp   : null      # timestamp at wich changes shall be executed
+            oldAreas    : []        # areas to be deleted
+            newAreas    : []        # areas to be added
+            transArea   : null      # regions to be faded out when change is done
+            transBorder : null      # borders to be faded out when change is done
+          }
+
+          # are there anmated transitions?
+          # fade-in transition area and border unless user scrolled too far
+          hasTransition = no
+
+          if timeLeap < HGConfig.time_leap_threshold.val
+
+            # do special fading in/out for special operations
+            if change.operation is 'ADD'
+              magic = 42
+
+            else if change.operation is 'UNI'
+              magic = 42
+
+            else if change.operation is 'SEP'
+              magic = 42
+
+            else if change.operation is 'CHB'
+              magic = 42
+
+            else if change.operation is 'CHN'
+              magic = 42
+
+            else if change.operation is 'DEL'
+              magic = 42
+
+            transArea = @_getTransitionById change.trans_area
+            @notifyAll "onFadeInArea", transArea, yes
+            hasTransition = yes
+
+            transBorder = @_getTransitionById change.trans_border
+            @notifyAll "onFadeInBorder", transBorder, yes
+            hasTransition = yes
+
+
+          # set timestamp
+          ts = new Date()
+          if hasTransition
+            ts.setMilliseconds ts.getMilliseconds() + HGConfig.area_animation_time.val
+          newChange.timestamp = ts
+
+          # set old / new areas to toggle
+          # changeDir = +1 => timeline moves forward => old areas are old areas
+          # else      = -1 => timeline moves backward => old areas are new areas
+          for area in change.newAreas
+            if changeDir is 1 then newAreas.push area else oldAreas.push area
+
+          for area in change.oldAreas
+            if changeDir is 1 then oldAreas.push area else newAreas.push area
+
+          # remove duplicates -> all areas/labels that are both in new or old array
+          # TODO: O(n²) in the moment -> does that get better?
+          iNew = 0
+          iOld = 0
+          lenNew = newAreas.length
+          lenOld = oldAreas.length
+          while iNew < lenNew
+            while iOld < lenOld
+              if newAreas[iNew] is oldAreas[iOld]
+                newAreas[iNew] = null
+                oldAreas[iOld] = null
+                break # duplicates can only be found once => break here
+              ++iOld
+            ++iNew
+
+          # remove nulls and assign to change array
+          # TODO: make this nicer
+          for area in oldAreas
+            newChange.oldAreas.push area if area
+
+          for area in newAreas
+            newChange.newAreas.push area if area
+
+
+          # finally enqueue distinct changes
+          @_changeQueue.enqueue newChange
+
+
 
       # ========================================================================
-      # swap single-selection <-> multi-selection mode
-      # swap normal mode <-> edit mode
+      ### EDIT MODE ###
 
+      ## toggle single-selection <-> multi-selection mode
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onEnableMultiSelection @, (num) ->
 
@@ -153,7 +259,7 @@ class HG.AreaController
         # it will still be in the @_selectedAreas array and can stay there,
         # since it will never be deselected
 
-        @_DEBUG_OUTPUT 'enable multi selection' if DEBUG
+        @_DEBUG_OUTPUT 'enable multi selection'
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onDisableMultiSelection @, (selectedAreaId=null) ->
@@ -165,9 +271,10 @@ class HG.AreaController
         # -> except for the one specified by edit mode to be kept selected
         @_cleanSelectedAreas selectedAreaId
 
-        @_DEBUG_OUTPUT 'disable multi selection' if DEBUG
+        @_DEBUG_OUTPUT 'disable multi selection'
 
 
+      ## toggle normal mode <-> edit mode
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onEnableAreaEditMode @, () ->
 
@@ -178,12 +285,12 @@ class HG.AreaController
         # it will still be in the @_selectedAreas array and can stay there,
         # since it will never be deselected
 
-        @_DEBUG_OUTPUT 'start edit mode' if DEBUG
+        @_DEBUG_OUTPUT 'start edit mode'
 
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onDisableAreaEditMode @, (selectedAreaId=null) ->
-        @_DEBUG_OUTPUT 'end edit mode (before)' if DEBUG
+        @_DEBUG_OUTPUT 'end edit mode (before)'
 
         @_areaEditMode = off
         @_maxSelections = 1
@@ -193,11 +300,10 @@ class HG.AreaController
         @_cleanSelectedAreas selectedAreaId
         @_cleanEditAreas()
 
-        @_DEBUG_OUTPUT 'end edit mode (after)' if DEBUG
+        @_DEBUG_OUTPUT 'end edit mode (after)'
 
 
-      # ========================================================================
-      # handle new, updated and old areas
+      ## handle new, updated and old areas
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onCreateArea @, (id, geometry, shortName=null, formalName=null) ->
@@ -217,7 +323,7 @@ class HG.AreaController
         @_activate area
         @_startEdit area
 
-        @_DEBUG_OUTPUT 'create area' if DEBUG
+        @_DEBUG_OUTPUT 'create area'
 
 
       # ------------------------------------------------------------------------
@@ -264,7 +370,7 @@ class HG.AreaController
         # else if there was no geometry before and there is not valid new geometry now
         # => no need to change something
 
-        @_DEBUG_OUTPUT 'update area geometry' if DEBUG
+        @_DEBUG_OUTPUT 'update area geometry'
 
 
       # ------------------------------------------------------------------------
@@ -313,7 +419,7 @@ class HG.AreaController
 
         @_startEdit area
 
-        @_DEBUG_OUTPUT 'start edit mode' if DEBUG
+        @_DEBUG_OUTPUT 'start edit mode'
 
 
       # ------------------------------------------------------------------------
@@ -325,7 +431,7 @@ class HG.AreaController
 
         @_endEdit area
 
-        @_DEBUG_OUTPUT 'end edit mode' if DEBUG
+        @_DEBUG_OUTPUT 'end edit mode'
 
 
       # ------------------------------------------------------------------------
@@ -337,7 +443,7 @@ class HG.AreaController
 
         @_select area
 
-        @_DEBUG_OUTPUT 'select area' if DEBUG
+        @_DEBUG_OUTPUT 'select area'
 
 
       # ------------------------------------------------------------------------
@@ -349,7 +455,7 @@ class HG.AreaController
 
         @_deselect area
 
-        @_DEBUG_OUTPUT 'deselect area' if DEBUG
+        @_DEBUG_OUTPUT 'deselect area'
 
 
       # ------------------------------------------------------------------------
@@ -366,16 +472,90 @@ class HG.AreaController
         @_removeGeometry area
         @_removeName area if area.hasName()
 
-        @_DEBUG_OUTPUT 'remove area' if DEBUG
+        @_DEBUG_OUTPUT 'remove area'
 
 
   # ============================================================================
-  getAreas: () ->           @_activeAreas
+    # infinite loop that executes all changes in the queue
+    mainLoop = setInterval () =>    # => is important to be able to access global variables (compared to ->)
+
+      # find next ready area change and execute it (one at a time)
+
+      # execute change if it is ready
+      while not @_changeQueue.isEmpty()
+
+        # check if first element in queue is ready (timestamp is reached)
+        break if @_changeQueue.peek().timestamp > new Date()
+
+        # get next change
+        change = @_changeQueue.dequeue()
+
+        # add all new areas
+        # -> update the style before, so it has the correct style in the mmoment it is on the map
+        if change.newAreas?
+          for id in change.newAreas
+            area = @_getAreaById id
+            if area?
+              area.setActive()
+              @_updateAreaStyle area
+              @notifyAll "onAddArea", area
+
+        # remove all old areas
+        # -> update the style before, so it has the correct style in the mmoment it is on the map
+        if change.oldAreas?
+          for id in change.oldAreas
+            area = @_getAreaById id
+            if area?
+              area.setInactive()
+              # @_updateAreaStyle area
+              @notifyAll "onRemoveArea", area
+
+        # add all new labels
+        if change.newLabels?
+          for id in change.newLabels
+            label = @_getLabelById id
+            if label?
+              label.setActive()
+              @_updateLabelStyle label
+              @notifyAll "onAddLabel", label
+
+        # remove all old labels
+        if change.oldLabels?
+          for id in change.oldLabels
+            label = @_getLabelById id
+            if label?
+              label.setInactive()
+              # @_updateLabelStyle label
+              @notifyAll "onRemoveLabel", label
+
+        # fade-out transition area
+        if change.transArea?
+          @notifyAll "onFadeOutArea", @_getTransitionById change.transArea
+
+        # fade-out transition border
+        if change.transBorder?
+          @notifyAll "onFadeOutBorder", @_getTransitionById change.transBorder
+
+        # update style changes
+        if change.updateArea? and change.updateArea.isActive()
+          @notifyAll "onUpdateAreaStyle", change.updateArea, @_isHighContrast
+
+        if change.updateLabel? and change.updateLabel.isActive()
+          @notifyAll "onUpdateLabelStyle", change.updateLabel, @_isHighContrast
+
+
+
+    , 1000 # TODO: change back to 50
+
+
+
+  # ============================================================================
+  getActiveAreas: () ->     @_activeAreas
   getSelectedAreas: () ->   @_selectedAreas
 
   # ----------------------------------------------------------------------------
   getArea: (id) ->
-    for area in @_activeAreas
+    for area in @_areas
       if area.getId() is id
         return area
         break
@@ -517,6 +697,8 @@ class HG.AreaController
 
   # ============================================================================
   _DEBUG_OUTPUT: (id) ->
+
+    return if not DEBUG
 
     sel = []
     sel.push a.getId() for a in @_selectedAreas
