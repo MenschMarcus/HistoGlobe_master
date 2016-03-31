@@ -2,7 +2,7 @@
   This file does all the initialization work for the database:
   - create inital set of Areas of the world in in year 2015.
   - create initial snapshot for the year 2015
-  - populate repr_point field in area table
+  - populate representative_point field in area table
 
   Caution: This can be performed ONLY in the beginning, when it is clear that
   all areas in the database are actually active in 2015. As soon as the first
@@ -256,7 +256,7 @@ def run(verbose=True):
 
   ### create representatice point ###
   for area in Area.objects.all():
-    area.repr_point = area.geom.point_on_surface
+    area.representative_point = area.geom.point_on_surface
     area.save()
   print("representative point calculated for all areas")
 
