@@ -59,9 +59,10 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
     @_currentShortName = currentArea.getShortName()
     @_currentFormalName = currentArea.getFormalName()
     @_currentPoint = currentArea.getRepresentativePoint()
+    @_currentNameRemoved = currentArea.hasName()
 
     # delete name, but put it into name tool
-    @notifyEditMode 'onRemoveAreaName', @_currentId if currentArea.hasName()
+    @notifyEditMode 'onRemoveAreaName', @_currentId if @_currentNameRemoved
 
     # set up NewNameTool to set name and position of area interactively
     newNameTool = new HG.NewNameTool @_hgInstance, @_currentShortName, @_currentFormalName, @_currentPoint
@@ -72,6 +73,7 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
       # save the old name
       @_stepData.tempAreas[@_areaIdx] = {
         'id':         @_currentId
+        'removed':    @_currentNameRemoved
         'shortName':  @_currentShortName
         'formalName': @_currentFormalName
         'reprPoint':  @_currentPoint
@@ -86,7 +88,10 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
         undo: =>
           # restore old name
           area = @_stepData.tempAreas[@_areaIdx]
-          @notifyEditMode 'onUpdateAreaName', area.id, area.shortName, area.formalName, area.representativePoint
+          if @_currentNameRemoved
+            @notifyEditMode 'onCreateAreaName', area.id, area.shortName, area.formalName, area.reprPoint
+          else
+            @notifyEditMode 'onUpdateAreaName', area.id, area.shortName, area.formalName, area.reprPoint
 
           # go to previous area
           @_cleanup()
