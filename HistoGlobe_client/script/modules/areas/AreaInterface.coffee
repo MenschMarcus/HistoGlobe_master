@@ -52,7 +52,7 @@ class HG.AreaInterface
     @_loadRestAreas request
 
   # ============================================================================
-  save: (area) ->
+  convertToServerModel: (area) ->
     @_prepareAreaClientToServer area
 
 
@@ -125,16 +125,15 @@ class HG.AreaInterface
         console.log xhr.responseText
 
   # ============================================================================
-  # load all initially inactive rest areas from the server
-  _prepareAreaServerToClient: (areaOnServer) ->
+  _prepareAreaServerToClient: (areaFromServer) ->
     areaOnClient = {
-      id :                    areaOnServer.properties.id
-      geometry :              @_geometryReader.read areaOnServer.geometry
-      shortName :             areaOnServer.properties.name_short
-      formalName :            areaOnServer.properties.name_formal
-      representativePoint :   @_geometryReader.read areaOnServer.properties.representative_point
-      sovereigntyStatus :     areaOnServer.properties.sovereignty_status
-      territoryOf :           @_hgInstance.areaController.getArea areaOnServer.properties.territory_of
+      id :                    areaFromServer.properties.id
+      geometry :              @_geometryReader.read areaFromServer.geometry
+      shortName :             areaFromServer.properties.short_name
+      formalName :            areaFromServer.properties.formal_name
+      representativePoint :   @_geometryReader.read areaFromServer.properties.representative_point
+      sovereigntyStatus :     areaFromServer.properties.sovereignty_status
+      territoryOf :           @_hgInstance.areaController.getArea areaFromServer.properties.territory_of
     }
 
     # error handling: each area must have valid id and geometry
@@ -143,16 +142,15 @@ class HG.AreaInterface
     return areaOnClient
 
   # ============================================================================
-  # load all initially inactive rest areas from the server
-  _prepareAreaClientToServer: (areaOnClient) ->
+  _prepareAreaClientToServer: (areaFromClient) ->
     areaOnServer = {
-      id :                    areaOnClient.getId()
-      geometry :              areaOnClient.getGeometry().wkt()
-      shortName :             areaOnClient.getShortName()
-      formalName :            areaOnClient.getFormalName()
-      representativePoint :   areaOnClient.getRepresentativePoint().wkt()
-      sovereigntyStatus :     areaOnClient.getSovereigntyStatus()
-      territoryOf :           areaOnClient.getTerritoryOf().getId()
+      id :                    areaFromClient.getId()
+      geometry :              areaFromClient.getGeometry().wkt()
+      representative_point :  areaFromClient.getRepresentativePoint().wkt()
+      short_name :            areaFromClient.getShortName()
+      formal_name :           areaFromClient.getFormalName()
+      sovereignty_status :    areaFromClient.getSovereigntyStatus()
+      territory_of :          areaFromClient.getTerritoryOf()?.getId()
     }
 
     areaOnServer

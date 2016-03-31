@@ -134,6 +134,15 @@ def get_hivents(request):
 # return hivent and newly created area ids to client
 def save_operation(request):
 
+  # HARDCODE CLEANUP
+  if len(Hivent.objects.filter(name="The Creation of the Baltic Union")) == 1:
+    from HistoGlobe_server.models import *
+    h = Hivent.objects.get(name="The Creation of the Baltic Union")
+    h.delete()
+    a = Area.objects.get(short_name="Baltic Union")
+    a.delete()
+
+
   ### init variables
   request_data = json.loads(request.body)
   response_data = {}
@@ -175,13 +184,11 @@ def save_operation(request):
   new_change = view_hivents.save_change(new_hivent, operation)
   view_hivents.save_change_areas(new_change, operation, old_areas, new_areas)
 
-
   ## get whole hivent, including change(areas) as response to the client
   response_data['hivent'] = view_hivents.get_hivent(new_hivent.id)
 
 
   return HttpResponse(json.dumps(response_data))  # N.B: mind the HttpResponse(function)
-
 
 
 ################################################################################
@@ -211,8 +218,8 @@ def prepare_area_output(areas, chunk_size, chunks_complete):
     json_str +=   '"properties":'
     json_str +=   '{'
     json_str +=     '"id":'                   + str(area.id)                          + ','
-    json_str +=     '"name_short":"'          + str(area.name_short.encode('utf-8'))  + '",'   # N.B: encode with utf-8!
-    json_str +=     '"name_formal":"'         + str(area.name_formal.encode('utf-8')) + '",'   # N.B: encode with utf-8!
+    json_str +=     '"short_name":"'          + str(area.short_name.encode('utf-8'))  + '",'   # N.B: encode with utf-8!
+    json_str +=     '"formal_name":"'         + str(area.formal_name.encode('utf-8')) + '",'   # N.B: encode with utf-8!
     json_str +=     '"representative_point":' + area.representative_point.json        + ','
     json_str +=     '"sovereignty_status":"'  + str(area.sovereignty_status)          + '",'
     json_str +=     '"territory_of":"'        + str(area.territory_of)                + '"'
