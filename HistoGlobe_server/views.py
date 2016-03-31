@@ -134,7 +134,7 @@ def get_hivents(request):
 # return hivent and newly created area ids to client
 def save_operation(request):
 
-  ### init varialbles
+  ### init variables
   request_data = json.loads(request.body)
   response_data = {}
 
@@ -213,7 +213,7 @@ def prepare_area_output(areas, chunk_size, chunks_complete):
     json_str +=     '"id":'                   + str(area.id)                          + ','
     json_str +=     '"name_short":"'          + str(area.name_short.encode('utf-8'))  + '",'   # N.B: encode with utf-8!
     json_str +=     '"name_formal":"'         + str(area.name_formal.encode('utf-8')) + '",'   # N.B: encode with utf-8!
-    json_str +=     '"representative_point":' + area.repr_point.json                  + ','
+    json_str +=     '"representative_point":' + area.representative_point.json        + ','
     json_str +=     '"sovereignty_status":"'  + str(area.sovereignty_status)          + '",'
     json_str +=     '"territory_of":"'        + str(area.territory_of)                + '"'
     json_str +=   '},'

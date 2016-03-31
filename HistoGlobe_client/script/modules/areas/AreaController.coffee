@@ -60,12 +60,12 @@ class HG.AreaController
     @_hgInstance.onAllModulesLoaded @, () =>
 
       ### INIT AREAS ###
-      @_areaLoader = new HG.AreaLoader
+      @_areaInterface = new HG.AreaInterface
 
       # load active areas
-      @_areaLoader.loadInit @_hgInstance
+      @_areaInterface.loadInit @_hgInstance
 
-      @_areaLoader.onLoadInitArea @, (area) ->
+      @_areaInterface.onLoadInitArea @, (area) ->
         # update model
         area.activate()
         # update view
@@ -78,9 +78,9 @@ class HG.AreaController
       # load inactive areas in the background
       # TODO: fix bug
       # when interacting while loading, the shit breaks!
-      # @_areaLoader.onFinishLoadingInitAreas @, () ->
-      #   @_areaLoader.loadRest @_hgInstance
-      #   @_areaLoader.onLoadRestArea @, (area) ->
+      # @_areaInterface.onFinishLoadingInitAreas @, () ->
+      #   @_areaInterface.loadRest @_hgInstance
+      #   @_areaInterface.onLoadRestArea @, (area) ->
       #     # update controller
       #     @_areas.push area
 

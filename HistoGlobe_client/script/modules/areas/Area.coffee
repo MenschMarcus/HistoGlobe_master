@@ -2,11 +2,8 @@ window.HG ?= {}
 
 # ============================================================================
 # MODEL class
-# DTO => direct access to memeber variables
 # contains data about each Area in the system
-# geom = geojson object
-# name = string,
-# representativePoint = {'lat': float, 'lng': float}
+# ============================================================================
 
 class HG.Area
 
@@ -16,29 +13,33 @@ class HG.Area
 
   # ============================================================================
   constructor: (areaData) ->
-    @_id =                  areaData.id
-    @_geometry =            areaData.geometry
-    @_name = {
-      short:                areaData.shortName           ?= null
-      formal:               areaData.formalName          ?= null
-    }
+    # main properties (not nullable)
+    @_id = areaData.id
+    @_geometry = areaData.geometry
     @_representativePoint = areaData.representativePoint ?= @_geometry.getCenter()
 
-    # what is the status of its sovereignity?
-    @_sovereigntyStatus =   new HG.StateVar ['F', 'P', 'N']
+    # name dictionary
+    # TODO: multiple languages
+    @_name = {
+      short:  areaData.shortName  ?= null
+      formal: areaData.formalName ?= null
+    }
+
+    # status of its sovereignity?
     # 'F' = recognized by all fully sovereign states (default)
     # 'P' = partially recognized by at least one fully sovereign state
     # 'N' = not recognized by any fully sovereign state
+    @_sovereigntyStatus = new HG.StateVar ['F', 'P', 'N']
     @_sovereigntyStatus.set areaData.sovereigntyStatus
 
     # is the area (e.g. overseas) territory of another area?
-    @_territoryOf =         areaData.territoryOf         ?= null
+    @_territoryOf = areaData.territoryOf ?= null
 
-    # area status
-    @_active = no               # is area currently on the map?
-    @_selected = no             # is area currently selected?
-    @_focused = no              # is area currently in focus (hovered)?
-    @_inEdit = no               # is area in edit mode?
+    # area status properties
+    @_active = no    # is area currently on the map?
+    @_selected = no  # is area currently selected?
+    @_focused = no   # is area currently in focus (hovered)?
+    @_inEdit = no    # is area in edit mode?
 
 
   # ============================================================================
@@ -51,22 +52,27 @@ class HG.Area
   hasGeometry: () ->                  @_geometry.isValid()
 
   # ----------------------------------------------------------------------------
-  setShortName: (name) ->             @_name.short = name
-  setFormalName: (name) ->            @_name.formal = name
+  resetRepresentativePoint: () ->     @_representativePoint = @_geometry.getCenter()
+  setRepresentativePoint: (point) ->  @_representativePoint = point
+  getRepresentativePoint: () ->       @_representativePoint
 
+  # ----------------------------------------------------------------------------
+  setShortName: (name) ->             @_name.short = name
   getShortName: () ->                 @_name.short
+
+  setFormalName: (name) ->            @_name.formal = name
   getFormalName: () ->                @_name.formal
 
   removeName: () ->                   @_name = {}
   hasName: () ->                      @_name.short?
 
   # ----------------------------------------------------------------------------
-  resetRepresentativePoint: () ->     @_representativePoint = @_geometry.getCenter()
-  setRepresentativePoint: (point) ->  @_representativePoint = point
-  getRepresentativePoint: () ->       @_representativePoint
+  setSovereigntyStatus: (status) ->   @_sovereigntyStatus.set status
+  getSovereigntyStatus: () ->         @_sovereigntyStatus.get()
 
   # ----------------------------------------------------------------------------
-  getStyle: () ->                     @_getStyle()
+  setTerritoryOf: (area) ->           @_territoryOf = area
+  getTerritoryOf: () ->               @_territoryOf
 
   # ============================================================================
   activate: () ->                     @_active = yes
@@ -87,16 +93,11 @@ class HG.Area
   inEdit: (inEdit = no) ->            @_inEdit = inEdit
   isInEdit: () ->                     @_inEdit
 
-
-  ##############################################################################
-  #                            PRIVATE INTERFACE                               #
-  ##############################################################################
-
   # ============================================================================
   # one function does all the coloring depending on the state of the area
   # this was SO hard to come up with. Please no major changes
   # -> it will be a pain in the ***
-  _getStyle: () ->
+  getStyle: () ->
 
     ## initial style configuration
 

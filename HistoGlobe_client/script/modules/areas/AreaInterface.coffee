@@ -3,7 +3,7 @@ window.HG ?= {}
 # ==============================================================================
 # loads geometries from the server and hands them over in a large array
 
-class HG.AreaLoader
+class HG.AreaInterface
 
 
   ##############################################################################
@@ -51,6 +51,9 @@ class HG.AreaLoader
     # recursively load chunks of areas from the server
     @_loadRestAreas request
 
+  # ============================================================================
+  save: (area) ->
+    @_prepareAreaClientToServer area
 
 
   ##############################################################################
@@ -74,7 +77,7 @@ class HG.AreaLoader
 
         # create an area for each feature
         $.each dataObj.features, (key, val) =>
-          areaData = @_prepareArea val
+          areaData = @_prepareAreaServerToClient val
           @notifyAll 'onLoadInitArea', new HG.Area areaData if areaData
 
         # finish recursion when loading is complete
@@ -111,7 +114,7 @@ class HG.AreaLoader
 
         # create an area for each feature
         $.each dataObj.features, (key, val) =>
-          areaData = @_prepareArea val
+          areaData = @_prepareAreaServerToClient val
           @notifyAll 'onLoadRestArea', new HG.Area areaData if areaData
 
 
@@ -123,18 +126,33 @@ class HG.AreaLoader
 
   # ============================================================================
   # load all initially inactive rest areas from the server
-  _prepareArea: (data) ->
-    area = {
-      id :                    data.properties.id
-      geometry :              @_geometryReader.read data.geometry
-      shortName :             data.properties.name_short
-      formalName :            data.properties.name_formal
-      representativePoint :   @_geometryReader.read data.properties.representative_point
-      sovereigntyStatus :     data.properties.sovereignty_status
-      territoryOf :           data.properties.territory_of
+  _prepareAreaServerToClient: (areaOnServer) ->
+    areaOnClient = {
+      id :                    areaOnServer.properties.id
+      geometry :              @_geometryReader.read areaOnServer.geometry
+      shortName :             areaOnServer.properties.name_short
+      formalName :            areaOnServer.properties.name_formal
+      representativePoint :   @_geometryReader.read areaOnServer.properties.representative_point
+      sovereigntyStatus :     areaOnServer.properties.sovereignty_status
+      territoryOf :           @_hgInstance.areaController.getArea areaOnServer.properties.territory_of
     }
 
     # error handling: each area must have valid id and geometry
-    return null if (not area.id) or (not area.geometry.isValid())
+    return null if (not areaOnClient.id) or (not areaOnClient.geometry.isValid())
 
-    return area
+    return areaOnClient
+
+  # ============================================================================
+  # load all initially inactive rest areas from the server
+  _prepareAreaClientToServer: (areaOnClient) ->
+    areaOnServer = {
+      id :                    areaOnClient.getId()
+      geometry :              areaOnClient.getGeometry().wkt()
+      shortName :             areaOnClient.getShortName()
+      formalName :            areaOnClient.getFormalName()
+      representativePoint :   areaOnClient.getRepresentativePoint().wkt()
+      sovereigntyStatus :     areaOnClient.getSovereigntyStatus()
+      territoryOf :           areaOnClient.getTerritoryOf().getId()
+    }
+
+    areaOnServer
