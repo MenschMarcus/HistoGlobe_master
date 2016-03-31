@@ -20,6 +20,9 @@ import iso8601      # for date string -> date object
 
 from django.contrib.gis.geos import WKTReader, MultiPolygon
 
+# own
+from HistoGlobe_server.models import Area
+
 
 
 # ==============================================================================
@@ -68,6 +71,18 @@ def validate_url(in_url):
   # everything is fine
   return in_url
 
+# ==============================================================================
+# area: id validation
+
+# ------------------------------------------------------------------------------
+def validate_area_id(in_num):
+  if not isinstance(in_num, (int, long)):
+    return False
+  if (len(Area.objects.filter(id=in_num)) != 1):
+    return False
+
+  # everything is fine
+  return in_num
 
 
 # ==============================================================================

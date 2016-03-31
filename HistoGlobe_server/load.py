@@ -40,7 +40,7 @@ from models import *
 
 area_mapping = {
   'geom' :         'MULTIPOLYGON',
-  'name_short' :   'name_long'
+  'short_name' :   'name_long'
 }
 
 countries_full =    'ne_10m_admin_0_countries.shp'   # source: Natural Earth Data
@@ -74,28 +74,28 @@ def run(verbose=True):
 
   ### CREATE DATABASE ###
   """
-  ## setup postgres database and user
-  sudo su - postgres
-  psql
-  CREATE DATABASE histoglobe_database;
-  CREATE USER HistoGlobe_user WITH PASSWORD '12345';
-  ALTER ROLE HistoGlobe_user SET client_encoding TO 'utf8';
-  ALTER ROLE HistoGlobe_user SET default_transaction_isolation TO 'read committed';
-  ALTER ROLE HistoGlobe_user SET timezone TO 'UTC';
-  \c histoglobe_database
-  CREATE EXTENSION postgis;
-  CREATE EXTENSION postgis_topology;
-  CREATE EXTENSION fuzzystrmatch;
-  CREATE EXTENSION postgis_tiger_geocoder;
+## setup postgres database and user
+sudo su - postgres
+psql
+CREATE DATABASE histoglobe_database;
+CREATE USER HistoGlobe_user WITH PASSWORD '12345';
+ALTER ROLE HistoGlobe_user SET client_encoding TO 'utf8';
+ALTER ROLE HistoGlobe_user SET default_transaction_isolation TO 'read committed';
+ALTER ROLE HistoGlobe_user SET timezone TO 'UTC';
+\c histoglobe_database
+CREATE EXTENSION postgis;
+CREATE EXTENSION postgis_topology;
+CREATE EXTENSION fuzzystrmatch;
+CREATE EXTENSION postgis_tiger_geocoder;
 
-  ## load model migrate
-  python manage.py makemigrations
-  python manage.py migrate
+## load model migrate
+python manage.py makemigrations
+python manage.py migrate
 
-  ## prepare
-  python manage.py shell
-  from HistoGlobe_server import load
-  load.run()
+## prepare
+python manage.py shell
+from HistoGlobe_server import load
+load.run()
   """
 
   ### INIT AREAS ###
@@ -119,12 +119,12 @@ def run(verbose=True):
     reader = csv.DictReader(in_file, delimiter='|', quotechar='"')
     for row in reader:
       # update area
-      area = Area.objects.get(name_short=row['init_source_name'])
-      area.name_short =            row['name_short'].decode('utf-8')
-      area.name_formal =           row['name_formal'].decode('utf-8')
+      area = Area.objects.get(short_name=row['init_source_name'])
+      area.short_name =            row['short_name'].decode('utf-8')
+      area.formal_name =           row['formal_name'].decode('utf-8')
       area.sovereignty_status =    row['sovereignty_status']
       area.save()
-      print("Area " + str(area.id) + ': ' + area.name_short + " saved")
+      print("Area " + str(area.id) + ': ' + area.short_name + " saved")
       # create hivent + change (add new country)
       creation_date = iso8601.parse_date(row['creation_date'])
       hivent = Hivent(
@@ -152,9 +152,9 @@ def run(verbose=True):
   with open(get_file('areas_to_delete.csv'), 'r') as in_file:
     reader = csv.DictReader(in_file, delimiter='|', quotechar='"')
     for row in reader:
-      area = Area.objects.get(name_short=row['init_source_name'])
+      area = Area.objects.get(short_name=row['init_source_name'])
       area.delete()
-      print("Area " + area.name_short + " deleted")
+      print("Area " + area.short_name + " deleted")
 
 
   ## create new areas
@@ -171,7 +171,7 @@ def run(verbose=True):
 
         # separate from original country (clip)
         if row['operation'] == 'SEP':
-          old_area = Area.objects.get(name_short=row['old_area'])
+          old_area = Area.objects.get(short_name=row['old_area'])
           # clip old and new geom
           B = new_geom
           A = old_area.geom
@@ -182,7 +182,7 @@ def run(verbose=True):
             old_geom = MultiPolygon(old_geom)
           old_area.geom = old_geom
 
-          print(row['name_short'] + " separated from " + old_area.name_short)
+          print(row['short_name'] + " separated from " + old_area.short_name)
           old_area.save()
 
         # prepare new geometry
@@ -190,13 +190,13 @@ def run(verbose=True):
           new_geom = MultiPolygon(new_geom)
 
         new_area = Area (
-            name_short =            row['name_short'].decode('utf-8'),
-            name_formal =           row['name_formal'].decode('utf-8'),
+            short_name =            row['short_name'].decode('utf-8'),
+            formal_name =           row['formal_name'].decode('utf-8'),
             geom =                  new_geom,
             sovereignty_status =    row['sovereignty_status']
           )
 
-        print("Area for " + new_area.name_short + " created")
+        print("Area for " + new_area.short_name + " created")
         new_area.save()
 
         # create hivent + change (add new country)
@@ -228,8 +228,8 @@ def run(verbose=True):
 
       # unify if part of another country
       if (row['part_of'] != ''):
-        home_area = Area.objects.get(name_short=row['part_of'])
-        part_area = Area.objects.get(name_short=row['init_source_name'])
+        home_area = Area.objects.get(short_name=row['part_of'])
+        part_area = Area.objects.get(short_name=row['init_source_name'])
 
         union_geom = home_area.geom.union(part_area.geom)
         if union_geom.geom_type != 'MultiPolygon':
@@ -239,19 +239,19 @@ def run(verbose=True):
         home_area.geom = union_geom
         home_area.save()
         part_area.delete()
-        print(part_area.name_short + " was incorporated into " + home_area.name_short)
+        print(part_area.short_name + " was incorporated into " + home_area.short_name)
 
 
       # subordinate if territory of another country
       elif (row['territory_of'] != ''):
-        home_area = Area.objects.get(name_short=row['territory_of'])
-        terr_area = Area.objects.get(name_short=row['init_source_name'])
+        home_area = Area.objects.get(short_name=row['territory_of'])
+        terr_area = Area.objects.get(short_name=row['init_source_name'])
 
-        terr_area.name_short =   row['name_short'].decode('utf-8')    # encoding problem :/
-        terr_area.name_formal =  row['name_formal'].decode('utf-8')
+        terr_area.short_name =   row['short_name'].decode('utf-8')    # encoding problem :/
+        terr_area.formal_name =  row['formal_name'].decode('utf-8')   # encoding problem :/
         terr_area.territory_of = home_area
         terr_area.save()
-        print(terr_area.name_short + " became territory of " + home_area.name_short)
+        print(terr_area.short_name + " became territory of " + home_area.short_name)
 
 
   ### create representatice point ###
