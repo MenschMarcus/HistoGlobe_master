@@ -256,6 +256,8 @@ class HG.NewGeometryTool
 
       geometries = []
       geometries.push @_geometryReader.read layer for layer in @_featureGroup.getLayers()
+      finalGeometry = @_geometryOperator.merge geometries
+      finalGeometry.fixHoles()
 
       # problem: if original geometry from NewGeometryTool is handed back to the
       # EditOperationStep, it is a reference to it, i.e. if featureGroup gets
@@ -265,7 +267,7 @@ class HG.NewGeometryTool
 
       # merge all of them together
       # -> only works if they are (poly)polygons, not for polylines or points
-      @notifyAll 'onSubmit', @_geometryOperator.merge geometries
+      @notifyAll 'onSubmit', finalGeometry
 
 
   # ============================================================================

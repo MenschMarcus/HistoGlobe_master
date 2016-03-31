@@ -53,6 +53,7 @@ class HG.Polypolygon extends HG.Geometry
         tree.insert(new HG.WithinTreeNode id, polyline)
 
     # extract one polygon after the other
+    # with all its polylines in the correct strucutre (outer ring, inner rings...)
     newPolygons = []
     while not tree.isEmpty()
       polygon = []
@@ -60,4 +61,4 @@ class HG.Polypolygon extends HG.Geometry
         polygon.push polyline.coordinates()
       newPolygons.push new HG.Polygon polygon
 
-    @_polygons = newPolygons
+    return newPolygons

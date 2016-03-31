@@ -128,5 +128,6 @@ class HG.WithinTree
     result = $.grep @_nodes, (e) -> e.getId() is id
     result[0] # can do it because each id is unique
 
+  # ----------------------------------------------------------------------------
   _removeNode: (node) ->
     @_nodes.splice((@_nodes.indexOf(node)), 1)
