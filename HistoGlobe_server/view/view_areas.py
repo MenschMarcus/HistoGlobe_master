@@ -26,26 +26,26 @@ import utils
 def create_area(area):
 
   # name
-  if utils.validate_string(area['name']) == False:
-    return False
-  else:
-    name = area['name']
+  short_name = utils.validate_string(area['shortName'])
+  formal_name = utils.validate_string(area['formalName'])
+  if (short_name == False) or (formal_name == False): return False
 
   # geometry
   geom = utils.validate_geometry(area['geometry'])
-  if geom == False:
-    return False
+  if geom == False: return False
 
   # representative point
   repr_point = utils.validate_point(area['repr_point'])
-  if repr_point == False:
-    return False
+  if repr_point == False: return False
 
   new_area = Area(
-      name =        name,
-      geom =        geom,
-      repr_point =  repr_point
-    )
+    short_name =          short_name,
+    formal_name =         formal_name,
+    geom =                geom,
+    repr_point =          repr_point,
+    sovereignty_status =  'F',
+    territory_of =        None
+  )
   new_area.save()
 
   return new_area

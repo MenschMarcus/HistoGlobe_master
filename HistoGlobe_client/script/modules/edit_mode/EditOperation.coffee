@@ -237,7 +237,8 @@ class HG.EditOperation
       newArea = @_hgInstance.areaController.getArea area
       request.change.new_areas.push {
         id:         newArea.getId()
-        name:       newArea.getName()
+        shortName:  newArea.getShortName()
+        formalName: newArea.getFormalName()
         geometry:   newArea.getGeometry().wkt()
         repr_point: newArea.getRepresentativePoint().wkt()
       }

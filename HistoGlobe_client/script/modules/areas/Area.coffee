@@ -19,10 +19,10 @@ class HG.Area
     @_id =                  areaData.id
     @_geometry =            areaData.geometry
     @_name = {
-      short:                areaData.shortName                    ?= null
-      formal:               areaData.formalName                   ?= null
+      short:                areaData.shortName           ?= null
+      formal:               areaData.formalName          ?= null
     }
-    @_representativePoint = areaData.representativePoint          ?= null
+    @_representativePoint = areaData.representativePoint ?= @_geometry.getCenter()
 
     # what is the status of its sovereignity?
     @_sovereigntyStatus =   new HG.StateVar ['F', 'P', 'N']
@@ -32,16 +32,13 @@ class HG.Area
     @_sovereigntyStatus.set areaData.sovereigntyStatus
 
     # is the area (e.g. overseas) territory of another area?
-    @_territoryOf =         areaData.territoryOf                  ?= null
+    @_territoryOf =         areaData.territoryOf         ?= null
 
     # area status
     @_active = no               # is area currently on the map?
     @_selected = no             # is area currently selected?
     @_focused = no              # is area currently in focus (hovered)?
     @_inEdit = no               # is area in edit mode?
-
-
-    @resetRepresentativePoint() unless @_representativePoint
 
 
   # ============================================================================
@@ -54,19 +51,14 @@ class HG.Area
   hasGeometry: () ->                  @_geometry.isValid()
 
   # ----------------------------------------------------------------------------
-  setShortName: (name) ->
-    @_name ?= {}
-    @_name.short = name
-
-  setFormalName: (name) ->
-    @_name ?= {}
-    @_name.formal = name
+  setShortName: (name) ->             @_name.short = name
+  setFormalName: (name) ->            @_name.formal = name
 
   getShortName: () ->                 @_name.short
   getFormalName: () ->                @_name.formal
 
-  removeName: () ->                   @_name = null
-  hasName: () ->                      @_name isnt null
+  removeName: () ->                   @_name = {}
+  hasName: () ->                      @_name.short?
 
   # ----------------------------------------------------------------------------
   resetRepresentativePoint: () ->     @_representativePoint = @_geometry.getCenter()
