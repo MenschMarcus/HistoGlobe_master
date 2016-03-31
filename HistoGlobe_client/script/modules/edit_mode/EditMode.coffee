@@ -69,7 +69,14 @@ class HG.EditMode
       @_testButton.onClick @, () =>
 
         # TEST PLAYGROUND START HERE
-        examplePath = 'common/example.json'
+
+        ## jsts geometries
+
+
+        ## save hivents from database
+
+        return
+
         examplePath = @_hgInstance.config.configPath + examplePath
 
         $.getJSON(examplePath, (request) =>
