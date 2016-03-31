@@ -76,11 +76,13 @@ class HG.AreaController
         @_activeAreas.push area
 
       # load inactive areas in the background
-      @_areaLoader.onFinishLoadingInitAreas @, () ->
-        @_areaLoader.loadRest @_hgInstance
-        @_areaLoader.onLoadRestArea @, (area) ->
-          # update controller
-          @_areas.push area
+      # TODO: fix bug
+      # when interacting while loading, the shit breaks!
+      # @_areaLoader.onFinishLoadingInitAreas @, () ->
+      #   @_areaLoader.loadRest @_hgInstance
+      #   @_areaLoader.onLoadRestArea @, (area) ->
+      #     # update controller
+      #     @_areas.push area
 
 
       ### VIEW ###
@@ -340,158 +342,105 @@ class HG.AreaController
       ## handle new, updated and old areas
 
       # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onCreateArea @, (areaData) ->
+      @_hgInstance.editMode.onCreateAreaGeometry @, (id, geometry) ->
 
         # error handling: new area must have valid id and geometry
-        return if (not areaData.id) or (not areaData.geometry.isValid())
+        return if (not id) or (not geometry.isValid())
 
         # update model
-        area = new HG.Area areaData
+        area = new HG.Area {id: id, geometry: geometry}
         area.activate()
         area.inEdit yes
 
         # update view
         @notifyAll 'onCreateGeometry', area
-        @notifyAll 'onCreateName', area if area.hasName()
-        # @notifyAll 'onUpdateStatus', area
 
         # update controller
         @_areas.push area
         @_activeAreas.push area
         @_editAreas.push area
 
-        @_DEBUG_OUTPUT 'create area'
+        @_DEBUG_OUTPUT 'create area geometry'
 
 
       # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onUpdateArea @, (areaData) ->
-        area = @getArea areaData.id
+      @_hgInstance.editMode.onCreateAreaName @, (id, shortName, formalName, reprPoint) ->
+        area = @getArea id
 
-        ## geometry change
-        if areaData.geometry isnt undefined
-          # comparison variables
-          hadGeometryBefore = area?.hasGeometry()
-          hasGeometryNow =    areaData.geometry?.isValid()
+        # error handling: area must be found and names must be given
+        return if (not area?) or (not shortName) or (not formalName)
 
-          # there was no geometry before and there is a valid new geometry now
-          # => create area with geometry
-          if (not hadGeometryBefore) and (hasGeometryNow)
-            # update model
-            area = new HG.Area areaData
-            area.select()
-            area.inEdit yes
-            area.activate()
-            # update view
-            @notifyAll 'onCreateGeometry', area
-            @notifyAll 'onSelect', area
-            # update controller
-            @_selectedAreas.push area
-            @_editAreas.push area
-            @_activeAreas.push area
+        # update model
+        area.setShortName shortName
+        area.setFormalName formalName
+        if reprPoint
+          area.setRepresentativePoint reprPoint
+        else
+          area.resetRepresentativePoint()
 
-          # there was a geometry before and there is a valid new geometry now
-          # => update geometry
-          else if (hadGeometryBefore) and (hasGeometryNow)
-            # update model
-            area.setGeometry areaData.geometry
-            area.resetRepresentativePoint()
-            # update view
-            @notifyAll 'onUpdateGeometry', area
-            @notifyAll 'onUpdateRepresentativePoint', area
+        # update view
+        @notifyAll 'onCreateName', area
 
-          # there was a geometry before and there is no valid new geometry now
-          # => remove geometry => remove area
-          else if (hadGeometryBefore) and (not hasGeometryNow)
-            # update model
-            area.setGeometry new HG.Point null # empty geometry
-            area.unfocus()
-            area.deselect()
-            area.inEdit no
-            area.deactivate()
-            # update view
-            @notifyAll 'onRemoveGeometry', area
-            @notifyAll 'onRemoveName', area if area.hasName() # TODO: right here???
-            # update controller
-            idx = @_activeAreas.indexOf area
-            @_activeAreas.splice idx, 1 if idx isnt -1
-            idx = @_editAreas.indexOf area
-            @_editAreas.splice idx, 1 if idx isnt -1
-            idx = @_selectedAreas.indexOf area
-            @_selectedAreas.splice idx, 1 if idx isnt -1
+        @_DEBUG_OUTPUT 'create area name'
 
-          # there was no geometry before and there is no valid new geometry now
-          # => no need to change something
+      # ------------------------------------------------------------------------
+      @_hgInstance.editMode.onUpdateAreaGeometry @, (id, geometry, reprPoint) ->
+        area = @getArea id
 
+        # error handling: area must have had geometry before and geometry now
+        return if (not area?) or (not area.hasGeometry()) or (not geometry.isValid())
 
-        ## name change
-        # name and position come always together from edit mode, so both properties
-        # can exceptionally be treated in the same function
-        if areaData.shortName isnt undefined or areaData.formalName isnt undefined
-          # comparison variables
-          hadNameBefore =     area.hasName()
-          hasNameNow =        areaData.shortName?
-          hasNewPoint =       areaData.representativePoint?
+        # update model
+        area.setGeometry geometry
+        if reprPoint
+          area.setRepresentativePoint reprPoint
+        else
+          area.resetRepresentativePoint()
 
-          # if there was no name before and there is a valid new name now
-          # => create it
-          if (not hadNameBefore) and (hasNameNow)
-            # update model
-            area.setShortName areaData.shortName if areaData.shortName
-            area.setFormalName areaData.formalName if areaData.formalName
-            if hasNewPoint
-              area.setRepresentativePoint areaData.representativePoint
-            else
-              area.resetRepresentativePoint()
-            # update view
-            @notifyAll 'onCreateName', area
+        # update view
+        @notifyAll 'onUpdateGeometry', area
+        @notifyAll 'onUpdateRepresentativePoint', area
 
-          # if there was a name before and there is a valid new name now
-          # => update it
-          else if (hadNameBefore) and (hasNameNow)
-            # update model
-            area.setShortName areaData.shortName
-            area.setFormalName areaData.formalName
-            area.setRepresentativePoint areaData.representativePoint if hasNewPoint
-            # update view
-            @notifyAll 'onUpdateName', area
-            @notifyAll 'onUpdateRepresentativePoint', area if hasNewPoint
+        @_DEBUG_OUTPUT 'update area geometry'
 
-          # if there was a name before and there is no valid new name now
-          # => remove it
-          else if (hadNameBefore) and (not hasNameNow)
-            # update model
-            area.removeName()
-            # update view
-            @notifyAll 'onRemoveName', area
+      # ------------------------------------------------------------------------
+      # name and position come always together from edit mode, so both
+      # properties can exceptionally be treated in the same function
+      @_hgInstance.editMode.onUpdateAreaName @, (id, shortName, formalName, reprPoint) ->
+        area = @getArea id
 
-          # else: if there was no name before and there is not valid new name now
-          # => no need to change something
+        # error handling: area must have new name now
+        return if (not area?) or (not area.hasName()) or (not shortName) or (not formalName)
 
-        @_DEBUG_OUTPUT 'update area'
+        # update model
+        area.setShortName shortName
+        area.setFormalName formalName
+        area.setRepresentativePoint reprPoint if reprPoint
+
+        # update view
+        @notifyAll 'onUpdateName', area
+        @notifyAll 'onUpdateRepresentativePoint', area if reprPoint
+
+        @_DEBUG_OUTPUT 'update area name'
 
 
       # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onRemoveArea @, (id) ->
+      @_hgInstance.editMode.onRemoveAreaGeometry @, (id) ->
         area = @getArea id
 
         # error handling: area has to be found
         return if (not area)
 
-        hadNameBefore = area.hasName()
-
         # update model
         area.setGeometry new HG.Point null # empty geometry
-        area.removeName()
         area.deactivate()
         area.inEdit no
-        area.deselect()
         area.unfocus()
+
         # update view
         @notifyAll 'onRemoveGeometry', area
-        @notifyAll 'onRemoveName', area if hadNameBefore
+
         # update controller
-        idx = @_selectedAreas.indexOf area
-        @_selectedAreas.splice idx, 1 if idx isnt -1
         idx = @_editAreas.indexOf area
         @_editAreas.splice idx, 1 if idx isnt -1
         idx = @_activeAreas.indexOf area
@@ -499,8 +448,22 @@ class HG.AreaController
         idx = @_areas.indexOf area
         @_areas.splice idx, 1 if idx isnt -1
 
-        @_DEBUG_OUTPUT 'remove area'
+        @_DEBUG_OUTPUT 'remove area geometry'
 
+      # ------------------------------------------------------------------------
+      @_hgInstance.editMode.onRemoveAreaName @, (id) ->
+        area = @getArea id
+
+        # error handling: area has to be found
+        return if (not area)
+
+        # update model
+        area.removeName()
+
+        # update view
+        @notifyAll 'onRemoveName', area
+
+        @_DEBUG_OUTPUT 'remove area name'
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onStartEditArea @, (id) ->
@@ -519,7 +482,6 @@ class HG.AreaController
 
         @_DEBUG_OUTPUT 'start edit mode'
 
-
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onEndEditArea @, (id) ->
         area = @getArea id
@@ -536,7 +498,6 @@ class HG.AreaController
           @_editAreas.splice((@_editAreas.indexOf area), 1)
 
         @_DEBUG_OUTPUT 'end edit mode'
-
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onSelectArea @, (id) ->
@@ -555,7 +516,6 @@ class HG.AreaController
           @notifyAll 'onSelect', area
 
         @_DEBUG_OUTPUT 'select area'
-
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onDeselectArea @, (id) ->

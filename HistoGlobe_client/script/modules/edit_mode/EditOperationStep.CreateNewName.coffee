@@ -61,47 +61,32 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
     @_currentPoint = currentArea.getRepresentativePoint()
 
     # delete name, but put it into name tool
-    @notifyEditMode 'onUpdateArea', {
-      id:                   @_currentId
-      shortName:            null
-      formalName:           null
-    }
+    @notifyEditMode 'onRemoveAreaName', @_currentId if currentArea.hasName()
 
     # set up NewNameTool to set name and position of area interactively
     newNameTool = new HG.NewNameTool @_hgInstance, @_currentShortName, @_currentFormalName, @_currentPoint
-
 
     ### LISTEN TO USER INPUT ###
     newNameTool.onSubmit @, (newShortName, newFormalName, newPoint) =>
 
       # save the old name
       @_stepData.tempAreas[@_areaIdx] = {
-        'id':                 @_currentId
-        'shortName':          @_currentShortName
-        'formalName':         @_currentFormalName
-        'representativePoint':@_currentPoint
+        'id':         @_currentId
+        'shortName':  @_currentShortName
+        'formalName': @_currentFormalName
+        'reprPoint':  @_currentPoint
       }
 
       # save the named area
+      @notifyEditMode 'onCreateAreaName', @_currentId, newShortName, newFormalName, newPoint
       @_stepData.outData.namedAreas[@_areaIdx] = @_currentId
-      @notifyEditMode 'onUpdateArea', {
-        id:                   @_currentId
-        shortName:            newShortName
-        formalName:           newFormalName
-        representativePoint:  newPoint
-      }
 
       # make action reversible
       @_undoManager.add {
         undo: =>
           # restore old name
           area = @_stepData.tempAreas[@_areaIdx]
-          @notifyEditMode 'onUpdateArea', {
-            id:                   area.id
-            shortName:            area.shortName
-            formalName:           area.formalName
-            representativePoint:  area.representativePoint
-          }
+          @notifyEditMode 'onUpdateAreaName', area.id, area.shortName, area.formalName, area.representativePoint
 
           # go to previous area
           @_cleanup()
