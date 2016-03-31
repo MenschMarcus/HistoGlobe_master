@@ -98,7 +98,7 @@ class HG.GeometryOperator
       @_geometryReader.read outCoordinates
 
   # ----------------------------------------------------------------------------
-  isWithin: (polylineA, polylineB) ->
+  isWithin: (Ageom, Bgeom) ->
     # approach from set theory:
     #   A \union B = B <=> A \in B <=> A \intersect B = A
     #   A \union B = A <=> B \in A <=> A \intersect B = B
@@ -112,11 +112,18 @@ class HG.GeometryOperator
     # simple theory, a little harder praxis: A polyline technically does not
     # "contain" anything, because it doesn't have an area. Therefore, a Polygon
     # has to be created first
-    # N.B. input into this function MUST be a polyline
-    # (I experienced some cases in which it did not work with polygons)
 
-    A = new jsts.geom.Polygon polylineA.jsts()
-    B = new jsts.geom.Polygon polylineB.jsts()
+    # problem: contains function only works with polygons and multipolygons
+    # => if LinearRing is given in, it must be converted to a Polygon
+
+    # A = new jsts.geom.Polygon polylineA.jsts()
+    # B = new jsts.geom.Polygon polylineB.jsts()
+
+    A = Ageom.jsts()
+    B = Bgeom.jsts()
+
+    A = new jsts.geom.Polygon A if A.getGeometryType() is 'LineString'
+    B = new jsts.geom.Polygon B if B.getGeometryType() is 'LineString'
 
     B.contains A
 

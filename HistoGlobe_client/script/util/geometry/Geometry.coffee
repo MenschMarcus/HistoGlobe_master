@@ -47,20 +47,15 @@ class HG.Geometry
   # ============================================================================
   constructor: (@_geometries) ->
 
-    @_json = {
-      'type':         @type()
-      'coordinates':  @coordinates()
-    }
-
 
   ### GETTER ###
   # ============================================================================
   type: () ->                       @_type
 
   # ----------------------------------------------------------------------------
-  json: () ->                       @_json
-  wkt: () ->                        @_toWkt @_json
-  jsts: () ->                       @_toJsts @_toWkt @_json
+  json: () ->                       @_toJSON()
+  wkt: () ->                        @_toWkt @_toJSON()
+  jsts: () ->                       @_toJsts @_toWkt @_toJSON()
 
   # ----------------------------------------------------------------------------
   coordinates: (inLatLng=no) ->     @_getCoordinates inLatLng
@@ -78,7 +73,7 @@ class HG.Geometry
         # in its own baseclass, but I won't complain!
 
   # ----------------------------------------------------------------------------
-  fixHoles: () ->                   @_fixHoles()
+  fixHoles: () ->                   @_geometries = @_fixHoles()
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
@@ -91,6 +86,13 @@ class HG.Geometry
     coordinates
 
   # ============================================================================
+  _toJSON: () ->
+    {
+      'type':         @type()
+      'coordinates':  @coordinates()
+    }
+
+  # ----------------------------------------------------------------------------
   _toWkt: (json) ->
     # error handling
     return "MULTIPOLYGON EMPTY" if json.coordinates is null
