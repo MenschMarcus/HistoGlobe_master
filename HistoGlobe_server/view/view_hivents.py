@@ -219,7 +219,7 @@ def get_hivent(hivent_id):
 
   # N.B: Model.objects.filter() does not return exact match
   # => need to use .get()
-  prepare_hivent(Hivent.objects.get(id=hivent_id))
+  return prepare_hivent(Hivent.objects.get(id=hivent_id))
 
 
 # ------------------------------------------------------------------------------

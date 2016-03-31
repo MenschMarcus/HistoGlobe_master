@@ -30,12 +30,12 @@ import rfc3339
 #   TODO: currently only English -> to be extended
 
 class Area(models.Model):
-  name_short =            models.CharField          (max_length=100, default='')
-  name_formal =           models.CharField          (max_length=150, default='')
   geom =                  models.MultiPolygonField  (default='MULTIPOLYGON EMPTY')
   representative_point =  models.PointField         (null=True)
+  short_name =            models.CharField          (max_length=100, default='')
+  formal_name =           models.CharField          (max_length=150, default='')
   sovereignty_status =    models.CharField          (null=True, max_length=1)
-  territory_of =          models.ForeignKey         ('self', null=True)
+  territory_of =          models.ForeignKey         ('self', null=True, blank=True)
 
 
   # overriding the default manager with a GeoManager instance.
@@ -44,7 +44,7 @@ class Area(models.Model):
 
 
   def __unicode__(self):
-    return self.name_short
+    return self.short_name
 
 
 
@@ -128,7 +128,7 @@ class ChangeAreas(models.Model):
   new_area =    models.ForeignKey             (Area, related_name='new_area', null=True)
 
   def __unicode__(self):
-    return self.change
+    return self.change.operation
 
 
 

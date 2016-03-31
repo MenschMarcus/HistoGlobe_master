@@ -237,7 +237,7 @@ class HG.EditOperation
 
     for area in @_operation.steps[2].outData.namedAreas
       newArea = @_hgInstance.areaController.getArea area
-      request.change.new_areas.push @_areaInterface.save newArea
+      request.change.new_areas.push @_areaInterface.convertToServerModel newArea
 
 
     # save hivent + changes + new areas to server
@@ -250,10 +250,13 @@ class HG.EditOperation
       success: (response) =>
         data = $.parseJSON response
         console.log data
-
-        # TODO: update new areas with id from server
-
-        # TODO: add new hivent, save in hivent controller
+        # save hivent (call in the name of EditMode)
+        @_hgInstance.editMode.notifyAll 'onCreateHivent', data.hivent
+        # update areas
+        for areaData in data.new_areas
+          area = @_hgInstance.areaController.getArea areaData.old_id
+          area.setId areaData.new_id
+        # TODO: update dates
 
       # error callback: print error
       error: (xhr, errmsg, err) =>

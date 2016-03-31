@@ -1,7 +1,7 @@
 window.HG ?= {}
 
 # DEBUG: take out if not needed anymore
-TEST_BUTTON = no
+TEST_BUTTON = yes
 
 # ==============================================================================
 # EditMode registers clicks on edit operation buttons -> init operation
@@ -39,6 +39,8 @@ class HG.EditMode
     @addCallback 'onSelectArea'
     @addCallback 'onDeselectArea'
 
+    @addCallback 'onCreateHivent'
+
 
     # init config
     defaultConfig =
@@ -69,8 +71,7 @@ class HG.EditMode
       @_testButton.onClick @, () =>
 
         # TEST PLAYGROUND START HERE
-
-        examplePath = @_hgInstance.config.configPath + examplePath
+        examplePath = @_hgInstance.config.configPath + 'common/example.json'
 
         $.getJSON(examplePath, (request) =>
 
@@ -84,6 +85,14 @@ class HG.EditMode
             success: (response) =>
               data = $.parseJSON response
               console.log data
+              # save hivent
+              @notifyAll 'onCreateHivent', data.hivent
+
+              # update areas
+              for areaData in data.new_areas
+                area = @_hgInstance.areaController.getArea areaData.old_id
+                area.setId areaData.new_id
+
 
             # error callback: print error
             error: (xhr, errmsg, err) =>

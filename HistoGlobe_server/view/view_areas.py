@@ -25,29 +25,37 @@ import utils
 # ==============================================================================
 def create_area(area):
 
-  # name
-  short_name = utils.validate_string(area['shortName'])
-  formal_name = utils.validate_string(area['formalName'])
-  if (short_name == False) or (formal_name == False): return False
-
   # geometry
-  geom = utils.validate_geometry(area['geometry'])
-  if geom == False: return False
+  geometry = utils.validate_geometry(area['geometry'])
+  if geometry == False: return False
 
   # representative point
   representative_point = utils.validate_point(area['representative_point'])
   if representative_point == False: return False
 
-  # sovereignty status
+  # name
+  short_name = utils.validate_string(area['short_name'])
+  formal_name = utils.validate_string(area['formal_name'])
+  if (short_name == False) or (formal_name == False): return False
 
+  # sovereignty status
+  sovereignty_status = utils.validate_string(area['sovereignty_status'])
+  if not any(sovereignty_status in char for char in ['F', 'P', 'N']):
+    sovereignty_status = 'F' # default fallback value: fully sovereign entity
+
+  # territory of
+  # EITHER None OR id of an area
+  territory_of = None
+  if (hasattr(area, 'territory_of') and (utils.validate_area_id(area['territory_of']) != False)):
+    territory_of = Area.objects.get(id=area['territory_of'])
 
   new_area = Area(
+    geom =                  geometry,
+    representative_point =  representative_point,
     short_name =            short_name,
     formal_name =           formal_name,
-    geom =                  geom,
-    representative_point =  representative_point,
-    sovereignty_status =    'F',
-    territory_of =          None
+    sovereignty_status =    sovereignty_status,
+    territory_of =          territory_of
   )
   new_area.save()
 
