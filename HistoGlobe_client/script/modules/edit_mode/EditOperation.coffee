@@ -18,13 +18,14 @@ class HG.EditOperation
     # add module to HG Instance
     @_hgInstance.editOperation = @
 
+    @_areaInterface = new HG.AreaInterface
+
     # error handling
     if not @_hgInstance.map.getMap()?
       console.error "Unable to load Edit Mode: There is no map, you idiot! Why would you want to have HistoGlobe without a map ?!?"
 
     if not @_hgInstance.areaController?
       console.error "Unable to load Edit Mode: AreaController module is not included in the current hg instance (has to be loaded before EditMode)"
-
 
     # handle callbacks
     HG.mixin @, HG.CallbackContainer
@@ -42,6 +43,7 @@ class HG.EditOperation
     # -> array for undo managers for each step
     @_undoManagers = [null, null, null, null]
     @_fullyAborted = no
+
 
 
     ### SETUP CONFIG ###
@@ -235,13 +237,7 @@ class HG.EditOperation
 
     for area in @_operation.steps[2].outData.namedAreas
       newArea = @_hgInstance.areaController.getArea area
-      request.change.new_areas.push {
-        id:         newArea.getId()
-        shortName:  newArea.getShortName()
-        formalName: newArea.getFormalName()
-        geometry:   newArea.getGeometry().wkt()
-        repr_point: newArea.getRepresentativePoint().wkt()
-      }
+      request.change.new_areas.push @_areaInterface.save newArea
 
 
     # save hivent + changes + new areas to server

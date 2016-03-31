@@ -35,16 +35,19 @@ def create_area(area):
   if geom == False: return False
 
   # representative point
-  repr_point = utils.validate_point(area['repr_point'])
-  if repr_point == False: return False
+  representative_point = utils.validate_point(area['representative_point'])
+  if representative_point == False: return False
+
+  # sovereignty status
+
 
   new_area = Area(
-    short_name =          short_name,
-    formal_name =         formal_name,
-    geom =                geom,
-    repr_point =          repr_point,
-    sovereignty_status =  'F',
-    territory_of =        None
+    short_name =            short_name,
+    formal_name =           formal_name,
+    geom =                  geom,
+    representative_point =  representative_point,
+    sovereignty_status =    'F',
+    territory_of =          None
   )
   new_area.save()
 
@@ -58,7 +61,7 @@ def get_area_chunk(viewport_center, chunk_id, chunk_size):
   # ->  find all areas that are in a distance of 42000 km (= earths diameter)
   #     to the viewport center = find all areas
   dist = {'km': 42000}
-  areas = Area.objects.filter(repr_point__distance_lte=(viewport_center, measure.D(**dist)))
+  areas = Area.objects.filter(representative_point__distance_lte=(viewport_center, measure.D(**dist)))
 
   # sort areas by their new distance value
   areas_sorted = areas.distance(viewport_center).order_by('distance')
