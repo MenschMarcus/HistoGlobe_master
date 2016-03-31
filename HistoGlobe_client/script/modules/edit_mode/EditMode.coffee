@@ -29,13 +29,12 @@ class HG.EditMode
     @addCallback 'onDisableAreaEditMode'
 
     @addCallback 'onCreateArea'
-    @addCallback 'onUpdateAreaGeometry'
-    @addCallback 'onUpdateAreaName'
+    @addCallback 'onUpdateArea'
+    @addCallback 'onRemoveArea'
     @addCallback 'onStartEditArea'
     @addCallback 'onEndEditArea'
     @addCallback 'onSelectArea'
     @addCallback 'onDeselectArea'
-    @addCallback 'onRemoveArea'
 
 
     # init config
