@@ -50,12 +50,12 @@ class HG.AreasOnMap
         @_hgInstance.areaController.onUpdateName @, (area) =>
           @_updateLabel area
 
+        @_hgInstance.areaController.onUpdateRepresentativePoint @, (area) =>
+          @_updateLabelPosition area
+
         @_hgInstance.areaController.onRemoveName @, (area) =>
           @_removeLabel area
 
-
-        @_hgInstance.areaController.onUpdateRepresentativePoint @, (area) =>
-          @_updateLabelPosition area
 
         @_hgInstance.areaController.onUpdateStatus @, (area) =>
           @_updateProperties area

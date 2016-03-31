@@ -154,9 +154,9 @@ def save_operation(request):
     # update id and prepare for output
     new_areas.append(new_area_id)
     response_data['new_areas'].append({
-        'old_id': old_area_id,
-        'new_id': new_area_id
-      })
+      'old_id': old_area_id,
+      'new_id': new_area_id
+    })
 
 
   ### existing hivent?
