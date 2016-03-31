@@ -70,13 +70,6 @@ class HG.EditMode
 
         # TEST PLAYGROUND START HERE
 
-        ## jsts geometries
-
-
-        ## save hivents from database
-
-        return
-
         examplePath = @_hgInstance.config.configPath + examplePath
 
         $.getJSON(examplePath, (request) =>
