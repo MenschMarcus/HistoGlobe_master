@@ -78,11 +78,11 @@ class HG.AreaController
       # load inactive areas in the background
       # TODO: fix bug
       # when interacting while loading, the shit breaks!
-      # @_areaInterface.onFinishLoadingInitAreas @, () ->
-      #   @_areaInterface.loadRest @_hgInstance
-      #   @_areaInterface.onLoadRestArea @, (area) ->
-      #     # update controller
-      #     @_areas.push area
+      @_areaInterface.onFinishLoadingInitAreas @, () ->
+        @_areaInterface.loadRest @_hgInstance
+        @_areaInterface.onLoadRestArea @, (area) ->
+          # update controller
+          @_areas.push area
 
 
       ### VIEW ###

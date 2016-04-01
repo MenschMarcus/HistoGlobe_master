@@ -53,6 +53,8 @@ shapefile = os.path.abspath(os.path.join(
   )
 )
 
+shapefile_version_date = '2014-10-10'
+
 
 # ------------------------------------------------------------------------------
 def get_file(file_id):
@@ -264,8 +266,7 @@ load.run()
   ### CREATE FIRST SNAPSHOT ###
 
   # save initial snapshot
-  date_2015 = iso8601.parse_date('2015-01-01')
-  s1 = Snapshot(date=date_2015)
+  s1 = Snapshot(date=iso8601.parse_date(shapefile_version_date))
   s1.save()
 
   # populate snapshot with all areas in the database
