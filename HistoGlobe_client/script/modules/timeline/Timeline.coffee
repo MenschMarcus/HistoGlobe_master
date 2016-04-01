@@ -13,9 +13,8 @@ class HG.Timeline
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @addCallback "onNowChanged"
-    @addCallback "onIntervalChanged"
-    @addCallback "onZoom"
+    @addCallback 'onIntervalChanged'
+    @addCallback 'onZoom'
 
     # handle config
     defaultConfig =
@@ -25,47 +24,26 @@ class HG.Timeline
 
     @_config = $.extend {}, defaultConfig, config
 
+    # init members
+    @_minDate = null
+    @_maxDate = null
+    @_dragged = false
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
     # add module to HG instance
     @_hgInstance.timeline = @
 
-    # include
+    # includes
     @_domElemCreator = new HG.DOMElementCreator
 
-    # get dimensions of timeline
-    @_config.minYear = @_hgInstance.getMinMaxYear()[0]
-    @_config.maxYear = @_hgInstance.getMinMaxYear()[1]
-    @_config.nowYear = @_hgInstance.getStartYear()
+    ### INIT MEMBERS ###
+    @_minDate = @_hgInstance.timeController.getMinMaxDates()[0]
+    @_maxDate = @_hgInstance.timeController.getMinMaxDates()[1]
 
-    # init members
-    @_nowDate = @_yearToDate @_config.nowYear
+    @_dateMarkers = []
 
-    @_activeTopic     = null
-    @_dragged         = false
-
-    @_hgInstance.onAllModulesLoaded @, () =>
-
-      @_hiventController = @_hgInstance.hiventController
-      @notifyAll "onNowChanged", @_cropDateToMinMax @_nowDate
-      @notifyAll "onIntervalChanged", @_getTimeFilter()
-
-      ### LISTENERS ###
-
-      # zoom
-      @_hgInstance.buttons.timelineZoomIn.onClick @, () =>
-        @_zoom(1)
-
-      @_hgInstance.buttons.timelineZoomOut.onClick @, () =>
-        @_zoom(-1)
-
-      # minimize UI
-      @_hgInstance.minGUIButton?.onRemoveGUI @, () ->
-        @_hideCategories()
-
-      @_hgInstance.minGUIButton?.onOpenGUI @, () ->
-        @_showCategories()
+    @notifyAll 'onIntervalChanged', @_getTimeFilter()
 
 
     ### SETUP UI ELEMENTS ###
@@ -83,7 +61,6 @@ class HG.Timeline
     @_tlSlider = @_domElemCreator.create 'div', 'tl_slide', ['swiper-slide', 'no-text-select']
     @_tlWrapper.appendChild @_tlSlider
 
-    @_dateMarkers = []
 
     # drag timeline
     # = transition of timeline container with swiper.js
@@ -113,101 +90,105 @@ class HG.Timeline
           clearInterval update_iteration_obj
         , d
 
-    # zoom timeline
-    @_tl.addEventListener "mousewheel", (e) =>
-      e.preventDefault()
-      @_zoom e.wheelDelta, e
-
-    @_tl.addEventListener "DOMMouseScroll", (e) =>
-      e.preventDefault()
-      @_zoom -e.detail, e
-
-    # resize window
-    $(window).resize  =>
-      @_updateLayout()
-      @_updateDateMarkers()
-      @_updateNowDate()
-
-    ### START TIMELINE ###
+    # start timeline
     @_updateLayout()
     @_updateDateMarkers()
     @_updateNowDate()
 
 
+    @_hgInstance.onAllModulesLoaded @, () =>
+
+      ### INTERACTION ###
+
+      # zoom
+      @_hgInstance.buttons.timelineZoomIn.onClick @, () =>
+        @_zoom(1)
+
+      @_hgInstance.buttons.timelineZoomOut.onClick @, () =>
+        @_zoom(-1)
+
+      # zoom timeline
+      @_tl.addEventListener "mousewheel", (e) =>
+        e.preventDefault()
+        @_zoom e.wheelDelta, e
+
+      @_tl.addEventListener "DOMMouseScroll", (e) =>
+        e.preventDefault()
+        @_zoom -e.detail, e
+
+      # minimize UI
+      @_hgInstance.minGUIButton?.onRemoveGUI @, () ->
+        @_hideCategories()
+
+      @_hgInstance.minGUIButton?.onOpenGUI @, () ->
+        @_showCategories()
+
+      # update now date
+      @_hgInstance.timeController.onNowChanged @, (date) =>
+        @_moveToDate date, 1
+        @_updateDateMarkers()
+
+      # resize window
+      $(window).resize  =>
+        @_updateLayout()
+        @_updateDateMarkers()
+        @_updateNowDate()
+
+
   # ============================================================================
   # GETTER
 
-  getNowDate: ->      @_nowDate
   getInterval: ->     [@_minVisibleDate(), @_maxVisibleDate]
-
-  # ----------------------------------------------------------------------------
   getTimelineArea: -> @_parentDiv
   getSlider: ->       @_tlSlider
 
-
-  # ============================================================================
-  # SETTER
-
-  # TODO: MOMENT.JS
-  setNowDate: (date) ->
-    @_moveToDate date, 1
-    @_updateDateMarkers()
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
 
-  # TODO: MOMENT.JS
   # ============================================================================
   _moveToDate: (date, delay=0, successCallback=undefined) ->
-    if @_yearToDate(@_config.minYear).getTime() > date.getTime()
-      @_moveToDate @_yearToDate(@_config.minYear), delay, successCallback
-    else if @_yearToDate(@_config.maxYear).getTime() < date.getTime()
-      @_moveToDate @_yearToDate(@_config.maxYear), delay, successCallback
+    if @_minDate > date
+      @_moveToDate @_minDate, delay, successCallback
+    else if @_maxDate < date
+      @_moveToDate @_maxDate, delay, successCallback
     else
-      dateDiff = @_yearToDate(@_config.minYear).getTime() - date.getTime()
-      @_tlWrapper.style.transition =  delay + "s"
-      @_tlWrapper.style.transform = "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
+      dateDiff = @_minDate.valueOf() - date.valueOf()
+      @_tlWrapper.style.transition =      delay + "s"
+      @_tlWrapper.style.transform =       "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
       @_tlWrapper.style.webkitTransform = "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
-      @_tlWrapper.style.MozTransform = "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
-      @_tlWrapper.style.MsTransform = "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
-      @_tlWrapper.style.oTransform = "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
+      @_tlWrapper.style.MozTransform =    "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
+      @_tlWrapper.style.MsTransform =     "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
+      @_tlWrapper.style.oTransform =      "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
 
-      @_nowDate = @_cropDateToMinMax date
-
-      @notifyAll "onNowChanged", @_nowDate
-      @notifyAll "onIntervalChanged", @_getTimeFilter()
+      @_hgInstance.timeController.setNowDate @, date
+      @notifyAll 'onIntervalChanged', @_getTimeFilter()
 
       setTimeout(successCallback, delay * 1000) if successCallback?
 
 
-  # TODO: MOMENT.JS
   # ============================================================================
   _getTimeFilter: ->
     timefilter = []
-    if @_activeTopic?
-      timefilter.end = @_activeTopic.endDate
-      timefilter.start = @_activeTopic.startDate
-    else
-      timefilter.end = @_maxVisibleDate()
-      timefilter.start = @_minVisibleDate()
-    timefilter.now = @_nowDate
+    timefilter.end =    @_maxVisibleDate()
+    timefilter.start =  @_minVisibleDate()
+    timefilter.now =    @_hgInstance.timeController.getNowDate()
     timefilter
 
 
-  # TODO: MOMENT.JS
   # ============================================================================
   _millisPerPixel: ->
-    mpp = (@_yearsToMillis(@_config.maxYear - @_config.minYear) / window.innerWidth) / @_config.startZoom
+    (@_yearsToMillis(@_maxDate.year() - @_minDate.year()) / window.innerWidth) / @_config.startZoom
 
   _minVisibleDate: ->
-    d = new Date(@_nowDate.getTime() - (@_millisPerPixel() * window.innerWidth / 2))
+    moment(@_hgInstance.timeController.getNowDate().valueOf() - (@_millisPerPixel() * window.innerWidth / 2))
 
   _maxVisibleDate: ->
-    d = new Date(@_nowDate.getTime() + (@_millisPerPixel() * window.innerWidth / 2))
+    moment(@_hgInstance.timeController.getNowDate().valueOf() + (@_millisPerPixel() * window.innerWidth / 2))
 
   _timelineLength: ->
-    @_yearsToMillis(@_config.maxYear - @_config.minYear) / @_millisPerPixel()
+    @_yearsToMillis(@_maxDate.year() - @_minDate.year()) / @_millisPerPixel()
 
   _timeInterval: (i) ->
     x = Math.floor(i/3)
@@ -219,22 +200,14 @@ class HG.Timeline
       return @_yearsToMillis(5 * Math.pow(10, x))
 
 
-  # TODO: MOMENT.JS
   # ============================================================================
   # helper functions: calculations date and position
   _dateToPosition: (date) ->
-    dateDiff = date.getTime() - @_yearToDate(@_config.minYear).getTime()
+    dateDiff = date.valueOf() - @_minDate.valueOf()
     pos = (dateDiff / @_millisPerPixel()) + window.innerWidth/2
 
   _yearToDate: (year) ->
-    date = new Date(0)
-    date.setFullYear year
-    date.setMonth 0
-    date.setDate 1
-    date.setHours 0
-    date.setMinutes 0
-    date.setSeconds 0
-    date
+    moment(year, 'YYYY')
 
   _yearsToMillis: (year) ->
     millis = year * 365.25 * 24 * 60 * 60 * 1000
@@ -257,36 +230,12 @@ class HG.Timeline
   _millisToDays: (millis) ->
     days = millis / 1000 / 60 / 60 / 24
 
-  _stringToDate: (string) ->
-    res = (string + "").split(".")
-    i = res.length
-    d = new Date(1900, 0, 1)
-    if i > 0
-        d.setFullYear(res[i - 1])
-    else
-        alert "Error: were not able to convert string to date."
-    if i > 1
-        d.setMonth(res[i - 2] - 1)
-    if i > 2
-        d.setDate(res[i - 3])
-    d
-
-
-  _cropDateToMinMax: (date) ->
-    if date.getFullYear() <= @_config.minYear
-      date = @_yearToDate @_config.minYear+1
-    if date.getFullYear() > @_config.maxYear
-      date = @_yearToDate @_config.maxYear
-    date
-
-
-  # TODO: MOMENT.JS
   # ============================================================================
   # move and zoom
   _zoom: (delta, e=null, layout=true) =>
     zoomed = false
     if delta > 0
-      if @_millisToDays(@_maxVisibleDate().getTime()) - @_millisToDays(@_minVisibleDate().getTime()) > @_config.maxZoom
+      if @_millisToDays(@_maxVisibleDate().valueOf()) - @_millisToDays(@_minVisibleDate().valueOf()) > @_config.maxZoom
         @_config.startZoom *= 1.1
         zoomed = true
     else
@@ -295,29 +244,34 @@ class HG.Timeline
         zoomed = true
 
     if zoomed
-      if layout
-        @_updateLayout()
+      @_updateLayout() if layout
       @_updateDateMarkers()
-      @notifyAll "onZoom"
+      @notifyAll 'onZoom'
     zoomed
 
 
-  # TODO: MOMENT.JS
   # ============================================================================
   # UI
   _updateLayout: ->
     @_tl.style.width = window.innerWidth + "px"
     @_tlSlider.style.width = (@_timelineLength() + window.innerWidth) + "px"
-    @_moveToDate @_nowDate, 0
+    @_moveToDate @_hgInstance.timeController.getNowDate()
     @_timeline_swiper.reInit()
 
-  _updateNowDate: (fireCallbacks = true) ->
-    @_nowDate = @_cropDateToMinMax new Date(@_yearToDate(@_config.minYear).getTime() + (-1) * @_timeline_swiper.getWrapperTranslate("x") * @_millisPerPixel())
+  # ----------------------------------------------------------------------------
+  _updateNowDate: (fireCallbacks =true) ->
+    nowDate = new Date(@_minDate.valueOf() + (-1) * @_timeline_swiper.getWrapperTranslate("x") * @_millisPerPixel())
     if fireCallbacks
-      @notifyAll "onNowChanged", @_nowDate
-      @notifyAll "onIntervalChanged", @_getTimeFilter()
+      @_hgInstance.timeController.setNowDate @, nowDate
+      @notifyAll 'onIntervalChanged', @_getTimeFilter()
 
+  # ----------------------------------------------------------------------------
+  # can internally keep on using date object, because it does not interfer with
+  # nowDate, monDate or maxDate
   _updateDateMarkers: ->
+
+    # TODO: find the error in here !!!
+
     # get interval
     intervalIndex = MIN_INTERVAL_INDEX
     while @_timeInterval(intervalIndex) <= window.innerWidth * @_millisPerPixel() * INTERVAL_SCALE
@@ -329,13 +283,13 @@ class HG.Timeline
 
     # for every year on timeline check if datemarker is needed
     # or can be removed.
-    for i in [0..@_config.maxYear - @_config.minYear]
-      year = @_config.minYear + i
+    for i in [0..@_maxDate.year() - @_minDate.year()]
+      year = @_minDate + i
 
       # fits year to interval?
       if year % @_millisToYears(interval) == 0 and
-      year >= @_minVisibleDate().getFullYear() and
-      year <= @_maxVisibleDate().getFullYear()
+         year >= @_minVisibleDate().year() and
+         year <= @_maxVisibleDate().year()
 
         # show datemarker
         if !@_dateMarkers[i]?
@@ -361,7 +315,7 @@ class HG.Timeline
               month.startDate.setFullYear(year, key, 1)
               month.endDate.setFullYear(year, key + 1, 0)
               month.div.innerHTML = month.name
-              month.div.style.left = ((month.startDate.getTime() - @_yearToDate(year).getTime()) / @_millisPerPixel()) + "px"
+              month.div.style.left = ((month.startDate.valueOf() - @_yearToDate(year).valueOf()) / @_millisPerPixel()) + "px"
               month.div.style.width = (@_dateToPosition(month.endDate) - @_dateToPosition(month.startDate)) + "px"
               $("#tl_year_" + year + " > .tl_months" ).append month.div
               @_dateMarkers[i].months[key] = month
@@ -389,7 +343,7 @@ class HG.Timeline
                 month.startDate.setFullYear(year, key, 1)
                 month.endDate.setFullYear(year, key + 1, 0)
                 month.div.innerHTML = month.name
-                month.div.style.left = ((month.startDate.getTime() - @_yearToDate(year).getTime()) / @_millisPerPixel()) + "px"
+                month.div.style.left = ((month.startDate.valueOf() - @_yearToDate(year).valueOf()) / @_millisPerPixel()) + "px"
                 month.div.style.width = (@_dateToPosition(month.endDate) - @_dateToPosition(month.startDate)) + "px"
                 $("#tl_year_" + year + " > .tl_months" ).append month.div
                 @_dateMarkers[i].months[key] = month
@@ -397,7 +351,7 @@ class HG.Timeline
             # update existing month divs
             else
               for month in @_dateMarkers[i].months
-                month.div.style.left = ((month.startDate.getTime() - @_yearToDate(year).getTime()) / @_millisPerPixel()) + "px"
+                month.div.style.left = ((month.startDate.valueOf() - @_yearToDate(year).valueOf()) / @_millisPerPixel()) + "px"
                 month.div.style.width = (@_dateToPosition(month.endDate) - @_dateToPosition(month.startDate)) + "px"
 
           # hide and delete months

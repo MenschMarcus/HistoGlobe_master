@@ -28,7 +28,7 @@ class HG.AreaInterface
   loadInit: (@_hgInstance) ->
 
     request = {
-      date:               moment(@_hgInstance.timeline.getNowDate()).format()
+      date:               moment(@_hgInstance.timeController.getNowDate()).format()
       centerLat:          @_hgInstance.map.getCenter()[0]
       centerLng:          @_hgInstance.map.getCenter()[1]
       chunkId:            0         # initial

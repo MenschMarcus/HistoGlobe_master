@@ -88,7 +88,7 @@ class Snapshot(models.Model):
     return rfc3339.rfc3339(self.date)
 
   class Meta:
-    ordering = ['-date']  # descending order (2000 -> 0 -> -2000 -> ...)
+    ordering = ['-date']        # descending order (2000 -> 0 -> -2000 -> ...)
 
 
 

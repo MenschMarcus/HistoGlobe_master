@@ -20,10 +20,9 @@ class HG.TextInputArea
 
     @addCallback 'onChange'
 
-    classes.push 'hg-input'
-
     # create dom element
     domElemCreator = new HG.DOMElementCreator
+    classes.push 'hg-input'
     @_elem = domElemCreator.create 'textarea', id, classes, [['rows', dimensions[0]], ['cols', dimensions[1]], ['name', id]]
 
     # change

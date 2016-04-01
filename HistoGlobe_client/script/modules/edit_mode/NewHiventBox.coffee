@@ -119,7 +119,7 @@ class HG.NewHiventBox
 
     ## date
     hiventDate = new HG.TextInput @_hgInstance, 'newHiventDate', ['new-hivent-information']
-    hiventDate.setValue @_hgInstance.timeline.getNowDate().toLocaleDateString()
+    hiventDate.setValue @_hgInstance.timeController.getNowDate().toLocaleDateString()
     formWrapper.appendChild hiventDate.getDOMElement()
 
     ## location
@@ -187,26 +187,20 @@ class HG.NewHiventBox
 
     ## synchronize hivent date with timeline
     # timeline -> hivent box
-    @_hgInstance.timeline.onNowChanged @, (date) ->
-      nowDate = moment(date).format()
-      hiventDate.setValue nowDate
-      @_stepData.outData.hiventInfo.start_date = nowDate
+    @_hgInstance.timeController.onNowChanged @, (date) ->
+      hiventDate.setValue date.toLocaleDateString()
+      @_stepData.outData.hiventInfo.start_date = moment(date).format() # RFC 3339
 
     # timeline <- hivent box
     hiventDate.onChange @, (dateString) ->
-      formats = [
-        moment.ISO_8601,
-        "DD.MM.YYYY",
-        "DD/MM/YYYY",
-        "YYYY"
-      ]
+
       if moment(dateString, formats, true).isValid()
-        @_hgInstance.timeline.setNowDate moment(dateString).toDate()
-        @_stepData.outData.hiventInfo.start_date = moment(dateString).format()
+        @_hgInstance.timeController.setNowDate @, moment(dateString).toDate(), no # timeline still works with JS Date() object
+        @_stepData.outData.hiventInfo.start_date = moment(dateString).toDate().toLocaleDateString()
 
     # hack: it is possible to finish this step without changing the date
     # => date has to be initially written into output
-    @_stepData.outData.hiventInfo.start_date = moment(@_hgInstance.timeline.getNowDate()).format()
+    @_stepData.outData.hiventInfo.start_date = moment(@_hgInstance.timeController.getNowDate()).format()
 
     ## convert location to lat/lng coordinates
     # TODO: geocoding

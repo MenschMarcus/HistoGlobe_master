@@ -133,12 +133,12 @@ def get_hivents(request):
 def save_operation(request):
 
   # HARDCODE CLEANUP
-  if len(Hivent.objects.filter(name="The Creation of the Baltic Union")) == 1:
-    from HistoGlobe_server.models import *
-    h = Hivent.objects.get(name="The Creation of the Baltic Union")
-    h.delete()
-    a = Area.objects.get(short_name="Baltic Union")
-    a.delete()
+  # if len(Hivent.objects.filter(name="The Creation of the Baltic Union")) == 1:
+  # from HistoGlobe_server.models import *
+  #   h = Hivent.objects.get(name="The Creation of the Baltic Union")
+  #   h.delete()
+  #   a = Area.objects.get(short_name="Baltic Union")
+  #   a.delete()
 
 
   ### init variables
