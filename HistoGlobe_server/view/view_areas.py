@@ -63,13 +63,15 @@ def create_area(area):
 
 
 # ------------------------------------------------------------------------------
-def get_area_chunk(viewport_center, chunk_id, chunk_size):
+def get_area_chunk(required_areas, viewport_center, chunk_id, chunk_size):
 
   # assign a distance value to the viewport center for all areas
   # ->  find all areas that are in a distance of 42000 km (= earths diameter)
   #     to the viewport center = find all areas
   dist = {'km': 42000}
-  areas = Area.objects.filter(representative_point__distance_lte=(viewport_center, measure.D(**dist)))
+  areas = required_areas.filter(
+    representative_point__distance_lte=(viewport_center, measure.D(**dist))
+  )
 
   # sort areas by their new distance value
   areas_sorted = areas.distance(viewport_center).order_by('distance')

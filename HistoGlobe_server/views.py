@@ -94,13 +94,11 @@ def get_init_areas(request):
   # accumulate all changes in events since this date
   start_date = max(now_date, closest_snapshot.date)
   end_date =   min(now_date, closest_snapshot.date)
-  # changes = get_changes(start_date, end_date)
+  # changes = view_hivents.get_changes(start_date, end_date)
 
-  # do more magic I do not want to think about now...
 
   # get set of areas for this part of the request
-  # TODO: get explicitly from snapshot
-  [areas, chunk_size, chunks_complete] = view_areas.get_area_chunk(viewport_center, chunk_id, chunk_size)
+  [areas, chunk_size, chunks_complete] = view_areas.get_area_chunk(closest_snapshot.areas, viewport_center, chunk_id, chunk_size)
 
   ## OUTPUT
   return HttpResponse(prepare_area_output(areas, chunk_size, chunks_complete))
