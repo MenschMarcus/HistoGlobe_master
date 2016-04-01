@@ -22,6 +22,15 @@
   "BrowserDetector": {},
 
 
+  "# =====================================================================": {},
+  "### CONTROLLER MODULES ###": {},
+
+  "TimeController": {},
+
+  "AreaController":   {},
+
+  "HiventController": {},
+
 
   "# =====================================================================": {},
   "### VIEW MODULES = USER INTERFACE -> REACT ON USER INTERACTION ###": {},
@@ -47,15 +56,13 @@
   "AreasOnMap" : {},
 
 
-  "Timeline" :
-  {
+  "Timeline" :  {
     "startZoom" : 5
   },
 
   "NowMarker" : {},
 
-  "ControlButtonsTimeline" :
-  {
+  "ControlButtonsTimeline" :  {
     "zoom": true
   },
 
@@ -63,15 +70,7 @@
     "editOperationsPath": "common/editOperations.json"
   },
 
-  "Imprint": {},
-
-
-  "# =====================================================================": {},
-  "### CONTROLLER MODULES ###": {},
-
-  "AreaController":   {},
-
-  "HiventController": {}
+  "Imprint": {}
 
 
 }

@@ -15,8 +15,6 @@ class HG.HiventsOnTimeline
 
     @_config = $.extend {}, defaultConfig, config
 
-    @_timeline = null
-    @_hiventController = null
     @_hiventMarkers = []
 
     @_onMarkerAddedCallbacks = []
@@ -25,19 +23,18 @@ class HG.HiventsOnTimeline
     @_markersLoaded = false
 
   # ============================================================================
-  hgInit: (hgInstance) ->
-    @_hgInstance = hgInstance
-    hgInstance.hiventsOnTimeline = @
-    @_timeline = hgInstance.timeline
+  hgInit: (@_hgInstance) ->
+    # add to hg instance
+    @_hgInstance.hiventsOnTimeline = @
 
 
-    if hgInstance.categoryIconMapping
-      for category in hgInstance.categoryIconMapping.getCategories()
+    if @_hgInstance.categoryIconMapping
+      for category in @_hgInstance.categoryIconMapping.getCategories()
         # position = @_config.default_position
         # for obj in @_config.marker_positions
         #   if obj.category == category
         #     position = obj.position
-        icons = hgInstance.categoryIconMapping.getIcons(category)
+        icons = @_hgInstance.categoryIconMapping.getIcons(category)
         #iconsTimeLine = {default: "config/school/icons/marker_hivent-timeline.svg", highlighted: "config/school/icons/marker_hivent-timeline-active.svg"}
         #console.log icons
         #console.log iconsTimeLine
@@ -54,10 +51,8 @@ class HG.HiventsOnTimeline
            background-image: url(#{icons[element]}) !important;
            background-size: cover !important;"
 
-    @_hiventController = hgInstance.hiventController
-
-    if @_hiventController
-      @_hiventController.getHivents @, (handle) =>
+    if @_hgInstance.hiventController
+      @_hgInstance.hiventController.getHivents @, (handle) =>
         show = (self, oldState) =>
           if oldState is 0 # invisible
             hiventMarkerDate = self.getHivent().startDate
@@ -71,21 +66,21 @@ class HG.HiventsOnTimeline
                 rowPosition = obj.row_position
                 break'''
             if self.getHivent().subTopic is ""
-              rowPosition = @_timeline.getRowFromTopicId(self.getHivent().parentTopic)
+              rowPosition = @_hgInstance.timeline.getRowFromTopicId(self.getHivent().parentTopic)
               id = self.getHivent().parentTopic
               #console.log rowPosition + " and " + self.getHivent().parentTopic
             else
-              rowPosition = @_timeline.getRowFromTopicId(self.getHivent().subTopic)
+              rowPosition = @_hgInstance.timeline.getRowFromTopicId(self.getHivent().subTopic)
               id = self.getHivent().subTopic
               #console.log rowPosition + " and " + self.getHivent().subTopic
-            marker = new HG.HiventMarkerTimeline @_hgInstance, @_timeline, self, @_timeline.getCanvas(), @_timeline.dateToPosition(hiventMarkerDate), rowPosition, id
+            marker = new HG.HiventMarkerTimeline @_hgInstance, @_hgInstance.timeline, self, @_hgInstance.timeline.getCanvas(), @_hgInstance.timeline.dateToPosition(hiventMarkerDate), rowPosition, id
             @_hiventMarkers.push marker
             marker.onDestruction @, ()=>
               index = $.inArray(marker, @_hiventMarkers)
               @_hiventMarkers.splice index, 1  if index >= 0
               @_positionsNeedUpdate = true
 
-            @_markersLoaded = @_hiventController._hiventsLoaded
+            @_markersLoaded = @_hgInstance.hiventController._hiventsLoaded
             @_sortMarkers()
             @_positionsNeedUpdate = true
             @_updateHiventMarkerPositions()
@@ -94,18 +89,18 @@ class HG.HiventsOnTimeline
         handle.onVisibleFuture @, show
         handle.onVisiblePast @, show
 
-      @_timeline.onNowChanged @, @_updateHiventMarkerPositions
-      #@_timeline.onIntervalChanged @, @_updateHiventMarkerPositions
-      @_timeline.onZoom @, () =>
+      @_hgInstance.timeController.onNowChanged @, @_updateHiventMarkerPositions
+      #@_hgInstance.timeline.onIntervalChanged @, @_updateHiventMarkerPositions
+      @_hgInstance.timeline.onZoom @, () =>
         @_positionsNeedUpdate = true
 
     else
       console.error "Unable to show hivents on Timeline: HiventController module not detected in HistoGlobe instance!"
 
     #new:
-    # hgInstance.onAllModulesLoaded @, () =>
-    #     @_timeline.onNowChanged @, @_updateHiventMarkerPositions
-    #     @_timeline.onIntervalChanged @, @_updateHiventMarkerPositions
+    # @_hgInstance.onAllModulesLoaded @, () =>
+    #     @_hgInstance.timeController.onNowChanged @, @_updateHiventMarkerPositions
+    #     @_hgInstance.timeline.onIntervalChanged @, @_updateHiventMarkerPositions
 
 
   # ============================================================================
@@ -137,7 +132,7 @@ class HG.HiventsOnTimeline
         marker.getDiv().style.zIndex = currentZ
         currentZ += 1
         hiventMarkerDate = marker.getHiventHandle().getHivent().startDate
-        newPos = @_timeline.dateToPosition(hiventMarkerDate)
+        newPos = @_hgInstance.timeline.dateToPosition(hiventMarkerDate)
         previousMarker = @_hiventMarkers[i-1]
 
         if previousMarker?

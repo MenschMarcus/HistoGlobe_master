@@ -51,17 +51,17 @@ class HG.CallbackContainer
         break
 
   # ============================================================================
-  # Notifies a specific listener (objectToBeNotified), registered for the
-  # callback named "callbackName" and pass parameters to the listener's
+  # Notifies all but a specific listener (objectNotToBeNotified), registered
+  # for the callback named "callbackName" and pass parameters to the listener's
   # registered function.
   # ============================================================================
-  notifyAllBut: (callbackName, objectToBeNotified, parameters...) ->
+  notifyAllBut: (callbackName, objectNotToBeNotified, parameters...) ->
     arrayName = "_#{callbackName}Callbacks"
 
     @[arrayName] = @[arrayName].filter (item) -> item isnt null
 
     for i in [0...@[arrayName].length]
-      if @[arrayName][i][0] != objectToBeNotified
+      if @[arrayName][i][0] != objectNotToBeNotified
         for j in [0...@[arrayName][i][1].length]
           @[arrayName][i][1][j].apply @[arrayName][i][0], parameters
 

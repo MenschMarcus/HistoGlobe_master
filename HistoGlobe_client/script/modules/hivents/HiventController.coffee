@@ -68,7 +68,7 @@ class HG.HiventController
       ### VIEW ###
 
       ## update areas on now changed
-      @_hgInstance.timeline.onNowChanged @, (nowDate) =>
+      @_hgInstance.timeController.onNowChanged @, (nowDate) =>
 
         # error handling: initially nowDate is not set => set and ignore
         if not @_nowDate
