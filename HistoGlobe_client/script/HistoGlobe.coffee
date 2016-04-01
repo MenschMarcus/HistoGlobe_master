@@ -151,14 +151,6 @@ class HG.HistoGlobe
   getTopArea: () ->       @_topArea
   getSpatialCanvas: () -> @_spatialCanvas
 
-  # ============================================================================
-  # Getter for information on time boundaries/the visualization's start year.
-  # ============================================================================
-  getMinMaxYear: () ->
-    [@config.minYear, @config.maxYear]
-
-  getStartYear: () ->
-    @config.nowYear
 
   # ============================================================================
   # Getter for effective size of spatial canvas (map/globe)

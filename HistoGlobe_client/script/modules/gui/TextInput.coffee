@@ -20,10 +20,9 @@ class HG.TextInput
 
     @addCallback 'onChange'
 
-    classes.push 'hg-input'
-
     # create dom element
     domElemCreator = new HG.DOMElementCreator
+    classes.push 'hg-input'
     @_elem = domElemCreator.create 'input', id, classes, [['type', 'text'], ['name', id]]
 
     # change
