@@ -17,39 +17,89 @@ class HG.AreaInterface
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @addCallback 'onLoadInitArea'
-    @addCallback 'onFinishLoadingInitAreas'
-    @addCallback 'onLoadRestArea'
+    @addCallback 'onFinishLoadingAreaIds'
+    @addCallback 'onLoadActiveArea'
+    @addCallback 'onFinishLoadingActiveAreas'
+    @addCallback 'onLoadInactiveArea'
+    @addCallback 'onFinishLoadingInactiveAreas'
 
     # includes
     @_geometryReader = new HG.GeometryReader
 
   # ============================================================================
-  loadInit: (@_hgInstance) ->
+  loadAllAreaIds: (@_hgInstance) ->
 
     request = {
-      date:               moment(@_hgInstance.timeController.getNowDate()).format()
+      date: moment(@_hgInstance.timeController.getNowDate()).format()
+    }
+
+    $.ajax
+      url:  'get_init_area_ids/'
+      type: 'POST'
+      data: JSON.stringify request
+
+      # success callback: load areas here
+      success: (response) =>
+
+        # deserialize string to object
+        dataObj = $.parseJSON response
+
+        # create an area with id for each feature
+        areas = []
+        $.each dataObj, (key, val) =>
+          area = new HG.Area val.id
+          area.activate() if val.active
+          areas.push area
+
+        @notifyAll 'onFinishLoadingAreaIds', areas
+
+
+      # error callback: print error message
+      error: (xhr, errmsg, err) =>
+        console.log xhr
+        console.log errmsg, err
+        console.log xhr.responseText
+
+
+  # ============================================================================
+  loadActiveAreas: (@_hgInstance, activeAreas) ->
+
+    areaIds = []
+    areaIds.push area.getId() for area in activeAreas
+
+    request = {
+      areas:              areaIds
       centerLat:          @_hgInstance.map.getCenter()[0]
       centerLng:          @_hgInstance.map.getCenter()[1]
-      chunkId:            0         # initial
-      chunkSize:          50        # = number of areas per response
+      chunkId:            0  # initial value
+      chunkSize:          HGConfig.area_loading_chunk_size.val
+      areaLoadCallback:   'onLoadActiveArea'
+      finishCallback:     'onFinishLoadingActiveAreas'
     }
 
     # recursively load chunks of areas from the server
     @_loadInitAreas request
 
+
   # ============================================================================
-  loadRest: (@_hgInstance) ->
+  loadInactiveAreas: (@_hgInstance, inactiveAreas) ->
+
+    areaIds = []
+    areaIds.push area.getId() for area in inactiveAreas
 
     request = {
-      activeAreas:        []
+      areas:              areaIds
+      centerLat:          @_hgInstance.map.getCenter()[0]
+      centerLng:          @_hgInstance.map.getCenter()[1]
+      chunkId:            0  # initial value
+      chunkSize:          HGConfig.area_loading_chunk_size.val
+      areaLoadCallback:   'onLoadInactiveArea'
+      finishCallback:     'onFinishLoadingInactiveAreas'
     }
 
-    for area in @_hgInstance.areaController.getActiveAreas()
-      request.activeAreas.push area.getId()
-
     # recursively load chunks of areas from the server
-    @_loadRestAreas request
+    @_loadInitAreas request
+
 
   # ============================================================================
   convertToServerModel: (area) ->
@@ -75,48 +125,26 @@ class HG.AreaInterface
         # deserialize string to object
         dataObj = $.parseJSON response
 
-        # create an area for each feature
+        # update area properties for each loaded area
         $.each dataObj.features, (key, val) =>
           areaData = @_prepareAreaServerToClient val
-          @notifyAll 'onLoadInitArea', new HG.Area areaData if areaData
+          area = @_hgInstance.areaController.getArea areaData.id
+
+          area.setGeometry areaData.geometry
+          area.setRepresentativePoint areaData.representativePoint
+          area.setShortName areaData.shortName
+          area.setFormalName areaData.formalName
+          area.setSovereigntyStatus areaData.sovereigntyStatus
+          area.setTerritoryOf areaData.territoryOf
+
+          @notifyAll request.areaLoadCallback, area
 
         # finish recursion when loading is complete
-        return @notifyAll 'onFinishLoadingInitAreas' if dataObj.loadingComplete
+        return @notifyAll request.finishCallback if dataObj.loadingComplete
 
         # otherwise increment to next chunk => RECURSION PARTỲ !!!
         request.chunkId += request.chunkSize
         @_loadInitAreas request
-
-
-      # error callback: print error message
-      error: (xhr, errmsg, err) =>
-        console.log xhr
-        console.log errmsg, err
-        console.log xhr.responseText
-
-
-  # ============================================================================
-  # load all initially inactive rest areas from the server
-  _loadRestAreas: (request) ->
-
-    $.ajax
-      url:  'get_rest_areas/'
-      type: 'POST'
-      data: JSON.stringify request
-
-      # success callback: load areas here
-      success: (response) =>
-
-        # deserialize string to object
-        dataObj = $.parseJSON response
-
-        # TODO: test if that works
-
-        # create an area for each feature
-        $.each dataObj.features, (key, val) =>
-          areaData = @_prepareAreaServerToClient val
-          @notifyAll 'onLoadRestArea', new HG.Area areaData if areaData
-
 
       # error callback: print error message
       error: (xhr, errmsg, err) =>
@@ -139,7 +167,7 @@ class HG.AreaInterface
     # error handling: each area must have valid id and geometry
     return null if (not areaOnClient.id) or (not areaOnClient.geometry.isValid())
 
-    return areaOnClient
+    areaOnClient
 
   # ============================================================================
   _prepareAreaClientToServer: (areaFromClient) ->

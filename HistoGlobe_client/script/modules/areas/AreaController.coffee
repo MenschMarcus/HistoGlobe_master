@@ -41,6 +41,7 @@ class HG.AreaController
     @_areas = []                  # set of all HG.Area's in the system
                                   # -> no area gets ever deleted from here
     @_activeAreas = []            # set of all HG.Area's currently active
+    @_inactiveAreas = []          # set of all HG.Area's currently inactive
 
     @_maxSelections = 1           # 1 = single-selection mode, n = multi-selection mode
     @_selectedAreas = []          # array of all currently active areas
@@ -62,27 +63,37 @@ class HG.AreaController
       ### INIT AREAS ###
       @_areaInterface = new HG.AreaInterface
 
-      # load active areas
-      @_areaInterface.loadInit @_hgInstance
-
-      @_areaInterface.onLoadInitArea @, (area) ->
-        # update model
-        area.activate()
-        # update view
-        @notifyAll 'onCreateGeometry', area
-        @notifyAll 'onCreateName', area if area.hasName()
-        # update controller
-        @_areas.push area
-        @_activeAreas.push area
-
-      # load inactive areas in the background
-      # TODO: fix bug
-      # when interacting while loading, the shit breaks!
-      @_areaInterface.onFinishLoadingInitAreas @, () ->
-        @_areaInterface.loadRest @_hgInstance
-        @_areaInterface.onLoadRestArea @, (area) ->
+      # 1. load all all areas from server
+      # -> only with ids + info: active: yes/no, all together
+      @_areaInterface.loadAllAreaIds @_hgInstance
+      @_areaInterface.onFinishLoadingAreaIds @, (areas) ->
+        for area in areas
           # update controller
           @_areas.push area
+          if area.isActive()
+            @_activeAreas.push area
+          else
+            @_inactiveAreas.push area
+
+        # 2. load all active areas from server
+        # -> completely, in chunks
+        @_areaInterface.loadActiveAreas @_hgInstance, @_activeAreas
+        @_areaInterface.onLoadActiveArea @, (area) ->
+          # update view
+          @notifyAll 'onCreateGeometry', area
+          @notifyAll 'onCreateName', area if area.hasName()
+
+        # 3. load all inactive areas from server (when 2. is completely done)
+        # -> completely, in chunks
+        @_areaInterface.onFinishLoadingActiveAreas @, () ->
+          @_areaInterface.loadInactiveAreas @_hgInstance, @_inactiveAreas
+          # nothing to do on load, because everything is already there
+          # model: updated in interface
+          # controller: area only in @_areas array (step 1)
+          # view: is inactive, so not to be shown
+          # if needed later, the callbacks are:
+          # @_areaInterface.onLoadInactiveArea @, (area) ->
+          # @_areaInterface.onFinishLoadingInactiveAreas @, () ->
 
 
       ### VIEW ###
@@ -348,7 +359,8 @@ class HG.AreaController
         return if (not id) or (not geometry.isValid())
 
         # update model
-        area = new HG.Area {id: id, geometry: geometry}
+        area = new HG.Area id
+        area.setGeometry geometry
         area.activate()
         area.select()
         area.inEdit yes

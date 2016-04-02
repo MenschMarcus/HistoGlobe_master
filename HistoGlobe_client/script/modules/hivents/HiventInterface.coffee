@@ -24,23 +24,6 @@ class HG.HiventInterface
   # ============================================================================
   loadInit: () ->
     request = {}
-    @_loadHiventsFromServer request
-
-  # ============================================================================
-  loadFromServerModel: (hiventFromServer) ->
-    hiventData = @_prepareHiventServerToClient hiventFromServer
-    # create hivents + handle and tell everyone!
-    if hiventData
-      hivent = new HG.Hivent hiventData
-      handle = new HG.HiventHandle hivent
-      @notifyAll 'onSaveHivent', handle
-
-  ##############################################################################
-  #                            PRIVATE INTERFACE                               #
-  ##############################################################################
-
-  # ============================================================================
-  _loadHiventsFromServer: (request) ->
 
     $.ajax
       url:  'get_hivents/'
@@ -54,14 +37,7 @@ class HG.HiventInterface
         dataObj = $.parseJSON response
 
         $.each dataObj, (key, val) =>
-          hiventData = @_prepareHiventServerToClient val
-
-          # create hivents + handle and tell everyone!
-          if hiventData
-            hivent = new HG.Hivent hiventData
-            handle = new HG.HiventHandle hivent
-            @notifyAll 'onSaveHivent', handle
-
+          @loadFromServerModel val
 
       # error callback: print error message
       error: (xhr, errmsg, err) =>
@@ -69,6 +45,20 @@ class HG.HiventInterface
         console.log errmsg, err
         console.log xhr.responseText
 
+
+  # ============================================================================
+  loadFromServerModel: (hiventFromServer) ->
+    hiventData = @_prepareHiventServerToClient hiventFromServer
+    # create hivents + handle and tell everyone!
+    if hiventData
+      hivent = new HG.Hivent hiventData
+      handle = new HG.HiventHandle hivent
+      @notifyAll 'onSaveHivent', handle
+
+
+  ##############################################################################
+  #                            PRIVATE INTERFACE                               #
+  ##############################################################################
 
   # ============================================================================
   _prepareHiventServerToClient: (hiventFromServer) ->

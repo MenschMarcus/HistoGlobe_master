@@ -78,7 +78,7 @@ class HG.HiventController
         # get change dates
         oldDate = @_nowDate
         newDate = nowDate
-        # change direction: forwards (+1) or backwards (-1)
+        # change direction: forward (+1) or backward (-1)
         changeDir = if oldDate < newDate then +1 else -1
 
         # opposite direction: swap old and new date, so it can be assumed that always oldDate < newDate
@@ -99,7 +99,10 @@ class HG.HiventController
 
         for handle in @_hiventHandles
           hivent = handle.getHivent()
-          if (hivent.effectDate >= oldDate) and (hivent.effectDate < newDate)
+
+          # check if hivent is in range
+          # N.B. > and <= !!!
+          if (hivent.effectDate > oldDate) and (hivent.effectDate <= newDate)
             changes.push change for change in hivent.changes
 
             # state that a change is found => entered change range of hivents
@@ -119,7 +122,7 @@ class HG.HiventController
 
       ### EDIT MODE ###
       @_hgInstance.editMode.onCreateHivent @, (hiventFromServer) =>
-        @_hiventInterface.loadFromServerModel hiventFromServer
+        @_hiventInterface.loadFromServerModel hiventFromServer, yes
 
 
       # Register listeners to update filters or react on updated filters.

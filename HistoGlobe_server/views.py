@@ -12,6 +12,7 @@
 # Django
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.utils import timezone
 
 # GeoDjango
 from django.contrib.gis.geos import Point
@@ -68,7 +69,7 @@ def index(request):
   return render(request, 'HistoGlobe_client/index.htm', {})
 
 # ------------------------------------------------------------------------------
-def get_init_areas(request):
+def get_init_area_ids(request):
 
   ## INPUT
 
@@ -76,6 +77,48 @@ def get_init_areas(request):
   request_data = json.loads(request.body)
 
   now_date = utils.get_date_object(request_data['date'])
+
+  ## PROCESSING
+  # N.B: each area can only exist ONCE => once it is deleted, it never comes back!
+
+  areas = []
+  for in_area in Area.objects.all():
+    out_area = {}
+    out_area['id'] = in_area.id
+
+    # extract creation date for area from hivent that created it
+    # N.B: can be None, if there is no change that ever created them
+    start_date = None
+    change_areas = ChangeAreas.objects.filter(new_area=in_area)
+    if len(change_areas) == 1:  # = it exists a change that deleted it
+      start_date = change_areas[0].change.hivent.effect_date
+    # else: it exists no hivent => end_date stays None
+
+    # extract secession date from area from hivent that deleted it
+    # N.B: if there is no change ever deleted it, it is valid until today
+    end_date = timezone.now()
+    change_areas = ChangeAreas.objects.filter(old_area=in_area)
+    if len(change_areas) == 1:  # = it exists a change that deleted it
+      end_date = change_areas[0].change.hivent.effect_date
+    # else: it exists no hivent => end_date stays None
+
+    # error handling: areas without a start date do not make sense
+    if not start_date: continue
+    # area is active if current date is in between start and end date of area
+    out_area['active'] = (start_date <= now_date) and (now_date < end_date)
+
+    areas.append(out_area)
+
+  ## OUTPUT
+  return HttpResponse(json.dumps(areas))
+
+# ------------------------------------------------------------------------------
+def get_init_areas(request):
+
+  ## INPUT
+
+  # deserialize object string -> dictionary
+  request_data = json.loads(request.body)
 
   viewport_center = Point(
       float(request_data['centerLat']),
@@ -85,33 +128,17 @@ def get_init_areas(request):
   chunk_id = int(request_data['chunkId'])
   chunk_size = int(request_data['chunkSize'])
 
+  area_ids = request_data['areas']
+  areas = Area.objects.filter(id__in=area_ids)
+
 
   ## PROCESSING
 
-  # for initialization: look for snapshot closest to the requested date
-  closest_snapshot = view_snapshots.get_closest_snapshot(now_date)
-
-  # accumulate all changes in events since this date
-  start_date = max(now_date, closest_snapshot.date)
-  end_date =   min(now_date, closest_snapshot.date)
-  # changes = view_hivents.get_changes(start_date, end_date)
-
-
   # get set of areas for this part of the request
-  [areas, chunk_size, chunks_complete] = view_areas.get_area_chunk(closest_snapshot.areas, viewport_center, chunk_id, chunk_size)
+  [areas, chunk_size, chunks_complete] = view_areas.get_area_chunk(areas, viewport_center, chunk_id, chunk_size)
 
   ## OUTPUT
   return HttpResponse(prepare_area_output(areas, chunk_size, chunks_complete))
-
-# ------------------------------------------------------------------------------
-def get_rest_areas(request):
-
-  # deserialize object string -> dictionary
-  request_data = json.loads(request.body)
-
-  areas = Area.objects.exclude(id__in=request_data['activeAreas'])
-
-  return HttpResponse(prepare_area_output(areas, 0, True))
 
 
 # ------------------------------------------------------------------------------
