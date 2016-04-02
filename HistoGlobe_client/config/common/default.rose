@@ -9,6 +9,7 @@ $max_area_selection                 = 50
 $time_leap_threshold                = 20  // years
 $change_queue_interval              = 50  // ms
 $area_animation_time                = 750 // ms
+$area_loading_chunk_size            = 50
 
 
 // GLOBAL STYLE ----------------------------------------------------------------

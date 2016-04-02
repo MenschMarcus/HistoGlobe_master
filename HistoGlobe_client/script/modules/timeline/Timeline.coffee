@@ -264,6 +264,10 @@ class HG.Timeline
   # ----------------------------------------------------------------------------
   _updateNowDate: (fireCallbacks =true) ->
     nowDate = new Date(@_minDate.valueOf() + (-1) * @_timeline_swiper.getWrapperTranslate("x") * @_millisPerPixel())
+    nowDate.setHours 0
+    nowDate.setMinutes 0
+    nowDate.setSeconds 0
+    nowDate.setMilliseconds 0
     if fireCallbacks
       @_hgInstance.timeController.setNowDate @, nowDate
       @notifyAll 'onIntervalChanged', @_getTimeFilter()

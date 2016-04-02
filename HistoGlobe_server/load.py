@@ -255,6 +255,18 @@ load.run()
         terr_area.save()
         print(terr_area.short_name + " became territory of " + home_area.short_name)
 
+        # and add its area to creation event
+        change = ChangeAreas.objects.get(new_area=home_area).change
+        change_areas = ChangeAreas(
+          change =      change,
+          old_area =    None,
+          new_area =    terr_area
+        )
+        change_areas.save()
+
+        print(terr_area.short_name + " added to creation hivent of " + home_area.short_name)
+
+
 
   ### create representatice point ###
   for area in Area.objects.all():

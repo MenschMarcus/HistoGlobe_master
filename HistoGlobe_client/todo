@@ -1,4 +1,7 @@
-prio effort [1 .. 3]
+prio effort € [1 .. 3]
+
+
+### CLIENT ###
 
 GENERAL UI
 1 3 label collision on the map
@@ -19,6 +22,10 @@ NAME STEP
 HIVENT STEP
 3 1 explain term "Hivent"
 2 1 put "submit" button underneath Hivent Box
+
+
+### SERVER ###
+
 
 
 "I HAVE NO IDEA WHAT TO DO"
