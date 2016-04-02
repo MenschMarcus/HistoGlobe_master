@@ -33,7 +33,6 @@ class HG.TimeController
     @_minDate = null              # minimum date of HistoGlobe instance
     @_maxDate = null              # maximum date of HistoGlobe instance
 
-
   # ============================================================================
   hgInit: (@_hgInstance) ->
 
@@ -62,13 +61,16 @@ class HG.TimeController
       dateObj = moment(inDate)
 
     # 3) date string
-    else if moment(inDate, DATE_FORMATS, true).isValid()
+    else if moment(inDate, IN_DATE_FORMATS, true).isValid()
       dateObj = moment(inDate)
 
     ## use as internal date and tell everybody
 
     if dateObj
       @_nowDate = @_cropToMinMax dateObj
+      # tell every module except for the one that initiated the date change
+      # -> so it does not override its own changes, does things multiple times
+      #    or even ends up in an infinite loop
       @notifyAllBut 'onNowChanged', sourceModule, @_nowDate
 
 
@@ -90,7 +92,7 @@ class HG.TimeController
   #                            STATIC INTERFACE                                #
   ##############################################################################
 
-  DATE_FORMATS = [
+  IN_DATE_FORMATS = [
     moment.ISO_8601,    # RFC 3339
     "YYYY"              # only year
     "DD.MM.YYYY",       # most parts of the world (.)

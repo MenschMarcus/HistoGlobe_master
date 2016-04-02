@@ -54,10 +54,11 @@ class HG.HistoGlobe
       # specified in "defaultConfig" are stored in "@config" and either being
       # overridden by the loaded config or kept as default.
       defaultConfig =
-        nowYear: 2014
-        minYear: 1940
-        maxYear: 2020
-        startPoint: [51.505, 10.09]   # Weimar
+        nowYear:      1989              # my date of birth
+        minYear:      1800
+        maxYear:      2020              # FutureGlobe!
+        startPoint:   [51.505, 10.09]   # Weimar <3
+        dateFormat:   'DD.MM.YYYY'      # good old Germany
         configPath:   '../HistoGlobe_client/config/'
         graphicsPath: 'common/graphics/'
         tiles:        'common/tiles/normal'
