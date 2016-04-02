@@ -284,7 +284,7 @@ class HG.Timeline
     # for every year on timeline check if datemarker is needed
     # or can be removed.
     for i in [0..@_maxDate.year() - @_minDate.year()]
-      year = @_minDate + i
+      year = @_minDate.year() + i
 
       # fits year to interval?
       if year % @_millisToYears(interval) == 0 and

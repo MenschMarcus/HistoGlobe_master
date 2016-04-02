@@ -88,7 +88,7 @@ class HG.HiventController
           newDate = tempDate
 
         # distance user has scrolled
-        timeLeap = Math.abs(oldDate.getFullYear() - newDate.getFullYear())
+        timeLeap = Math.abs(oldDate.year() - newDate.year())
 
         # go through all changes in (reversed) order
         # check if the change date is inside the change range from the old to the new date
