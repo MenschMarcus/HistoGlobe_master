@@ -271,6 +271,7 @@ class HG.HiventHandle
     @_focussed = false
     @notify "onUnFocus", obj, mousePixelPosition
 
+
   # ============================================================================
   # Notifies all listeners that the Hivent the HiventHandle is destroyed. This
   # is used to allow for proper clean up.

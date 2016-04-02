@@ -244,7 +244,7 @@ def prepare_hivent(hivent_model):
   if hivent['secession_date'] != None:
     hivent['secession_date'] =  utils.get_date_string(hivent['secession_date'])
   if hivent['link_date'] != None:
-    hivent['link_date'] =         utils.get_date_string(hivent['link_date'])
+    hivent['link_date'] =       utils.get_date_string(hivent['link_date'])
 
   return hivent
 
@@ -252,8 +252,26 @@ def prepare_hivent(hivent_model):
 # ------------------------------------------------------------------------------
 def get_changes(start_date, end_date):
 
+  change_direction = 1   # +1 (forward) or -1 (backward)
+  if start_date > end_date:
+    change_direction = -1
+    # backward direction:
+    # swap old and new date, so it can be assumed that always oldDate < newDate
+    temp_date = end_date
+    end_date = start_date
+    start_date = temp_date
+    temp_date = None # = delete
+
+  # stores all changes in between
+  changes = []
+  console.log(start_date, end_date)
+
   for hivent in Hivent.objects.all():
-    if (hivent.effect_date >= start_date) and (hivent.effect_date < start_date):
-      print("Horst")
+    # N.B. > and <= !
+    if (hivent.effect_date > start_date) and (hivent.effect_date <= start_date):
+      change = Change.objects.get(hivent=hivent)
+      changes.append(change)
+
+  console.log(changes)
 
   return []

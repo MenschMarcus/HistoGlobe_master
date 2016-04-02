@@ -12,29 +12,16 @@ class HG.Area
   ##############################################################################
 
   # ============================================================================
-  constructor: (areaData) ->
-    # main properties (not nullable)
-    @setId areaData.id
-    @setGeometry areaData.geometry
+  constructor: (@_id) ->
 
-    @resetRepresentativePoint()
-    @setRepresentativePoint areaData.representativePoint if areaData.representativePoint
-
-    # name dictionary
-    # TODO: multiple languages
+    # dictionary for all names
     @_name = {}
-    @setShortName areaData.shortName    if areaData.shortName
-    @setFormalName areaData.formalName  if areaData.formalName
 
     # status of its sovereignity?
     # 'F' = recognized by all fully sovereign states (default)
     # 'P' = partially recognized by at least one fully sovereign state
     # 'N' = not recognized by any fully sovereign state
     @_sovereigntyStatus = new HG.StateVar ['F', 'P', 'N']
-    @setSovereigntyStatus areaData.sovereigntyStatus if areaData.sovereigntyStatus
-
-    # is the area (e.g. overseas) territory of another area?
-    @setTerritoryOf areaData.territoryOf if areaData.territoryOf
 
     # area status properties
     @_active = no    # is area currently on the map?
@@ -50,7 +37,7 @@ class HG.Area
   # ----------------------------------------------------------------------------
   setGeometry: (geom) ->              @_geometry = geom
   getGeometry: () ->                  @_geometry
-  hasGeometry: () ->                  @_geometry.isValid()
+  hasGeometry: () ->                  @_geometry?.isValid()
 
   # ----------------------------------------------------------------------------
   resetRepresentativePoint: () ->     @_representativePoint = @_geometry.getCenter()
