@@ -156,7 +156,7 @@ class HG.HistoGlobe
   # Getter for effective size of spatial canvas (map/globe)
   # ============================================================================
   getSpatialCanvasSize: () ->
-    return {
+    {
       x: window.innerWidth
       y: $(@_top_area).outerHeight()
     }
