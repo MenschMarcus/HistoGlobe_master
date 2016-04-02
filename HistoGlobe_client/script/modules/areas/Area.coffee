@@ -14,26 +14,27 @@ class HG.Area
   # ============================================================================
   constructor: (areaData) ->
     # main properties (not nullable)
-    @_id = areaData.id
-    @_geometry = areaData.geometry
-    @_representativePoint = areaData.representativePoint ?= @_geometry.getCenter()
+    @setId areaData.id
+    @setGeometry areaData.geometry
+
+    @resetRepresentativePoint()
+    @setRepresentativePoint areaData.representativePoint if areaData.representativePoint
 
     # name dictionary
     # TODO: multiple languages
-    @_name = {
-      short:  areaData.shortName  ?= null
-      formal: areaData.formalName ?= null
-    }
+    @_name = {}
+    @setShortName areaData.shortName    if areaData.shortName
+    @setFormalName areaData.formalName  if areaData.formalName
 
     # status of its sovereignity?
     # 'F' = recognized by all fully sovereign states (default)
     # 'P' = partially recognized by at least one fully sovereign state
     # 'N' = not recognized by any fully sovereign state
     @_sovereigntyStatus = new HG.StateVar ['F', 'P', 'N']
-    @_sovereigntyStatus.set areaData.sovereigntyStatus
+    @setSovereigntyStatus areaData.sovereigntyStatus if areaData.sovereigntyStatus
 
     # is the area (e.g. overseas) territory of another area?
-    @_territoryOf = areaData.territoryOf ?= null
+    @setTerritoryOf areaData.territoryOf if areaData.territoryOf
 
     # area status properties
     @_active = no    # is area currently on the map?

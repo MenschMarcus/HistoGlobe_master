@@ -80,7 +80,8 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
       }
 
       # save the named area
-      @notifyEditMode 'onCreateAreaName', @_currentId, newShortName, newFormalName, newPoint
+      @notifyEditMode 'onAddAreaName', @_currentId, newShortName, newFormalName
+      @notifyEditMode 'onUpdateAreaRepresentativePoint', @_currentId, newPoint
       @_stepData.outData.namedAreas[@_areaIdx] = @_currentId
 
       # make action reversible
@@ -89,9 +90,10 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
           # restore old name
           area = @_stepData.tempAreas[@_areaIdx]
           if @_currentNameRemoved
-            @notifyEditMode 'onCreateAreaName', area.id, area.shortName, area.formalName, area.reprPoint
+            @notifyEditMode 'onAddAreaName', area.id, area.shortName, area.formalName
           else
-            @notifyEditMode 'onUpdateAreaName', area.id, area.shortName, area.formalName, area.reprPoint
+            @notifyEditMode 'onUpdateAreaName', area.id, area.shortName, area.formalName
+          @notifyEditMode 'onUpdateAreaRepresentativePoint', area.id, area.reprPoint
 
           # go to previous area
           @_cleanup()
