@@ -8,6 +8,7 @@
     "maxYear": 2020,
     "nowYear": 2015,
     "startPoint": [50.9869531, 11.3205004],
+    "dateFormat": "DD.MM.YYYY",
     "configPath": "../HistoGlobe_client/config/",
     "graphicsPath": "common/graphics/",
     "tiles": "common/tiles/normal",

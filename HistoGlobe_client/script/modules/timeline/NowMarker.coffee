@@ -51,7 +51,7 @@ class HG.NowMarker
 
   # ============================================================================
   _upDate: (date) ->
-    $(@_nowMarker).html date.format('DD.MM.YYYY') # to local string
+    $(@_nowMarker).html date.format @_hgInstance.config.dateFormat
 
   # ============================================================================
   _resetPosition: (pos) ->
