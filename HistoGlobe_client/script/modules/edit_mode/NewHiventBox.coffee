@@ -193,7 +193,6 @@ class HG.NewHiventBox
 
     # timeline <- hivent box
     hiventDate.onChange @, (dateString) ->
-      console.log dateString
       date = moment(dateString, @_hgInstance.config.dateFormat)
       @_hgInstance.timeController.setNowDate @, date
       @_stepData.outData.hiventInfo.start_date = date.format()  # RFC 3339

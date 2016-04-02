@@ -28,16 +28,21 @@ class HG.EditMode
     @addCallback 'onEnableAreaEditMode'
     @addCallback 'onDisableAreaEditMode'
 
-    @addCallback 'onCreateAreaGeometry'
-    @addCallback 'onCreateAreaName'
+    @addCallback 'onCreateArea'
     @addCallback 'onUpdateAreaGeometry'
+    @addCallback 'onUpdateAreaRepresentativePoint'
+    @addCallback 'onAddAreaName'
     @addCallback 'onUpdateAreaName'
-    @addCallback 'onRemoveAreaGeometry'
     @addCallback 'onRemoveAreaName'
-    @addCallback 'onStartEditArea'
-    @addCallback 'onEndEditArea'
+    @addCallback 'onRemoveArea'
+
+    @addCallback 'onActivateArea'
+    @addCallback 'onDeactivateArea'
     @addCallback 'onSelectArea'
     @addCallback 'onDeselectArea'
+    @addCallback 'onStartEditArea'
+    @addCallback 'onEndEditArea'
+
 
     @addCallback 'onCreateHivent'
 
