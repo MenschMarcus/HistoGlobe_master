@@ -127,6 +127,8 @@ class HG.Timeline
       @_hgInstance.timeController.onNowChanged @, (date) =>
         @_moveToDate date, 1
         @_updateDateMarkers()
+        @notifyAll 'onIntervalChanged', @_getTimeFilter()
+
 
       # resize window
       $(window).resize  =>
@@ -161,9 +163,6 @@ class HG.Timeline
       @_tlWrapper.style.MozTransform =    "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
       @_tlWrapper.style.MsTransform =     "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
       @_tlWrapper.style.oTransform =      "translate3d(" + dateDiff / @_millisPerPixel() + "px ,0px, 0px)"
-
-      @_hgInstance.timeController.setNowDate @, date
-      @notifyAll 'onIntervalChanged', @_getTimeFilter()
 
       setTimeout(successCallback, delay * 1000) if successCallback?
 
@@ -247,6 +246,8 @@ class HG.Timeline
       @_updateLayout() if layout
       @_updateDateMarkers()
       @notifyAll 'onZoom'
+      @notifyAll 'onIntervalChanged', @_getTimeFilter()
+
     zoomed
 
 
@@ -257,6 +258,8 @@ class HG.Timeline
     @_tlSlider.style.width = (@_timelineLength() + window.innerWidth) + "px"
     @_moveToDate @_hgInstance.timeController.getNowDate()
     @_timeline_swiper.reInit()
+    @notifyAll 'onIntervalChanged', @_getTimeFilter()
+
 
   # ----------------------------------------------------------------------------
   _updateNowDate: (fireCallbacks =true) ->
