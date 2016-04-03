@@ -52,7 +52,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
         oldGeometries = []
         oldIds = []
         for id in @_stepData.inData.selectedAreas
-          area = @_areaController.getArea(id)
+          area = @_areaController.getActiveArea(id)
           oldIds.push id
           oldGeometries.push area.getGeometry()
           # save in temporary areas to restore them later
@@ -101,7 +101,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
       if @_isForward
         for id in @_stepData.inData.selectedAreas
-          area = @_areaController.getArea id
+          area = @_areaController.getActiveArea id
           # save in temporary areas to restore them later
           @_stepData.tempAreas.push id
           @notifyEditMode 'onDeactivateArea', id
@@ -229,7 +229,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
       # ------------------------------------------------------------------------
       ## separate areas operation
       else if @_stepData.operationCommand is 'SEP'
-        existingArea = @_areaController.getArea @_stepData.inData.selectedAreas[0]
+        existingArea = @_areaController.getActiveArea @_stepData.inData.selectedAreas[0]
 
         existingAreaId =      existingArea.getId()
         existingGeometry =    existingArea.getGeometry()
@@ -306,8 +306,8 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
         A_id = @_stepData.inData.selectedAreas[0]
         B_id = @_stepData.inData.selectedAreas[1]
-        A_area = @_areaController.getArea A_id
-        B_area = @_areaController.getArea B_id
+        A_area = @_areaController.getActiveArea A_id
+        B_area = @_areaController.getActiveArea B_id
 
         A_shortName = A_area.getShortName()
         B_shortName = B_area.getShortName()

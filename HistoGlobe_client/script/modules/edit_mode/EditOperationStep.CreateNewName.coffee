@@ -54,7 +54,7 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
     @_areaIdx += direction
 
     # get old and new step
-    currentArea = @_areaController.getArea @_stepData.inData.createdAreas[@_areaIdx]
+    currentArea = @_areaController.getActiveArea @_stepData.inData.createdAreas[@_areaIdx]
     @_currentId = currentArea.getId()
     @_currentShortName = currentArea.getShortName()
     @_currentFormalName = currentArea.getFormalName()
