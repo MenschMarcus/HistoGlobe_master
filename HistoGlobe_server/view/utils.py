@@ -14,7 +14,7 @@ from django.core.exceptions import ValidationError
 # utils
 import chromelogger as console
 
-# datetime
+# date & time
 import rfc3339      # for date object -> date string
 import iso8601      # for date string -> date object
 
@@ -126,13 +126,14 @@ def validate_point(in_point):
 
 # ==============================================================================
 # timestamp framework
-
+# import time
 # timestamp_1 = time.time()
 # timestamp_2 = time.time()
-# ...
-# timestamp_n = time.time()
+# timestamp_3 = time.time()
+# timestamp_4 = time.time()
 
 # console.log(
 #   timestamp_2-timestamp_1,
 #   timestamp_3-timestamp_2,
-#   timestamp_4-timestamp_3,)
+#   timestamp_4-timestamp_3,
+# )
