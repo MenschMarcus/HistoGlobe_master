@@ -2,8 +2,6 @@ window.HG ?= {}
 
 class HG.AreasOnMap
 
-  FOCUS = off
-
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
   ##############################################################################
@@ -62,7 +60,7 @@ class HG.AreasOnMap
 
 
         @_hgInstance.areaController.onSelect @, (area) =>
-          @_map.fitBounds area.geomLayer.getBounds() if FOCUS
+          @_map.fitBounds area.geomLayer.getBounds()
 
       else
         console.error "Unable to show areas on the map: AreaController module not detected in HistoGlobe instance!"

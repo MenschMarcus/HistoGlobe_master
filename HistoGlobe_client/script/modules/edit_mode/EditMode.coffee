@@ -43,7 +43,6 @@ class HG.EditMode
     @addCallback 'onStartEditArea'
     @addCallback 'onEndEditArea'
 
-
     @addCallback 'onCreateHivent'
 
 

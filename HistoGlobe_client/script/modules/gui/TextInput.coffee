@@ -22,7 +22,7 @@ class HG.TextInput
 
     # create dom element
     domElemCreator = new HG.DOMElementCreator
-    classes.push 'hg-input'
+    classes.unshift 'hg-input'
     @_elem = domElemCreator.create 'input', id, classes, [['type', 'text'], ['name', id]]
 
     # change

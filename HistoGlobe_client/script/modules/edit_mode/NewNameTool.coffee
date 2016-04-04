@@ -15,7 +15,8 @@ class HG.NewNameTool
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @addCallback 'onChangeName'
+    @addCallback 'onChangeShortName'
+    @addCallback 'onChangeFormalName'
     @addCallback 'onSubmit'
 
     # includes / variables
@@ -46,23 +47,33 @@ class HG.NewNameTool
 
     # TODO: work on formal name
 
-    @_wrapper = @_domElemCreator.create 'div', 'new-name-wrapper', null
+    @_wrapper = @_domElemCreator.create 'div', 'new-name-wrapper', ['hg-input']
     @_hgInstance.getTopArea().appendChild @_wrapper
 
-    @_inputField = new HG.TextInput @_hgInstance, 'new-name-input', null
-    $(@_inputField.getDOMElement()).attr 'size', NAME_MIN_SIZE
-    if initShortName   # set either the text that is given (to just accept it)
-      @_inputField.setText initShortName
-      @_resize()
-    else          # or have only a placeholder
-      @_inputField.setPlaceholder 'name'
-    @_wrapper.appendChild @_inputField.getDOMElement()
+    # short name
+    @_shortNameInput = new HG.TextInput @_hgInstance, 'newShortName', ['new-name-input']
+    $(@_shortNameInput.getDOMElement()).removeClass 'hg-input'
+    if initShortName    # set either the text that is given (to just accept it)
+      @_shortNameInput.setText initShortName
+    else                # or have only a placeholder
+      @_shortNameInput.setPlaceholder 'name'
+    @_wrapper.appendChild @_shortNameInput.getDOMElement()
+
+    # formal name
+    @_formalNameInput = new HG.TextInput @_hgInstance, 'newFormalName', ['new-name-input']
+    $(@_formalNameInput.getDOMElement()).removeClass 'hg-input'
+    if initFormalName   # set either the text that is given (to just accept it)
+      @_formalNameInput.setText initFormalName
+    else                # or have only a placeholder
+      @_formalNameInput.setPlaceholder 'formal name'
+    @_wrapper.appendChild @_formalNameInput.getDOMElement()
+
+    @_nameInputs = $('.new-name-input')
 
     # set position of wrapper = center of country
     posPx = @_map.latLngToContainerPoint initPosition.latLng()
     $(@_wrapper).css 'left', posPx.x
     $(@_wrapper).css 'top',  posPx.y
-    @_recenter()
 
     @_okButton = new HG.Button @_hgInstance,
       'newNameOK', ['confirm-button'],
@@ -73,27 +84,38 @@ class HG.NewNameTool
       ]
     @_wrapper.appendChild @_okButton.getDOMElement()
 
+    # set up initial position
+    @_resize()
+
 
     ### INTERACTION ###
     ## to other modules
 
-    # seamless interaction_inputField
+    # seamless interaction
     @_makeDraggable()
-    $(@_inputField.getDOMElement()).on 'keydown keyup click each', @_resize
+    $(@_nameInputs).on 'keydown keyup click each', @_resize
     @_map.on 'drag',    @_respondToMapDrag
     @_map.on 'zoomend', @_respondToMapZoom
 
+    # focus wrappper on focus input elements
+    $(@_nameInputs).on 'focus', () =>
+      $(@_wrapper).addClass 'new-name-wrapper-focus'
+
+    $(@_nameInputs).on 'focusout', () =>
+      $(@_wrapper).removeClass 'new-name-wrapper-focus'
+
     # type name => change name
-    $(@_inputField.getDOMElement()).on 'keyup mouseup', (e) =>
-      @notifyAll 'onChangeName', $(@_inputField.getDOMElement()).val()
+    $(@_shortNameInput.getDOMElement()).on 'keyup mouseup', (e) =>
+      @notifyAll 'onChangeShortName', @_shortNameInput.getText()
+    $(@_formalNameInput.getDOMElement()).on 'keyup mouseup', (e) =>
+      @notifyAll 'onChangeFormalName', @_formalNameInput.getText()
 
     # click OK => submit name and position
     @_okButton.onClick @, () =>
       # get center coordinates
       center = new L.Point $(@_wrapper).position().left, $(@_wrapper).position().top
-      newShortName = $(@_inputField.getDOMElement()).val()
-      # TODO: work on formal name
-      newFormalName = newShortName
+      newShortName =  @_shortNameInput.getText()
+      newFormalName = @_formalNameInput.getText()
       newPosition = new HG.Point(@_map.containerPointToLatLng center)
       @notifyAll 'onSubmit', newShortName, newFormalName, newPosition
 
@@ -107,7 +129,7 @@ class HG.NewNameTool
 
     # cleanup UI
     @_okButton.remove()
-    @_inputField.remove()
+    @_shortNameInput.remove()
     $(@_wrapper).remove()
 
   ##############################################################################
@@ -115,14 +137,29 @@ class HG.NewNameTool
   ##############################################################################
 
   # ============================================================================
-  _recenter: () ->
-    $(@_wrapper).css 'margin-top',  -($(@_wrapper).height() / 2)
-    $(@_wrapper).css 'margin-left', -($(@_wrapper).width()  / 2)
+  _resize: (e) =>
+    # TODO: set actual width, independent from font-size
+    # TODO: animate to the new width -> works not with 'size' but only with 'width' (size is not a CSS property)
+    width = Math.max(
+      MIN_SIZE,  # ensures width >= 4                     # magic factor to scale width with increasing size
+      ($(@_shortNameInput.getDOMElement()).val().length)  * HGConfig.short_name_font_size.val,
+      ($(@_formalNameInput.getDOMElement()).val().length) * HGConfig.formal_name_font_size.val
+    )
+    $(@_nameInputs).attr  'size', width
+
+    # adapt width because of smaller font size
+    nameWidth = $(@_shortNameInput.getDOMElement()).width()
+    $(@_formalNameInput.getDOMElement()).width(nameWidth)
+
+    # recenter
+    $(@_wrapper).css 'margin-top',  -($(@_shortNameInput.getDOMElement()).height() / 2)
+    $(@_wrapper).css 'margin-left', -($(@_shortNameInput.getDOMElement()).width()  / 2)
+
 
   # ============================================================================
   # preparation functions
 
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   _makeDraggable: () ->
     # make input field draggable
     # this code snippet does MAGIC !!!
@@ -132,28 +169,19 @@ class HG.NewNameTool
     $(@_wrapper).draggable start: (event, ui) ->
       $(this).data 'preventBehaviour', true
 
-    $(@_inputField.getDOMElement()).on 'mousedown', (e) =>
+    $(@_nameInputs).on 'mousedown', (e) =>
       mdown = document.createEvent 'MouseEvents'
       mdown.initMouseEvent 'mousedown', true, true, window, 0, e.screenX, e.screenY, e.clientX, e.clientY, true, false, false, true, 0, null
       @_wrapper.dispatchEvent mdown
       return # for some reason this has to be there ?!?
 
-    $(@_inputField.getDOMElement()).on 'click', (e) =>
+    $(@_nameInputs).on 'click', (e) =>
       if $(@_wrapper).data 'preventBehaviour'
         e.preventDefault()
         $(@_wrapper).data 'preventBehaviour', false
       return # for some reason this has to be there ?!?
 
-  # ============================================================================
-  _resize: (e) =>
-    # TODO: set actual width, independent from font-size
-    # TODO: animate to the new width -> works not with 'size' but only with 'width' (size is not a CSS property)
-    #                ensures width >= 1                             magic factor to scale width with increasing size
-    width = Math.max NAME_MIN_SIZE, ($(@_inputField.getDOMElement()).val().length)*SIZE_TO_WIDTH_FACTOR
-    $(@_inputField.getDOMElement()).attr 'size', width
-    @_recenter()
-
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   _respondToMapDrag: (e) =>
     # this is probably more complicated than necessary - but it works :)
     # get movement of center of the map (as reference)
@@ -176,7 +204,7 @@ class HG.NewNameTool
     # refresh
     @_viewCenter = mapNew
 
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   _respondToMapZoom: (e) =>
     @_viewCenter = @_map.getCenter() # to prevent jumping label on drag after zoom
     # TODO: get to work
@@ -197,5 +225,4 @@ class HG.NewNameTool
 
 
   # ============================================================================
-  NAME_MIN_SIZE = 4
-  SIZE_TO_WIDTH_FACTOR = 1.15   # magical factor to translate from text input size to its width
+  MIN_SIZE = 4
