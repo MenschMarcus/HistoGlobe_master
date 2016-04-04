@@ -82,6 +82,7 @@ class HG.NewNameTool
           'iconFA':   'check'
         }
       ]
+    @_okButton.disable() if (not @_shortNameInput.getText()) or (not @_formalNameInput.getText())
     @_wrapper.appendChild @_okButton.getDOMElement()
 
     # set up initial position
@@ -105,10 +106,21 @@ class HG.NewNameTool
       $(@_wrapper).removeClass 'new-name-wrapper-focus'
 
     # type name => change name
+    # enable / disable OK button if name is complete
     $(@_shortNameInput.getDOMElement()).on 'keyup mouseup', (e) =>
       @notifyAll 'onChangeShortName', @_shortNameInput.getText()
+      if @_shortNameInput.getText() and @_formalNameInput.getText()
+        @_okButton.enable()
+      else
+        @_okButton.disable()
+
     $(@_formalNameInput.getDOMElement()).on 'keyup mouseup', (e) =>
       @notifyAll 'onChangeFormalName', @_formalNameInput.getText()
+      if @_shortNameInput.getText() and @_formalNameInput.getText()
+        @_okButton.enable()
+      else
+        @_okButton.disable()
+
 
     # click OK => submit name and position
     @_okButton.onClick @, () =>
@@ -116,7 +128,7 @@ class HG.NewNameTool
       center = new L.Point $(@_wrapper).position().left, $(@_wrapper).position().top
       newShortName =  @_shortNameInput.getText()
       newFormalName = @_formalNameInput.getText()
-      newPosition = new HG.Point(@_map.containerPointToLatLng center)
+      newPosition = new HG.Point @_map.containerPointToLatLng center
       @notifyAll 'onSubmit', newShortName, newFormalName, newPosition
 
 
