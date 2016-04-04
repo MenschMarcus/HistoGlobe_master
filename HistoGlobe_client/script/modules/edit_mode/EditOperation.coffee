@@ -1,5 +1,7 @@
 window.HG ?= {}
 
+SAVE_TO_DB = no
+
 # ==============================================================================
 # control the workflow of a complete operation
 # manage operation window (init, send data, get data)
@@ -149,21 +151,6 @@ class HG.EditOperation
   getUndoManager: () ->
     @_undoManagers[@_operation.idx]
 
-  # ----------------------------------------------------------------------------
-  # perform current undo action
-  _undo: () ->
-
-    # if current step has reversible actions
-    # => undo it
-    if @_undoManagers[@_operation.idx].hasUndo()
-      @_undoManagers[@_operation.idx].undo()
-
-    # else current step has no reversible actions
-    # => destroy the step and go one step back
-    else
-      @_step.abort()
-
-
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
@@ -223,6 +210,20 @@ class HG.EditOperation
       @_makeStep direction
 
   # ============================================================================
+  # perform current undo action
+  _undo: () ->
+
+    # if current step has reversible actions
+    # => undo it
+    if @_undoManagers[@_operation.idx].hasUndo()
+      @_undoManagers[@_operation.idx].undo()
+
+    # else current step has no reversible actions
+    # => destroy the step and go one step back
+    else
+      @_step.abort()
+
+  # ============================================================================
   _finish: () ->
     # TODO: convert action list to new data to be stored in the database
 
@@ -241,28 +242,28 @@ class HG.EditOperation
 
 
     # save hivent + changes + new areas to server
-    $.ajax
-      url:  'save_operation/'
-      type: 'POST'
-      data: JSON.stringify request
+    if SAVE_TO_DB
+      $.ajax
+        url:  'save_operation/'
+        type: 'POST'
+        data: JSON.stringify request
 
-      # success callback: add id to hivent and save it in hivent controller
-      success: (response) =>
-        data = $.parseJSON response
-        console.log data
-        # save hivent (call in the name of EditMode)
-        @_hgInstance.editMode.notifyAll 'onCreateHivent', data.hivent
-        # update areas
-        for areaData in data.new_areas
-          area = @_hgInstance.areaController.getArea areaData.old_id
-          area.setId areaData.new_id
-        # TODO: update dates
+        # success callback: add id to hivent and save it in hivent controller
+        success: (response) =>
+          data = $.parseJSON response
+          # save hivent (call in the name of EditMode)
+          @_hgInstance.editMode.notifyAll 'onCreateHivent', data.hivent
+          # update areas
+          for areaData in data.new_areas
+            area = @_hgInstance.areaController.getArea areaData.old_id
+            area.setId areaData.new_id
+          # TODO: update dates
 
-      # error callback: print error
-      error: (xhr, errmsg, err) =>
-        console.log xhr
-        console.log errmsg, err
-        console.log xhr.responseText
+        # error callback: print error
+        error: (xhr, errmsg, err) =>
+          console.log xhr
+          console.log errmsg, err
+          console.log xhr.responseText
 
 
     @notifyAll 'onFinish'

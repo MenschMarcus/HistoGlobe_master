@@ -72,18 +72,24 @@ $now_marker_opacity                 = 0.75
 $now_marker_opacity_hc              = 1
 
 
-// HISTOGRAPH ------------------------------------------------------------------
-
-$histograph_height                  = 175px
-$histograph_line_width              = 10px
-
-
 // EDIT OPERATION WINDOW -------------------------------------------------------
 
 $operation_window_height            = 120px
 $operation_step_width               = 175px
-
 $edit_buttons_top_distance          = 88px
+
+
+// NEW NAME TOOL ---------------------------------------------------------------
+
+$short_name_font_size               = 1.1em
+$formal_name_font_size              = 0.9em
+
+
+
+// HISTOGRAPH ------------------------------------------------------------------
+
+$histograph_height                  = 175px
+$histograph_line_width              = 10px
 
 
 

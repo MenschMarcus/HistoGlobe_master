@@ -22,7 +22,7 @@ class HG.TextInputArea
 
     # create dom element
     domElemCreator = new HG.DOMElementCreator
-    classes.push 'hg-input'
+    classes.unshift 'hg-input'
     @_elem = domElemCreator.create 'textarea', id, classes, [['rows', dimensions[0]], ['cols', dimensions[1]], ['name', id]]
 
     # change
