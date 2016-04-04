@@ -17,7 +17,6 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
     super @_hgInstance, @_stepData, @_isForward
 
     # get external modules
-    @_areaController = @_hgInstance.areaController
     @_geometryOperator = new HG.GeometryOperator
 
 
@@ -52,7 +51,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
         oldGeometries = []
         oldIds = []
         for id in @_stepData.inData.selectedAreas
-          area = @_areaController.getActiveArea(id)
+          area = @_hgInstance.areaController.getActiveArea(id)
           oldIds.push id
           oldGeometries.push area.getGeometry()
           # save in temporary areas to restore them later
@@ -86,11 +85,38 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
     ## change name operation
     else if @_stepData.operationCommand is 'CHN'
 
-      # nothing to do => hand area further to next / previous step
+      # each operation changes areas, even if they have the same geometry
+      # => A copy area to have completely new area that can be renamed in next step
+      # => new identity
       if @_isForward
-        @_stepData.outData.createdAreas.push @_stepData.inData.selectedAreas[0]
+        # deactivate old area
+        oldAreaId = @_stepData.inData.selectedAreas[0]
+        oldArea = @_hgInstance.areaController.getActiveArea oldAreaId
+        @_stepData.tempAreas[0] = oldAreaId
+        @notifyEditMode 'onEndEditArea', oldAreaId
+        @notifyEditMode 'onDeselectArea', oldAreaId
+        @notifyEditMode 'onDeactivateArea', oldAreaId
+
+        # create and activate new area
+        newAreaId = "NEW_NAME_" + oldAreaId
+        @notifyEditMode 'onCreateArea', newAreaId, oldArea.getGeometry()
+        @notifyEditMode 'onAddAreaName', newAreaId, oldArea.getShortName(), oldArea.getFormalName()
+        @notifyEditMode 'onUpdateAreaRepresentativePoint', newAreaId, oldArea.getRepresentativePoint()
+
+        @_stepData.outData.createdAreas[0] = newAreaId
+
       else
-        @_stepData.inData.selectedAreas.push @_stepData.outData.createdAreas[0]
+
+        # remove new area
+        newAreaId = @_stepData.outData.createdAreas[0]
+        @notifyEditMode 'onRemoveArea', newAreaId
+
+        # reactivate old area
+        oldAreaId = @_stepData.tempAreas[0]
+        @notifyEditMode 'onActivateArea', oldAreaId
+        @notifyEditMode 'onSelectArea', oldAreaId
+        @notifyEditMode 'onStartEditArea', oldAreaId
+        @_stepData.inData.selectedAreas[0] = oldAreaId
 
       return @finish() # no user input
 
@@ -101,7 +127,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
       if @_isForward
         for id in @_stepData.inData.selectedAreas
-          area = @_areaController.getActiveArea id
+          area = @_hgInstance.areaController.getActiveArea id
           # save in temporary areas to restore them later
           @_stepData.tempAreas.push id
           @notifyEditMode 'onDeactivateArea', id
@@ -160,7 +186,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
         # TODO: make more efficient later
 
         # manual loop, because some areas might be deleted on the way
-        existingAreas = @_areaController.getActiveAreas()
+        existingAreas = @_hgInstance.areaController.getActiveAreas()
         loopIdx = existingAreas.length-1
         while loopIdx >= 0
           existingAreaId =      existingAreas[loopIdx].getId()
@@ -229,7 +255,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
       # ------------------------------------------------------------------------
       ## separate areas operation
       else if @_stepData.operationCommand is 'SEP'
-        existingArea = @_areaController.getActiveArea @_stepData.inData.selectedAreas[0]
+        existingArea = @_hgInstance.areaController.getActiveArea @_stepData.inData.selectedAreas[0]
 
         existingAreaId =      existingArea.getId()
         existingGeometry =    existingArea.getGeometry()
@@ -306,8 +332,8 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
         A_id = @_stepData.inData.selectedAreas[0]
         B_id = @_stepData.inData.selectedAreas[1]
-        A_area = @_areaController.getActiveArea A_id
-        B_area = @_areaController.getActiveArea B_id
+        A_area = @_hgInstance.areaController.getActiveArea A_id
+        B_area = @_hgInstance.areaController.getActiveArea B_id
 
         A_shortName = A_area.getShortName()
         B_shortName = B_area.getShortName()

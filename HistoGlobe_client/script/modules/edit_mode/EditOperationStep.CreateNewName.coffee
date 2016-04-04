@@ -45,6 +45,9 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
   # ============================================================================
   _makeNewName: (direction) ->
 
+    console.log "START ========================================================"
+    console.log "area idx pre", @_areaIdx
+
     # error handling: last name -> forward    => finish
     #                 first name -> backward  => abort
     return @finish() if (@_areaIdx is @_numAreas-1) and (direction is 1)
@@ -53,52 +56,89 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
     # go to next/previous area
     @_areaIdx += direction
 
-    # get old and new step
-    currentArea = @_areaController.getActiveArea @_stepData.inData.createdAreas[@_areaIdx]
-    @_currentId = currentArea.getId()
-    @_currentShortName = currentArea.getShortName()
-    @_currentFormalName = currentArea.getFormalName()
-    @_currentPoint = currentArea.getRepresentativePoint()
-    @_currentNameRemoved = currentArea.hasName()
+    # get area to work with
+    # actually, this distinction is not necessary, since the created area from
+    # the step before will be used and changed (passing by reference!)
+    if direction is 1 # forward => take area from previous step
+      currentArea = @_areaController.getActiveArea @_stepData.inData.createdAreas[@_areaIdx]
+    else              # backward => take area from next step
+      currentArea = @_areaController.getActiveArea @_stepData.outData.namedAreas[@_areaIdx]
 
-    # delete name, but put it into name tool
-    @notifyEditMode 'onRemoveAreaName', @_currentId if @_currentNameRemoved
+    @_currentArea = {
+      id:           currentArea.getId()
+      shortName:    currentArea.getShortName()
+      formalName:   currentArea.getFormalName()
+      reprPoint:    currentArea.getRepresentativePoint()
+      hasName:      currentArea.hasName()
+    }
+
+    console.log "area idx    ", @_areaIdx
+    console.log "CURRENT AREA", @_currentArea.id, @_currentArea.shortName, @_currentArea.reprPoint.wkt()
+
+    # temporarily save the old name
+    # -> only in forward direction to avoid overriding temp area on backward operation
+    @_stepData.tempAreas[@_areaIdx] = @_currentArea if direction is 1
+
+    if @_currentArea.hasName
+      @notifyEditMode 'onRemoveAreaName', @_currentArea.id
+
+    console.log "in area     ", @_areaController.getArea(area).getId(), @_areaController.getArea(area).getShortName(), @_areaController.getArea(area).getRepresentativePoint().wkt() for area in @_stepData.inData.createdAreas
+    console.log "temp area   ", area.id, area.shortName, area.reprPoint.wkt() for area in @_stepData.tempAreas
+    console.log "out area    ", @_areaController.getArea(area).getId(), @_areaController.getArea(area).getShortName(), @_areaController.getArea(area).getRepresentativePoint().wkt() for area in @_stepData.outData.namedAreas
 
     # set up NewNameTool to set name and position of area interactively
-    newNameTool = new HG.NewNameTool @_hgInstance, @_currentShortName, @_currentFormalName, @_currentPoint
+    newNameTool = new HG.NewNameTool @_hgInstance,
+      @_currentArea.shortName,
+      @_currentArea.formalName,
+      @_currentArea.reprPoint
+
+    console.log "INIT NAME TOOL --------------------------------------------------------"
+    console.log "in area     ", @_areaController.getArea(area).getId(), @_areaController.getArea(area).getShortName(), @_areaController.getArea(area).getRepresentativePoint().wkt() for area in @_stepData.inData.createdAreas
+    console.log "temp area   ", area.id, area.shortName, area.reprPoint.wkt() for area in @_stepData.tempAreas
+    console.log "out area    ", @_areaController.getArea(area).getId(), @_areaController.getArea(area).getShortName(), @_areaController.getArea(area).getRepresentativePoint().wkt() for area in @_stepData.outData.namedAreas
 
     ### LISTEN TO USER INPUT ###
     newNameTool.onSubmit @, (newShortName, newFormalName, newPoint) =>
 
-      # save the old name
-      @_stepData.tempAreas[@_areaIdx] = {
-        'id':         @_currentId
-        'removed':    @_currentNameRemoved
-        'shortName':  @_currentShortName
-        'formalName': @_currentFormalName
-        'reprPoint':  @_currentPoint
-      }
-
       # save the named area
-      @notifyEditMode 'onAddAreaName', @_currentId, newShortName, newFormalName
-      @notifyEditMode 'onUpdateAreaRepresentativePoint', @_currentId, newPoint
-      @_stepData.outData.namedAreas[@_areaIdx] = @_currentId
+      @notifyEditMode 'onAddAreaName', @_currentArea.id, newShortName, newFormalName
+      @notifyEditMode 'onUpdateAreaRepresentativePoint', @_currentArea.id, newPoint
+      @_stepData.tempAreas[@_areaIdx].nameUpdated = yes
+      @_stepData.outData.namedAreas[@_areaIdx] = @_currentArea.id
+
+      console.log "FINISH NAME TOOL ----------------------------------------------------"
+      console.log "new area    ", @_currentArea.id, newShortName, newPoint.wkt()
+
+      console.log "in area     ", @_areaController.getArea(area).getId(), @_areaController.getArea(area).getShortName(), @_areaController.getArea(area).getRepresentativePoint().wkt() for area in @_stepData.inData.createdAreas
+      console.log "temp area   ", area.id, area.shortName, area.reprPoint.wkt() for area in @_stepData.tempAreas
+      console.log "out area    ", @_areaController.getArea(area).getId(), @_areaController.getArea(area).getShortName(), @_areaController.getArea(area).getRepresentativePoint().wkt() for area in @_stepData.outData.namedAreas
 
       # make action reversible
       @_undoManager.add {
         undo: =>
           # restore old name
           area = @_stepData.tempAreas[@_areaIdx]
-          if @_currentNameRemoved
+          if area.nameRemoved
             @notifyEditMode 'onAddAreaName', area.id, area.shortName, area.formalName
           else
             @notifyEditMode 'onUpdateAreaName', area.id, area.shortName, area.formalName
           @notifyEditMode 'onUpdateAreaRepresentativePoint', area.id, area.reprPoint
 
+          console.log "UNDO AREA -------------------------------------------------------"
+          console.log "old area    ", area.id, area.shortName, area.reprPoint.wkt()
+
+          console.log "in area     ", @_areaController.getArea(area).getId(), @_areaController.getArea(area).getShortName(), @_areaController.getArea(area).getRepresentativePoint().wkt() for area in @_stepData.inData.createdAreas
+          console.log "temp area   ", area.id, area.shortName, area.reprPoint.wkt() for area in @_stepData.tempAreas
+          console.log "out area    ", @_areaController.getArea(area).getId(), @_areaController.getArea(area).getShortName(), @_areaController.getArea(area).getRepresentativePoint().wkt() for area in @_stepData.outData.namedAreas
+
+          console.log "END =========================================================="
+
           # go to previous area
           @_cleanup()
           @_makeNewName -1
       }
+
+      console.log "END =========================================================="
 
       # go to next name
       @_cleanup()
@@ -107,6 +147,14 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
 
   # ============================================================================
   _cleanup: () ->
+
+    ### RESTORE NAME OF FIRST AREA ###
+    # if it has not been updated yet
+    # this is not covered by any undo action, because before the new name was
+    # not submitted from newNameTool, there is no undo event in the undoManager
+    area = @_stepData.tempAreas[@_areaIdx]
+    if area.nameRemoved and not area.nameUpdated
+      @notifyEditMode 'onAddAreaName', area.id, area.shortName, area.formalName
 
     ### CLEANUP OPERATION ###
     @_hgInstance.newNameTool?.destroy()
