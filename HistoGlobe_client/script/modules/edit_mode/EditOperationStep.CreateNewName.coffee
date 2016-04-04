@@ -116,6 +116,10 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
   # ============================================================================
   _cleanup: () ->
 
+    ### CLEANUP OPERATION ###
+    @_hgInstance.newNameTool?.destroy()
+    @_hgInstance.newNameTool = null
+
     ### RESTORE NAME OF FIRST AREA ###
     # if it has not been updated yet
     # this is not covered by any undo action, because before the new name was
@@ -123,7 +127,3 @@ class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
     area = @_stepData.tempAreas[@_areaIdx]
     if area.nameRemoved and not area.nameUpdated
       @notifyEditMode 'onAddAreaName', area.id, area.shortName, area.formalName
-
-    ### CLEANUP OPERATION ###
-    @_hgInstance.newNameTool?.destroy()
-    @_hgInstance.newNameTool = null
