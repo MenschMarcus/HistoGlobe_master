@@ -2,9 +2,8 @@ window.HG ?= {}
 
 # ============================================================================
 # node in a tree for setting up hierarchical structure of holes in polygons
-# input:
-# data = HG.Polyline (no Polygon!)
-# id = identification
+# N.B.: input must be HG.Polyline - not Polygon!
+# ============================================================================
 
 class HG.WithinTreeNode
 
