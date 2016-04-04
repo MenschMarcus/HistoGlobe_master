@@ -21,7 +21,7 @@ class HG.WithinTree
     @_nodes.push @_root
 
   # ============================================================================
-  insert: (N, P=@_root) ->
+  insert: (newNode, parentNode=@_root) ->
   # N = node to be inserted in the tree
   # P = parent node / root node of the subtree it is inserted into
   # initially all polygons are within ROOT node
@@ -36,39 +36,39 @@ class HG.WithinTree
     # 3) no hierarchical relation between N and any child of P
     withinChild = null
     containChildren = []
-    for child in P.getChildren()
-      C = @_getNode child
+    for child in parentNode.getChildren()
+      childNode = @_getNode child
 
       # check for case 1)
-      if @_isWithin N, C
-        withinChild = C
+      if @_isWithin newNode, childNode
+        withinChild = childNode
         # if N is in 1 child of P it can not have any
         # hierarchical relation to any other child of P
         break
 
       # check for case 2)
-      else if @_isWithin C, N
-        containChildren.push C
+      else if @_isWithin childNode, newNode
+        containChildren.push childNode
 
     ## EXECUTION
     # case 1) N in 1 child of P
     # => insert N into this child node -> recursion :)
     if withinChild
-      @insert N, C
+      @insert newNode, childNode
 
     # for both cases 2 and 3) N is not in any child of P
     # => place N underneath P
     else
-      @_nodes.push N
-      N.setParent P.getId()
-      P.addChild N.getId()
+      @_nodes.push newNode
+      newNode.setParent parentNode.getId()
+      parentNode.addChild newNode.getId()
 
       # case 2) 1+ children of P in N
       # => re-place all these as children of N and detach from P
-      for CC in containChildren
-        CC.setParent N.getId()
-        N.addChild CC.getId()
-        P.removeChild CC.getId()
+      for containChild in containChildren
+        containChild.setParent newNode.getId()
+        newNode.addChild containChild.getId()
+        parentNode.removeChild containChild.getId()
 
       # case 3) no hierarchical relation between N and any child of P
       # => no additional re-placement of nodes
@@ -84,26 +84,26 @@ class HG.WithinTree
 
     # extract first child and all its children
     firstChild = @_root.getChildren()[0]
-    FC = @_getNode firstChild
+    firstChildNode = @_getNode firstChild
 
-    Ci = []
-    for C in FC.getChildren()
-      Ci.push(@_getNode C)
+    childNodes = []
+    for child in firstChildNode.getChildren()
+      childNodes.push(@_getNode child)
 
     # reset relations and remove extracted nodes
-    @_root.removeChild FC.getId()
-    @_removeNode FC
-    for C in Ci
+    @_root.removeChild firstChildNode.getId()
+    @_removeNode firstChildNode
+    for childNode in childNodes
       # children of children of first child become new children of root
-      for Cchild in C.getChildren()
-        CC = @_getNode Cchild
-        CC.setParent @_root.getId()
-        @_root.addChild CC.getId()
-      @_removeNode C
+      for childChild in childNode.getChildren()
+        childChildNode = @_getNode childChild
+        childChildNode.setParent @_root.getId()
+        @_root.addChild childChildNode.getId()
+      @_removeNode childNode
 
     # prepare output
-    polygon = [FC.getPolyline()]
-    for C in Ci
+    polygon = [firstChildNode.getPolyline()]
+    for C in childNodes
       polygon.push C.getPolyline()
 
     polygon
