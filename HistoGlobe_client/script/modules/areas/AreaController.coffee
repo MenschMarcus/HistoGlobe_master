@@ -189,7 +189,7 @@ class HG.AreaController
 
           # else: area not selected but selection limit reached => no selection
 
-        @_DEBUG_OUTPUT 'select area (from view)'
+        @_DEBUG_OUTPUT 'SELECT AREA (FROM VIEW)'
 
 
       # ========================================================================
@@ -303,7 +303,7 @@ class HG.AreaController
         # it will still be in the @_selectedAreas array and can stay there,
         # since it will never be deselected
 
-        @_DEBUG_OUTPUT 'enable multi selection'
+        @_DEBUG_OUTPUT 'ENABLE MULTI SELECTION'
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onDisableMultiSelection @, (selectedAreaId=null) ->
@@ -315,7 +315,7 @@ class HG.AreaController
         # -> except for the one specified by edit mode to be kept selected
         @_cleanSelectedAreas selectedAreaId
 
-        @_DEBUG_OUTPUT 'disable multi selection'
+        @_DEBUG_OUTPUT 'DISABLE MULTI SELECTION'
 
 
       ## toggle normal mode <-> edit mode
@@ -329,12 +329,11 @@ class HG.AreaController
         # it will still be in the @_selectedAreas array and can stay there,
         # since it will never be deselected
 
-        @_DEBUG_OUTPUT 'start edit mode'
+        @_DEBUG_OUTPUT 'START EDIT MODE'
 
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onDisableAreaEditMode @, (selectedAreaId=null) ->
-        @_DEBUG_OUTPUT 'end edit mode (before)'
 
         @_areaEditMode = off
         @_maxSelections = 1
@@ -344,7 +343,7 @@ class HG.AreaController
         @_cleanSelectedAreas selectedAreaId
         @_cleanEditAreas()
 
-        @_DEBUG_OUTPUT 'end edit mode (after)'
+        @_DEBUG_OUTPUT 'END EDIT MODE'
 
 
       ## handle new, updated and old areas
@@ -371,7 +370,7 @@ class HG.AreaController
         @_selectedAreas.push area
         @_editAreas.push area
 
-        @_DEBUG_OUTPUT 'create area'
+        @_DEBUG_OUTPUT 'CREATE AREA'
 
 
       # ------------------------------------------------------------------------
@@ -387,7 +386,7 @@ class HG.AreaController
         # update view
         @notifyAll 'onUpdateGeometry', area
 
-        @_DEBUG_OUTPUT 'update area geometry'
+        @_DEBUG_OUTPUT 'UPDATE GEOMETRY'
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onUpdateAreaRepresentativePoint @, (id, reprPoint=null) ->
@@ -405,7 +404,7 @@ class HG.AreaController
         # update view
         @notifyAll 'onUpdateRepresentativePoint', area if area.hasName()
 
-        @_DEBUG_OUTPUT 'update area geometry'
+        @_DEBUG_OUTPUT 'UPDATE REPRESENTATIVE POINT'
 
 
       # ------------------------------------------------------------------------
@@ -422,7 +421,7 @@ class HG.AreaController
         # update view
         @notifyAll 'onCreateName', area
 
-        @_DEBUG_OUTPUT 'create area name'
+        @_DEBUG_OUTPUT 'CREATE NAME'
 
 
       # ------------------------------------------------------------------------
@@ -439,7 +438,7 @@ class HG.AreaController
         # update view
         @notifyAll 'onUpdateName', area
 
-        @_DEBUG_OUTPUT 'update area name'
+        @_DEBUG_OUTPUT 'UPDATE NAME'
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onRemoveAreaName @, (id) ->
@@ -454,7 +453,7 @@ class HG.AreaController
         # update view
         @notifyAll 'onRemoveName', area
 
-        @_DEBUG_OUTPUT 'remove area name'
+        @_DEBUG_OUTPUT 'REMOVE NAME'
 
 
       # ------------------------------------------------------------------------
@@ -481,7 +480,7 @@ class HG.AreaController
         idx = @_inactiveAreas.indexOf area
         @_inactiveAreas.splice idx, 1   if idx isnt -1
 
-        @_DEBUG_OUTPUT 'remove area geometry'
+        @_DEBUG_OUTPUT 'REMOVE AREA'
 
 
       # ------------------------------------------------------------------------
@@ -502,7 +501,7 @@ class HG.AreaController
         @_activeAreas.push area
         @_inactiveAreas.splice((@_inactiveAreas.indexOf area), 1)
 
-        @_DEBUG_OUTPUT 'start edit mode'
+        @_DEBUG_OUTPUT 'ACTIVATE AREA'
 
 
       # ------------------------------------------------------------------------
@@ -523,7 +522,7 @@ class HG.AreaController
         @_inactiveAreas.push area
         @_activeAreas.splice((@_activeAreas.indexOf area), 1)
 
-        @_DEBUG_OUTPUT 'end edit mode'
+        @_DEBUG_OUTPUT 'DEACTIVATE AREA'
 
 
       # ------------------------------------------------------------------------
@@ -541,7 +540,7 @@ class HG.AreaController
           # update controller
           @_editAreas.push area
 
-        @_DEBUG_OUTPUT 'start edit mode'
+        @_DEBUG_OUTPUT 'PUT AREA IN EDIT MODE'
 
 
       # ------------------------------------------------------------------------
@@ -559,7 +558,7 @@ class HG.AreaController
           # update controller
           @_editAreas.splice((@_editAreas.indexOf area), 1)
 
-        @_DEBUG_OUTPUT 'end edit mode'
+        @_DEBUG_OUTPUT 'TAKE AREA OUT OF EDIT MODE'
 
 
       # ------------------------------------------------------------------------
@@ -578,7 +577,7 @@ class HG.AreaController
           @notifyAll 'onUpdateStatus', area
           @notifyAll 'onSelect', area
 
-        @_DEBUG_OUTPUT 'select area'
+        @_DEBUG_OUTPUT 'SELECT AREA'
 
 
       # ------------------------------------------------------------------------
@@ -597,7 +596,7 @@ class HG.AreaController
           @notifyAll 'onUpdateStatus', area
           @notifyAll 'onDeselect', area
 
-        @_DEBUG_OUTPUT 'deselect area'
+        @_DEBUG_OUTPUT 'DESELECT AREA'
 
 
   # ============================================================================
@@ -731,12 +730,12 @@ class HG.AreaController
     return if not DEBUG
 
     sel = []
-    sel.push a.getId() for a in @_selectedAreas
+    sel.push a.getShortName() for a in @_selectedAreas
     edi = []
-    edi.push a.getId() for a in @_editAreas
+    edi.push a.getShortName() for a in @_editAreas
 
-    console.log "-------------------------- ", id, "-------------------------- "
-    console.log "max selections + areas:", @_maxSelections, ":", sel.join(', ')
+    console.log id
+    console.log "max selections + areas:", @_maxSelections, "  :", sel.join(', ')
     console.log "edit mode + areas      ", @_areaEditMode, ":", edi.join(', ')
-    console.log "areas (act+inact=all): ", @_activeAreas.length, "+", @_inactiveAreas.length, "=", @_activeAreas.length + @_inactiveAreas.length,
+    console.log "areas (act+inact=all): ", @_activeAreas.length, "+", @_inactiveAreas.length, "=", @_activeAreas.length + @_inactiveAreas.length
     console.log "=============================================================="

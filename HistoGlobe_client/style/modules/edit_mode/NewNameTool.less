@@ -7,28 +7,44 @@
   border: 0;
   border-radius: @border_radius;
 }
+.new-name-wrapper-focus
+{
+  box-shadow: 0 0 @shadow_radius 3px @color_active !important;
+}
 
-#new-name-input
+.new-name-input
 {
   display: block;
   position: relative;
-  height: @input_text_height;
   width: auto;
+  height: @input_text_height;
   border: none;
   margin: 0;
   padding: 0;
   background: none;
-  font-size: 1.1em;
+  box-shadow: none;
   text-align: center;
-  color: @color_white;
-}
-#new-name-input:focus
-{
-  box-shadow: 0 0 @shadow_radius 3px @color_bg_light;
 }
 
-#new-name-wrapper:focus, #new-name-input:focus
-{ /* prevent outline on active input element */
+#newShortName
+{
+  font-size: @short_name_font_size;
+  color: @color_white;
+}
+
+#newFormalName
+{
+  font-size: @formal_name_font_size;
+  font-style: italic;
+  color: @color_white;
+}
+
+
+/* prevent outline on active input element */
+#new-name-wrapper:focus,
+#newShortName:focus,
+#newFormalName:focus
+{
   outline: none;
 }
 
@@ -36,5 +52,5 @@
 {
   position: absolute;
   right: -(@button_diameter+@element_window_distance);
-  bottom: -(@input_text_height/2);
+  bottom: 0;
 }
