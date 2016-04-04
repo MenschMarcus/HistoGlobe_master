@@ -105,6 +105,42 @@ class HG.AreaInterface
   convertToServerModel: (area) ->
     @_prepareAreaClientToServer area
 
+  # ============================================================================
+  copyArea: (inArea, newAreaId) ->
+
+    # error handling new id must be given to avoid duplicate ids
+    if not newAreaId
+      return console.error "an idea for the copied area has to be given to avoid duplicate area ids"
+
+    areaData = {
+      geometry:             inArea.getGeometry().wkt()
+      representativePoint:  inArea.getRepresentativePoint().wkt()
+      shortName:            inArea.getShortName()
+      formalName:           inArea.getFormalName()
+      sovereigntyStatus:    inArea.getSovereigntyStatus()
+      territoryOf:          inArea.getTerritoryOf()
+      isActive:             inArea.isActive()
+      isSelected:           inArea.isSelected()
+      isFocused:            inArea.isFocused()
+      isInEdit:             inArea.isInEdit()
+    }
+    # deep copy, to be on the safe side
+    areaData = JSON.parse(JSON.stringify(areaData))
+
+    outArea = new HG.Area newAreaId
+    outArea.setGeometry             @_geometryReader.read areaData.geometry
+    outArea.setRepresentativePoint  @_geometryReader.read areaData.representativePoint
+    outArea.setShortName            areaData.shortName
+    outArea.setFormalName           areaData.formalName
+    outArea.setSovereigntyStatus    areaData.sovereigntyStatus
+    outArea.setTerritoryOf          areaData.territoryOf
+    outArea.activate()              if areaData.isActive
+    outArea.select()                if areaData.isSelected
+    outArea.focus()                 if areaData.isFocused
+    outArea.inEdit yes              if areaData.isInEdit
+
+    outArea
+
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #

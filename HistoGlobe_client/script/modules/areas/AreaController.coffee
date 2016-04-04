@@ -1,7 +1,7 @@
 window.HG ?= {}
 
 # debug output?
-DEBUG = no
+DEBUG = yes
 
 class HG.AreaController
 
@@ -730,12 +730,12 @@ class HG.AreaController
     return if not DEBUG
 
     sel = []
-    sel.push a.getShortName() for a in @_selectedAreas
+    sel.push a.getId() + " (" + a.getShortName() + ")" for a in @_selectedAreas
     edi = []
-    edi.push a.getShortName() for a in @_editAreas
+    edi.push a.getId() + " (" + a.getShortName() + ")" for a in @_editAreas
 
     console.log id
-    console.log "max selections + areas:", @_maxSelections, "  :", sel.join(', ')
+    console.log "max selections + areas:", @_maxSelections, ":", sel.join(', ')
     console.log "edit mode + areas      ", @_areaEditMode, ":", edi.join(', ')
     console.log "areas (act+inact=all): ", @_activeAreas.length, "+", @_inactiveAreas.length, "=", @_activeAreas.length + @_inactiveAreas.length
     console.log "=============================================================="
