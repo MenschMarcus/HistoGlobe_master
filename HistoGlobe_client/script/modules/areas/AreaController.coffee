@@ -375,7 +375,7 @@ class HG.AreaController
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onUpdateAreaGeometry @, (id, geometry) ->
-        area = @getActiveArea id
+        area = @getArea id
 
         # error handling: area must have had geometry before and geometry now
         return if (not area?) or (not area.hasGeometry()) or (not geometry.isValid())
@@ -390,7 +390,7 @@ class HG.AreaController
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onUpdateAreaRepresentativePoint @, (id, reprPoint=null) ->
-        area = @getActiveArea id
+        area = @getArea id
 
         # error handling: area must have had geometry before and geometry now
         return if (not area?)
@@ -409,7 +409,7 @@ class HG.AreaController
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onAddAreaName @, (id, shortName, formalName) ->
-        area = @getActiveArea id
+        area = @getArea id
 
         # error handling: area must be found and names must be given
         return if (not area?) or (not shortName) or (not formalName)
@@ -426,7 +426,7 @@ class HG.AreaController
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onUpdateAreaName @, (id, shortName, formalName) ->
-        area = @getActiveArea id
+        area = @getArea id
 
         # error handling: area must have new name now
         return if (not area?) or (not area.hasName()) or (not shortName) or (not formalName)
@@ -442,7 +442,7 @@ class HG.AreaController
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onRemoveAreaName @, (id) ->
-        area = @getActiveArea id
+        area = @getArea id
 
         # error handling: area has to be found
         return if (not area)
@@ -458,7 +458,7 @@ class HG.AreaController
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onRemoveArea @, (id) ->
-        area = @getActiveArea id
+        area = @getArea id
 
         # error handling: area has to be found
         return if (not area)
@@ -506,7 +506,7 @@ class HG.AreaController
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onDeactivateArea @, (id) ->
-        area = @getActiveArea id
+        area = @getArea id
 
         # error handling: area has to be found and active
         return if (not area) or (not area.isActive())
@@ -527,7 +527,7 @@ class HG.AreaController
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onStartEditArea @, (id) ->
-        area = @getActiveArea id
+        area = @getArea id
 
         # error handling: area has to be found and active
         return if (not area) or (not area.isActive())
@@ -545,7 +545,7 @@ class HG.AreaController
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onEndEditArea @, (id) ->
-        area = @getActiveArea id
+        area = @getArea id
 
         # error handling: area has to be found and active
         return if (not area) or (not area.isActive())
@@ -563,7 +563,7 @@ class HG.AreaController
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onSelectArea @, (id) ->
-        area = @getActiveArea id
+        area = @getArea id
 
         # error handling: area has to be found and active
         return if (not area) or (not area.isActive())
@@ -582,7 +582,7 @@ class HG.AreaController
 
       # ------------------------------------------------------------------------
       @_hgInstance.editMode.onDeselectArea @, (id) ->
-        area = @getActiveArea id
+        area = @getArea id
 
         # error handling: area has to be found and active
         return if (not area) or (not area.isActive())
@@ -628,7 +628,7 @@ class HG.AreaController
 
         # deactivate all old areas
         for id in change.oldAreas
-          area = @getActiveArea id
+          area = @getArea id
           if area?
             # update model
             area.deactivate()

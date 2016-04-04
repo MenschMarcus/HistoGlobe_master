@@ -106,7 +106,6 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
         @_stepData.outData.createdAreas[0] = newAreaId
 
       else
-
         # remove new area
         newAreaId = @_stepData.outData.createdAreas[0]
         @notifyEditMode 'onRemoveArea', newAreaId
@@ -330,17 +329,17 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
         # A' = (A \/ B) /\ C    intersection (A u B) with C
         # B' = (A \/ B) - C     difference (A u B) with C
 
-        A_id = @_stepData.inData.selectedAreas[0]
-        B_id = @_stepData.inData.selectedAreas[1]
-        A_area = @_hgInstance.areaController.getActiveArea A_id
-        B_area = @_hgInstance.areaController.getActiveArea B_id
+        A_old_id = @_stepData.inData.selectedAreas[0]
+        B_old_id = @_stepData.inData.selectedAreas[1]
+        A_area = @_hgInstance.areaController.getActiveArea A_old_id
+        B_area = @_hgInstance.areaController.getActiveArea B_old_id
 
         A_shortName = A_area.getShortName()
         B_shortName = B_area.getShortName()
         A_formalName = A_area.getFormalName()
         B_formalName = B_area.getFormalName()
-        A_point = A_area.getRepresentativePoint()
-        B_point = B_area.getRepresentativePoint()
+        A_reprPoint = A_area.getRepresentativePoint()
+        B_reprPoint = B_area.getRepresentativePoint()
 
         A = A_area.getGeometry()
         B = B_area.getGeometry()
@@ -353,36 +352,52 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
         # 2 cases: A first and B first
         if A_covered
-          A_new = @_geometryOperator.intersection AuB, C
-          B_new = @_geometryOperator.difference AuB, C
+          A_new_geom = @_geometryOperator.intersection AuB, C
+          B_new_geom = @_geometryOperator.difference AuB, C
         else  # B is covered
-          B_new = @_geometryOperator.intersection AuB, C
-          A_new = @_geometryOperator.difference AuB, C
+          B_new_geom = @_geometryOperator.intersection AuB, C
+          A_new_geom = @_geometryOperator.difference AuB, C
 
         @_stepData.tempAreas[0] = {
-          'id':           A_id
+          'id':           A_old_id
           'clip':         C
           'geometry':     A
           'shortName':    A_shortName
           'formalName':   A_formalName
-          'reprPoint':    A_point
+          'reprPoint':    A_reprPoint
         }
         @_stepData.tempAreas[1] = {
-          'id':           B_id
+          'id':           B_old_id
           'clip':         C
           'geometry':     B
           'shortName':    B_shortName
           'formalName':   B_formalName
-          'reprPoint':    B_point
+          'reprPoint':    B_reprPoint
         }
 
-        # update both areas
-        @notifyEditMode 'onUpdateAreaGeometry', A_id, A_new
-        @notifyEditMode 'onUpdateAreaGeometry', B_id, B_new
+        # deactivate old areas
+        @notifyEditMode 'onEndEditArea', A_old_id
+        @notifyEditMode 'onEndEditArea', B_old_id
+        @notifyEditMode 'onDeselectArea', A_old_id
+        @notifyEditMode 'onDeselectArea', B_old_id
+        @notifyEditMode 'onDeactivateArea', A_old_id
+        @notifyEditMode 'onDeactivateArea', B_old_id
 
-        # add to workflow
-        @_stepData.outData.createdAreas[0] = A_id
-        @_stepData.outData.createdAreas[1] = B_id
+        @_stepData.tempAreas[0] = A_old_id
+        @_stepData.tempAreas[1] = B_old_id
+
+        # create and activate new area
+        A_new_id = "NEW_BORDER_" + A_old_id
+        B_new_id = "NEW_BORDER_" + B_old_id
+        @notifyEditMode 'onCreateArea', A_new_id, A_new_geom
+        @notifyEditMode 'onCreateArea', B_new_id, B_new_geom
+        @notifyEditMode 'onAddAreaName', A_new_id, A_shortName, A_formalName
+        @notifyEditMode 'onAddAreaName', B_new_id, B_shortName, B_formalName
+        @notifyEditMode 'onUpdateAreaRepresentativePoint', A_new_id, A_reprPoint
+        @notifyEditMode 'onUpdateAreaRepresentativePoint', B_new_id, B_reprPoint
+
+        @_stepData.outData.createdAreas[0] = A_new_id
+        @_stepData.outData.createdAreas[1] = B_new_id
 
         # done!
         @_finish = yes
@@ -396,13 +411,25 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
             @_hgInstance.newGeometryTool?.destroy()
             @_hgInstance.newGeometryTool = null
 
-            # revert changes of old areas
-            A = @_stepData.tempAreas[0]
-            B = @_stepData.tempAreas[1]
-            @notifyEditMode 'onUpdateAreaGeometry', A.id, A.geometry, A.reprPoint
-            @notifyEditMode 'onUpdateAreaGeometry', B.id, B.geometry, B.reprPoint
-            @_stepData.tempAreas = []
-            @_stepData.outData.createdAreas = []
+            # remove new area
+            A_new_id = @_stepData.outData.createdAreas[0]
+            B_new_id = @_stepData.outData.createdAreas[1]
+            @notifyEditMode 'onRemoveArea', A_new_id
+            @notifyEditMode 'onRemoveArea', B_new_id
+
+            # reactivate old area
+            A_old_id = @_stepData.tempAreas[0]
+            B_old_id = @_stepData.tempAreas[1]
+
+            @notifyEditMode 'onActivateArea', A_old_id
+            @notifyEditMode 'onActivateArea', B_old_id
+            @notifyEditMode 'onSelectArea', A_old_id
+            @notifyEditMode 'onSelectArea', B_old_id
+            @notifyEditMode 'onStartEditArea', A_old_id
+            @notifyEditMode 'onStartEditArea', B_old_id
+
+            @_stepData.inData.selectedAreas[0] = A_old_id
+            @_stepData.inData.selectedAreas[1] = B_old_id
 
             # go to previous area
             @_finish = no
