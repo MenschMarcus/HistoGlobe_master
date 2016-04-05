@@ -220,7 +220,6 @@ class HG.AreasOnMap
     # update zoom level
     @_zoomLevel = newZoom
 
-
   # ============================================================================
   ### HELPER FUNCTIONS ###
 

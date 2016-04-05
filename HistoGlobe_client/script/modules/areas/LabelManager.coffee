@@ -147,7 +147,7 @@ class HG.LabelManager
     # if it got larger or position has changed
       # check with all higher priority labels if it gets covered by them now
     # if it got smaller or position has changed
-      # check with all lower priority labels if it coveres them now
+      # check with all lower priority labels if it covers them now
 
   # ============================================================================
   zoomIn: () ->
@@ -155,36 +155,41 @@ class HG.LabelManager
     # approach: for each label, update the geometric properties
     # and then determine which labels can be shown now
 
-    # for each label
+    # update geometries of all labels to get current data for label collission test
+    currNode = @_labelList.head.next
+    while not currNode.isTail()
+      @_updateGeometry currNode.data
+      currNode = currNode.next
+
+    # check for each label
     currNode = @_labelList.head.next
     while not currNode.isTail()
 
-      # update label
       currLabel = currNode.data
-      @_updateGeometry currLabel
 
       # check for each label that it originally covered if they can be shown now
-      loopIdx = 0
-      loopLen = currLabel.covers.length
-      while loopIdx < loopLen
+      currIdx = 0
+      currLen = currLabel.covers.length
+      while currIdx < currLen
 
-        lowerLabel = currLabel.covers[loopIdx]
+        lowerLabel = currLabel.covers[currIdx]
 
         if not @_labelsOverlap currLabel, lowerLabel
 
           # update cover links
-          currLabel.covers.splice loopIdx, 1
-          removeIdx = lowerLabel.coveredBy.indexOf currLabel
-          lowerLabel.coveredBy.splice removeIdx, 1
+          currLabel.covers.splice currIdx, 1
+          lowerIdx = lowerLabel.coveredBy.indexOf currLabel
+          lowerLabel.coveredBy.splice lowerIdx, 1
 
-          loopLen-- # IMP! array has one element less now!
+          currLen-- # IMP! array has one element less now!
+          currIdx-- # VERY IMP!!! in order to check each element
 
           # check if current label can be to be shown now
           # = if no more other label covers it
           @_show lowerLabel if (lowerLabel.coveredBy.length is 0)
 
         # go to next label in list of all covered labels
-        loopIdx++
+        currIdx++
 
       # go to next label in list of all labels
       currNode = currNode.next
@@ -196,18 +201,43 @@ class HG.LabelManager
     # approach: for each label, update the geometric properties
     # and then determine which labels can be shown now
 
-    # for each label
+    # update geometries of all labels to get current data for label collission test
+    currNode = @_labelList.head.next
+    while not currNode.isTail()
+      @_updateGeometry currNode.data
+      currNode = currNode.next
+
+    # check for each visible label
     currNode = @_labelList.head.next
     while not currNode.isTail()
 
-      # update label
       currLabel = currNode.data
-      @_updateGeometry currLabel
 
-      # check for each label that it originally covered if they can be shown now
+      # invisible labels can not cover others
+      # because they are invisible. logical, eh ;)
+      if currLabel.isVisible
 
-      # go to next label in list of all labels
+        # check for each label with lower priority
+        lowerNode = currNode.next
+        while not lowerNode.isTail()
+
+          lowerLabel = lowerNode.data
+
+          # check if lower priority label needs to be hidden now
+          if @_labelsOverlap lowerLabel, currLabel
+            lowerLabel.coveredBy.push currLabel
+            currLabel.covers.push lowerLabel
+            @_hide lowerLabel
+
+          # go to next load with lower priority
+          lowerNode = lowerNode.next
+
+      # go to next node
       currNode = currNode.next
+
+
+
+
 
 
   ##############################################################################
@@ -233,6 +263,7 @@ class HG.LabelManager
 
   # ============================================================================
   _updateGeometry: (label) ->
+
     # label must be on the map in order to determine geometric properties
     if not label.isVisible
       @_map.showLabel label
