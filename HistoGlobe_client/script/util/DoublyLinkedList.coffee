@@ -46,6 +46,9 @@ class HG.DoublyLinkedList
   pushBack: (element) ->                @_addBefore element, @tail
   append: (element) ->                  @_addBefore element, @tail
 
+  # ============================================================================
+  removeElement: (element) ->           @_remove @_getNode element
+  removeNode: (node) ->                 @_remove node
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
@@ -94,6 +97,9 @@ class HG.DoublyLinkedList
   # ============================================================================
   _remove: (node) ->
 
+    # error handling
+    return if not node
+
     # update node
     node.prev.next = node.next if node.prev
     node.next.prev = node.prev if node.next
@@ -103,3 +109,12 @@ class HG.DoublyLinkedList
     @tail = node.prev if @tail is node
 
     @_length--
+
+  # ============================================================================
+  _getNode: (element) ->
+
+    currentNode = @head.next
+    while currentNode.data
+      return currentNode if currentNode.data is element
+      currentNode = currentNode.next
+    return null

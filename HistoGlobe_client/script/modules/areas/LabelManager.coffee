@@ -42,28 +42,21 @@ class HG.LabelManager
       # insert node into label list
       @_labelList.addBefore label, currNode
 
-    # if @_labelList.length() > 239
-    #   console.log "=============================================================="
-    #   cn = @_labelList.head.next
-    #   i = 0
-    #   while cn.data
-    #     data =
-    #       curr: if cn.data then cn.data._content + "(" + cn.data.priority + ")"
-    #       prev: if cn.prev.data then cn.prev.data._content + "(" + cn.prev.data.priority + ")"
-    #       next: if cn.next.data then cn.next.data._content + "(" + cn.next.data.priority + ")"
-    #     console.log i, ":", data.curr, "| prev:", data.prev, "| next:", data.next
-    #     cn = cn.next
-    #     i++
-
     # show label
     @_map.showLabel label
     @_recenter label
 
+    @DEBUG()
+
   # ============================================================================
   remove: (label) ->
 
+    @_labelList.removeElement label
+
     # hide label
     @_map.removeLayer label
+
+    @DEBUG()
 
   # ============================================================================
   update: (label) ->
@@ -81,3 +74,20 @@ class HG.LabelManager
       -(label._container.offsetHeight/2)
     ]
     label._updatePosition()
+
+
+  # ============================================================================
+  DEBUG: () ->
+    if @_labelList.length() > 239 or @_labelList.length() < 2
+      console.log "=============================================================="
+      cn = @_labelList.head.next
+      i = 0
+      while cn.data
+        data =
+          curr: if cn.data then cn.data._content + "(" + cn.data.priority + ")"
+          prev: if cn.prev.data then cn.prev.data._content + "(" + cn.prev.data.priority + ")"
+          next: if cn.next.data then cn.next.data._content + "(" + cn.next.data.priority + ")"
+        console.log i, ":", data.curr, "| prev:", data.prev, "| next:", data.next
+        cn = cn.next
+        i++
+
