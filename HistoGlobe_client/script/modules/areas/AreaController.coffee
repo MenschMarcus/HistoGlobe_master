@@ -92,7 +92,6 @@ class HG.AreaController
           # @_areaInterface.onLoadInactiveArea @, (area) ->
           # @_areaInterface.onFinishLoadingInactiveAreas @, () ->
 
-
       ### VIEW ###
 
       ## listen to each viewer (have the same interface)
