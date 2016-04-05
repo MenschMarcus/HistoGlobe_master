@@ -23,48 +23,53 @@ class HG.AreasOnMap
     # add areasOnMap to HG instance
     @_hgInstance.areasOnMap = @
 
+    # error handling
+    if not @_hgInstance.areaController
+      console.error "Unable to show areas on the map: AreaController module not detected in HistoGlobe instance!"
+
     # init variables
     @_map = @_hgInstance.map.getMap()
+    @_zoomLevel = @_map.getZoom()
+
+    # includes
     @_labelManager = new HG.LabelManager @_map
 
     # event handling
     @_hgInstance.onAllModulesLoaded @, () =>
 
-      # listen to area changes from area controller
-      if @_hgInstance.areaController
+      # listen to geometry changes from area controller
+      @_hgInstance.areaController.onCreateGeometry @, (area) =>
+        @_createGeometry area
 
-        @_hgInstance.areaController.onCreateGeometry @, (area) =>
-          @_createGeometry area
+      @_hgInstance.areaController.onUpdateGeometry @, (area) =>
+        @_updateGeometry area
 
-        @_hgInstance.areaController.onUpdateGeometry @, (area) =>
-          @_updateGeometry area
+      @_hgInstance.areaController.onRemoveGeometry @, (area) =>
+        @_removeGeometry area
 
-        @_hgInstance.areaController.onRemoveGeometry @, (area) =>
-          @_removeGeometry area
+      # listen to name changes from area controller
+      @_hgInstance.areaController.onCreateName @, (area) =>
+        @_createLabel area
 
+      @_hgInstance.areaController.onUpdateName @, (area) =>
+        @_updateLabel area
 
-        @_hgInstance.areaController.onCreateName @, (area) =>
-          @_createLabel area
+      @_hgInstance.areaController.onUpdateRepresentativePoint @, (area) =>
+        @_updateLabelPosition area
 
-        @_hgInstance.areaController.onUpdateName @, (area) =>
-          @_updateLabel area
+      @_hgInstance.areaController.onRemoveName @, (area) =>
+        @_removeLabel area
 
-        @_hgInstance.areaController.onUpdateRepresentativePoint @, (area) =>
-          @_updateLabelPosition area
+      # listen to status updates from area controller
+      @_hgInstance.areaController.onUpdateStatus @, (area) =>
+        @_updateProperties area
 
-        @_hgInstance.areaController.onRemoveName @, (area) =>
-          @_removeLabel area
+      @_hgInstance.areaController.onSelect @, (area) =>
+        @_map.fitBounds area.geomLayer.getBounds()
 
+      # listen to zoom event from map
+      @_map.on "zoomend", @_onZoom
 
-        @_hgInstance.areaController.onUpdateStatus @, (area) =>
-          @_updateProperties area
-
-
-        @_hgInstance.areaController.onSelect @, (area) =>
-          @_map.fitBounds area.geomLayer.getBounds()
-
-      else
-        console.error "Unable to show areas on the map: AreaController module not detected in HistoGlobe instance!"
 
 
   ##############################################################################
@@ -115,7 +120,9 @@ class HG.AreasOnMap
     area.labelLayer = new L.Label()
     area.labelLayer.setContent area.getShortName()
     area.labelLayer.setLatLng area.getRepresentativePoint().latLng()
-    area.labelLayer.priority = parseInt(Math.random()*100) # TODO
+
+    # priority of the label = its area
+    area.labelLayer.priority = Math.round(area.getGeometry().getArea()*1000)
 
     # add to LabelManager
     @_labelManager.insert area.labelLayer
@@ -178,6 +185,9 @@ class HG.AreasOnMap
   ### EVENT HANDLING ###
 
   # ============================================================================
+  # areas
+
+  # ----------------------------------------------------------------------------
   _onFocus: (evt) =>
     @notifyAll 'onFocusArea', evt.target.hgArea
 
@@ -192,7 +202,26 @@ class HG.AreasOnMap
     # fix: unfocus afterwards
     @_onUnfocus evt
 
+  # ============================================================================
+  # map
 
+  # ----------------------------------------------------------------------------
+  _onZoom: (evt) =>
+    # get zoom direction
+    oldZoom = @_zoomLevel
+    newZoom = @_map.getZoom()
+
+    # check zoom direction and update labels
+    if newZoom > oldZoom # zoom in
+      @_labelManager.zoomIn()
+    else
+      @_labelManager.zoomOut()
+
+    # update zoom level
+    @_zoomLevel = newZoom
+
+
+  # ============================================================================
   ### HELPER FUNCTIONS ###
 
   # ============================================================================
