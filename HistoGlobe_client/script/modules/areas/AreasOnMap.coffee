@@ -25,6 +25,7 @@ class HG.AreasOnMap
 
     # init variables
     @_map = @_hgInstance.map.getMap()
+    @_labelManager = new HG.LabelManager @_map
 
     # event handling
     @_hgInstance.onAllModulesLoaded @, () =>
@@ -112,21 +113,15 @@ class HG.AreasOnMap
 
     # create label with name and position
     area.labelLayer = new L.Label()
-    # TODO: set back @_addLinebreaks
     area.labelLayer.setContent area.getShortName()
     area.labelLayer.setLatLng area.getRepresentativePoint().latLng()
+    area.labelLayer.priority = parseInt(Math.random()*100) # TODO
+
+    # add to LabelManager
+    @_labelManager.insert area.labelLayer
 
     # create double-link: leaflet label knows HG area and HG area knows leaflet label
     area.labelLayer.hgArea = area
-    @_map.showLabel area.labelLayer
-
-    # put text in center of label
-    area.labelLayer.options.offset = [
-      -(area.labelLayer._container.offsetWidth/2),
-      -(area.labelLayer._container.offsetHeight/2)
-    ]
-    area.labelLayer._updatePosition()
-
 
   # ============================================================================
   # change leaflet layers on the map
@@ -140,6 +135,7 @@ class HG.AreasOnMap
   # ----------------------------------------------------------------------------
   _updateLabel: (area) ->
     area.labelLayer.setContent area.getShortName()
+    @_labelManager.update area.labelLayer
 
   # ----------------------------------------------------------------------------
   _updateLabelPosition: (area) ->
@@ -175,7 +171,7 @@ class HG.AreasOnMap
   # ----------------------------------------------------------------------------
   _removeLabel: (area) ->
     # remove double-link: leaflet layer from area and area from leaflet layer
-    @_map.removeLayer area.labelLayer
+    @_labelManager.remove area.labelLayer
     area.labelLayer = null
 
 
