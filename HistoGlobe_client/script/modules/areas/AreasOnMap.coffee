@@ -30,6 +30,7 @@ class HG.AreasOnMap
     # init variables
     @_map = @_hgInstance.map.getMap()
     @_zoomLevel = @_map.getZoom()
+    @_selectedAreas = []
 
     # includes
     @_labelManager = new HG.LabelManager @_map
@@ -65,7 +66,32 @@ class HG.AreasOnMap
         @_updateProperties area
 
       @_hgInstance.areaController.onSelect @, (area) =>
-        @_map.fitBounds area.geomLayer.getBounds()
+        # accumulate fullBound box around all currently selected areas
+        fullBound = area.geomLayer.getBounds() # L.latLngBounds
+        for selArea in @_selectedAreas
+          currBound = selArea.geomLayer.getBounds()
+          fullBound._northEast.lat = Math.max(currBound.getNorth(), fullBound.getNorth())
+          fullBound._northEast.lng = Math.max(currBound.getEast(),  fullBound.getEast())
+          fullBound._southWest.lat = Math.min(currBound.getSouth(), fullBound.getSouth())
+          fullBound._southWest.lng = Math.min(currBound.getWest(),  fullBound.getWest())
+        @_map.fitBounds fullBound
+        # add area to list in last step
+        @_selectedAreas.push area
+
+      @_hgInstance.areaController.onDeselect @, (area) =>
+        idx = @_selectedAreas.indexOf area
+        @_selectedAreas.splice idx, 1
+        # focus back to remaining selected areas
+        if @_selectedAreas.length > 0
+          fullBound = @_selectedAreas[0].geomLayer.getBounds() # L.latLngBounds
+          for selArea in @_selectedAreas
+            currBound = selArea.geomLayer.getBounds()
+            fullBound._northEast.lat = Math.max(currBound.getNorth(), fullBound.getNorth())
+            fullBound._northEast.lng = Math.max(currBound.getEast(),  fullBound.getEast())
+            fullBound._southWest.lat = Math.min(currBound.getSouth(), fullBound.getSouth())
+            fullBound._southWest.lng = Math.min(currBound.getWest(),  fullBound.getWest())
+          @_map.fitBounds fullBound
+
 
       # listen to zoom event from map
       @_map.on "zoomend", @_onZoom
