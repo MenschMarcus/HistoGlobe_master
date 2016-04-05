@@ -13,17 +13,17 @@ class HG.DoublyLinkedList
     @tail = new HG.DoublyLinkedListNode null   # tail.prev = pointer to last item
 
     # link head and tail together
-    @head.next = @tail    # @head.next is null
-    @tail.prev = @head    # @tail.prev is null
+    @head.next = @tail    # @head.prev is null
+    @tail.prev = @head    # @tail.next is null
 
     @_length = 0    # length of list
 
   # ============================================================================
+  # get number of elements / length / size of list
   length: () ->     @_length
   size: () ->       @_length
   num: () ->        @_length
 
-  # ----------------------------------------------------------------------------
   isEmpty: () ->    @_length is 0
 
   # ============================================================================
@@ -47,8 +47,14 @@ class HG.DoublyLinkedList
   append: (element) ->                  @_addBefore element, @tail
 
   # ============================================================================
+  # remove a node from the list
   removeElement: (element) ->           @_remove @_getNode element
   removeNode: (node) ->                 @_remove node
+
+  # ============================================================================
+  # get the node associated to that element
+  getNode: (element) ->                 @_getNode element
+
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
