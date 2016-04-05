@@ -363,6 +363,7 @@ class HG.AreaController
 
         # update view
         @notifyAll 'onCreateGeometry', area
+        @notifyAll 'onSelect', area
 
         # update controller
         @_activeAreas.push area
@@ -468,6 +469,7 @@ class HG.AreaController
         # update view
         @notifyAll 'onRemoveGeometry', area
         @notifyAll 'onRemoveName', area if area.hasName()
+        @notifyAll 'onDeselect', area if area.isSelected()
 
         # update controller
         idx = @_editAreas.indexOf area
@@ -700,7 +702,6 @@ class HG.AreaController
       @_selectedAreas.splice loopIdx, 1
       # update view
       @notifyAll 'onUpdateStatus', area
-      # update view
       @notifyAll 'onDeselect', area
 
       loopIdx--
