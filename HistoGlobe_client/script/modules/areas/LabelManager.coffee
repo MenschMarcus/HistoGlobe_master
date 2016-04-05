@@ -21,8 +21,6 @@ class HG.LabelManager
     # error handling
     return if not newLabel
 
-    console.log "MUH" if newLabel._content is "Belgium"
-
     # initially show the label to know how much space it occupies on the map
     # => retrieve geometric properties
     @_map.showLabel newLabel
@@ -30,7 +28,8 @@ class HG.LabelManager
 
     # init members
     newLabel.isVisible = yes    # status variable to check if a label is shown or hidden
-    newLabel.coveredBy = []     # array of all labels that cover the current label
+    newLabel.coveredBy = []     # all labels that cover the current label (passice)
+    newLabel.covers = []        # all labels covered by the current label (active)
     newLabel.center = @_map.project newLabel._latlng
     newLabel.width = newLabel._container.offsetWidth * LABEL_PADDING
     newLabel.height = newLabel._container.offsetHeight * LABEL_PADDING
@@ -53,8 +52,9 @@ class HG.LabelManager
 
         # current label has definitely higher priority than new label
         # => if they overlap, new label will be hidden
-        if @_labelsCollide newLabel, currLabel
+        if @_labelsOverlap newLabel, currLabel
           newLabel.coveredBy.push currLabel
+          currLabel.covers.push newLabel
           @_hide newLabel
 
         # find the first label with a lower priority
@@ -85,8 +85,9 @@ class HG.LabelManager
 
           # current label has definitely lower priority than new label
           # => if they overlap, currLabel will be hidden
-          if @_labelsCollide newLabel, currLabel
+          if @_labelsOverlap newLabel, currLabel
             currLabel.coveredBy.push newLabel
+            newLabel.covers.push currLabel
             @_hide currLabel
 
           # go to next label
@@ -114,13 +115,16 @@ class HG.LabelManager
       currLabel = currNode.data
 
       # check if current label was covered by remove label
-      removeLabelIdx = currLabel.coveredBy.indexOf removeLabel
-      if (not currLabel.isVisible) and (removeLabelIdx isnt -1)
+      removeIdx = currLabel.coveredBy.indexOf removeLabel
+      if (not currLabel.isVisible) and (removeIdx isnt -1)
 
-        # remove it from the list
-        currLabel.coveredBy.splice removeLabelIdx, 1
+        # update cover lists
+        currLabel.coveredBy.splice removeIdx, 1
+        removeIdx = removeLabel.covers.indexOf currLabel
+        removeLabel.covers.splice removeIdx, 1
 
-        # check if it is now ready to be shown
+        # check if current label can be to be shown now
+        # = if no more other label covers it
         @_show currLabel if (currLabel.coveredBy.length is 0)
 
       currNode = currNode.next
@@ -147,36 +151,64 @@ class HG.LabelManager
 
   # ============================================================================
   zoomIn: () ->
+    # idea: no label has to be removed, some only can potentially be added
+    # approach: for each label, update the geometric properties
+    # and then determine which labels can be shown now
 
-    labels = []
-
-    # save each label
+    # for each label
     currNode = @_labelList.head.next
     while not currNode.isTail()
-      labels.push currNode.data
-      currNode = currNode.next
 
-    # remove and insert each node again
-    @remove label for label in labels
-    @insert label for label in labels
-
-
-  zoomOut: () ->
-
-    labels = []
-
-    # start with first element
-    currNode = @_labelList.head.next
-
-    # remove each node
-    while not currNode.isTail()
+      # update label
       currLabel = currNode.data
-      @remove currLabel
-      labels.push currLabel
+      @_updateGeometry currLabel
+
+      # check for each label that it originally covered if they can be shown now
+      loopIdx = 0
+      loopLen = currLabel.covers.length
+      while loopIdx < loopLen
+
+        lowerLabel = currLabel.covers[loopIdx]
+
+        if not @_labelsOverlap currLabel, lowerLabel
+
+          # update cover links
+          currLabel.covers.splice loopIdx, 1
+          removeIdx = lowerLabel.coveredBy.indexOf currLabel
+          lowerLabel.coveredBy.splice removeIdx, 1
+
+          loopLen-- # IMP! array has one element less now!
+
+          # check if current label can be to be shown now
+          # = if no more other label covers it
+          @_show lowerLabel if (lowerLabel.coveredBy.length is 0)
+
+        # go to next label in list of all covered labels
+        loopIdx++
+
+      # go to next label in list of all labels
       currNode = currNode.next
 
-    # insert each node again
-    @insert label for label in labels
+
+  # ============================================================================
+  zoomOut: () ->
+    # idea: no label has to be be added, some only can potentially be removed
+    # approach: for each label, update the geometric properties
+    # and then determine which labels can be shown now
+
+    # for each label
+    currNode = @_labelList.head.next
+    while not currNode.isTail()
+
+      # update label
+      currLabel = currNode.data
+      @_updateGeometry currLabel
+
+      # check for each label that it originally covered if they can be shown now
+
+      # go to next label in list of all labels
+      currNode = currNode.next
+
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
@@ -185,7 +217,7 @@ class HG.LabelManager
   # ============================================================================
   # main decision function: collission or not?
 
-  _labelsCollide: (labelA, labelB) ->
+  _labelsOverlap: (labelA, labelB) ->
     # error handling: if one label does not exist -> abort check
     return false if not labelA? or not labelB?
 
@@ -197,6 +229,23 @@ class HG.LabelManager
     # -> If they don't => no collission
     return  (Math.abs(labelA.center.x - labelB.center.x) * 2 < (labelA.width +  labelB.width)) and
             (Math.abs(labelA.center.y - labelB.center.y) * 2 < (labelA.height + labelB.height))
+
+
+  # ============================================================================
+  _updateGeometry: (label) ->
+    # label must be on the map in order to determine geometric properties
+    if not label.isVisible
+      @_map.showLabel label
+      @_recenter label
+
+    # update properties
+    label.center = @_map.project label._latlng
+    label.width = label._container.offsetWidth * LABEL_PADDING
+    label.height = label._container.offsetHeight * LABEL_PADDING
+
+    # hide again, if necessary
+    if not label.isVisible
+      @_map.removeLayer label
 
 
   # ============================================================================
@@ -242,7 +291,7 @@ class HG.LabelManager
   #                            STATIC INTERFACE                                #
   ##############################################################################
 
-  LABEL_PADDING = 1.25
+  LABEL_PADDING = 1.15
 
   # ============================================================================
   DEBUG: () ->
