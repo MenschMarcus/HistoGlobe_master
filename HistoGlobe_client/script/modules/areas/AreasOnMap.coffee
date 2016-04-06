@@ -212,8 +212,6 @@ class HG.AreasOnMap
 
   # ============================================================================
   # areas
-  # View class knows its Controller => direct call of public member functions
-  # Controller does not its Views => indirect communication via callbacks
 
   # ----------------------------------------------------------------------------
   _onFocus: (evt) =>
