@@ -9,14 +9,6 @@ class HG.AreasOnMap
   # ============================================================================
   constructor: (config) ->
 
-    # handle callbacks
-    HG.mixin @, HG.CallbackContainer
-    HG.CallbackContainer.call @
-
-    @addCallback 'onFocusArea'
-    @addCallback 'onUnfocusArea'
-    @addCallback 'onSelectArea'
-
   # ============================================================================
   hgInit: (@_hgInstance) ->
 

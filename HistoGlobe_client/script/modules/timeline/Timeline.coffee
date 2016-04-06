@@ -49,14 +49,14 @@ class HG.Timeline
     ### SETUP UI ELEMENTS ###
 
     # parent, wrapper, slider, date markers
-    @_parentDiv = @_domElemCreator.create 'div', 'timeline-area', ['no-text-select']
+    @_parentDiv = @_domElemCreator.create 'div', 'bottom-area', ['no-text-select']
     @_hgInstance.getContainer().appendChild @_parentDiv
 
-    @_tl = @_domElemCreator.create 'div', 'tl', ['swiper-container', 'no-text-select']
-    @_parentDiv.appendChild @_tl
+    @_timeline = @_domElemCreator.create 'div', 'timeline', ['swiper-container', 'no-text-select']
+    @_parentDiv.appendChild @_timeline
 
     @_tlWrapper = @_domElemCreator.create 'div', 'tl_wrapper', ['swiper-wrapper', 'no-text-select']
-    @_tl.appendChild @_tlWrapper
+    @_timeline.appendChild @_tlWrapper
 
     @_tlSlider = @_domElemCreator.create 'div', 'tl_slide', ['swiper-slide', 'no-text-select']
     @_tlWrapper.appendChild @_tlSlider
@@ -64,7 +64,7 @@ class HG.Timeline
 
     # drag timeline
     # = transition of timeline container with swiper.js
-    @_timeline_swiper ?= new Swiper '#tl',
+    @_timeline_swiper ?= new Swiper '#timeline',
       mode:'horizontal'
       freeMode: true
       momentumRatio: 0.5
@@ -108,11 +108,11 @@ class HG.Timeline
         @_zoom(-1)
 
       # zoom timeline
-      @_tl.addEventListener "mousewheel", (e) =>
+      @_timeline.addEventListener "mousewheel", (e) =>
         e.preventDefault()
         @_zoom e.wheelDelta, e
 
-      @_tl.addEventListener "DOMMouseScroll", (e) =>
+      @_timeline.addEventListener "DOMMouseScroll", (e) =>
         e.preventDefault()
         @_zoom -e.detail, e
 
@@ -254,7 +254,7 @@ class HG.Timeline
   # ============================================================================
   # UI
   _updateLayout: ->
-    @_tl.style.width = window.innerWidth + "px"
+    @_timeline.style.width = window.innerWidth + "px"
     @_tlSlider.style.width = (@_timelineLength() + window.innerWidth) + "px"
     @_moveToDate @_hgInstance.timeController.getNowDate()
     @_timeline_swiper.reInit()
