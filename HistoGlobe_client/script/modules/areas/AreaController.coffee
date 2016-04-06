@@ -92,107 +92,9 @@ class HG.AreaController
           # @_areaInterface.onLoadInactiveArea @, (area) ->
           # @_areaInterface.onFinishLoadingInactiveAreas @, () ->
 
-      ### VIEW ###
 
-      ## listen to each viewer (have the same interface)
-      ## -> start only with AreasOnMap
-
-      # ----------------------------------------------------------------------
-      # hover areas => focus?
-      @_hgInstance.areasOnMap.onFocusArea @, (area) ->
-
-        # error handling: ignore if area is already focused
-        return if area.isFocused()
-
-        # edit mode: only unselected areas in edit mode can be focused
-        if @_areaEditMode is on
-          if (area.isInEdit()) and (not area.isSelected())
-            # update model
-            area.focus()
-            # update view
-            @notifyAll 'onUpdateStatus', area
-
-        # normal mode: each area can be hovered
-        else  # @_areaEditMode is off
-          # update model
-          area.focus()
-          # update view
-          @notifyAll 'onUpdateStatus', area
-
-
-      # ----------------------------------------------------------------------
-      # unhover areas => unfocus!
-      @_hgInstance.areasOnMap.onUnfocusArea @, (area) ->
-        # update model
-        area.unfocus()
-        # update view
-        @notifyAll 'onUpdateStatus', area
-
-
-      # ----------------------------------------------------------------------
-      # click area => (de)select
-      @_hgInstance.areasOnMap.onSelectArea @, (area) ->
-
-        # area must be focussed in order for it to be selected
-        # => no distinction between edit mode and normal mode necessary anymore
-        return if not area.isFocused()
-
-        # area is selected => deselect
-        if area.isSelected()
-          # update model
-          area.deselect()
-          # update controller
-          @_selectedAreas.splice((@_selectedAreas.indexOf area), 1)
-          # update view
-          @notifyAll 'onUpdateStatus', area
-          @notifyAll 'onDeselect', area
-
-
-        # area is not selected => decide if it can be selected
-        else
-
-          # single-selection mode: toggle selected area
-          if @_maxSelections is 1
-            ## deselect currently selected area
-            if @_selectedAreas.length is 1
-              # update model
-              @_selectedAreas[0].deselect()
-              # update view
-              @notifyAll 'onUpdateStatus', @_selectedAreas[0]
-              @notifyAll 'onDeselect', @_selectedAreas[0]
-              # update controller
-              @_selectedAreas = []
-
-            ## select newly selected area
-            # update model
-            area.select()
-            # update controller
-            @_selectedAreas.push area
-            # update view
-            @notifyAll 'onUpdateStatus', area
-            @notifyAll 'onSelect', area
-
-
-          # multi-selection mode: add to selected area until max limit is reached
-          else  # @_maxSelections > 1
-
-            # area is not selected and maximum number of selections not reached => select it
-            if @_selectedAreas.length < @_maxSelections
-              # update model
-              area.select()
-              # update controller
-              @_selectedAreas.push area
-              # update view
-              @notifyAll 'onUpdateStatus', area
-              @notifyAll 'onSelect', area
-
-          # else: area not selected but selection limit reached => no selection
-
-        @_DEBUG_OUTPUT 'SELECT AREA (FROM VIEW)'
-
-
+      ### INTERFACE: HIVENT CONTROLLER ###
       # ========================================================================
-      ### HIVENT CONTROLLER ###
 
       ## perform area changes
       # ------------------------------------------------------------------------
@@ -284,8 +186,8 @@ class HG.AreaController
 
 
 
+      ### INTERFACE: EDIT MODE ###
       # ========================================================================
-      ### EDIT MODE ###
 
       ## toggle single-selection <-> multi-selection mode
       # ------------------------------------------------------------------------
@@ -651,8 +553,10 @@ class HG.AreaController
     , HGConfig.change_queue_interval.val
 
 
-
   # ============================================================================
+  ### GETTER ####
+
+  # ----------------------------------------------------------------------------
   getActiveAreas: () ->     @_activeAreas
   getSelectedAreas: () ->   @_selectedAreas
 
@@ -677,6 +581,109 @@ class HG.AreaController
         return area
         break
     return null
+
+  # ============================================================================
+  ### SETTER FOR VIEW ###
+  # AreasOnMap, AreasOnGlobe, AreasOnHistoGraph
+
+  # ----------------------------------------------------------------------
+  # hover areas => focus?
+
+  focusArea: (area) ->
+
+    # error handling: ignore if area is already focused
+    return if area.isFocused()
+
+    # edit mode: only unselected areas in edit mode can be focused
+    if @_areaEditMode is on
+      if (area.isInEdit()) and (not area.isSelected())
+        # update model
+        area.focus()
+        # update view
+        @notifyAll 'onUpdateStatus', area
+
+    # normal mode: each area can be hovered
+    else  # @_areaEditMode is off
+      # update model
+      area.focus()
+      # update view
+      @notifyAll 'onUpdateStatus', area
+
+
+  # ----------------------------------------------------------------------
+  # unhover areas => unfocus!
+
+  unfocusArea: (area) ->
+    # update model
+    area.unfocus()
+    # update view
+    @notifyAll 'onUpdateStatus', area
+
+
+  # ----------------------------------------------------------------------
+  # click area => (de)select
+
+  selectArea: (area) ->
+
+    # area must be focussed in order for it to be selected
+    # => no distinction between edit mode and normal mode necessary anymore
+    return if not area.isFocused()
+
+    # area is selected => deselect
+    if area.isSelected()
+      # update model
+      area.deselect()
+      # update controller
+      @_selectedAreas.splice((@_selectedAreas.indexOf area), 1)
+      # update view
+      @notifyAll 'onUpdateStatus', area
+      @notifyAll 'onDeselect', area
+
+
+    # area is not selected => decide if it can be selected
+    else
+
+      # single-selection mode: toggle selected area
+      if @_maxSelections is 1
+        ## deselect currently selected area
+        if @_selectedAreas.length is 1
+          # update model
+          @_selectedAreas[0].deselect()
+          # update view
+          @notifyAll 'onUpdateStatus', @_selectedAreas[0]
+          @notifyAll 'onDeselect', @_selectedAreas[0]
+          # update controller
+          @_selectedAreas = []
+
+        ## select newly selected area
+        # update model
+        area.select()
+        # update controller
+        @_selectedAreas.push area
+        # update view
+        @notifyAll 'onUpdateStatus', area
+        @notifyAll 'onSelect', area
+
+
+      # multi-selection mode: add to selected area until max limit is reached
+      else  # @_maxSelections > 1
+
+        # area is not selected and maximum number of selections not reached => select it
+        if @_selectedAreas.length < @_maxSelections
+          # update model
+          area.select()
+          # update controller
+          @_selectedAreas.push area
+          # update view
+          @notifyAll 'onUpdateStatus', area
+          @notifyAll 'onSelect', area
+
+      # else: area not selected but selection limit reached => no selection
+
+    @_DEBUG_OUTPUT 'SELECT AREA (FROM VIEW)'
+
+
+
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
