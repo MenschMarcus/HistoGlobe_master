@@ -286,7 +286,7 @@ class HG.Timeline
     interval = @_timeInterval(intervalIndex)
 
     # scale datemarker
-    $(".tl_datemarker").css({"max-width": Math.round(interval / @_millisPerPixel()) + "px"})
+    $(".tl-datemarker").css({"max-width": Math.round(interval / @_millisPerPixel()) + "px"})
 
     # for every year on timeline check if datemarker is needed
     # or can be removed.
@@ -303,10 +303,10 @@ class HG.Timeline
 
           # create new
           @_dateMarkers[i] =
-            div: @_domElemCreator.create 'div', 'tl_year_' + year, 'tl_datemarker'
+            div: @_domElemCreator.create 'div', 'tl-year_' + year, 'tl-datemarker'
             year: year
             months: []
-          @_dateMarkers[i].div.innerHTML = year + '<div class="tl_months"></div>'
+          @_dateMarkers[i].div.innerHTML = year + '<div class="tl-months"></div>'
           @_dateMarkers[i].div.style.left = @_dateToPosition(@_yearToDate(year)) + "px"
 
           @_tlSlider.appendChild @_dateMarkers[i].div
@@ -315,7 +315,7 @@ class HG.Timeline
           if @_millisToYears(interval) == 1
             for month_name, key in MONTH_NAMES
               month =
-                div: @_domElemCreator.create 'div', null, 'tl_month'
+                div: @_domElemCreator.create 'div', null, 'tl-month'
                 startDate: new Date()
                 endDate: new Date()
                 name: month_name
@@ -324,7 +324,7 @@ class HG.Timeline
               month.div.innerHTML = month.name
               month.div.style.left = ((month.startDate.valueOf() - @_yearToDate(year).valueOf()) / @_millisPerPixel()) + "px"
               month.div.style.width = (@_dateToPosition(month.endDate) - @_dateToPosition(month.startDate)) + "px"
-              $("#tl_year_" + year + " > .tl_months" ).append month.div
+              $("#tl-year_" + year + " > .tl-months" ).append month.div
               @_dateMarkers[i].months[key] = month
 
           # hide and delete months
@@ -343,7 +343,7 @@ class HG.Timeline
             if @_dateMarkers[i].months.length == 0
               for month_name, key in MONTH_NAMES
                 month =
-                  div: @_domElemCreator.create 'div', null, 'tl_month'
+                  div: @_domElemCreator.create 'div', null, 'tl-month'
                   startDate: new Date()
                   endDate: new Date()
                   name: month_name
@@ -352,7 +352,7 @@ class HG.Timeline
                 month.div.innerHTML = month.name
                 month.div.style.left = ((month.startDate.valueOf() - @_yearToDate(year).valueOf()) / @_millisPerPixel()) + "px"
                 month.div.style.width = (@_dateToPosition(month.endDate) - @_dateToPosition(month.startDate)) + "px"
-                $("#tl_year_" + year + " > .tl_months" ).append month.div
+                $("#tl-year_" + year + " > .tl-months" ).append month.div
                 @_dateMarkers[i].months[key] = month
 
             # update existing month divs
