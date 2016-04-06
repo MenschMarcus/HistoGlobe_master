@@ -1,5 +1,6 @@
 {
-  "# =====================================================================": {},
+  "#######################################################################": {},
+
   "### MAIN HISTOGLOBE MODULE ###": {},
 
   "HistoGlobe" :
@@ -14,7 +15,6 @@
     "tiles": "common/tiles/normal",
     "tilesHC": "common/tiles/high_contrast"
   },
-
 
 
   "# =====================================================================": {},
@@ -36,42 +36,69 @@
   "# =====================================================================": {},
   "### VIEW MODULES = USER INTERFACE -> REACT ON USER INTERACTION ###": {},
 
+  "# ---------------------------------------------------------------------": {},
+  "# BASIC UI #": {},
+
   "Watermark":
   {
     "id": "HGLogo",
     "image": "common/graphics/logo.png"
   },
 
-  "Map": {
-    "minZoom": 3,
-    "maxZoom": 7,
-    "startZoom": 4
-  },
-
-  "ControlButtonsTop": {
+  "ControlButtonsTop":
+  {
     "zoom":         true,
     "fullscreen":   true,
     "highContrast": true
   },
 
+  "Imprint": {},
+
+
+  "# ---------------------------------------------------------------------": {},
+  "# MAP #": {},
+
+  "Map":
+  {
+    "minZoom": 3,
+    "maxZoom": 7,
+    "startZoom": 4
+  },
+
   "AreasOnMap" : {},
 
 
-  "Timeline" :  {
+  "# ---------------------------------------------------------------------": {},
+  "# TIMELINE #": {},
+
+  "Timeline" :
+  {
     "startZoom" : 5
   },
 
   "NowMarker" : {},
 
-  "ControlButtonsTimeline" :  {
+  "ControlButtonsTimeline" :
+  {
     "zoom": true
   },
 
-  "EditMode" :  {
+
+  "# ---------------------------------------------------------------------": {},
+
+  "EditMode" :
+  {
     "editOperationsPath": "common/editOperations.json"
   },
 
-  "Imprint": {}
+
+  "# ---------------------------------------------------------------------": {},
+  "# HISTOGRAPH #": {},
+
+  "HistoGraph" : {},
+
+  "AreasOnHistoGraph": {},
 
 
+  "#######################################################################": {}
 }

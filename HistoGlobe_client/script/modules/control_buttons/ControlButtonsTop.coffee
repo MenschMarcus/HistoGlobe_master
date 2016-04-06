@@ -151,14 +151,6 @@ class HG.ControlButtonsTop
           )
 
 
-    # listen to show/hide of HistoGraph
-    @_hgInstance.histoGraph?.onShow @, (elem) =>
-      @moveUp elem.height()
-
-    @_hgInstance.histoGraph?.onHide @, (elem) =>
-      @moveDown elem.height()
-
-
     ### INTERACTION ###
 
     # fullscreen
