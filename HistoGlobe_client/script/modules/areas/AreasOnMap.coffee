@@ -212,18 +212,20 @@ class HG.AreasOnMap
 
   # ============================================================================
   # areas
+  # View class knows its Controller => direct call of public member functions
+  # Controller does not its Views => indirect communication via callbacks
 
   # ----------------------------------------------------------------------------
   _onFocus: (evt) =>
-    @notifyAll 'onFocusArea', evt.target.hgArea
+    @_hgInstance.areaController.focusArea (evt.target.hgArea)
 
   # ----------------------------------------------------------------------------
   _onUnfocus: (evt) =>
-    @notifyAll 'onUnfocusArea', evt.target.hgArea
+    @_hgInstance.areaController.unfocusArea (evt.target.hgArea)
 
   # ----------------------------------------------------------------------------
   _onClick: (evt) =>
-    @notifyAll 'onSelectArea', evt.target.hgArea
+    @_hgInstance.areaController.selectArea (evt.target.hgArea)
     # bug: after clicking, it is assumed to be still focused
     # fix: unfocus afterwards
     @_onUnfocus evt
