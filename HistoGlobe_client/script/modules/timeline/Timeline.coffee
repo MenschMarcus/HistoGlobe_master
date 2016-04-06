@@ -55,16 +55,16 @@ class HG.Timeline
     @_timeline = @_domElemCreator.create 'div', 'timeline', ['swiper-container', 'no-text-select']
     @_parentDiv.appendChild @_timeline
 
-    @_tlWrapper = @_domElemCreator.create 'div', 'tl_wrapper', ['swiper-wrapper', 'no-text-select']
+    @_tlWrapper = @_domElemCreator.create 'div', 'tl-wrapper', ['swiper-wrapper', 'no-text-select']
     @_timeline.appendChild @_tlWrapper
 
-    @_tlSlider = @_domElemCreator.create 'div', 'tl_slide', ['swiper-slide', 'no-text-select']
+    @_tlSlider = @_domElemCreator.create 'div', 'tl-slide', ['swiper-slide', 'no-text-select']
     @_tlWrapper.appendChild @_tlSlider
 
 
     # drag timeline
     # = transition of timeline container with swiper.js
-    @_timeline_swiper ?= new Swiper '#timeline',
+    @_timelineSwiper ?= new Swiper '#timeline',
       mode:'horizontal'
       freeMode: true
       momentumRatio: 0.5
@@ -257,13 +257,13 @@ class HG.Timeline
     @_timeline.style.width = window.innerWidth + "px"
     @_tlSlider.style.width = (@_timelineLength() + window.innerWidth) + "px"
     @_moveToDate @_hgInstance.timeController.getNowDate()
-    @_timeline_swiper.reInit()
+    @_timelineSwiper.reInit()
     @notifyAll 'onIntervalChanged', @_getTimeFilter()
 
 
   # ----------------------------------------------------------------------------
   _updateNowDate: (fireCallbacks =true) ->
-    nowDate = new Date(@_minDate.valueOf() + (-1) * @_timeline_swiper.getWrapperTranslate("x") * @_millisPerPixel())
+    nowDate = new Date(@_minDate.valueOf() + (-1) * @_timelineSwiper.getWrapperTranslate("x") * @_millisPerPixel())
     nowDate.setHours 0
     nowDate.setMinutes 0
     nowDate.setSeconds 0
