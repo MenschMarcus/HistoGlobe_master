@@ -28,6 +28,7 @@ class HG.AreaController
     @addCallback 'onRemoveName'
 
     @addCallback 'onSelect'
+    @addCallback 'onToggleSelect'
     @addCallback 'onDeselect'
 
 
@@ -147,7 +148,7 @@ class HG.AreaController
 
           # update timestamp
           if hasTransition
-            newChange.timestamp.setMilliseconds newChange.timestamp.getMilliseconds() + HGConfig.area_animation_time.val
+            newChange.timestamp.setMilliseconds newChange.timestamp.getMilliseconds() + HGConfig.slow_animation_time.val
 
           # set old / new areas to toggle
           # changeDir = +1 => timeline moves forward => old areas are old areas
@@ -646,13 +647,14 @@ class HG.AreaController
       # single-selection mode: toggle selected area
       if @_maxSelections is 1
         ## deselect currently selected area
+        oldSelection = null
         if @_selectedAreas.length is 1
           # update model
           @_selectedAreas[0].deselect()
           # update view
           @notifyAll 'onUpdateStatus', @_selectedAreas[0]
-          @notifyAll 'onDeselect', @_selectedAreas[0]
           # update controller
+          oldSelection = @_selectedAreas[0]
           @_selectedAreas = []
 
         ## select newly selected area
@@ -662,7 +664,10 @@ class HG.AreaController
         @_selectedAreas.push area
         # update view
         @notifyAll 'onUpdateStatus', area
-        @notifyAll 'onSelect', area
+        if oldSelection
+          @notifyAll 'onToggleSelect', oldSelection, area
+        else
+          @notifyAll 'onSelect', area
 
 
       # multi-selection mode: add to selected area until max limit is reached

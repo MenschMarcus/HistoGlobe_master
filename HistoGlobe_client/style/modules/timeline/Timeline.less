@@ -4,7 +4,7 @@
   overflow: visible !important;
   font-family: @primary_font_face;
 
-  #timeline
+  #tl-main
   {
     position:   absolute;
     left:       0px;
@@ -15,20 +15,21 @@
     cursor:     -webkit-grab;
     cursor:     -moz-grab;
 
+    /* contains both timeline slider and HistoGraph */
     #tl-wrapper
     {
-      height: @timeline_height !important;
+      height: @timeline_height;
       background-color: @color_bg_medium;
 
       #tl-slide
       {
-        height: @timeline_height !important;
+        height: @timeline_height;
 
         .tl-datemarker
         {
           position: absolute;
           z-index: 2;
-          top: 1px;
+          bottom: @timeline_height / 2;
           left: 0;
           padding: 0px 0px 0px 5px;
 
@@ -59,6 +60,18 @@
           }
         }
       }
+    }
+
+    #tl-border
+    {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      height: @timeline_height;
+      border-top: 1px solid @color_bg_dark;
+      pointer-events:none; /*click through*/
     }
   }
 }

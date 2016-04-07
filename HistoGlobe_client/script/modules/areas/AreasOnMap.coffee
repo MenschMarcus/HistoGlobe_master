@@ -58,31 +58,14 @@ class HG.AreasOnMap
         @_updateProperties area
 
       @_hgInstance.areaController.onSelect @, (area) =>
-        # accumulate fullBound box around all currently selected areas
-        fullBound = area.geomLayer.getBounds() # L.latLngBounds
-        for selArea in @_selectedAreas
-          currBound = selArea.geomLayer.getBounds()
-          fullBound._northEast.lat = Math.max(currBound.getNorth(), fullBound.getNorth())
-          fullBound._northEast.lng = Math.max(currBound.getEast(),  fullBound.getEast())
-          fullBound._southWest.lat = Math.min(currBound.getSouth(), fullBound.getSouth())
-          fullBound._southWest.lng = Math.min(currBound.getWest(),  fullBound.getWest())
-        @_map.fitBounds fullBound
-        # add area to list in last step
-        @_selectedAreas.push area
+        @_select area
+
+      @_hgInstance.areaController.onToggleSelect @, (oldArea, newArea) =>
+        @_deselect oldArea
+        @_select newArea
 
       @_hgInstance.areaController.onDeselect @, (area) =>
-        idx = @_selectedAreas.indexOf area
-        @_selectedAreas.splice idx, 1
-        # focus back to remaining selected areas
-        if @_selectedAreas.length > 0
-          fullBound = @_selectedAreas[0].geomLayer.getBounds() # L.latLngBounds
-          for selArea in @_selectedAreas
-            currBound = selArea.geomLayer.getBounds()
-            fullBound._northEast.lat = Math.max(currBound.getNorth(), fullBound.getNorth())
-            fullBound._northEast.lng = Math.max(currBound.getEast(),  fullBound.getEast())
-            fullBound._southWest.lat = Math.min(currBound.getSouth(), fullBound.getSouth())
-            fullBound._southWest.lng = Math.min(currBound.getWest(),  fullBound.getWest())
-          @_map.fitBounds fullBound
+        @_deselect area
 
 
       # listen to zoom event from map
@@ -182,7 +165,7 @@ class HG.AreasOnMap
       'stroke':         properties.borderColor
       'stroke-opacity': properties.borderOpacity
       'stroke-width':   properties.borderWidth
-    }, HGConfig.animation_time.val
+    }, HGConfig.slow_animation_time.val
 
 
   # ============================================================================
@@ -219,6 +202,35 @@ class HG.AreasOnMap
     # bug: after clicking, it is assumed to be still focused
     # fix: unfocus afterwards
     @_onUnfocus evt
+
+  # ----------------------------------------------------------------------------
+  _select: (area) =>
+    # accumulate fullBound box around all currently selected areas
+    fullBound = area.geomLayer.getBounds() # L.latLngBounds
+    for selArea in @_selectedAreas
+      currBound = selArea.geomLayer.getBounds()
+      fullBound._northEast.lat = Math.max(currBound.getNorth(), fullBound.getNorth())
+      fullBound._northEast.lng = Math.max(currBound.getEast(),  fullBound.getEast())
+      fullBound._southWest.lat = Math.min(currBound.getSouth(), fullBound.getSouth())
+      fullBound._southWest.lng = Math.min(currBound.getWest(),  fullBound.getWest())
+    @_map.fitBounds fullBound
+    # add area to list in last step
+    @_selectedAreas.push area
+
+  # ----------------------------------------------------------------------------
+  _deselect: (area) =>
+    idx = @_selectedAreas.indexOf area
+    @_selectedAreas.splice idx, 1
+    # focus back to remaining selected areas
+    if @_selectedAreas.length > 0
+      fullBound = @_selectedAreas[0].geomLayer.getBounds() # L.latLngBounds
+      for selArea in @_selectedAreas
+        currBound = selArea.geomLayer.getBounds()
+        fullBound._northEast.lat = Math.max(currBound.getNorth(), fullBound.getNorth())
+        fullBound._northEast.lng = Math.max(currBound.getEast(),  fullBound.getEast())
+        fullBound._southWest.lat = Math.min(currBound.getSouth(), fullBound.getSouth())
+        fullBound._southWest.lng = Math.min(currBound.getWest(),  fullBound.getWest())
+      @_map.fitBounds fullBound
 
   # ============================================================================
   # map

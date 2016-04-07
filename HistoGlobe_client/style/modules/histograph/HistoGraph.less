@@ -1,30 +1,24 @@
-#histograph-wrapper
+/* same level as NowMarker */
+#histograph-centerline
 {
   position: absolute;
-  width: 100%;
-  height: @histograph_height;
-  bottom: @timeline_height;
-  background-color: @color_bg_medium;
-  border: 2px solid @color_bg_dark;
-}
-
-#histograph-line
-{
-  position: relative;
-  height: 100%;
   width: @histograph_line_width;
-  margin-left: auto;      /* centering div */
-  margin-right: auto;
+  height: 0; /* initital value */
+  left: 50%;
+  bottom: @timeline_height;
+  margin-left: -@histograph_line_width/2;
+  z-index: 1;
+
   background-color: @color_bg_dark;
-  opacity: 0.5;
+  opacity: @now_marker_opacity;
 }
 
 #histograph-canvas
 {
   position: absolute;
   width: 100%;
-  height: 100%;
-  bottom: 0;
+  height: 0;
+  bottom: @timeline_height;
 }
 
 

@@ -44,7 +44,7 @@ class HG.Title
       $('#editButtons').width()
     # PAIN IN THE AAAAAAAAAAASS!
     @_title.style.width = width + 'px'
-    @_hgInstance._onResize()
+    @_hgInstance.updateLayout()
 
 
   # ============================================================================

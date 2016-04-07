@@ -25,7 +25,7 @@ class HG.NowMarker
 
     # create now marker
     @_nowMarker = domElemCreator.create 'div', 'nowMarker', 'no-text-select'
-    @_hgInstance.timeline.getTimelineArea().appendChild @_nowMarker
+    @_hgInstance.getBottomArea().appendChild @_nowMarker
 
 
     @_hgInstance.onAllModulesLoaded @, () =>
