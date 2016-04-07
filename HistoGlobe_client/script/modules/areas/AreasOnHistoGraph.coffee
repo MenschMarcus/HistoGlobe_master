@@ -36,14 +36,26 @@ class HG.AreasOnHistoGraph
 
       @_hgInstance.areaController.onToggleSelect @, (oldArea, newArea) =>
         idx = @_selectedAreas.indexOf oldArea
-        @_selectedAreas.splice idx, 1
-        @_selectedAreas.push newArea
+        @_selectedAreas[idx] = newArea
+        # do not update height of HistoGraph
+        # => call immediately
+        @_showHistory newArea
+
+      @_hgInstance.histoGraph.onHeightChanged @, (area) =>
+        @_showHistory area
 
 
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
+
+  # ============================================================================
+  _showHistory: (area) ->
+
+
+
+
 
   # ============================================================================
   _showOnGraph: (area) ->

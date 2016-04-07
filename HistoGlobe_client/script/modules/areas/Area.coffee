@@ -23,6 +23,10 @@ class HG.Area
     # 'N' = not recognized by any fully sovereign state
     @_sovereigntyStatus = new HG.StateVar ['F', 'P', 'N']
 
+    # hivents that created the area
+    @_startHivent = null
+    @_endHivent = null
+
     # area status properties
     @_active = no    # is area currently on the map?
     @_selected = no  # is area currently selected?
@@ -61,6 +65,15 @@ class HG.Area
   # ----------------------------------------------------------------------------
   setTerritoryOf: (area) ->           @_territoryOf = area
   getTerritoryOf: () ->               @_territoryOf
+
+
+  # ============================================================================
+
+  setStartHivent: (hivent) ->         @_startHivent = hivent
+  getStartHivent: () ->               @_startHivent
+
+  setEndHivent: (hivent) ->           @_endHivent = hivent
+  getEndHivent: () ->                 @_endHivent
 
   # ============================================================================
   activate: () ->                     @_active = yes
