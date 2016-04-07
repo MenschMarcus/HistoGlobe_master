@@ -27,10 +27,17 @@ class HG.AreasOnHistoGraph
 
       @_hgInstance.areaController.onSelect @, (area) =>
         @_selectedAreas.push area
+        @_hgInstance.histoGraph.updateHeight 1
 
       @_hgInstance.areaController.onDeselect @, (area) =>
         idx = @_selectedAreas.indexOf area
         @_selectedAreas.splice idx, 1
+        @_hgInstance.histoGraph.updateHeight -1
+
+      @_hgInstance.areaController.onToggleSelect @, (oldArea, newArea) =>
+        idx = @_selectedAreas.indexOf oldArea
+        @_selectedAreas.splice idx, 1
+        @_selectedAreas.push newArea
 
 
 

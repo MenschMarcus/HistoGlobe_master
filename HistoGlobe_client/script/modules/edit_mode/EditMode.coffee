@@ -1,7 +1,7 @@
 window.HG ?= {}
 
 # DEBUG: take out if not needed anymore
-TEST_BUTTON = yes
+TEST_BUTTON = no
 
 # ==============================================================================
 # EditMode registers clicks on edit operation buttons -> init operation

@@ -35,7 +35,7 @@ class HG.ControlButtonsTimeline
       'posY':         'right',
       'orientation':  'horizontal'
     }
-    @_hgInstance.timeline.getTimelineArea().appendChild zoomButtonsArea.getDOMElement()
+    @_hgInstance.getBottomArea().appendChild zoomButtonsArea.getDOMElement()
 
     # create zoom buttons
     if @_config.zoom

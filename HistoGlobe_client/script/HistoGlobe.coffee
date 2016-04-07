@@ -76,6 +76,8 @@ class HG.HistoGlobe
       @config.container = @_domElemCreator.create 'div', 'histoglobe'
       document.body.appendChild @config.container  if document.body != null
 
+      # top area -> spatial display
+
       @_topArea = @_domElemCreator.create 'div', 'top-area'
       @config.container.appendChild @_topArea
 
@@ -84,6 +86,11 @@ class HG.HistoGlobe
 
       @_spatialCanvas = @_domElemCreator.create 'div', 'spatial-canvas'
       @_spatialArea.appendChild @_spatialCanvas
+
+      # bottom area -> timeline
+
+      @_bottomArea = @_domElemCreator.create 'div', 'bottom-area', ['no-text-select']
+      @config.container.appendChild @_bottomArea
 
 
       # Auxiliary function for module loading. Tries to create an object by the
@@ -126,8 +133,8 @@ class HG.HistoGlobe
       @notifyAll 'onAllModulesLoaded'
 
       # resize event handling
-      $(window).on 'resize', @_onResize
-      @_updateLayout()
+      $(window).on 'resize', @updateLayout
+      @updateLayout()
     )
 
 
@@ -150,8 +157,8 @@ class HG.HistoGlobe
   # ============================================================================
   getContainer: () ->     @config.container
   getTopArea: () ->       @_topArea
+  getBottomArea: () ->    @_bottomArea
   getSpatialCanvas: () -> @_spatialCanvas
-
 
   # ============================================================================
   # Getter for effective size of spatial canvas (map/globe)
@@ -162,27 +169,25 @@ class HG.HistoGlobe
       y: $(@_top_area).outerHeight()
     }
 
+  # ============================================================================
+  updateLayout: () =>
+    windowWidth = window.innerWidth
+    windowHeight = window.innerHeight - $(@_topArea).offset().top
+
+    mapHeight = windowHeight - $(@_bottomArea).height()
+    mapWidth = windowWidth
+
+    @_spatialArea.style.width = "#{mapWidth}px"
+    @_spatialArea.style.height = "#{mapHeight}px"
+
+    @_topArea.style.height = "#{mapHeight}px"
+
+    @notifyAll 'onWindowResize', mapWidth, mapHeight
+
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
-
-  # ============================================================================
-  _onResize: () =>
-    @_updateLayout()
-
-  # ============================================================================
-  _updateLayout: =>
-    width = window.innerWidth
-    height = window.innerHeight - $(@_topArea).offset().top
-
-    map_height = height - HGConfig.timeline_height.val
-    map_width = width
-
-    @_spatialArea.style.width = "#{map_width}px"
-    @_spatialArea.style.height = "#{map_height}px"
-
-    @notifyAll 'onWindowResize', map_width, map_height
 
   # ============================================================================
   _toHex: (prop) ->

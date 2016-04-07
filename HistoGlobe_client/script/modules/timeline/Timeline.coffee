@@ -48,24 +48,30 @@ class HG.Timeline
 
     ### SETUP UI ELEMENTS ###
 
-    # parent, wrapper, slider, date markers
-    @_parentDiv = @_domElemCreator.create 'div', 'bottom-area', ['no-text-select']
-    @_hgInstance.getContainer().appendChild @_parentDiv
+    # main container for swiper
+    @_timeline = @_domElemCreator.create 'div', 'tl-main', ['swiper-container', 'no-text-select']
+    @_hgInstance.getBottomArea().appendChild @_timeline
 
-    @_timeline = @_domElemCreator.create 'div', 'timeline', ['swiper-container', 'no-text-select']
-    @_parentDiv.appendChild @_timeline
-
+    # first div needed for swiper (wrapper)
     @_tlWrapper = @_domElemCreator.create 'div', 'tl-wrapper', ['swiper-wrapper', 'no-text-select']
     @_timeline.appendChild @_tlWrapper
 
+    # only purpose of that div: have a top border for the timeline
+    # -> if HistoGraph extends tl wrapper up, it will still be the border
+    # for the date markers
+    @_tlBorder = @_domElemCreator.create 'div', 'tl-border', ['no-text-select']
+    @_timeline.appendChild @_tlBorder
+
+    # second div needed for swiper -> the one that is actually moving
     @_tlSlider = @_domElemCreator.create 'div', 'tl-slide', ['swiper-slide', 'no-text-select']
     @_tlWrapper.appendChild @_tlSlider
 
 
     # drag timeline
-    # = transition of timeline container with swiper.js
-    @_timelineSwiper ?= new Swiper '#timeline',
-      mode:'horizontal'
+    # = transition of timeline container with swiper.j
+    # swiper in Free Mode
+    @_timelineSwiper ?= new Swiper '#tl-main',
+      mode: 'horizontal'
       freeMode: true
       momentumRatio: 0.5
       scrollContainer: true
@@ -140,9 +146,8 @@ class HG.Timeline
   # ============================================================================
   # GETTER
 
-  getInterval: ->     [@_minVisibleDate(), @_maxVisibleDate]
-  getTimelineArea: -> @_parentDiv
-  getSlider: ->       @_tlSlider
+  getInterval: ->  [@_minVisibleDate(), @_maxVisibleDate]
+  getSlider: ->    @_tlSlider
 
 
   ##############################################################################

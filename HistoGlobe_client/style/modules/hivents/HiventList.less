@@ -32,7 +32,7 @@
   font-size: 30pt * @ui_widget_font_size_factor;
 
   .transition-property(left);
-  .transition-duration(@ui_animation_speed);
+  .transition-duration(@fast_animation_time);
 
   .hivent-list-headline {
     font-family: @primary_font_face;
@@ -75,7 +75,7 @@
     .legend_table {
       margin-left: 22px;
       .transition-property(max-height);
-      .transition-duration(@ui_animation_speed);
+      .transition-duration(@fast_animation_time);
     }
 
     .legend_table td {
@@ -116,7 +116,7 @@
     text-align: left;
     outline: none;
     .transition-property(max-height);
-    .transition-duration(@ui_animation_speed);
+    .transition-duration(@fast_animation_time);
 
 
     ul {
