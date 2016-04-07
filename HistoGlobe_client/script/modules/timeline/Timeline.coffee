@@ -146,8 +146,9 @@ class HG.Timeline
   # ============================================================================
   # GETTER
 
-  getInterval: ->  [@_minVisibleDate(), @_maxVisibleDate]
-  getSlider: ->    @_tlSlider
+  getSlider: () ->        @_tlSlider
+  getInterval: () ->      [@_minVisibleDate(), @_maxVisibleDate]
+  getDatePos: (date) ->   @_dateToPosition date
 
 
   ##############################################################################

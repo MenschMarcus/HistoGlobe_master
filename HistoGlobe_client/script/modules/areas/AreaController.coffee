@@ -628,7 +628,8 @@ class HG.AreaController
 
     # area must be focussed in order for it to be selected
     # => no distinction between edit mode and normal mode necessary anymore
-    return if not area.isFocused()
+    # return if not area.isFocused()
+    # problem: prevents double-clicking area, which wouldn't be good
 
     # area is selected => deselect
     if area.isSelected()

@@ -16,6 +16,12 @@ class HG.HistoGraph
   # ============================================================================
   constructor: (config) ->
 
+    # handle callbacks
+    HG.mixin @, HG.CallbackContainer
+    HG.CallbackContainer.call @
+
+    @addCallback 'onHeightChanged'
+
     # handle config
     defaultConfig =
       depth: 1
@@ -51,29 +57,46 @@ class HG.HistoGraph
       .attr 'id', 'histograph-canvas'
 
     # put an arbitrary circle on the graph
-    # @_canvas
-    #   .append 'circle'
-    #   .attr 'cx', 9000
-    #   .attr 'cy', 30
-    #   .attr 'r', 20
-    #   .style 'fill', "red"
-
 
   # ============================================================================
-  updateHeight: (direction) ->
+  # fold / onfold HistoGraph
+  # idea: if at least one area is shown on the graph, it it visible
+  #       total height = INIT_HEIGHT (it always needs it for padding top / bottom)
+  #                    + AREA_HEIGHT (height per area shown)
+  # some elements should be animated up (the ones with background
+  # some can just be height-changed, because it does not appear together
+  # this is very imperformant on Chrome :(
+
+  updateHeight: (direction, area) ->
+    # (area just to hand back over to AreasOnHistoGraph)
     @_numAreas += direction
 
+    # status variables: area animations complete to fire callback?
+    ani1complete = no
+    ani2complete = no
+
+    # animation 1: increase the height of the timeline
     newHeightTl = HGConfig.timeline_height.val + @_numAreas*AREA_HEIGHT
     newHeightTl += INIT_HEIGHT if @_numAreas > 0
-    @_tlMain.animate {height: newHeightTl}, HGConfig.slow_animation_time.val, () =>
+    @_tlMain.animate {height: newHeightTl}, HGConfig.fast_animation_time.val, () =>
       $(@_tlSlider).height newHeightTl
       $(@_bottomArea).height newHeightTl
       @_hgInstance.updateLayout()
+      ani1complete = yes
+      if ani2complete
+        ani1complete = no
+        @notifyAll 'onHeightChanged', area
 
+    # animation 2: (un)fold HistoGraph
     newHeightGraph = @_numAreas*AREA_HEIGHT
     newHeightGraph += INIT_HEIGHT if @_numAreas > 0
-    $(@_centerLine).animate {height: newHeightGraph}, HGConfig.slow_animation_time.val, () =>
-      $(@_canvas).height newHeightGraph
+    $(@_centerLine).animate {height: newHeightGraph}, HGConfig.fast_animation_time.val, () =>
+      $(@_canvas[0]).height newHeightGraph
+      ani2complete = yes
+      if ani1complete
+        ani2complete = no
+        @notifyAll 'onHeightChanged', area
+
 
 
   ##############################################################################
