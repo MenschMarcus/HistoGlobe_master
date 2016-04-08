@@ -88,22 +88,24 @@ def get_init_area_ids(request):
 
     # extract creation date for area from hivent that created it
     # N.B: can be None, if there is no change that ever created them
-    start_date = None
-    change_areas = ChangeAreas.objects.filter(new_area=in_area)
-    if len(change_areas) == 1:  # = it exists a change that deleted it
-      start_date = change_areas[0].change.hivent.effect_date
-    # else: it exists no hivent => end_date stays None
+    start_hivent = in_area.start_hivent
+    if (start_hivent):
+      start_date = start_hivent.effect_date
+      out_area['start_hivent'] = view_hivents.prepare_hivent(start_hivent)
+
+    # error handling: areas without a start date do not make sense
+    else: continue
 
     # extract secession date from area from hivent that deleted it
     # N.B: if there is no change ever deleted it, it is valid until today
-    end_date = timezone.now()
-    change_areas = ChangeAreas.objects.filter(old_area=in_area)
-    if len(change_areas) == 1:  # = it exists a change that deleted it
-      end_date = change_areas[0].change.hivent.effect_date
-    # else: it exists no hivent => end_date stays None
+    end_hivent = in_area.end_hivent
+    if (end_hivent):
+      end_date = end_hivent.effect_date
+      out_area['end_hivent'] = view_hivents.prepare_hivent(end_hivent)
+    else:
+      end_date = timezone.now()
+      out_area['end_hivent'] = None
 
-    # error handling: areas without a start date do not make sense
-    if not start_date: continue
     # area is active if current date is in between start and end date of area
     out_area['active'] = (start_date <= now_date) and (now_date < end_date)
 
@@ -111,6 +113,7 @@ def get_init_area_ids(request):
 
   ## OUTPUT
   return HttpResponse(json.dumps(areas))
+
 
 # ------------------------------------------------------------------------------
 def get_init_areas(request):
@@ -142,16 +145,17 @@ def get_init_areas(request):
 
 
 # ------------------------------------------------------------------------------
-def get_hivents(request):
+def get_rest_hivents(request):
 
   ## INPUT
-  # -> none, just fetch all hivents
+  request_data = json.loads(request.body)
+  existing_hivents = request_data['hiventIds']
 
   ## PROCESSING
-  hivents = view_hivents.get_all_hivents()
+  rest_hivents = view_hivents.get_rest_hivents(existing_hivents)
 
   ## OUTPUT
-  return HttpResponse(json.dumps(hivents))
+  return HttpResponse(json.dumps(rest_hivents))
 
 
 # ------------------------------------------------------------------------------
@@ -177,7 +181,10 @@ def save_operation(request):
   new_areas = []
 
 
-  ### create new areas and save their id's on the client
+  ### create new areas and save their id's
+  # -> so they can be updated on the client
+
+  response_data['old_areas'] = old_areas
   response_data['new_areas'] = []
 
   for area in request_data['change']['new_areas']:
@@ -204,7 +211,8 @@ def save_operation(request):
     return HttpResponse(error_message)
 
   # else: hivent is valid and filled with data
-  # => create hivent + changes + change_areas
+  # =>  create hivent + changes + change_areas
+  #     and update start / end hivent for areas
   new_hivent = view_hivents.save_hivent(hivent)
   new_change = view_hivents.save_change(new_hivent, operation)
   view_hivents.save_change_areas(new_change, operation, old_areas, new_areas)
@@ -219,7 +227,14 @@ def save_operation(request):
 ################################################################################
 #                               HELPER FUNCTIONS                               #
 ################################################################################
-
+    # try:
+    #   start_hivent = json.dumps(view_hivents.prepare_hivent(area.start_hivent))
+    # except:
+    #   start_hivent = None
+    # try:
+    #   end_hivent = json.dumps(view_hivents.prepare_hivent(area.start_hivent))
+    # except:
+    #   end_hivent = None
 
 # ------------------------------------------------------------------------------
 def prepare_area_output(areas, chunk_size, chunks_complete):
@@ -233,7 +248,7 @@ def prepare_area_output(areas, chunk_size, chunks_complete):
   json_str  = '{'
   json_str +=   '"type":"FeatureCollection",'
   json_str +=   '"crs":{"type": "name","properties":{"name":"EPSG:4326"}},'
-  json_str +=   '"loadingComplete":'  + str(chunks_complete).lower() + ','
+  json_str +=   '"loadingComplete":'          + str(chunks_complete).lower() + ','
   json_str +=   '"features":['          # 'True' -> 'true' resp. 'False' -> 'false'
 
   area_counter = 0

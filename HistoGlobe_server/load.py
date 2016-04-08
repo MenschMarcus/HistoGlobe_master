@@ -9,10 +9,35 @@
   historical country is added, this script is not usable anymore.
 
   how to run:
-    in the root folder of the project
-    $ python manage.py shell
-    >>> from HistoGlobe_server import load
-    >>> load.run()
+  -----------
+
+sudo su - postgres
+psql
+CREATE DATABASE histoglobe_database;
+CREATE USER HistoGlobe_user WITH PASSWORD '12345';
+ALTER ROLE HistoGlobe_user SET client_encoding TO 'utf8';
+ALTER ROLE HistoGlobe_user SET default_transaction_isolation TO 'read committed';
+ALTER ROLE HistoGlobe_user SET timezone TO 'UTC';
+\c histoglobe_database
+CREATE EXTENSION postgis;
+CREATE EXTENSION postgis_topology;
+CREATE EXTENSION fuzzystrmatch;
+CREATE EXTENSION postgis_tiger_geocoder;
+\q
+exit
+
+## load model migrate
+python manage.py makemigrations
+python manage.py migrate
+
+## prepare
+python manage.py shell
+from HistoGlobe_server import load
+load.run()
+
+
+
+
 """
 
 
@@ -89,6 +114,8 @@ CREATE EXTENSION postgis;
 CREATE EXTENSION postgis_topology;
 CREATE EXTENSION fuzzystrmatch;
 CREATE EXTENSION postgis_tiger_geocoder;
+\q
+exit
 
 ## load model migrate
 python manage.py makemigrations
@@ -98,6 +125,7 @@ python manage.py migrate
 python manage.py shell
 from HistoGlobe_server import load
 load.run()
+
   """
 
   ### INIT AREAS ###
@@ -120,6 +148,7 @@ load.run()
   with open(get_file('current_areas.csv'), 'r') as in_file:
     reader = csv.DictReader(in_file, delimiter='|', quotechar='"')
     for row in reader:
+
       # update area
       area = Area.objects.get(short_name=row['init_source_name'])
       area.short_name =            row['short_name'].decode('utf-8')
@@ -127,6 +156,7 @@ load.run()
       area.sovereignty_status =    row['sovereignty_status']
       area.save()
       print("Area " + str(area.id) + ': ' + area.short_name + " saved")
+
       # create hivent + change (add new country)
       creation_date = iso8601.parse_date(row['creation_date'])
       hivent = Hivent(
@@ -146,6 +176,11 @@ load.run()
           new_area =    area
         )
       change_areas.save()
+
+      # double-link: set hivent as start hivent of area
+      area.start_hivent = hivent
+      # area is still active, therefore it has no end_hivent
+      area.save()
       print("Hivent " + hivent.name + " saved")
 
 
@@ -197,8 +232,6 @@ load.run()
             geom =                  new_geom,
             sovereignty_status =    row['sovereignty_status']
           )
-
-        print("Area for " + new_area.short_name + " created")
         new_area.save()
 
         # create hivent + change (add new country)
@@ -220,7 +253,16 @@ load.run()
             new_area =    new_area
           )
         change_areas.save()
-        print("Hivent " + hivent.name + " saved")
+
+        # double-link: set hivent as start hivent of area
+        new_area.start_hivent = hivent
+        # area is still active, therefore it has no end_hivent
+        new_area.save()
+
+
+        print("Area for " + new_area.short_name + " with start hivent " + hivent.name + " created")
+        new_area.save()
+
 
 
   # merge areas that are parts of each other, mark territories
@@ -255,7 +297,7 @@ load.run()
         terr_area.save()
         print(terr_area.short_name + " became territory of " + home_area.short_name)
 
-        # and add its area to creation event
+        # add its area to creation event
         change = ChangeAreas.objects.get(new_area=home_area).change
         change_areas = ChangeAreas(
           change =      change,
@@ -264,11 +306,16 @@ load.run()
         )
         change_areas.save()
 
+        # double-link: set hivent as start hivent of area
+        terr_area.start_hivent = change.hivent
+        # area is still active, therefore it has no end_hivent
+        terr_area.save()
+
         print(terr_area.short_name + " added to creation hivent of " + home_area.short_name)
 
 
 
-  ### create representatice point ###
+  ### create representative point ###
   for area in Area.objects.all():
     area.representative_point = area.geom.point_on_surface
     area.save()

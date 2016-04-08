@@ -162,6 +162,10 @@ def save_change(hivent, operation):
 # ------------------------------------------------------------------------------
 def save_change_areas(change, operation, old_areas, new_areas):
 
+  # output: area models
+  old_area_models = []
+  new_area_models = []
+
   # depending on the kind of operation, there are differently many old/new areas
   num_changes = max(len(old_areas), len(new_areas))
   idx = 0
@@ -170,43 +174,55 @@ def save_change_areas(change, operation, old_areas, new_areas):
     # initital entry (for all operations)
     new_change_areas = ChangeAreas(
         change =        change,   # models.ForeignKey   (Change, related_name='change')
-        old_area =      None,         # models.ForeignKey   (Area, related_name='old_area')
-        new_area =      None          # models.ForeignKey   (Area, related_name='new_area')
+        old_area =      None,     # models.ForeignKey   (Area, related_name='old_area')
+        new_area =      None      # models.ForeignKey   (Area, related_name='new_area')
       )
 
-    # special treatment of old/new areas (for operations)
+    # init old / new area
+    old_area = None
+    new_area = None
+
+    # get old/new areas for operations
     if operation == 'ADD':      #   0  ->  1
-      new_change_areas.new_area = Area.objects.get(id=new_areas[idx])
+      new_area = Area.objects.get(id=new_areas[idx])
 
     elif operation == 'UNI':    #   2+ ->  1
-      new_change_areas.old_area = Area.objects.get(id=old_areas[idx])
-      new_change_areas.new_area = Area.objects.get(id=new_areas[0])
+      old_area = Area.objects.get(id=old_areas[idx])
+      new_area = Area.objects.get(id=new_areas[0])
 
     elif operation == 'SEP':    #   1  ->  2+
-      new_change_areas.old_area = Area.objects.get(id=old_areas[0])
-      new_change_areas.new_area = Area.objects.get(id=new_areas[idx])
+      old_area = Area.objects.get(id=old_areas[0])
+      new_area = Area.objects.get(id=new_areas[idx])
 
     elif operation == 'CHB':    #   2  ->  2
-      new_change_areas.old_area = Area.objects.get(id=old_areas[idx])
-      new_change_areas.new_area = Area.objects.get(id=new_areas[idx])
+      old_area = Area.objects.get(id=old_areas[idx])
+      new_area = Area.objects.get(id=new_areas[idx])
 
     elif operation == 'CHN':    #   1  ->  1  => = CHB case
-      new_change_areas.old_area = Area.objects.get(id=old_areas[idx])
-      new_change_areas.new_area = Area.objects.get(id=new_areas[idx])
+      old_area = Area.objects.get(id=old_areas[idx])
+      new_area = Area.objects.get(id=new_areas[idx])
 
     elif operation == 'DEL':    #   1  ->  0
-      new_change_areas.old_area = Area.objects.get(id=old_areas[idx])
+      old_area = Area.objects.get(id=old_areas[idx])
 
+    # update ChangeAreas <- Area
+    new_change_areas.old_area = old_area
+    new_change_areas.new_area = new_area
+    new_change_areas.save()
+
+    # update Area <- Hivent
+    old_area.end_hivent = change.hivent
+    old_area.save()
+    new_area.start_hivent = change.hivent
+    new_area.save()
 
     # go to next change area pair
-    new_change_areas.save()
     idx += 1
 
 
-
 # ------------------------------------------------------------------------------
-def get_all_hivents():
-  hivent_models = Hivent.objects.all()
+def get_rest_hivents(existing_hivents):
+  hivent_models = Hivent.objects.exclude(id__in=existing_hivents)
 
   hivents = []
   for hivent_model in hivent_models:

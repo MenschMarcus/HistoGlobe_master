@@ -127,13 +127,13 @@ def validate_point(in_point):
 # ==============================================================================
 # timestamp framework
 # import time
-# timestamp_1 = time.time()
-# timestamp_2 = time.time()
-# timestamp_3 = time.time()
-# timestamp_4 = time.time()
+# t1 = time.time()
+# t2 = time.time()
+# t3 = time.time()
+# t4 = time.time()
 
 # console.log(
-#   timestamp_2-timestamp_1,
-#   timestamp_3-timestamp_2,
-#   timestamp_4-timestamp_3,
+#   t2-t1,
+#   t3-t2,
+#   t4-t3,
 # )
