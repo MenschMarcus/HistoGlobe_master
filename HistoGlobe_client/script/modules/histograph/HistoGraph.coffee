@@ -61,6 +61,7 @@ class HG.HistoGraph
 
   # ============================================================================
   getHeight: () -> @_height
+  getCanvas: () -> @_canvas
 
 
   # ============================================================================
@@ -72,11 +73,10 @@ class HG.HistoGraph
   # some can just be height-changed, because it does not appear together
   # this is very imperformant on Chrome :(
 
-  updateHeight: (direction, area) ->
-    # (area just to hand back over to AreasOnHistoGraph)
+  updateHeight: (direction) ->
     @_numAreas += direction
 
-    # status variables: area animations complete to fire callback?
+    # status variables: are animations complete to fire callback?
     ani1complete = no
     ani2complete = no
 
@@ -88,7 +88,7 @@ class HG.HistoGraph
       ani1complete = yes
       if ani2complete
         ani1complete = no
-        @notifyAll 'onHeightChanged', area
+        @notifyAll 'onHeightChanged'
 
     # animation 2: increase the height of the timeline
     tlHeight = HGConfig.timeline_height.val + @_height
@@ -105,7 +105,7 @@ class HG.HistoGraph
         ani2complete = yes
         if ani1complete
           ani2complete = no
-          @notifyAll 'onHeightChanged', area
+          @notifyAll 'onHeightChanged'
 
 
 

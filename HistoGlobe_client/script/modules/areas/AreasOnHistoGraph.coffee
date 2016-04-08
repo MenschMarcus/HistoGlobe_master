@@ -20,6 +20,7 @@ class HG.AreasOnHistoGraph
       console.error "Unable to show areas on HistoGraph: AreaController module not detected in HistoGlobe instance!"
 
     # init variables
+    @_canvas = @_hgInstance.histoGraph.getCanvas()
     @_selectedAreas = []
 
     # event handling
@@ -27,7 +28,7 @@ class HG.AreasOnHistoGraph
 
       @_hgInstance.areaController.onSelect @, (area) =>
         @_selectedAreas.push area
-        @_hgInstance.histoGraph.updateHeight 1, area
+        @_hgInstance.histoGraph.updateHeight 1
 
       @_hgInstance.areaController.onDeselect @, (area) =>
         idx = @_selectedAreas.indexOf area
@@ -39,10 +40,10 @@ class HG.AreasOnHistoGraph
         @_selectedAreas[idx] = newArea
         # do not update height of HistoGraph
         # => call immediately
-        @_showHistory newArea
+        @_updateHistory()
 
-      @_hgInstance.histoGraph.onHeightChanged @, (area) =>
-        @_showHistory area if area # only for on show update
+      @_hgInstance.histoGraph.onHeightChanged @, () =>
+        @_updateHistory()
 
 
 
@@ -51,60 +52,122 @@ class HG.AreasOnHistoGraph
   ##############################################################################
 
   # ============================================================================
-  _showHistory: (area) ->
+  _updateHistory: () ->
 
-    startDate = area.getStartHivent().getHivent().effectDate
-    endDate = if area.getEndHivent() then area.getEndHivent().getHivent().effectDate else moment()
+    areaData = []
+    hiventData = []
 
-    areaData = [
-      {
+    for area, idx in @_selectedAreas
+
+      startHivent = area.getStartHivent().getHivent()
+      endHivent = area.getEndHivent()?.getHivent()
+
+      areaData.push {
         'shortName':  area.getShortName()
         'formalName': area.getFormalName()
-        'startPos':   @_hgInstance.timeline.getDatePos startDate
-        'endPos':     @_hgInstance.timeline.getDatePos endDate
-        'heightPos':  @_hgInstance.histoGraph.getHeight() / 2
+        'startPos':   @_hgInstance.timeline.getDatePos startHivent.effectDate
+        'endPos':     @_hgInstance.timeline.getDatePos if endHivent then endHivent.effectDate else moment()
+        'heightPos':  @_hgInstance.histoGraph.getHeight() / (@_selectedAreas.length+1) * (idx+1)
       }
-    ]
 
-    console.log areaData
+      # start hivent
+      hiventData.push {
+        'hiventName': startHivent.name
+        'hiventPos':  @_hgInstance.timeline.getDatePos startHivent.effectDate
+        'heightPos':  @_hgInstance.histoGraph.getHeight() / (@_selectedAreas.length+1) * (idx+1)
+      }
 
+      # end hivent (if exists)
+      if endHivent
+        hiventData.push {
+          'hiventName': endHivent.name
+          'hiventPos':  @_hgInstance.timeline.getDatePos endHivent.effectDate
+          'heightPos':  @_hgInstance.histoGraph.getHeight() / (@_selectedAreas.length+1) * (idx+1)
+        }
+
+    # visualize!
+    @_initArea areaData
+    @_initHivents hiventData
 
   # ============================================================================
   _showOnGraph: (area) ->
 
-    # a line and a text (label for the line) for each country
+    # a line and a text (label for the line) for each area
     if not @_initHistory
-      @_initLines countryData
-      @_initLabels countryData
+      @_initLines areaData
       @_initHistory = yes
     else
-      @_updateLines countryData
-      @_updateLabels countryData
+      @_updateLines areaData
 
   # ============================================================================
-  _initLines: (d) ->
-    @_canvas.selectAll 'line'
-      .data d
+  _initArea: (areaData) ->
+    # for duration of area
+    @_canvas.selectAll 'line.graph-area'
+      .data areaData
       .enter()
       .append 'line'
-      .classed 'graph-country-line', true
-      .attr 'x1', 0
-      .attr 'x2', $(window).width()
-      .attr 'y1', $(@_wrapper).height()/2
-      .attr 'y2', $(@_wrapper).height()/2
+      .classed 'graph-area', true
+      .attr 'x1', (currArea) -> currArea.startPos
+      .attr 'x2', (currArea) -> currArea.endPos
+      .attr 'y1', (currArea) -> currArea.heightPos
+      .attr 'y2', (currArea) -> currArea.heightPos
       .on 'mouseover', () -> d3.select(@).style 'stroke', HGConfig.color_highlight.val
-      .on 'mouseout', () -> d3.select(@).style 'stroke', HGConfig.color_white.val
-      .on 'click', () -> d3.select(@).style 'stroke', HGConfig.color_active.val
+      .on 'mouseout', ()  -> d3.select(@).style 'stroke', HGConfig.color_white.val
+      .on 'click', ()     -> d3.select(@).style 'stroke', HGConfig.color_active.val
 
-  _initLabels: (d) ->
-    @_canvas.selectAll 'text'
-      .data d
+    # for short name
+    @_canvas.selectAll 'text.graph-area-short-name'
+      .data areaData
       .enter()
       .append 'text'
-      .classed 'graph-country-label', true
-      .attr 'x', 15
-      .attr 'y', $(@_wrapper).height()/2 - 5
-      .text (d) -> d.name
+      .classed 'graph-area-short-name', true
+      .attr 'x', (currArea) -> currArea.startPos  + 80
+      .attr 'y', (currArea) -> currArea.heightPos - 8
+      .text (areaData) -> areaData.shortName
+
+    # for formal name
+    @_canvas.selectAll 'text.graph-area-formal-name'
+      .data areaData
+      .enter()
+      .append 'text'
+      .classed 'graph-area-formal-name', true
+      .attr 'x', (currArea) -> currArea.startPos  + 80
+      .attr 'y', (currArea) -> currArea.heightPos + 17
+      .text      (areaData) -> areaData.formalName
+
+  # ----------------------------------------------------------------------------
+  _initHivents: (hiventData) ->
+    # for hivent date
+    @_canvas.selectAll 'circle.graph-hivent'
+      .data hiventData
+      .enter()
+      .append 'circle'
+      .classed 'graph-hivent', true
+      .attr 'r', HGConfig.histograph_hivent_circle_radius.val
+      .attr 'cx', (currHivent) -> currHivent.hiventPos
+      .attr 'cy', (currHivent) -> currHivent.heightPos
+      .on 'mouseover', () -> d3.select(@).style 'fill', HGConfig.color_highlight.val
+      .on 'mouseout', ()  -> d3.select(@).style 'fill', HGConfig.color_white.val
+      .on 'click', ()     -> d3.select(@).style 'fill', HGConfig.color_active.val
+
+    # for hivent name
+    names = @_canvas.selectAll 'text.graph-hivent-name'
+      .data hiventData
+      .enter()
+      .append 'text'
+      .classed 'graph-hivent-name', true
+      # TODO: horizontal centering
+      .attr 'x', (currHivent) -> currHivent.hiventPos
+      .attr 'y', (currHivent) -> currHivent.heightPos + HGConfig.histograph_hivent_circle_radius.val + 13
+      .text      (currHivent) -> currHivent.hiventName
+
+    # update hivent name position
+    for name in names
+      newPos = $(name).attr('x') - $(name).width()/2
+      $(name).attr 'x', newPos
+
+
+  # ============================================================================
 
   _updateLines: (d) ->
     @_canvas.selectAll 'line'
@@ -115,21 +178,3 @@ class HG.AreasOnHistoGraph
       .transition()
       .duration 200
       .text (d) -> d.name
-
-
-    # _initCircles
-    # put in event the center assuming history of country is "infinite"
-    # @_canvas.append 'circle'
-    #   .classed 'graph-hivent', true
-    #   .attr 'r', 10
-    #   .attr 'cx', $(@_wrapper).width()/2
-    #   .attr 'cy', $(@_wrapper).height()/2
-    #   .on 'mouseover', () -> d3.select(@).style 'fill', HGConfig.color_highlight.val
-    #   .on 'mouseout', () -> d3.select(@).style 'fill', HGConfig.color_white.val
-    #   .on 'click', () -> d3.select(@).style 'fill', HGConfig.color_active.val
-
-
-  # ============================================================================
-  _highlight: (elem, col) ->
-    d3.select(elem).transition()
-      .style 'fill', col
