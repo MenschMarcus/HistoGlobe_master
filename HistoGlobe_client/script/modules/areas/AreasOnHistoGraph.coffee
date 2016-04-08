@@ -59,18 +59,15 @@ class HG.AreasOnHistoGraph
 
     for area, idx in @_selectedAreas
 
-      startHivent = area.getStartHivent().getHivent()
-      endHivent = area.getEndHivent()?.getHivent()
-
       areaData.push {
         'shortName':  area.getShortName()
         'formalName': area.getFormalName()
-        'startPos':   @_hgInstance.timeline.getDatePos startHivent.effectDate
-        'endPos':     @_hgInstance.timeline.getDatePos if endHivent then endHivent.effectDate else moment()
+        'startPos':   @_hgInstance.timeline.getDatePos area.getStartDate()
+        'endPos':     @_hgInstance.timeline.getDatePos area.getEndDate()
         'heightPos':  @_hgInstance.histoGraph.getHeight() / (@_selectedAreas.length+1) * (idx+1)
       }
 
-      # start hivent
+      startHivent = area.getStartHivent().getHivent()
       hiventData.push {
         'hiventName': startHivent.name
         'hiventPos':  @_hgInstance.timeline.getDatePos startHivent.effectDate
@@ -78,7 +75,8 @@ class HG.AreasOnHistoGraph
       }
 
       # end hivent (if exists)
-      if endHivent
+      if area.getEndHivent()
+        endHivent = area.getEndHivent().getHivent()
         hiventData.push {
           'hiventName': endHivent.name
           'hiventPos':  @_hgInstance.timeline.getDatePos endHivent.effectDate
