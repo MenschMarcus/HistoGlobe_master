@@ -71,9 +71,11 @@ class HG.Area
 
   setStartHivent: (hivent) ->         @_startHivent = hivent
   getStartHivent: () ->               @_startHivent
+  getStartDate: () ->                 @_startHivent.getHivent().effectDate
 
   setEndHivent: (hivent) ->           @_endHivent = hivent
   getEndHivent: () ->                 @_endHivent
+  getEndDate: () ->                   if @_endHivent then @_endHivent.getHivent().effectDate else moment()
 
   # ============================================================================
   activate: () ->                     @_active = yes
