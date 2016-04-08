@@ -66,16 +66,14 @@ class HG.HiventController
 
         if startHiventData
           # check if hivent exists
-          existingHivent = null
+          startHiventHandle = null
           for handle in @_hiventHandles
             if startHiventData.id is handle.getHivent().id
-              existingHivent = handle
+              startHiventHandle = handle
               break
 
-          # update model (area)
-          area.setStartHivent startHiventHandle
           # create model (hivent + handle)
-          if not existingHivent
+          if not startHiventHandle
             startHivent = new HG.Hivent @_hiventInterface.loadFromServerModel startHiventData
             startHiventHandle = new HG.HiventHandle startHivent
             # update controller
@@ -83,24 +81,28 @@ class HG.HiventController
             # update view
             @notifyAll 'onHiventAdded', startHiventHandle
 
+          # update model (area)
+          area.setStartHivent startHiventHandle
+
         if endHiventData
           # check if hivent exists
-          existingHivent = null
+          endHiventHandle = null
           for handle in @_hiventHandles
             if startHiventData.id is handle.getHivent().id
-              existingHivent = handle
+              endHiventHandle = handle
               break
 
-          # update model (area)
-          area.setEndHivent endHiventHandle
           # create model (hivent + handle)
-          if not existingHivent
+          if not endHiventHandle
             endHivent = new HG.Hivent @_hiventInterface.loadFromServerModel endHiventData
             endHiventHandle = new HG.HiventHandle endHivent
             # update controller
             @_hiventHandles.push endHiventHandle
             # update view
             @notifyAll 'onHiventAdded', endHiventHandle
+
+          # update model (area)
+          area.setEndHivent endHiventHandle
 
         @_handlesNeedSorting = true
 

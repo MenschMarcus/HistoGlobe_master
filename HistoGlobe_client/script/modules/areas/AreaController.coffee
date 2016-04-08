@@ -117,7 +117,7 @@ class HG.AreaController
 
           # prepare change
           newChange = {
-            timestamp         : new Date()  # timestamp at wich changes shall be executed
+            timestamp         : moment()    # timestamp at wich changes shall be executed
             oldAreas          : []          # areas to be deleted
             newAreas          : []          # areas to be added
             transitionArea    : null        # regions to be faded out when change is done
@@ -159,7 +159,7 @@ class HG.AreaController
 
           # update timestamp
           if hasTransition
-            newChange.timestamp.setMilliseconds newChange.timestamp.getMilliseconds() + HGConfig.slow_animation_time.val
+            newChange.timestamp.add HGConfig.slow_animation_time.val, 'milliseconds'
 
           # set old / new areas to toggle
           # changeDir = +1 => timeline moves forward => old areas are old areas
@@ -523,7 +523,7 @@ class HG.AreaController
       while not @_changeQueue.isEmpty()
 
         # check if first element in queue is ready (timestamp is reached)
-        break if @_changeQueue.peek().timestamp > new Date()
+        break if @_changeQueue.peek().timestamp > moment()
 
         # get next change
         change = @_changeQueue.dequeue()

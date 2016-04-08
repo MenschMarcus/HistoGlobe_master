@@ -33,6 +33,7 @@ class HG.HistoGraph
 
     # init variables
     @_numAreas = 0
+    @_height
 
   # ============================================================================
   hgInit: (@_hgInstance) ->
@@ -59,6 +60,10 @@ class HG.HistoGraph
     # put an arbitrary circle on the graph
 
   # ============================================================================
+  getHeight: () -> @_height
+
+
+  # ============================================================================
   # fold / onfold HistoGraph
   # idea: if at least one area is shown on the graph, it it visible
   #       total height = INIT_HEIGHT (it always needs it for padding top / bottom)
@@ -75,27 +80,32 @@ class HG.HistoGraph
     ani1complete = no
     ani2complete = no
 
-    # animation 1: increase the height of the timeline
-    newHeightTl = HGConfig.timeline_height.val + @_numAreas*AREA_HEIGHT
-    newHeightTl += INIT_HEIGHT if @_numAreas > 0
-    @_tlMain.animate {height: newHeightTl}, HGConfig.fast_animation_time.val, () =>
-      $(@_tlSlider).height newHeightTl
-      $(@_bottomArea).height newHeightTl
-      @_hgInstance.updateLayout()
+    # animation 1: (un)fold HistoGraph
+    @_height = @_numAreas*AREA_HEIGHT
+    @_height += INIT_HEIGHT if @_numAreas > 0
+    $(@_centerLine).animate {height: @_height}, HGConfig.fast_animation_time.val, () =>
+      $(@_canvas[0]).height @_height
       ani1complete = yes
       if ani2complete
         ani1complete = no
         @notifyAll 'onHeightChanged', area
 
-    # animation 2: (un)fold HistoGraph
-    newHeightGraph = @_numAreas*AREA_HEIGHT
-    newHeightGraph += INIT_HEIGHT if @_numAreas > 0
-    $(@_centerLine).animate {height: newHeightGraph}, HGConfig.fast_animation_time.val, () =>
-      $(@_canvas[0]).height newHeightGraph
-      ani2complete = yes
-      if ani1complete
-        ani2complete = no
-        @notifyAll 'onHeightChanged', area
+    # animation 2: increase the height of the timeline
+    tlHeight = HGConfig.timeline_height.val + @_height
+    # bad hack: since two DOM elements are in @_tlMain, the success callback
+    # would also be called twice, this has to be prevented
+    # => count number of callback calls
+    numCalls = 0
+    @_tlMain.animate {height: tlHeight}, HGConfig.fast_animation_time.val, () =>
+      $(@_tlSlider).height tlHeight
+      $(@_bottomArea).height tlHeight
+      @_hgInstance.updateLayout()
+      numCalls++
+      if numCalls is 2
+        ani2complete = yes
+        if ani1complete
+          ani2complete = no
+          @notifyAll 'onHeightChanged', area
 
 
 
