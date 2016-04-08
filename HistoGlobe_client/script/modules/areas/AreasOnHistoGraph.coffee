@@ -27,7 +27,7 @@ class HG.AreasOnHistoGraph
 
       @_hgInstance.areaController.onSelect @, (area) =>
         @_selectedAreas.push area
-        @_hgInstance.histoGraph.updateHeight 1
+        @_hgInstance.histoGraph.updateHeight 1, area
 
       @_hgInstance.areaController.onDeselect @, (area) =>
         idx = @_selectedAreas.indexOf area
@@ -42,7 +42,7 @@ class HG.AreasOnHistoGraph
         @_showHistory newArea
 
       @_hgInstance.histoGraph.onHeightChanged @, (area) =>
-        @_showHistory area
+        @_showHistory area if area # only for on show update
 
 
 
@@ -53,22 +53,24 @@ class HG.AreasOnHistoGraph
   # ============================================================================
   _showHistory: (area) ->
 
+    startDate = area.getStartHivent().getHivent().effectDate
+    endDate = if area.getEndHivent() then area.getEndHivent().getHivent().effectDate else moment()
 
+    areaData = [
+      {
+        'shortName':  area.getShortName()
+        'formalName': area.getFormalName()
+        'startPos':   @_hgInstance.timeline.getDatePos startDate
+        'endPos':     @_hgInstance.timeline.getDatePos endDate
+        'heightPos':  @_hgInstance.histoGraph.getHeight() / 2
+      }
+    ]
 
+    console.log areaData
 
 
   # ============================================================================
   _showOnGraph: (area) ->
-
-    # data for each country
-    # TODO: get real data
-    countryData = [
-      {
-        'name':   area.getCommName()
-        'start':  new Date 1981, 1, 1
-        'end':    new Date 1994, 1, 1
-      }
-    ]
 
     # a line and a text (label for the line) for each country
     if not @_initHistory

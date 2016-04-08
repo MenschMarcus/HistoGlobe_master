@@ -14,7 +14,7 @@ class HG.Imprint
 
     # create imprint link
     @_link = domElemCreator.create 'div', 'imprint-link', 'no-text-select'
-    $(@_link).html "Impressum &nbsp; &copy; HistoGlobe   2010-" + new Date().getFullYear()
+    $(@_link).html "Impressum &nbsp; &copy; HistoGlobe   2010-" + moment().year()
 
     $(@_link).click () =>
       @showBox()

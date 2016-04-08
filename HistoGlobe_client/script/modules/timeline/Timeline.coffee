@@ -269,11 +269,8 @@ class HG.Timeline
 
   # ----------------------------------------------------------------------------
   _updateNowDate: (fireCallbacks =true) ->
-    nowDate = new Date(@_minDate.valueOf() + (-1) * @_timelineSwiper.getWrapperTranslate("x") * @_millisPerPixel())
-    nowDate.setHours 0
-    nowDate.setMinutes 0
-    nowDate.setSeconds 0
-    nowDate.setMilliseconds 0
+    currPosToMillis = (-1) * @_timelineSwiper.getWrapperTranslate("x") * @_millisPerPixel()
+    nowDate = @_minDate.clone().add(currPosToMillis, 'milliseconds').startOf('day')
     if fireCallbacks
       @_hgInstance.timeController.setNowDate @, nowDate
       @notifyAll 'onIntervalChanged', @_getTimeFilter()
@@ -322,11 +319,11 @@ class HG.Timeline
             for month_name, key in MONTH_NAMES
               month =
                 div: @_domElemCreator.create 'div', null, 'tl-month'
-                startDate: new Date()
-                endDate: new Date()
+                startDate: moment()
+                endDate: moment()
                 name: month_name
-              month.startDate.setFullYear(year, key, 1)
-              month.endDate.setFullYear(year, key + 1, 0)
+              month.startDate.year(year, key, 1)
+              month.endDate.year(year, key + 1, 0)
               month.div.innerHTML = month.name
               month.div.style.left = ((month.startDate.valueOf() - @_yearToDate(year).valueOf()) / @_millisPerPixel()) + "px"
               month.div.style.width = (@_dateToPosition(month.endDate) - @_dateToPosition(month.startDate)) + "px"
@@ -350,11 +347,11 @@ class HG.Timeline
               for month_name, key in MONTH_NAMES
                 month =
                   div: @_domElemCreator.create 'div', null, 'tl-month'
-                  startDate: new Date()
-                  endDate: new Date()
+                  startDate: moment()
+                  endDate: moment()
                   name: month_name
-                month.startDate.setFullYear(year, key, 1)
-                month.endDate.setFullYear(year, key + 1, 0)
+                month.startDate.year(year, key, 1)
+                month.endDate.year(year, key + 1, 0)
                 month.div.innerHTML = month.name
                 month.div.style.left = ((month.startDate.valueOf() - @_yearToDate(year).valueOf()) / @_millisPerPixel()) + "px"
                 month.div.style.width = (@_dateToPosition(month.endDate) - @_dateToPosition(month.startDate)) + "px"
