@@ -1,6 +1,6 @@
 window.HG ?= {}
 
-SAVE_TO_DB = no
+SAVE_TO_DB = yes
 
 # ==============================================================================
 # control the workflow of a complete operation
@@ -227,19 +227,22 @@ class HG.EditOperation
   _finish: () ->
     # TODO: convert action list to new data to be stored in the database
 
+    oldAreas = @_operation.steps[0].outData.selectedAreas
+    newAreas = @_operation.steps[2].outData.namedAreas
+    hivent =   @_operation.steps[3].outData.hiventInfo
+
     request = {
-      hivent:       @_operation.steps[3].outData.hiventInfo
+      hivent:       hivent
       change: {
         operation:  @_operation.id
-        old_areas:  @_operation.steps[0].outData.selectedAreas
+        old_areas:  oldAreas
         new_areas:  []
       }
     }
 
-    for area in @_operation.steps[2].outData.namedAreas
+    for area in newAreas
       newArea = @_hgInstance.areaController.getArea area
       request.change.new_areas.push @_areaInterface.convertToServerModel newArea
-
 
     # save hivent + changes + new areas to server
     if SAVE_TO_DB
@@ -251,13 +254,23 @@ class HG.EditOperation
         # success callback: add id to hivent and save it in hivent controller
         success: (response) =>
           data = $.parseJSON response
-          # save hivent (call in the name of EditMode)
-          @_hgInstance.editMode.notifyAll 'onCreateHivent', data.hivent
-          # update areas
+
+          # get old areas
+          oldAreas = []
+          for areaId in data.old_areas
+            oldAreas.push @_hgInstance.areaController.getArea areaId
+
+          # get and update new areas
+          newAreas = []
           for areaData in data.new_areas
             area = @_hgInstance.areaController.getArea areaData.old_id
             area.setId areaData.new_id
-          # TODO: update dates
+            newAreas.push area
+
+          # save hivent (call in the name of EditMode)
+          @_hgInstance.editMode.notifyAll 'onCreateHivent', data.hivent, oldAreas, newAreas
+
+          # TODO: update dates ?!? what ?
 
         # error callback: print error
         error: (xhr, errmsg, err) =>

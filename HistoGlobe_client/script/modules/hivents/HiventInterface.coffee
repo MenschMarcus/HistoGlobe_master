@@ -18,15 +18,21 @@ class HG.HiventInterface
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @addCallback 'onSaveHivent'
+    @addCallback 'onLoadRestHivent'
+    @addCallback 'onFinishLoadingRestHivents'
 
 
   # ============================================================================
-  loadInit: () ->
-    request = {}
+  loadRestHivents: (hiventHandles) ->
+
+    request = {
+      hiventIds: []
+    }
+    for hiventHandle in hiventHandles
+      request.hiventIds.push hiventHandle.getHivent().id
 
     $.ajax
-      url:  'get_hivents/'
+      url:  'get_rest_hivents/'
       type: 'POST'
       data: JSON.stringify request
 
@@ -37,7 +43,9 @@ class HG.HiventInterface
         dataObj = $.parseJSON response
 
         $.each dataObj, (key, val) =>
-          @loadFromServerModel val
+          @notifyAll 'onLoadRestHivent', @loadFromServerModel val
+
+        @notifyAll 'onFinishLoadingRestHivents'
 
       # error callback: print error message
       error: (xhr, errmsg, err) =>
@@ -48,12 +56,7 @@ class HG.HiventInterface
 
   # ============================================================================
   loadFromServerModel: (hiventFromServer) ->
-    hiventData = @_prepareHiventServerToClient hiventFromServer
-    # create hivents + handle and tell everyone!
-    if hiventData
-      hivent = new HG.Hivent hiventData
-      handle = new HG.HiventHandle hivent
-      @notifyAll 'onSaveHivent', handle
+    @_prepareHiventServerToClient hiventFromServer
 
 
   ##############################################################################
@@ -78,7 +81,6 @@ class HG.HiventInterface
       locationPoint :     hiventFromServer.location_point         ?= null
       locationArea :      hiventFromServer.location_area          ?= null
       description :       hiventFromServer.description            ?= null
-      content :           '<p>' + hiventFromServer.description ?= '' + '<p>'
       linkUrl :           hiventFromServer.link_url               ?= null
       linkDate :          moment(hiventFromServer.link_date?)
       changes :           []

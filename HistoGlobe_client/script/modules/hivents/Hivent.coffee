@@ -24,7 +24,6 @@ class HG.Hivent
     @locationPoint  = data.locationPoint
     @locationArea   = data.locationArea
     @description    = data.description
-    @content        = data.content
     @linkUrl        = data.linkUrl
     @linkDate       = data.linkDate
     @changes        = data.changes

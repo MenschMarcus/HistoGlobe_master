@@ -17,6 +17,7 @@ class HG.AreaInterface
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
+    @addCallback 'onLoadAreaHivents'
     @addCallback 'onFinishLoadingAreaIds'
     @addCallback 'onLoadActiveArea'
     @addCallback 'onFinishLoadingActiveAreas'
@@ -49,6 +50,7 @@ class HG.AreaInterface
         $.each dataObj, (key, val) =>
           area = new HG.Area val.id
           area.activate() if val.active
+          @notifyAll 'onLoadAreaHivents', val.start_hivent, val.end_hivent, area
           areas.push area
 
         @notifyAll 'onFinishLoadingAreaIds', areas
@@ -173,6 +175,7 @@ class HG.AreaInterface
           area.setSovereigntyStatus areaData.sovereigntyStatus
           area.setTerritoryOf areaData.territoryOf
 
+
           @notifyAll request.areaLoadCallback, area
 
         # finish recursion when loading is complete
@@ -198,6 +201,9 @@ class HG.AreaInterface
       representativePoint :   @_geometryReader.read areaFromServer.properties.representative_point
       sovereigntyStatus :     areaFromServer.properties.sovereignty_status
       territoryOf :           @_hgInstance.areaController.getArea areaFromServer.properties.territory_of
+      # start/end hivent are handled by HiventController
+      # startHivent :           areaFromServer.properties.start_hivent
+      # endHivent :             areaFromServer.properties.end_hivent
     }
 
     # error handling: each area must have valid id and geometry
@@ -215,6 +221,8 @@ class HG.AreaInterface
       formal_name :           areaFromClient.getFormalName()
       sovereignty_status :    areaFromClient.getSovereigntyStatus()
       territory_of :          areaFromClient.getTerritoryOf()?.getId()
+      start_hivent:           areaFromClient.getStartHivent()?.getHivent().id
+      end_hivent:             areaFromClient.getEndHivent()?.getHivent().id
     }
 
     areaOnServer

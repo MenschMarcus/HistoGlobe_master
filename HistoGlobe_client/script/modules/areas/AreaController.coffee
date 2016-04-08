@@ -16,6 +16,9 @@ class HG.AreaController
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
+    @addCallback 'onLoadAreaHivents'
+    @addCallback 'onFinishLoadingAreaHivents'
+
     @addCallback 'onCreateGeometry'
     @addCallback 'onCreateName'
 
@@ -62,9 +65,16 @@ class HG.AreaController
       ### INIT AREAS ###
       @_areaInterface = new HG.AreaInterface
 
-      # 1. load all all areas from server
-      # -> only with ids + info: active: yes/no, all together
+      # 1. load all all areas from server (all together)
+      # ->  ids
+      #     info: active: yes/no
+      #     hivents: start and end hivent
       @_areaInterface.loadAllAreaIds @_hgInstance
+
+      # divert loading hivent data to HiventController
+      @_areaInterface.onLoadAreaHivents @, (startHivent, endHivent, area) ->
+        @notifyAll 'onLoadAreaHivents', startHivent, endHivent, area
+
       @_areaInterface.onFinishLoadingAreaIds @, (areas) ->
         for area in areas
           # update controller
@@ -72,6 +82,7 @@ class HG.AreaController
             @_activeAreas.push area
           else # area is inactive
             @_inactiveAreas.push area
+        @notifyAll 'onFinishLoadingAreaHivents'
 
         # 2. load all active areas from server
         # -> completely, in chunks
@@ -156,11 +167,11 @@ class HG.AreaController
           tempOldAreas = []
           tempNewAreas = []
 
-          for area in change.newAreas
-            if changeDir is 1 then tempNewAreas.push area else tempOldAreas.push area
-
           for area in change.oldAreas
             if changeDir is 1 then tempOldAreas.push area else tempNewAreas.push area
+
+          for area in change.newAreas
+            if changeDir is 1 then tempNewAreas.push area else tempOldAreas.push area
 
           # remove duplicates -> all areas/labels that are both in new or old array
           # TODO: O(n²) in the moment -> does that get better?

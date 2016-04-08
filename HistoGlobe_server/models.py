@@ -12,39 +12,8 @@ from django.contrib.gis.db import models
 from djgeojson.fields import *
 from django.utils import timezone
 import rfc3339
+import time
 
-
-
-# ==============================================================================
-### SPATIAL / ATTRIBUTE DIMENSION ###
-
-# ------------------------------------------------------------------------------
-# Area stores geometry, representative point and name of an Area
-# geometry:
-#   TODO: currently MultiPolygon -> to be changes to more sophisticated model later
-# representative point:
-#   TODO: calculate reasonable name position with intelligent algorithm
-# name:
-#   common name,    e.g. 'Germany'
-#   official name,  e.g. 'Federal Republic of Germany"
-#   TODO: currently only English -> to be extended
-
-class Area(models.Model):
-  geom =                  models.MultiPolygonField  (default='MULTIPOLYGON EMPTY')
-  representative_point =  models.PointField         (null=True)
-  short_name =            models.CharField          (max_length=100, default='')
-  formal_name =           models.CharField          (max_length=150, default='')
-  sovereignty_status =    models.CharField          (null=True, max_length=1)
-  territory_of =          models.ForeignKey         ('self', null=True, blank=True)
-
-
-  # overriding the default manager with a GeoManager instance.
-  # didn't quite understand what this is for...
-  objects =               models.GeoManager         ()
-
-
-  def __unicode__(self):
-    return self.short_name
 
 
 
@@ -76,7 +45,41 @@ class Hivent(models.Model):
     ordering = ['-effect_date']  # descending order (2000 -> 0 -> -2000 -> ...)
 
 
+# ==============================================================================
+### SPATIAL / ATTRIBUTE DIMENSION ###
+
 # ------------------------------------------------------------------------------
+# Area stores geometry, representative point and name of an Area
+# geometry:
+#   TODO: currently MultiPolygon -> to be changes to more sophisticated model later
+# representative point:
+#   TODO: calculate reasonable name position with intelligent algorithm
+# name:
+#   common name,    e.g. 'Germany'
+#   official name,  e.g. 'Federal Republic of Germany"
+#   TODO: currently only English -> to be extended
+
+class Area(models.Model):
+  geom =                  models.MultiPolygonField  (default='MULTIPOLYGON EMPTY')
+  representative_point =  models.PointField         (null=True)
+  short_name =            models.CharField          (max_length=100, default='')
+  formal_name =           models.CharField          (max_length=150, default='')
+  sovereignty_status =    models.CharField          (null=True, max_length=1)
+  territory_of =          models.ForeignKey         ('self', null=True, blank=True)
+  start_hivent =          models.ForeignKey         (Hivent, related_name='start_hivent', null=True)
+  end_hivent =            models.ForeignKey         (Hivent, related_name='end_hivent', null=True)
+
+  # overriding the default manager with a GeoManager instance.
+  # didn't quite understand what this is for...
+  objects =               models.GeoManager         ()
+
+
+  def __unicode__(self):
+    return self.short_name
+
+
+# ==============================================================================
+# SNAPSHOTS (currently not used)
 ## Snapshot stores a complete image of all areas at a single moment in history
 ## --> needed for initialization of event-based spatio-temporal data model
 
@@ -114,12 +117,12 @@ class Change(models.Model):
 ## (1 old Area -> 1 new Area)
 ## for specific historical geographic operations differently many changes can be
 ## assigned to one Area
-##  add area:       - -> A
-##  unification:    A1 -> B, A2 -> B, ... , An .-> B
-##  separation:     A -> B1, A -> B2, ... , A -> Bn
-##  border change:  A -> A', B -> B'
-##  name change;    A -> A'
-##  delete area:    A -> -
+##  ADD) add area:       - -> A
+##  UNI) unification:    A1 -> B, A2 -> B, ... , An .-> B
+##  SEP) separation:     A -> B1, A -> B2, ... , A -> Bn
+##  CHB) border change:  A -> A', B -> B'
+##  CHN) name change;    A -> A'
+##  DEL) delete area:    A -> -
 ## e.g. 'CSSR' -> 'CZE' + 'SVK' => two changes for 'CSSR'
 
 class ChangeAreas(models.Model):

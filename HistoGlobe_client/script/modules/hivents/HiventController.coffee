@@ -56,18 +56,91 @@ class HG.HiventController
     ### INTERACTION ###
     @_hgInstance.onAllModulesLoaded @, () =>
 
-      ### INIT Hivents ###
-      @_hiventInterface = new HG.HiventInterface
-      areas = @_hiventInterface.loadInit()
 
-      @_hiventInterface.onSaveHivent @, (hiventHandle) ->
-        @_hiventHandles.push hiventHandle
-        @notifyAll "onHiventAdded", hiventHandle
+      ### INIT Hivents ###
+
+      @_hiventInterface = new HG.HiventInterface
+
+      # load start / end hivents of areas
+      @_hgInstance.areaController.onLoadAreaHivents @, (startHiventData, endHiventData, area) =>
+
+        if startHiventData
+          # check if hivent exists
+          existingHivent = null
+          for handle in @_hiventHandles
+            if startHiventData.id is handle.getHivent().id
+              existingHivent = handle
+              break
+
+          # update model (area)
+          area.setStartHivent startHiventHandle
+          # create model (hivent + handle)
+          if not existingHivent
+            startHivent = new HG.Hivent @_hiventInterface.loadFromServerModel startHiventData
+            startHiventHandle = new HG.HiventHandle startHivent
+            # update controller
+            @_hiventHandles.push startHiventHandle
+            # update view
+            @notifyAll 'onHiventAdded', startHiventHandle
+
+        if endHiventData
+          # check if hivent exists
+          existingHivent = null
+          for handle in @_hiventHandles
+            if startHiventData.id is handle.getHivent().id
+              existingHivent = handle
+              break
+
+          # update model (area)
+          area.setEndHivent endHiventHandle
+          # create model (hivent + handle)
+          if not existingHivent
+            endHivent = new HG.Hivent @_hiventInterface.loadFromServerModel endHiventData
+            endHiventHandle = new HG.HiventHandle endHivent
+            # update controller
+            @_hiventHandles.push endHiventHandle
+            # update view
+            @notifyAll 'onHiventAdded', endHiventHandle
+
         @_handlesNeedSorting = true
+
+      # load the rest of the hivents that were not start / end hivents of areas
+      @_hgInstance.areaController.onFinishLoadingAreaHivents @, () =>
+
+        @_sortHivents()
+
+        @_hiventInterface.loadRestHivents @_hiventHandles
+        @_hiventInterface.onLoadRestHivent @, (hiventData) =>
+          # create model
+          hivent = new HG.Hivent hiventData
+          hiventHandle = new HG.HiventHandle hivent
+          # update controller
+          @_hiventHandles.push hiventHandle
+          # update view
+          @notifyAll 'onHiventAdded', hiventHandle
+
+        @_hiventInterface.onFinishLoadingRestHivents @, () =>
+          @_sortHivents()
+
+
+      ### EDIT MODE ###
+
+      @_hgInstance.editMode.onCreateHivent @, (hiventFromServer, oldAreas, newAreas) =>
+        # create model
+        hivent = new HG.Hivent @_hiventInterface.loadFromServerModel hiventFromServer, yes
+        hiventHandle = new HG.HiventHandle hivent
+        # update model (areas)
+        oldArea.setEndHivent hiventHandle   for oldArea in oldAreas
+        newArea.setStartHivent hiventHandle for newArea in newAreas
+        # update controller
+        @_hiventHandles.push hiventHandle
+        @_sortHivents()
+        # update view
+        @notifyAll 'onHiventAdded'
 
       ### VIEW ###
 
-      ## update areas on now changed
+      ## load hivents that have happened since last now change
       @_hgInstance.timeController.onNowChanged @, (nowDate) =>
 
         # error handling: initially nowDate is not set => set and ignore
@@ -97,7 +170,9 @@ class HG.HiventController
         inChangeRange = no
         changes = []
 
-        for handle in @_hiventHandles
+        # IMP!!! if change direction is the other way, also the hivents have
+        # to be looped through the other way!
+        for handle in @_hiventHandles by changeDir
           hivent = handle.getHivent()
 
           # check if hivent is in range
@@ -110,20 +185,15 @@ class HG.HiventController
             # => as soon as loop gets out of change range, there will not be any
             # hivent following
             # => loop can be broken
-          else
-            break if inChangeRange
+            # N.B: if everything is screwed up: uncomment the following two lines ;)
+          # else
+          #   break if inChangeRange
 
         # tell everyone if new changes
         @notifyAll 'onChangeAreas', changes, changeDir, timeLeap if changes.length isnt 0
 
         # update now date
         @_nowDate = nowDate
-
-
-      ### EDIT MODE ###
-      @_hgInstance.editMode.onCreateHivent @, (hiventFromServer) =>
-        @_hiventInterface.loadFromServerModel hiventFromServer, yes
-
 
       # Register listeners to update filters or react on updated filters.
       # @_hgInstance.timeline.onIntervalChanged @, (timeFilter) =>
@@ -248,23 +318,27 @@ class HG.HiventController
 
   ############################# MAIN FUNCTIONS #################################
 
+  _sortHivents: ->
+    # filter by date
+    @_hiventHandles.sort (a, b) =>
+      if a? and b?
+        # sort criterion 1) effect date
+        unless a.getHivent().effectDate is b.getHivent().effectDate
+          return a.getHivent().effectDate - b.getHivent().effectDate
+        # sort criterion 2) id
+        else
+          if a.getHivent().id > b.getHivent().id
+            return 1
+          else if a.getHivent().id < b.getHivent().id
+            return -1
+      return 0
+
   # ============================================================================
   # Filters all HiventHandles according to all current filters
   # ============================================================================
   _filterHivents: ->
     if @_handlesNeedSorting
-
-      # filter by date
-      @_hiventHandles.sort (a, b) =>
-        if a? and b?
-          unless a.getHivent().startDate.getTime() is b.getHivent().startDate.getTime()
-            return a.getHivent().startDate.getTime() - b.getHivent().startDate.getTime()
-          else
-            if a.getHivent().id > b.getHivent().id
-              return 1
-            else if a.getHivent().id < b.getHivent().id
-              return -1
-        return 0
+      @_sortHivents()
 
     for handle, i in @_hiventHandles
       if @_handlesNeedSorting
