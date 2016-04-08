@@ -80,7 +80,10 @@ $now_marker_opacity_hc              = 1
 // HISTOGRAPH ------------------------------------------------------------------
 
 $histograph_height                  = 175px
-$histograph_line_width              = 10px
+$histograph_centerline_width        = 10px
+
+$histograph_area_line_width         = 5px
+$histograph_hivent_circle_radius    = 10px
 
 
 // EDIT OPERATION WINDOW -------------------------------------------------------
