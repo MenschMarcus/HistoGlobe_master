@@ -1,8 +1,8 @@
 window.HG ?= {}
 
 # ==============================================================================
-# Base class for Hivent markers. HiventMarker provides basic functionality
-# and interfaces.
+# Base class for Hivent markers.
+# HiventMarker provides basic functionality and interfaces.
 # ==============================================================================
 class HG.HiventMarker
 
