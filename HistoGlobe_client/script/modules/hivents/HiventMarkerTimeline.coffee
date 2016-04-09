@@ -61,13 +61,11 @@ class HG.HiventMarkerTimeline extends HG.HiventMarker
     parent.appendChild @_div
 
     @_div.onmouseover = (e) =>
-      @getHiventHandle().mark @, @_position
-      @getHiventHandle().linkAll @_position
+      @getHiventHandle().markAll @_position
 
     @_div.onmouseout = (e) =>
       if !@getHiventHandle()._activated
-        @getHiventHandle().unMark @, @_position
-        @getHiventHandle().unLinkAll @_position
+        @getHiventHandle().unUnMarkAll @_position
 
     @_div.onclick = (e) =>
       e.preventDefault()
@@ -156,7 +154,6 @@ class HG.HiventMarkerTimeline extends HG.HiventMarker
 
     Y_OFFSETS[@getHiventHandle().getHivent().startDate.getTime()] -= 1
     @getHiventHandle().unMarkAll()
-    @getHiventHandle().unLinkAll()
     @_div.parentNode.removeChild @_div
 
     @_hiventHandle.removeListener "onMark", @

@@ -211,10 +211,12 @@ def save_change_areas(change, operation, old_areas, new_areas):
     new_change_areas.save()
 
     # update Area <- Hivent
-    old_area.end_hivent = change.hivent
-    old_area.save()
-    new_area.start_hivent = change.hivent
-    new_area.save()
+    if old_area:
+      old_area.end_hivent = change.hivent
+      old_area.save()
+    if new_area:
+      new_area.start_hivent = change.hivent
+      new_area.save()
 
     # go to next change area pair
     idx += 1

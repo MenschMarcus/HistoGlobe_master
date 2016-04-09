@@ -1,12 +1,12 @@
 window.HG ?= {}
 
 # ==============================================================================
-# HiventHandle encapsulates states that are necessary for and triggered by the
-# interaction with Hivents through map, timeline and so on. Other
+# AreaHandle encapsulates states that are necessary for and triggered by the
+# interaction with Areas through Map, HistoGraph and so on. Other
 # objects may register listeners for changes and/or trigger state changes.
-# Every HiventHandle is responsible for exactly one Hivent.
+# Every AreaHandle is responsible for exactly one Area.
 # ==============================================================================
-class HG.HiventHandle
+class HG.AreaHandle
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
@@ -16,20 +16,13 @@ class HG.HiventHandle
   # Constructor
   # Initializes member data and stores a reference to the passed Hivent object.
   # ============================================================================
-  constructor: (hivent) ->
-
-    @_hivent = hivent
+  constructor: (@_area) ->
 
     # Internal states
-    @_activated = false
-    @_marked = false
-    @_focused = false
-    @_age = 0.0
-
-    @_state = 0
-    # 0 --> invisible
-    # 1 --> visiblePast
-    # 2 --> visibleFuture
+    @_visible = no    # is area currently on the map?
+    @_active = no     # is area currently active/selected?
+    @_focused = no    # is area currently in focus (hovered)?
+    @_inEdit = no     # is area in edit mode?
 
     @sortingIndex = -1
 
@@ -39,26 +32,12 @@ class HG.HiventHandle
 
     # Add callbacks for all states. These are triggered by the corresponding
     # function specified below.
-    @addCallback "onActive"
-    @addCallback "onInActive"
-    @addCallback "onMark"
-    @addCallback "onUnMark"
-    @addCallback "onLink"
-    @addCallback "onUnLink"
-    @addCallback "onFocus"
-    @addCallback "onUnFocus"
-    @addCallback "onDestruction"
-    @addCallback "onAgeChanged"
 
-    @addCallback "onVisiblePast"
-    @addCallback "onVisibleFuture"
-    @addCallback "onInvisible"
 
   # ============================================================================
-  # Returns the assigned Hivent.
+  # Returns the assigned Area.
   # ============================================================================
-  getHivent: ->
-    @_hivent
+  getArea: -> @_area
 
 
 
@@ -284,8 +263,10 @@ class HG.HiventHandle
     delete @
     return
 
+
   ##############################################################################
   #                             STATIC MEMBERS                                 #
   ##############################################################################
-  ACTIVE_HIVENTS = []
-  window.LINKED_HIVENT=0
+
+  VISIBLE_AREAS = []    # areas currently visible in the view
+  ACTIVE_AREAS = []     # areas currently active / selected in the view
