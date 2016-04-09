@@ -64,7 +64,7 @@ from models import *
 ### VARIABLES ###
 
 area_mapping = {
-  'geom' :         'MULTIPOLYGON',
+  'geometry' :     'MULTIPOLYGON',
   'short_name' :   'name_long'
 }
 
