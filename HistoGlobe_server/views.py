@@ -25,10 +25,9 @@ import datetime
 
 # own
 from HistoGlobe_server.models import *
-from view import utils
-from view import view_areas
-from view import view_snapshots
-from view import view_hivents
+from HistoGlobe_server import utils
+from HistoGlobe_server import view_utils
+
 
 # ==============================================================================
 """
@@ -63,12 +62,20 @@ GET:  client requires data from the server and awaits an answer
         moment(dateString)
 """
 
-# ------------------------------------------------------------------------------
+
+# ==============================================================================
 # simple view redirecting to index of HistoGlobe
+# ==============================================================================
+
 def index(request):
   return render(request, 'HistoGlobe_client/index.htm', {})
 
-# ------------------------------------------------------------------------------
+
+# ==============================================================================
+# get set of all areas (their ids, start and end hivents)
+# not their names or geometries
+# ==============================================================================
+
 def get_init_area_ids(request):
 
   ## INPUT
@@ -88,20 +95,21 @@ def get_init_area_ids(request):
 
     # extract creation date for area from hivent that created it
     # N.B: can be None, if there is no change that ever created them
-    start_hivent = in_area.start_hivent
+    start_hivent = in_area.start_change.hivent
     if (start_hivent):
       start_date = start_hivent.effect_date
-      out_area['start_hivent'] = view_hivents.prepare_hivent(start_hivent)
+      out_area['start_hivent'] = view_utils.hivents.prepare_hivent(start_hivent)
 
     # error handling: areas without a start date do not make sense
     else: continue
 
     # extract secession date from area from hivent that deleted it
     # N.B: if there is no change ever deleted it, it is valid until today
-    end_hivent = in_area.end_hivent
-    if (end_hivent):
+    end_change = in_area.end_change
+    if (end_change):
+      end_hivent = end_change.hivent
       end_date = end_hivent.effect_date
-      out_area['end_hivent'] = view_hivents.prepare_hivent(end_hivent)
+      out_area['end_hivent'] = view_utils.hivents.prepare_hivent(end_hivent)
     else:
       end_date = timezone.now()
       out_area['end_hivent'] = None
@@ -115,7 +123,11 @@ def get_init_area_ids(request):
   return HttpResponse(json.dumps(areas))
 
 
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# get all attribute data of areas (from Territory and Name)
+# send data in chunks
+# ==============================================================================
+
 def get_init_areas(request):
 
   ## INPUT
@@ -138,13 +150,17 @@ def get_init_areas(request):
   ## PROCESSING
 
   # get set of areas for this part of the request
-  [areas, chunk_size, chunks_complete] = view_areas.get_area_chunk(areas, viewport_center, chunk_id, chunk_size)
+  [areas, chunk_size, chunks_complete] = view_utils.areas.get_area_chunk(areas, viewport_center, chunk_id, chunk_size)
 
   ## OUTPUT
   return HttpResponse(prepare_area_output(areas, chunk_size, chunks_complete))
 
 
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# get all hivents that were not included in the initial area ids sending
+# -> all hivents without changes
+# ==============================================================================
+
 def get_rest_hivents(request):
 
   ## INPUT
@@ -152,15 +168,17 @@ def get_rest_hivents(request):
   existing_hivents = request_data['hiventIds']
 
   ## PROCESSING
-  rest_hivents = view_hivents.get_rest_hivents(existing_hivents)
+  rest_hivents = view_utils.hivents.get_rest_hivents(existing_hivents)
 
   ## OUTPUT
   return HttpResponse(json.dumps(rest_hivents))
 
 
-# ------------------------------------------------------------------------------
+# ==============================================================================
 # save hivent and change to database
 # return hivent and newly created area ids to client
+# ==============================================================================
+
 def save_operation(request):
 
   # HARDCODE CLEANUP
@@ -189,7 +207,7 @@ def save_operation(request):
 
   for area in request_data['change']['new_areas']:
     old_area_id = area['id']
-    area = view_areas.create_area(area)
+    area = view_utils.areas.create_area(area)
     new_area_id = area.id
 
     # update id and prepare for output
@@ -206,73 +224,19 @@ def save_operation(request):
 
 
   ### new hivent?
-  [hivent, error_message] = view_hivents.validate_hivent(request_data['hivent'])
+  [hivent, error_message] = view_utils.hivents.validate_hivent(request_data['hivent'])
   if hivent is False:
     return HttpResponse(error_message)
 
   # else: hivent is valid and filled with data
   # =>  create hivent + changes + change_areas
   #     and update start / end hivent for areas
-  new_hivent = view_hivents.save_hivent(hivent)
-  new_change = view_hivents.save_change(new_hivent, operation)
-  view_hivents.save_change_areas(new_change, operation, old_areas, new_areas)
+  new_hivent = view_utils.hivents.save_hivent(hivent)
+  new_change = view_utils.hivents.save_change(new_hivent, operation)
+  view_utils.hivents.save_change_areas(new_change, operation, old_areas, new_areas)
 
   ## get whole hivent, including change(areas) as response to the client
-  response_data['hivent'] = view_hivents.get_hivent(new_hivent.id)
+  response_data['hivent'] = view_utils.hivents.prepare_hivent(Hivent.objects.get(new_hivent.id))
 
 
   return HttpResponse(json.dumps(response_data))  # N.B: mind the HttpResponse(function)
-
-
-################################################################################
-#                               HELPER FUNCTIONS                               #
-################################################################################
-    # try:
-    #   start_hivent = json.dumps(view_hivents.prepare_hivent(area.start_hivent))
-    # except:
-    #   start_hivent = None
-    # try:
-    #   end_hivent = json.dumps(view_hivents.prepare_hivent(area.start_hivent))
-    # except:
-    #   end_hivent = None
-
-# ------------------------------------------------------------------------------
-def prepare_area_output(areas, chunk_size, chunks_complete):
-
-  # javascript  python
-  # object      dictionary
-  # array       list
-  # it looks horrible, but it is the only way I could see while avoiding
-  # serializing and deserializing the geometry (see #1 json string)
-
-  json_str  = '{'
-  json_str +=   '"type":"FeatureCollection",'
-  json_str +=   '"crs":{"type": "name","properties":{"name":"EPSG:4326"}},'
-  json_str +=   '"loadingComplete":'          + str(chunks_complete).lower() + ','
-  json_str +=   '"features":['          # 'True' -> 'true' resp. 'False' -> 'false'
-
-  area_counter = 0
-  for area in areas:
-    json_str += '{'
-    json_str +=   '"type":"Feature",'
-    json_str +=   '"properties":'
-    json_str +=   '{'
-    json_str +=     '"id":'                   + str(area.id)                          + ','
-    json_str +=     '"short_name":"'          + str(area.short_name.encode('utf-8'))  + '",'   # N.B: encode with utf-8!
-    json_str +=     '"formal_name":"'         + str(area.formal_name.encode('utf-8')) + '",'   # N.B: encode with utf-8!
-    json_str +=     '"representative_point":' + area.representative_point.json        + ','
-    json_str +=     '"sovereignty_status":"'  + str(area.sovereignty_status)          + '",'
-    json_str +=     '"territory_of":"'        + str(area.territory_of)                + '"'
-    json_str +=   '},'
-    json_str +=   '"geometry":'               + area.geom.json    #1 json string
-    json_str += '}'
-
-    # decide if final ',' has to be appended
-    area_counter += 1
-    if area_counter < chunk_size:
-      json_str += ','
-
-  json_str +=   ']'
-  json_str += '}'
-
-  return json_str

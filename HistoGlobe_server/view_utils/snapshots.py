@@ -1,4 +1,3 @@
-# ==============================================================================
 ### INCLUDES ###
 
 # Django
@@ -7,12 +6,14 @@
 import chromelogger as console
 
 # own
-import utils
 from HistoGlobe_server.models import Snapshot
-
+from HistoGlobe_server import utils
 
 
 # ==============================================================================
+# return the snapshot that is the closest to a given date
+# ==============================================================================
+
 def get_closest_snapshot(now_date):
 
   current_snapshot = Snapshot.objects.first()

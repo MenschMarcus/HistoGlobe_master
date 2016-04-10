@@ -71,38 +71,38 @@ class HG.AreaController
       #     hivents: start and end hivent
       @_areaInterface.loadAllAreaIds @_hgInstance
 
-      # divert loading hivent data to HiventController
-      @_areaInterface.onLoadAreaHivents @, (startHivent, endHivent, area) ->
-        @notifyAll 'onLoadAreaHivents', startHivent, endHivent, area
+      # # divert loading hivent data to HiventController
+      # @_areaInterface.onLoadAreaHivents @, (startHivent, endHivent, area) ->
+      #   @notifyAll 'onLoadAreaHivents', startHivent, endHivent, area
 
-      @_areaInterface.onFinishLoadingAreaIds @, (areas) ->
-        for area in areas
-          # update controller
-          if area.isActive()
-            @_activeAreas.push area
-          else # area is inactive
-            @_inactiveAreas.push area
-        @notifyAll 'onFinishLoadingAreaHivents'
+      # @_areaInterface.onFinishLoadingAreaIds @, (areas) ->
+      #   for area in areas
+      #     # update controller
+      #     if area.isActive()
+      #       @_activeAreas.push area
+      #     else # area is inactive
+      #       @_inactiveAreas.push area
+      #   @notifyAll 'onFinishLoadingAreaHivents'
 
-        # 2. load all active areas from server
-        # -> completely, in chunks
-        @_areaInterface.loadActiveAreas @_hgInstance, @_activeAreas
-        @_areaInterface.onLoadActiveArea @, (area) ->
-          # update view
-          @notifyAll 'onCreateGeometry', area
-          @notifyAll 'onCreateName', area if area.hasName()
+      #   # 2. load all active areas from server
+      #   # -> completely, in chunks
+      #   @_areaInterface.loadActiveAreas @_hgInstance, @_activeAreas
+      #   @_areaInterface.onLoadActiveArea @, (area) ->
+      #     # update view
+      #     @notifyAll 'onCreateGeometry', area
+      #     @notifyAll 'onCreateName', area if area.hasName()
 
-        # 3. load all inactive areas from server (when 2. is completely done)
-        # -> completely, in chunks
-        @_areaInterface.onFinishLoadingActiveAreas @, () ->
-          @_areaInterface.loadInactiveAreas @_hgInstance, @_inactiveAreas
-          # nothing to do on load, because everything is already there
-          # model: updated in interface
-          # controller: area only in @_activeAreas array s(step 1)
-          # view: is inactive, so not to be shown
-          # if needed later, the callbacks are:
-          # @_areaInterface.onLoadInactiveArea @, (area) ->
-          # @_areaInterface.onFinishLoadingInactiveAreas @, () ->
+      #   # 3. load all inactive areas from server (when 2. is completely done)
+      #   # -> completely, in chunks
+      #   @_areaInterface.onFinishLoadingActiveAreas @, () ->
+      #     @_areaInterface.loadInactiveAreas @_hgInstance, @_inactiveAreas
+      #     # nothing to do on load, because everything is already there
+      #     # model: updated in interface
+      #     # controller: area only in @_activeAreas array s(step 1)
+      #     # view: is inactive, so not to be shown
+      #     # if needed later, the callbacks are:
+      #     # @_areaInterface.onLoadInactiveArea @, (area) ->
+      #     # @_areaInterface.onFinishLoadingInactiveAreas @, () ->
 
 
       ### INTERFACE: HIVENT CONTROLLER ###

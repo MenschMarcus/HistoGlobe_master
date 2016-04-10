@@ -45,6 +45,8 @@ class HG.AreaInterface
         # deserialize string to object
         dataObj = $.parseJSON response
 
+        console.log dataObj
+
         # create an area with id for each feature
         areas = []
         $.each dataObj, (key, val) =>
