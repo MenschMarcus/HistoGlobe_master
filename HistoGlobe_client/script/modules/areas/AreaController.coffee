@@ -42,13 +42,13 @@ class HG.AreaController
 
 
     # init members
+    @_areaHandles = []            # all areas in HistoGlobe ((in)active, (un)selected, ...)
     @_activeAreas = []            # set of all HG.Area's currently active
     @_inactiveAreas = []          # set of all HG.Area's currently inactive
 
     @_maxSelections = 1           # 1 = single-selection mode, n = multi-selection mode
     @_selectedAreas = []          # array of all currently active areas
     @_areaEditMode = off          # in edit mode normal areas can not be selected
-    @_editAreas = []              # stores all areas that are currently in edit mode
 
     @_changeQueue = new Queue()   # queue for all area changes on the map/globe
 
@@ -254,10 +254,12 @@ class HG.AreaController
         # deselect each area
         # -> except for the one specified by edit mode to be kept selected
         @_cleanSelectedAreas selectedAreaId
-        @_cleanEditAreas()
 
         @_DEBUG_OUTPUT 'END EDIT MODE'
 
+
+      ##########################################################################
+      ### MOVE TO AreaHandle => call directly from EditOperationStep ###
 
       ## handle new, updated and old areas
 
@@ -282,7 +284,6 @@ class HG.AreaController
         # update controller
         @_activeAreas.push area
         @_selectedAreas.push area
-        @_editAreas.push area
 
         @_DEBUG_OUTPUT 'CREATE AREA'
 
@@ -386,8 +387,6 @@ class HG.AreaController
         @notifyAll 'onDeselect', area if area.isSelected()
 
         # update controller
-        idx = @_editAreas.indexOf area
-        @_editAreas.splice idx, 1       if idx isnt -1
         idx = @_selectedAreas.indexOf area
         @_selectedAreas.splice idx, 1   if idx isnt -1
         idx = @_activeAreas.indexOf area
@@ -452,8 +451,6 @@ class HG.AreaController
           area.inEdit yes
           # update view
           @notifyAll 'onUpdateStatus', area
-          # update controller
-          @_editAreas.push area
 
         @_DEBUG_OUTPUT 'PUT AREA IN EDIT MODE'
 
@@ -470,8 +467,6 @@ class HG.AreaController
           area.inEdit no
           # update view
           @notifyAll 'onUpdateStatus', area
-          # update controller
-          @_editAreas.splice((@_editAreas.indexOf area), 1)
 
         @_DEBUG_OUTPUT 'TAKE AREA OUT OF EDIT MODE'
 
@@ -729,24 +724,6 @@ class HG.AreaController
       @notifyAll 'onDeselect', area
 
       loopIdx--
-
-  # ----------------------------------------------------------------------------
-  _cleanEditAreas: () ->
-    # manual while loop, because selected areas shrinks while operating in it
-    loopIdx = @_editAreas.length-1
-    while loopIdx >= 0
-
-      area = @_editAreas[loopIdx]
-
-      # update model
-      area.inEdit no
-      # update controller
-      @_editAreas.splice loopIdx, 1
-      # update view
-      @notifyAll 'onUpdateStatus', area
-
-      loopIdx--
-
 
   # ============================================================================
   _DEBUG_OUTPUT: (id) ->
