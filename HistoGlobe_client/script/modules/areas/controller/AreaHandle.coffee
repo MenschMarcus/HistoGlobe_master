@@ -35,90 +35,86 @@ class HG.AreaHandle
 
 
   # ============================================================================
-  # Returns the assigned Area.
+  # Get the Area
   # ============================================================================
-  getArea: -> @_area
-
+  getArea: ->       @_area
 
 
   # ============================================================================
-  # Notifies listeners that the HiventHandle is now active. Usually, this is
+  # Get start / end of the Area
+  # ============================================================================
+  getStartDate: () -> @startHivent.getHivent().effectDate # startHivent must be given
+  getEndDate: () ->   if @endHivent then @endHivent.getHivent().effectDate else moment()
+
+  # ============================================================================
+  # Get the state of the Area
+  # ============================================================================
+  isVisble: () ->   @_visible
+  isActive: () ->   @_active
+  isFocused: () ->  @_focused
+  isInEdit: () ->   @_inEdit
+
+
+  # ============================================================================
+  # Notifies listeners that the AreaHandle is now active. Usually, this is
   # triggered when a map or timeline icon belonging to a Hivent is being
   # clicked. "mousePixelPosition" may be passed and should be the click's
   # location in device coordinates.
   # ============================================================================
   activeAll: (mousePixelPosition) ->
-    @_activated = true
+    @_active = true
     ACTIVE_HIVENTS.push @
     @notifyAll "onActive", mousePixelPosition, @
 
-  # ============================================================================
-  # Notifies a specific listener (obj) that the HiventHandle is now active.
-  # Usually, this is triggered when a map or timeline icon belonging to a Hivent
-  # is being clicked. "mousePixelPosition" may be passed and should be the
-  # click's location in device coordinates.
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   active: (obj, mousePixelPosition) ->
-    @_activated = true
+    @_active = true
     ACTIVE_HIVENTS.push @
     @notify "onActive", obj, mousePixelPosition, @
 
-  # ============================================================================
-  # Returns whether or not the HiventHandle is active.
-  # ============================================================================
-  isActive: () ->
-    @_activated
 
   # ============================================================================
-  # Notifies all listeners that the HiventHandle is now inactive. Usually, this
+  # Notifies all listeners that the AreaHandle is now inactive. Usually, this
   # is triggered when a map or timeline icon belonging to a Hivent is being
   # clicked. "mousePixelPosition" may be passed and should be the click's
   # location in device coordinates.
   # ============================================================================
   inActiveAll: (mousePixelPosition) ->
-    @_activated = false
+    @_active = false
     index = $.inArray(@, ACTIVE_HIVENTS)
     if index >= 0 then delete ACTIVE_HIVENTS[index]
     @notifyAll "onInActive", mousePixelPosition, @
 
-  # ============================================================================
-  # Notifies a specific listener (obj) that the HiventHandle is now inactive.
-  # Usually, this is triggered when a map or timeline icon belonging to a Hivent
-  # is being clicked. "mousePixelPosition" may be passed and should be the
-  # click's location in device coordinates.
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   inActive: (obj, mousePixelPosition) ->
-    @_activated = false
+    @_active = false
     index = $.inArray(@, ACTIVE_HIVENTS)
     if index >= 0 then delete ACTIVE_HIVENTS[index]
     @notify "onInActive", obj, mousePixelPosition, @
 
+
   # ============================================================================
-  # Toggles the HiventHandle's active state and notifies all listeners according
-  # to the new value of "@_activated".
+  # Toggles the AreaHandle's active state and notifies all listeners according
+  # to the new value of "@_active".
   # ============================================================================
   toggleActiveAll: (mousePixelPosition) ->
-    @_activated = not @_activated
-    if @_activated
+    @_active = not @_active
+    if @_active
       @activeAll mousePixelPosition
     else
       @inActiveAll mousePixelPosition
 
-  # ============================================================================
-  # Toggles the HiventHandle's active state and notifies a specific listener
-  # (obj) according to the new value of "@_activated".
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   toggleActive: (obj, mousePixelPosition) ->
-    @_activated = not @_activated
-    if @_activated
+    @_active = not @_active
+    if @_active
       @active obj, mousePixelPosition
     else
       @inActive obj, mousePixelPosition
 
 
-
   # ============================================================================
-  # Notifies all listeners that the HiventHandle is now marked. Usually, this is
+  # Notifies all listeners that the AreaHandle is now marked. Usually, this is
   # triggered when a map or timeline icon belonging to a Hivent is being
   # hovered. "mousePixelPosition" may be passed and should be the mouse's
   # location in device coordinates.
@@ -128,19 +124,15 @@ class HG.AreaHandle
       @_marked = true
       @notifyAll "onMark", mousePixelPosition
 
-  # ============================================================================
-  # Notifies a specific listener (obj) that the HiventHandle is now marked.
-  # Usually, this is triggered when a map or timeline icon belonging to a Hivent
-  # is being hovered. "mousePixelPosition" may be passed and should be the
-  # mouse's location in device coordinates.
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   mark: (obj, mousePixelPosition) ->
     unless @_marked
       @_marked = true
       @notify "onMark", obj, mousePixelPosition
 
+
   # ============================================================================
-  # Notifies all listeners that the HiventHandle is no longer marked. Usually,
+  # Notifies all listeners that the AreaHandle is no longer marked. Usually,
   # this is triggered when a map or timeline icon belonging to a Hivent is being
   # hovered. "mousePixelPosition" may be passed and should be the mouse's
   # location in device coordinates.
@@ -150,97 +142,140 @@ class HG.AreaHandle
       @_marked = false
       @notifyAll "onUnMark", mousePixelPosition
 
-  # ============================================================================
-  # Notifies a specific listener (obj) that the HiventHandle no longer marked.
-  # Usually, this is triggered when a map or timeline icon belonging to a Hivent
-  # is being hovered. "mousePixelPosition" may be passed and should be the
-  # mouse's location in device coordinates.
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   unMark: (obj, mousePixelPosition) ->
     if @_marked
       @_marked = false
       @notify "onUnMark", obj, mousePixelPosition
 
 
-
   # ============================================================================
   # Notifies all listeners to focus on the Hivent associated with the
-  # HiventHandle.
+  # AreaHandle.
   # ============================================================================
   focusAll: () ->
     @_focused = true
     @notifyAll "onFocus"
 
-  # ============================================================================
-  # Notifies a specific listener (obj) to focus on the Hivent associated with
-  # the HiventHandle.
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   focus: (obj) ->
     @_focused = true
     @notify "onFocus", obj
 
+
   # ============================================================================
-  # Notifies all listeners that the Hivent associated with the HiventHandle
+  # Notifies all listeners that the Hivent associated with the AreaHandle
   # shall no longer be focussed.
   # ============================================================================
   unFocusAll: () ->
     @_focused = false
     @notifyAll "onUnFocus"
 
-  # ============================================================================
-  # Notifies a specific listener (obj) that the Hivent associated with the
-  # HiventHandle shall no longer be focussed.
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   unFocus: (obj) ->
     @_focused = false
     @notify "onUnFocus", obj
 
 
-
   # ============================================================================
-  # Notifies all listeners that the Hivent the HiventHandle is destroyed. This
+  # Notifies listeners that the Hivent the AreaHandle is destroyed. This
   # is used to allow for proper clean up.
   # ============================================================================
   destroyAll: ->
     @notifyAll "onDestruction"
     @_destroy()
 
-  # ============================================================================
-  # Notifies a specific listener (obj) that the Hivent the HiventHandle is
-  # destroyed. This is used to allow for proper clean up.
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   destroy: (obj) ->
     @notify "onDestruction", obj
     @_destroy()
 
 
   # ============================================================================
-  # Sets the HiventHandle's visibility state.
+  # Return the current style of the area based on its status
+  # this one function that does all the coloring was SO hard to come up with.
+  # Please no major changes, it will be a f***ing p*in *n the a**
   # ============================================================================
-  setState: (state) ->
-    if @_state isnt state
 
-      if state is 0
-        @notifyAll "onInvisible", @, @_state
-      else if state is 1
-        @notifyAll "onVisiblePast", @, @_state
-      else if state is 2
-        @notifyAll "onVisibleFuture", @, @_state
-      else
-        console.warn "Failed to set HiventHandle state: invalid state #{state}!"
+  getStyle: () ->
 
-      @_state = state
+    # --------------------------------------------------------------------------
+    #   different vocabulary for leaflet layers and svg paths (animated by d3)
+    #   property          leaflet       svg (d3)
+    #   ------------------------------------------------
+    #   areaColor         fillColor     fill
+    #   areaOpacity       fillOpacity   fill-opacity
+    #   borderColor       color         stroke
+    #   borderOpacity     opacity       stroke-opacity
+    #   bordeWidth        weight        stroke-width
+    # --------------------------------------------------------------------------
+
+    ## initial style configuration
+
+    style = {
+      'areaColor' :      HGConfig.color_white.val
+      'areaOpacity' :    HGConfig.area_full_opacity.val
+      'borderColor' :    HGConfig.color_bg_dark.val
+      'borderOpacity' :  HGConfig.border_opacity.val
+      'borderWidth' :    HGConfig.border_width.val
+    }
 
 
-  # ============================================================================
-  # Sets the HiventHandle's age.
-  # what is the age?
-  # ============================================================================
-  setAge: (age) ->
-    if @_age isnt age
-      @_age = age
-      @notifyAll "onAgeChanged", age, @
+    ## change certain style properties based on the area status
 
+    # --------------------------------------------------------------------------
+    # decision tree:        _________ inEdit? _________
+    #                     1/                           \0
+    #                 selected?                      selected?
+    #             1/           \0                1/            \0
+    #             |         focused?         focused?        focused?
+    #             |       1/      \0       1/      \0      1/      \0
+    #             x       x       x        x       x       x       x
+    #           (ES)    (EF)     (E)     (NSF)   (NS)    (NF)     (N)
+    # --------------------------------------------------------------------------
+
+    if @_inEdit
+
+      if @_selected
+        # (ES)  in edit mode + selected + can not be focused => full active
+        style.areaColor = HGConfig.color_active.val
+
+      else # not selected
+
+        if @_focused
+          # (EF)  in edit mode + unselected + focused => full highlight
+          style.areaColor = HGConfig.color_highlight.val
+
+        else # not focused
+          # (E)  in edit mode + unselected + not focused => half active
+          style.areaColor = HGConfig.color_active.val
+          style.areaOpacity = HGConfig.area_half_opacity.val
+
+    else # not in edit
+
+      if @_selected
+
+        if @_focused
+          # (NSF) normal area + selected + focused => full highlight
+          style.areaColor = HGConfig.color_highlight.val
+
+        else # not focused
+          # (NS) normal area + selected + not focused => half active
+          style.areaColor = HGConfig.color_active.val
+          style.areaOpacity = HGConfig.area_half_opacity.val
+
+      else # not selected
+
+        if @_focused
+          # (NF) normal area + unselected + focused => half highlight
+          style.areaColor = HGConfig.color_highlight.val
+          style.areaOpacity = HGConfig.area_half_opacity.val
+
+        # else not focused
+          # (N) normal area + unselected + not focused => initial configuration
+          # => no change
+
+    return style
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
