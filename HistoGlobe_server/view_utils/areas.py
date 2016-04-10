@@ -11,7 +11,6 @@
 # GeoDjango
 from django.contrib.gis.geos import Point
 from django.contrib.gis import measure
-from django.contrib.gis.measure import D # ``D`` is a shortcut for ``Distance``
 
 # utils
 import chromelogger as console
@@ -19,10 +18,14 @@ import chromelogger as console
 
 # own
 from HistoGlobe_server.models import Area
-import utils
+from HistoGlobe_server import utils
 
 
 # ==============================================================================
+# given area data, validate each datum
+# return created Area object
+# ==============================================================================
+
 def create_area(area):
 
   # geometry
@@ -62,7 +65,11 @@ def create_area(area):
   return new_area
 
 
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# extract a chunk of size X from the areas
+# return chunk, the current size and if it was the last chunk
+# ==============================================================================
+
 def get_area_chunk(required_areas, viewport_center, chunk_id, chunk_size):
 
   # assign a distance value to the viewport center for all areas
@@ -94,3 +101,44 @@ def get_area_chunk(required_areas, viewport_center, chunk_id, chunk_size):
     chunk_size,
     chunks_complete
   ]
+
+
+
+# ==============================================================================
+# send area and chunk data as large json string
+# assemble string directly
+# it looks horrible, but it is the only way I could see to avoid
+# serializing and deserializing the geometry (see #1 json string)
+# ==============================================================================
+
+  json_str  = '{'
+  json_str +=   '"type":"FeatureCollection",'
+  json_str +=   '"crs":{"type": "name","properties":{"name":"EPSG:4326"}},'
+  json_str +=   '"loadingComplete":'          + str(chunks_complete).lower() + ','
+  json_str +=   '"features":['          # 'True' -> 'true' resp. 'False' -> 'false'
+
+  area_counter = 0
+  for area in areas:
+    json_str += '{'
+    json_str +=   '"type":"Feature",'
+    json_str +=   '"properties":'
+    json_str +=   '{'
+    json_str +=     '"id":'                   + str(area.id)                          + ','
+    json_str +=     '"short_name":"'          + str(area.short_name.encode('utf-8'))  + '",'   # N.B: encode with utf-8!
+    json_str +=     '"formal_name":"'         + str(area.formal_name.encode('utf-8')) + '",'   # N.B: encode with utf-8!
+    json_str +=     '"representative_point":' + area.representative_point.json        + ','
+    json_str +=     '"sovereignty_status":"'  + str(area.sovereignty_status)          + '",'
+    json_str +=     '"territory_of":"'        + str(area.territory_of)                + '"'
+    json_str +=   '},'
+    json_str +=   '"geometry":'               + area.geom.json    #1 json string
+    json_str += '}'
+
+    # decide if final ',' has to be appended
+    area_counter += 1
+    if area_counter < chunk_size:
+      json_str += ','
+
+  json_str +=   ']'
+  json_str += '}'
+
+  return json_str

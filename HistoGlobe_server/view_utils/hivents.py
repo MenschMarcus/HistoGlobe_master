@@ -23,11 +23,16 @@ import datetime
 import chromelogger as console
 
 # own
-import utils
-from HistoGlobe_server.models import Hivent, Change, ChangeAreas, Area
+from HistoGlobe_server.models import *
+from HistoGlobe_server import utils
 
 
 # ==============================================================================
+# receive an hivent dictionary with all properties
+# validate each property based on their characteristics
+# return hivent and validated? True/False
+# ==============================================================================
+
 def validate_hivent(hivent):
 
   ## name
@@ -126,7 +131,11 @@ def validate_hivent(hivent):
   return [hivent, None]
 
 
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# receive an hivent dictionary with all properties
+# save Hivent into database and return
+# ==============================================================================
+
 def save_hivent(hivent):
 
   ## save in database
@@ -148,18 +157,26 @@ def save_hivent(hivent):
   return new_hivent
 
 
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# receive an hivent and an operation
+# save Change into database and return
+# ==============================================================================
+
 def save_change(hivent, operation):
   new_change = Change(
-      hivent =          hivent,   # models.ForeignKey   (Hivent)
-      operation =       operation     # models.CharField   (max_length=3)
+      hivent =          hivent,       # models.ForeignKey   (Hivent)
+      operation =       operation     # models.CharField    (max_length=3)
     )
   new_change.save()
 
   return new_change
 
 
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# receive a change, an operation and a set of old and new areas
+# save ChangeAreas into database and return
+# ==============================================================================
+
 def save_change_areas(change, operation, old_areas, new_areas):
 
   # output: area models
@@ -220,7 +237,10 @@ def save_change_areas(change, operation, old_areas, new_areas):
     idx += 1
 
 
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# return all hivents that are not in the list of existing_hivents
+# ==============================================================================
+
 def get_rest_hivents(existing_hivents):
   hivent_models = Hivent.objects.exclude(id__in=existing_hivents)
 
@@ -230,42 +250,61 @@ def get_rest_hivents(existing_hivents):
 
   return hivents
 
-# ------------------------------------------------------------------------------
-def get_hivent(hivent_id):
 
-  # N.B: Model.objects.filter() does not return exact match
-  # => need to use .get()
-  return prepare_hivent(Hivent.objects.get(id=hivent_id))
+# ==============================================================================
+# return Hivent with all its associated
+# Changes, ChangeAreas, ChangeNames and ChangeTerritories
+# ==============================================================================
 
-
-# ------------------------------------------------------------------------------
 def prepare_hivent(hivent_model):
 
+  # get original Hivent with all properties
+  # -> except for change
   hivent = model_to_dict(hivent_model)
+
+  # get all Changes associated to the Hivent
   changes = []
   for change_model in Change.objects.filter(hivent=hivent_model):
     change = model_to_dict(change_model)
+
+    # get all ChangeAreas associated to the Change
     change['change_areas'] = []
-    for change_area_model in ChangeAreas.objects.filter(change=change_model):
-      change_area = model_to_dict(change_area_model)
+    for change_areas_model in ChangeAreas.objects.filter(change=change_model):
+      change_area = model_to_dict(change_areas_model)
       change['change_areas'].append(change_area)
+
+    # get all ChangeAreaNames associated to the Change
+    change['change_area_names'] = []
+    for change_area_names_model in ChangeAreaNames.objects.filter(change=change_model):
+      change_area_names = model_to_dict(change_area_names_model)
+      change['change_area_names'].append(change_area_names)
+
+    # get all ChangeAreaTerritories associated to the Change
+    change['change_area_territories'] = []
+    for change_area_territories_model in ChangeAreaTerritories.objects.filter(change=change_model):
+      change_area_territories = model_to_dict(change_area_territories_model)
+      change['change_area_territories'].append(change_area_territories)
+
     changes.append(change)
   hivent['changes'] = changes
 
   # prepare dates for output
   hivent['start_date'] =        utils.get_date_string(hivent['start_date'])
   if hivent['end_date'] != None:
-    hivent['end_date'] =        utils.get_date_string(hivent['end_date'])
+    hivent['end_date'] =        utils.get_date_string(hivent['start_date'])
   hivent['effect_date'] =       utils.get_date_string(hivent['effect_date'])
   if hivent['secession_date'] != None:
-    hivent['secession_date'] =  utils.get_date_string(hivent['secession_date'])
+    hivent['secession_date'] =  utils.get_date_string(hivent['effect_date'])
   if hivent['link_date'] != None:
-    hivent['link_date'] =       utils.get_date_string(hivent['link_date'])
+    hivent['link_date'] =       utils.get_date_string(timezone.now())
 
   return hivent
 
 
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# return all Changes that lie in between a start_ and an end_date
+# ==============================================================================
+
 def get_changes(start_date, end_date):
 
   change_direction = 1   # +1 (forward) or -1 (backward)
@@ -288,6 +327,4 @@ def get_changes(start_date, end_date):
       change = Change.objects.get(hivent=hivent)
       changes.append(change)
 
-  console.log(changes)
-
-  return []
+  return changes
