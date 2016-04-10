@@ -182,7 +182,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
         # clip new geometry to existing geometries
         # check for intersection with each active area on the map
-        # TODO: make more efficient later
+        # TODO: make more efficient later (Quadtree?)
 
         # manual loop, because some areas might be deleted on the way
         existingAreas = @_hgInstance.areaController.getActiveAreas()
@@ -203,7 +203,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
             @_stepData.tempAreas.push {
               'id':           existingAreaId
               'clip':         clipGeometry
-              'removed':      not newGeometry.isValid()  # was the area rremoved in the process?
+              'removed':      not newGeometry.isValid()  # was the area 0removed in the process?
               'geometry':     existingGeometry
               'shortName':    existingShortName
               'formalName':   existingFormalName

@@ -107,35 +107,6 @@ class HG.HiventMarker2D extends HG.HiventMarker
       @_map.off "drag", @_updatePosition
     )
 
-    @getHiventHandle().onLink(@, (mousePos) =>
-      if  @_marker._icon?
-        if @_marker._icon.innerHTML.indexOf("right")>-1
-          @_marker.setIcon icon_higlighted
-          @_marker._icon.innerHTML="<div class=\"markerLabel right\">#{@_markerLabelLocation}</div>"
-        else
-          @_marker.setIcon icon_higlighted
-      else
-        @_marker.setIcon icon_higlighted
-
-      @_map.on "drag", @_updatePosition
-
-
-    )
-
-    @getHiventHandle().onUnLink(@, (mousePos) =>
-      if  @_marker._icon?
-        if @_marker._icon.innerHTML.indexOf("right")>-1
-          @_marker.setIcon icon_default
-          @_marker._icon.innerHTML="<div class=\"markerLabel right\">#{@_markerLabelLocation}</div>"
-        else
-          @_marker.setIcon icon_default
-        if @_map.getZoom() <= 4
-          @_marker._icon.innerHTML = ''
-      else
-        @_marker.setIcon icon_higlighted
-
-    )
-
     @getHiventHandle().onAgeChanged @, (age) =>
       #no more Opacity
       #@_marker.setOpacity age
@@ -171,16 +142,14 @@ class HG.HiventMarker2D extends HG.HiventMarker
   _onMouseOver: (e) =>
     #@_hiventHandle.regionMarker.highlight()
 
-    @getHiventHandle().mark @, @_position
-    @getHiventHandle().linkAll @_position
+    @getHiventHandle().markAll @_position
     #@_updateMarker()
 
   # ============================================================================
   _onMouseOut: (e) =>
     #@_hiventHandle.regionMarker.unHiglight()
     if !@getHiventHandle()._activated
-      @getHiventHandle().unMark @, @_position
-      @getHiventHandle().unLinkAll @_position
+      @getHiventHandle().unMarkAll @_position
     #@_updateMarker()
 
   # ============================================================================
@@ -189,7 +158,7 @@ class HG.HiventMarker2D extends HG.HiventMarker
     # @getHiventHandle().toggleActive @, @getDisplayPosition()
 
     # marker: center horizontally and ~ 2/3 vertically; hivent box above marker
-    # @getHiventHandle().focusAll @, @_position
+    # @getHiventHandle().focusAll @
     # @getHiventHandle().activeAll @, @_position
     # @_updatePosition()
 
@@ -203,8 +172,8 @@ class HG.HiventMarker2D extends HG.HiventMarker
     if @_mode is "B"
       # marker: center horizontally and ~ 2/3 vertically; hivent box above marker
       @getHiventHandle().toggleActive @, @getDisplayPosition()
-      @getHiventHandle().focusAll @, @_position
-      @getHiventHandle().activeAll @, @_position
+      @getHiventHandle().focusAll @
+      @getHiventHandle().activeAll @
       @_updatePosition()
     '''
 
