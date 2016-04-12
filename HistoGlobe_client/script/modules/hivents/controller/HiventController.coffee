@@ -59,67 +59,67 @@ class HG.HiventController
 
       ### INIT Hivents ###
 
-      @_hiventInterface = new HG.HiventInterface
+      # @_hiventInterface = new HG.HiventInterface
 
-      # load start / end hivents of areas
-      @_hgInstance.areaController.onLoadAreaHivents @, (startHiventData, endHiventData, areaHandle) =>
+      # # load start / end hivents of areas
+      # @_hgInstance.areaController.onLoadAreaHivents @, (startHiventData, endHiventData, areaHandle) =>
 
-        if startHiventData
-          # check if hivent exists
-          startHiventHandle = null
-          for handle in @_hiventHandles
-            if startHiventData.id is handle.getHivent().id
-              startHiventHandle = handle
-              break
+      #   if startHiventData
+      #     # check if hivent exists
+      #     startHiventHandle = null
+      #     for handle in @_hiventHandles
+      #       if startHiventData.id is handle.getHivent().id
+      #         startHiventHandle = handle
+      #         break
 
-          # create model (hivent + handle)
-          if not startHiventHandle
-            startHivent = new HG.Hivent @_hiventInterface.loadFromServerModel startHiventData
-            startHiventHandle = new HG.HiventHandle startHivent
-            # update controller
-            @_hiventHandles.push startHiventHandle
-            # update view
-            @notifyAll 'onHiventAdded', startHiventHandle
+      #     # create model (hivent + handle)
+      #     if not startHiventHandle
+      #       startHivent = new HG.Hivent @_hiventInterface.loadFromServerModel startHiventData
+      #       startHiventHandle = new HG.HiventHandle startHivent
+      #       # update controller
+      #       @_hiventHandles.push startHiventHandle
+      #       # update view
+      #       @notifyAll 'onHiventAdded', startHiventHandle
 
-          # update model (area)
-          areaHandle.getArea().startHivent = startHiventHandle
+      #     # update model (area)
+      #     areaHandle.getArea().startHivent = startHiventHandle
 
-        if endHiventData
-          # check if hivent exists
-          endHiventHandle = null
-          for handle in @_hiventHandles
-            if startHiventData.id is handle.getHivent().id
-              endHiventHandle = handle
-              break
+      #   if endHiventData
+      #     # check if hivent exists
+      #     endHiventHandle = null
+      #     for handle in @_hiventHandles
+      #       if startHiventData.id is handle.getHivent().id
+      #         endHiventHandle = handle
+      #         break
 
-          # create model (hivent + handle)
-          if not endHiventHandle
-            endHivent = new HG.Hivent @_hiventInterface.loadFromServerModel endHiventData
-            endHiventHandle = new HG.HiventHandle endHivent
-            # update controller
-            @_hiventHandles.push endHiventHandle
-            # update view
-            @notifyAll 'onHiventAdded', endHiventHandle
+      #     # create model (hivent + handle)
+      #     if not endHiventHandle
+      #       endHivent = new HG.Hivent @_hiventInterface.loadFromServerModel endHiventData
+      #       endHiventHandle = new HG.HiventHandle endHivent
+      #       # update controller
+      #       @_hiventHandles.push endHiventHandle
+      #       # update view
+      #       @notifyAll 'onHiventAdded', endHiventHandle
 
-          # update model (area)
-          areaHandle.getArea().endHivent = endHiventHandle
+      #     # update model (area)
+      #     areaHandle.getArea().endHivent = endHiventHandle
 
-        @_handlesNeedSorting = true
+      #   @_handlesNeedSorting = true
 
-      # load the rest of the hivents that were not start / end hivents of areas
-      @_hgInstance.areaController.onFinishLoadingAreaHivents @, () =>
+      # # load the rest of the hivents that were not start / end hivents of areas
+      # @_hgInstance.areaController.onFinishLoadingAreaHivents @, () =>
 
-        @_sortHivents()
+      #   @_sortHivents()
 
-        @_hiventInterface.loadRestHivents @_hiventHandles
-        @_hiventInterface.onLoadRestHivent @, (hiventData) =>
-          hivent = new HG.Hivent hiventData
-          hiventHandle = new HG.HiventHandle hivent
-          @_hiventHandles.push hiventHandle
-          @notifyAll 'onHiventAdded', hiventHandle
+      #   @_hiventInterface.loadRestHivents @_hiventHandles
+      #   @_hiventInterface.onLoadRestHivent @, (hiventData) =>
+      #     hivent = new HG.Hivent hiventData
+      #     hiventHandle = new HG.HiventHandle hivent
+      #     @_hiventHandles.push hiventHandle
+      #     @notifyAll 'onHiventAdded', hiventHandle
 
-        @_hiventInterface.onFinishLoadingRestHivents @, () =>
-          @_sortHivents()
+      #   @_hiventInterface.onFinishLoadingRestHivents @, () =>
+      #     @_sortHivents()
 
 
       ### EDIT MODE ###

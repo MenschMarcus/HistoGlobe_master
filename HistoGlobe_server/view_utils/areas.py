@@ -41,11 +41,6 @@ def create_area(area):
   formal_name = utils.validate_string(area['formal_name'])
   if (short_name == False) or (formal_name == False): return False
 
-  # sovereignty status
-  sovereignty_status = utils.validate_string(area['sovereignty_status'])
-  if not any(sovereignty_status in char for char in ['F', 'P', 'N']):
-    sovereignty_status = 'F' # default fallback value: fully sovereign entity
-
   # territory of
   # EITHER None OR id of an area
   territory_of = None
@@ -156,3 +151,25 @@ def prepare_area_output(areas, chunk_size, chunks_complete) :
   json_str += '}'
 
   return json_str
+
+
+
+# ==============================================================================
+# temporary quick and dirty functions
+# ==============================================================================
+
+def prepare_territory(territory_model):
+  start_change = None
+  end_change = None
+  if territory_model.start_change:
+    start_change = territory_model.start_change.id
+  if territory_model.end_change:
+    end_change = territory_model.end_change.id
+
+  return({
+    'id':                   territory_model.id,
+    'start_change':         start_change,
+    'end_change':           end_change,
+    'representative_point': territory_model.representative_point.wkt,
+    'geometry':             territory_model.geometry.wkt
+  })

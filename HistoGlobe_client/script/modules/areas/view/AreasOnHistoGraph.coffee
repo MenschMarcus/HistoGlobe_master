@@ -26,24 +26,24 @@ class HG.AreasOnHistoGraph
     # event handling
     @_hgInstance.onAllModulesLoaded @, () =>
 
-      @_hgInstance.areaController.onSelect @, (area) =>
-        @_selectedAreas.push area
-        @_hgInstance.histoGraph.updateHeight 1
+      # @_hgInstance.areaController.onSelect @, (area) =>
+      #   @_selectedAreas.push area
+      #   @_hgInstance.histoGraph.updateHeight 1
 
-      @_hgInstance.areaController.onDeselect @, (area) =>
-        idx = @_selectedAreas.indexOf area
-        @_selectedAreas.splice idx, 1
-        @_hgInstance.histoGraph.updateHeight -1
+      # @_hgInstance.areaController.onDeselect @, (area) =>
+      #   idx = @_selectedAreas.indexOf area
+      #   @_selectedAreas.splice idx, 1
+      #   @_hgInstance.histoGraph.updateHeight -1
 
-      @_hgInstance.areaController.onToggleSelect @, (oldArea, newArea) =>
-        idx = @_selectedAreas.indexOf oldArea
-        @_selectedAreas[idx] = newArea
-        # do not update height of HistoGraph
-        # => call immediately
-        @_updateHistory()
+      # @_hgInstance.areaController.onToggleSelect @, (oldArea, newArea) =>
+      #   idx = @_selectedAreas.indexOf oldArea
+      #   @_selectedAreas[idx] = newArea
+      #   # do not update height of HistoGraph
+      #   # => call immediately
+      #   @_updateHistory()
 
-      @_hgInstance.histoGraph.onHeightChanged @, () =>
-        @_updateHistory()
+      # @_hgInstance.histoGraph.onHeightChanged @, () =>
+      #   @_updateHistory()
 
 
 

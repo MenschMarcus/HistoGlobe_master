@@ -13,6 +13,7 @@
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
+from django.forms.models import model_to_dict
 
 # GeoDjango
 from django.contrib.gis.geos import Point
@@ -69,6 +70,46 @@ GET:  client requires data from the server and awaits an answer
 
 def index(request):
   return render(request, 'HistoGlobe_client/index.htm', {})
+
+
+################################################################################
+################################################################################
+################################################################################
+
+# temporary fast quick and dirty solution
+
+def get_all(empty_request):
+
+
+  out = {
+    'hivents':          [],
+    'areas':            [],
+    'area_names':       [],
+    'area_territories': []
+  }
+
+  # 1) get all hivents
+  for hivent_model in Hivent.objects.all():
+    out['hivents'].append(view_utils.hivents.prepare_hivent(hivent_model))
+
+  # 2) get all areas
+  for area_model in Area.objects.all():
+    out['areas'].append(model_to_dict(area_model))
+
+  # 3) get all additional information to all Areas
+  for area_name_model in AreaName.objects.all():
+    out['area_names'].append(model_to_dict(area_name_model))
+
+  for area_territory_model in AreaTerritory.objects.all():
+    out['area_territories'].append(view_utils.areas.prepare_territory(area_territory_model))
+
+  # prepare and deliver everything to the client
+  return HttpResponse(json.dumps(out))
+
+################################################################################
+################################################################################
+################################################################################
+
 
 
 # ==============================================================================
