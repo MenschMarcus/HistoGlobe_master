@@ -7,6 +7,8 @@ TEST_BUTTON = no
 # EditMode registers clicks on edit operation buttons -> init operation
 #   manage operation window (init, send data, get data)
 #   handle communication with backend (get data, send data)
+#
+# hierachy: EditMode -> EditOperation -> EditOperationStep -> action
 # ==============================================================================
 
 
@@ -25,8 +27,10 @@ class HG.EditMode
 
     @addCallback 'onEnableMultiSelection'
     @addCallback 'onDisableMultiSelection'
-    @addCallback 'onEnableAreaEditMode'
-    @addCallback 'onDisableAreaEditMode'
+
+
+    ############################################################################
+    # TRASHCAN
 
     @addCallback 'onCreateArea'
     @addCallback 'onUpdateAreaGeometry'
@@ -45,12 +49,17 @@ class HG.EditMode
 
     @addCallback 'onCreateHivent'
 
+    ############################################################################
+
 
     # init config
     defaultConfig =
       editOperationsPath: 'common/editOperations.json'
 
     @_config = $.extend {}, defaultConfig, config
+
+    # init members
+    @_areaEditMode = off
 
 
   # ============================================================================
@@ -146,8 +155,6 @@ class HG.EditMode
       @_editButtonArea.addButton @_editButton
 
 
-      ### EDIT HIERACHY: EDIT MODE -> OPERATION -> STEP -> ACTION ###
-
       ## (1) EDIT MODE ##
       # listen to click on edit button => start edit mode
       @_editButton.onEnter @, () ->
@@ -180,6 +187,15 @@ class HG.EditMode
       @_editButton.onLeave @, () ->
         @_cleanupEditMode()
     )
+
+
+  # ============================================================================
+  # sets / returns status of edit mode for areas
+  # ============================================================================
+
+  enterAreaEditMode: () ->  @_areaEditMode = on
+  leaveAreaEditMode: () ->  @_areaEditMode = off
+  areaEditMode: () ->       @_areaEditMode
 
 
   ##############################################################################
@@ -237,8 +253,8 @@ class HG.EditMode
     @_title.destroy()
 
     # remove operation buttons
-    @_operationButtons.foreach (b) =>
-      b.button.destroy()
+    @_operationButtons.foreach (opb) =>
+      opb.button.destroy()
 
     # remove new hivent button
     @_newHiventButton.destroy()
@@ -247,14 +263,13 @@ class HG.EditMode
     @_editButton.deactivate()
     @_editButton.changeState 'normal'
 
-
   # ============================================================================
   _setupOperation: () ->
     # disable all buttons
     @_editButton.disable()
     @_newHiventButton.disable()
-    @_operationButtons.foreach (obj) =>
-      obj.button.disable()
+    @_operationButtons.foreach (opb) =>
+      opb.button.disable()
 
     # highlight button of current operation
     # TODO (opId_move_to_operation)

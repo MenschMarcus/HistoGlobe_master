@@ -6,6 +6,7 @@ window.HG ?= {}
 # objects may register listeners for changes and/or trigger state changes.
 # Every AreaHandle is responsible for exactly one Area.
 # ==============================================================================
+
 class HG.AreaHandle
 
   ##############################################################################
@@ -13,16 +14,16 @@ class HG.AreaHandle
   ##############################################################################
 
   # ============================================================================
-  # Constructor
-  # Initializes member data and stores a reference to the passed Hivent object.
+  # Initializes member data and stores a reference to the passed Area object.
   # ============================================================================
+
   constructor: (@_area) ->
 
-    # Internal states
-    @_visible = no    # is area currently on the map?
-    @_active = no     # is area currently active/selected?
-    @_focused = no    # is area currently in focus (hovered)?
-    @_inEdit = no     # is area in edit mode?
+    # Internal states                                           functions to toggle state
+    @_visible = no    # is area currently on the map?           show()      hide()
+    @_focused = no    # is area currently in focus (hovered)?   focus()     unfocus()
+    @_selected = no   # is area currently active/selected?      select()    deselect()
+    @_inEdit = no     # is area in edit mode?                   startEdit() endEdit()
 
     @sortingIndex = -1
 
@@ -30,171 +31,306 @@ class HG.AreaHandle
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    # Add callbacks for all states. These are triggered by the corresponding
-    # function specified below.
+    # Add callbacks for all states.
+    # These are triggered by the corresponding function specified below.
+
+    @addCallback 'onUpdateTerritory'
+    @addCallback 'onAddName'
+    @addCallback 'onUpdateName'
+    @addCallback 'onRemoveName'
+
+    @addCallback 'onShow'
+    @addCallback 'onHide'
+    @addCallback 'onFocus'
+    @addCallback 'onUnfocus'
+    @addCallback 'onSelect'
+    @addCallback 'onDeselect'
+    @addCallback 'onStartEdit'
+    @addCallback 'onEndEdit'
+
+    @addCallback 'onDestroy'
 
 
+  # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  ### GET PROPERTIES OF THE AREA ###
+  # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
   # ============================================================================
-  # Get the Area
+  # Return the actual Area associated to the handle.
   # ============================================================================
+
   getArea: ->       @_area
 
 
   # ============================================================================
-  # Get start / end of the Area
+  # Return start / end date of the Area.
   # ============================================================================
-  getStartDate: () -> @startHivent.getHivent().effectDate # startHivent must be given
-  getEndDate: () ->   if @endHivent then @endHivent.getHivent().effectDate else moment()
+
+  getStartDate: () ->
+    # startHivent must be given, so no error handling necessary
+    @_area.startHivent.getHivent().effectDate
+
+  # ----------------------------------------------------------------------------
+  getEndDate: () ->
+    if @_area.endHivent # if it has an end hivent
+      @_area.endHivent.getHivent().effectDate
+    else                # if it does nothave an end hivent, it is still valid
+      moment()          # = now
+
+
+  # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  ### CHANGE PROPERTIES OF THE AREA ###
+  # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   # ============================================================================
-  # Get the state of the Area
+  # Notifies all listeners that the Area associated with the AreaHandle has a
+  # new territory (geometry and/or representative point). This is triggered when
+  # it gets changed by a step in an EditModeOperation or by an Hivent.
+  # Notifies either a specific listener (by specifying an obj) or all listeners.
   # ============================================================================
+
+  updateTerritory: (obj=null) ->
+    if obj
+      @notify 'onUpdateTerritory', obj, @
+    else
+      @notifyAll 'onUpdateTerritory', @
+
+  # ============================================================================
+  # Notifies all listeners that the Area associated with the AreaHandle has a
+  # now a name (-> add), a new name (-> update) or no name anymore (-> remove).
+  # This is triggered when it gets changed by a step in an EditModeOperation or
+  # by an Hivent.
+  # Notifies either a specific listener (by specifying an obj) or all listeners.
+  # ============================================================================
+
+  addName: (obj=null) ->
+    if obj
+      @notify 'onAddName', obj, @
+    else
+      @notifyAll 'onAddName', @
+
+  # ----------------------------------------------------------------------------
+  updateName: (obj=null) ->
+    if obj
+      @notify 'onUpdateName', obj, @
+    else
+      @notifyAll 'onUpdateName', @
+
+  # ----------------------------------------------------------------------------
+  removeName: (obj=null) ->
+    if obj
+      @notify 'onRemoveName', obj, @
+    else
+      @notifyAll 'onUpdateName', @
+
+
+  # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  ### GET STATE OF THE AREA ###
+  # ->TODO: is that necessary? Is it used anywhere?
+  # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
   isVisble: () ->   @_visible
   isActive: () ->   @_active
   isFocused: () ->  @_focused
   isInEdit: () ->   @_inEdit
 
 
-  # ============================================================================
-  # Notifies listeners that the AreaHandle is now active. Usually, this is
-  # triggered when a map or timeline icon belonging to a Hivent is being
-  # clicked. "mousePixelPosition" may be passed and should be the click's
-  # location in device coordinates.
-  # ============================================================================
-  activeAll: (mousePixelPosition) ->
-    @_active = true
-    ACTIVE_HIVENTS.push @
-    @notifyAll "onActive", mousePixelPosition, @
-
-  # ----------------------------------------------------------------------------
-  active: (obj, mousePixelPosition) ->
-    @_active = true
-    ACTIVE_HIVENTS.push @
-    @notify "onActive", obj, mousePixelPosition, @
-
+  # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  ### CHANGE STATE OF THE AREA ###
+  # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   # ============================================================================
-  # Notifies all listeners that the AreaHandle is now inactive. Usually, this
-  # is triggered when a map or timeline icon belonging to a Hivent is being
-  # clicked. "mousePixelPosition" may be passed and should be the click's
-  # location in device coordinates.
+  # Notifies all listeners that the Area associated with the AreaHandle is now
+  # visible. This is triggered when an hivent occurs that makes this area valid.
+  # Notifies either a specific listener (by specifying an obj) or all listeners.
   # ============================================================================
-  inActiveAll: (mousePixelPosition) ->
-    @_active = false
-    index = $.inArray(@, ACTIVE_HIVENTS)
-    if index >= 0 then delete ACTIVE_HIVENTS[index]
-    @notifyAll "onInActive", mousePixelPosition, @
 
-  # ----------------------------------------------------------------------------
-  inActive: (obj, mousePixelPosition) ->
-    @_active = false
-    index = $.inArray(@, ACTIVE_HIVENTS)
-    if index >= 0 then delete ACTIVE_HIVENTS[index]
-    @notify "onInActive", obj, mousePixelPosition, @
+  show: (obj=null) ->
+    if not @_visible
+      @_visible = yes
+      VISIBLE_AREAS.push @
+      if obj
+        @notify 'onShow', obj, @
+      else
+        @notifyAll 'onShow', @
 
 
   # ============================================================================
-  # Toggles the AreaHandle's active state and notifies all listeners according
-  # to the new value of "@_active".
+  # Notifies all listeners that the Area associated with the AreaHandle is now
+  # invisible. This is triggered when an hivent occurs that makes this area invalid.
+  # Notifies either a specific listener (by specifying an obj) or all listeners.
   # ============================================================================
-  toggleActiveAll: (mousePixelPosition) ->
-    @_active = not @_active
-    if @_active
-      @activeAll mousePixelPosition
+
+  hide: (obj=null) ->
+    if @_visible
+      @_visible = no
+      @_removeFromArray(@, VISIBLE_AREAS)
+      if obj
+        @notify 'onHide', obj, @
+      else
+        @notifyAll 'onHide', @
+
+
+  # ============================================================================
+  # Notifies all listeners to focus on the Area associated with the AreaHandle.
+  # This is triggered when a map area layer is being hovered.
+  # Notifies either a specific listener (by specifying an obj) or all listeners.
+  # ============================================================================
+
+  focus: (obj=null) ->
+    if not @_focused
+
+      # edit mode: only non-selected areas in edit mode can be focused
+      # -> why unselected?
+      areaEditMode = @_hgInstance.editMode?.areaEditMode
+      if areaEditMode is on
+        if (@_inEdit) and (not @_selected)
+          @_focused = yes
+
+      # normal mode: each area can be focused
+      else  # areaEditMode is off
+        @_focused = yes
+
+      # update
+      if @_focused
+        if obj
+          @notify 'onFocus', obj, @
+        else
+          @notifyAll 'onFocus', @
+
+  # ============================================================================
+  # Notifies all listeners to unfocus on the Area associated with the AreaHandle.
+  # This is triggered when a map area layer is not being hovered anymore.
+  # Notifies either a specific listener (by specifying an obj) or all listeners.
+  # ============================================================================
+
+  unfocus: (obj=null) ->
+    if @_focused
+      @_focused = false
+      if obj
+        @notify 'onFocus', obj, @
+      else
+        @notifyAll 'onFocus', @
+
+
+  # ============================================================================
+  # Notifies listeners that the Area associated with the AreaHandle is now
+  # selected. This is triggered when a map area layer belonging to a Area is
+  # being clicked on.
+  # Notifies either a specific listener (by specifying an obj) or all listeners.
+  # ============================================================================
+
+  select: (obj=null) ->
+
+    # status changes:         4 possible outcomes
+    becameSelected = no     # yes = unselected -> selected    no = stays unselected
+    becameDeselected = no   # yes = selected -> unselected    no = stays selected
+
+    # area is selected => deselect
+    if @_selected
+      becameDeselected = yes
+
+    # area is not selected => decide if it can be selected
     else
-      @inActiveAll mousePixelPosition
 
-  # ----------------------------------------------------------------------------
-  toggleActive: (obj, mousePixelPosition) ->
-    @_active = not @_active
-    if @_active
-      @active obj, mousePixelPosition
+      # maximum number of areas that can be selected
+      maxSelections = @_hgInstance.areaController.getMaxNumOfSelections()
+
+      # single-selection mode: toggle selected area
+      if maxSelections is 1
+        SELECTED_AREAS[0].deselect(obj) if SELECTED_AREAS.length is 1
+        becameSelected = yes
+
+
+      # multi-selection mode: add to selected area if max limit is not reached
+      else  # maxSelections > 1
+        if SELECTED_AREAS.length < maxSelections
+          becameSelected = yes
+
+      # else: area not selected but selection limit reached => no selection
+
+    # status change 1) deselected -> selected
+    if becameSelected
+      SELECTED_AREAS.push @
+      if obj
+        @notify 'onSelect', obj, @,
+      else
+        @notifyAll 'onSelect', @
+
+    # status change 3) selected -> deselected
+    if becameDeselected
+      @deselect obj
+
+
+  # ============================================================================
+  # Notifies listeners that the Area associated with the AreaHandle is now not
+  # selected anymore. This is triggered when a selected map area layer belonging
+  # to a Area is being clicked on again.
+  # Notifies either a specific listener (by specifying an obj) or all listeners.
+  # ============================================================================
+
+  deselect: (obj=null) ->
+    if @_selected
+      @_selected = no
+      @_removeFromArray(@, SELECTED_AREAS)
+      if obj
+        @notify 'onDeselect', obj, @
+      else
+        @notifyAll 'onDeselect', @
+
+
+  # ============================================================================
+  # Notifies listeners that the Area associated with the AreaHandle is now in
+  # the EditMode. This is triggered when an area is set in this state by an
+  # action in an EditOperationStep.
+  # Notifies either a specific listener (by specifying an obj) or all listeners.
+  # ============================================================================
+
+  startEdit: (obj=null) ->
+    @_inEdit = yes
+    EDIT_AREAS.push @
+    if obj
+      @notify 'onStartEdit', obj, @
     else
-      @inActive obj, mousePixelPosition
+      @notifyAll 'onStartEdit', @
 
 
   # ============================================================================
-  # Notifies all listeners that the AreaHandle is now marked. Usually, this is
-  # triggered when a map or timeline icon belonging to a Hivent is being
-  # hovered. "mousePixelPosition" may be passed and should be the mouse's
-  # location in device coordinates.
+  # Notifies listeners that the AreaHandle is now not selected anymore. This is
+  # triggered when a selected map area layer belonging to a Area is being
+  # clicked on again.
+  # Notifies either a specific listener (by specifying an obj) or all listeners.
   # ============================================================================
-  markAll: (mousePixelPosition) ->
-    unless @_marked
-      @_marked = true
-      @notifyAll "onMark", mousePixelPosition
 
-  # ----------------------------------------------------------------------------
-  mark: (obj, mousePixelPosition) ->
-    unless @_marked
-      @_marked = true
-      @notify "onMark", obj, mousePixelPosition
+  endEdit: (obj=null) ->
+    @_inEdit = no
+    @_removeFromArray @, EDIT_AREAS
+    if obj
+      @notify 'onEndEdit', obj, @
+    else
+      @notifyAll 'onEndEdit', @
 
 
   # ============================================================================
-  # Notifies all listeners that the AreaHandle is no longer marked. Usually,
-  # this is triggered when a map or timeline icon belonging to a Hivent is being
-  # hovered. "mousePixelPosition" may be passed and should be the mouse's
-  # location in device coordinates.
-  # ============================================================================
-  unMarkAll: (mousePixelPosition) ->
-    if @_marked
-      @_marked = false
-      @notifyAll "onUnMark", mousePixelPosition
-
-  # ----------------------------------------------------------------------------
-  unMark: (obj, mousePixelPosition) ->
-    if @_marked
-      @_marked = false
-      @notify "onUnMark", obj, mousePixelPosition
-
-
-  # ============================================================================
-  # Notifies all listeners to focus on the Hivent associated with the
-  # AreaHandle.
-  # ============================================================================
-  focusAll: () ->
-    @_focused = true
-    @notifyAll "onFocus"
-
-  # ----------------------------------------------------------------------------
-  focus: (obj) ->
-    @_focused = true
-    @notify "onFocus", obj
-
-
-  # ============================================================================
-  # Notifies all listeners that the Hivent associated with the AreaHandle
-  # shall no longer be focussed.
-  # ============================================================================
-  unFocusAll: () ->
-    @_focused = false
-    @notifyAll "onUnFocus"
-
-  # ----------------------------------------------------------------------------
-  unFocus: (obj) ->
-    @_focused = false
-    @notify "onUnFocus", obj
-
-
-  # ============================================================================
-  # Notifies listeners that the Hivent the AreaHandle is destroyed. This
+  # Notifies listeners that the Area in the AreaHandle is destroyed. This
   # is used to allow for proper clean up.
+  # Notifies either a specific listener (by specifying an obj) or all listeners.
   # ============================================================================
-  destroyAll: ->
-    @notifyAll "onDestruction"
-    @_destroy()
 
-  # ----------------------------------------------------------------------------
-  destroy: (obj) ->
-    @notify "onDestruction", obj
-    @_destroy()
+  destroy: (obj=null) ->
+    if obj
+      @notify 'onHide', obj
+      @notify 'onDestroy', obj
+    else
+      @notify 'onHide'
+      @notifyAll 'onDestroy'
+    delete @
 
 
   # ============================================================================
-  # Return the current style of the area based on its status
-  # this one function that does all the coloring was SO hard to come up with.
-  # Please no major changes, it will be a f***ing p*in *n the a**
+  # Returns the current style of the area based on its status.
+  # This one function that does all the coloring was SO hard to come up with.
+  # Please apply no major changes, it will be a f***ing p*in *n the a**
   # ============================================================================
 
   getStyle: () ->
@@ -248,7 +384,7 @@ class HG.AreaHandle
 
         else # not focused
           # (E)  in edit mode + unselected + not focused => half active
-          style.areaColor = HGConfig.color_active.val
+          style.areaColor =   HGConfig.color_active.val
           style.areaOpacity = HGConfig.area_half_opacity.val
 
     else # not in edit
@@ -261,14 +397,14 @@ class HG.AreaHandle
 
         else # not focused
           # (NS) normal area + selected + not focused => half active
-          style.areaColor = HGConfig.color_active.val
+          style.areaColor =   HGConfig.color_active.val
           style.areaOpacity = HGConfig.area_half_opacity.val
 
       else # not selected
 
         if @_focused
           # (NF) normal area + unselected + focused => half highlight
-          style.areaColor = HGConfig.color_highlight.val
+          style.areaColor =   HGConfig.color_highlight.val
           style.areaOpacity = HGConfig.area_half_opacity.val
 
         # else not focused
@@ -277,31 +413,19 @@ class HG.AreaHandle
 
     return style
 
+
   ##############################################################################
-  #                            PRIVATE INTERFACE                               #
+  #                             PRIVATE MEMBERS                                #
   ##############################################################################
 
-  # ============================================================================
-  _destroy: ->
-    @_onActiveCallbacks = []
-    @_onInActiveCallbacks = []
-    @_onMarkCallbacks = []
-    @_onUnMarkCallbacks = []
-    @_onLinkCallbacks = []
-    @_onUnLinkCallbacks = []
-    @_onUnFocusCallbacks = []
-    @_onFocusCallbacks = []
-    @_onUnFocusCallbacks = []
-
-    @_onDestructionCallbacks = []
-
-    delete @
-    return
-
+  _removeFromArray: (elem, array) ->
+    idx = $.inArray(elem, array)
+    delete array[idx] if idx >= 0
 
   ##############################################################################
   #                             STATIC MEMBERS                                 #
   ##############################################################################
 
   VISIBLE_AREAS = []    # areas currently visible in the view
-  ACTIVE_AREAS = []     # areas currently active / selected in the view
+  SELECTED_AREAS = []   # areas currently selected in the view
+  EDIT_AREAS = []       # areas currently in the edit mode

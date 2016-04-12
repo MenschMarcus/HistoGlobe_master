@@ -22,7 +22,10 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
     ### SETUP OPERATION (1) ###
 
-    @notifyEditMode 'onEnableAreaEditMode' if @_isForward
+    # reset states
+    if @_isForward
+      @_hgInstance.areaController.enableMultiSelection HGConfig.max_area_selection.val
+      @_hgInstance.editMode.enterAreaEditMode()
 
     # some operations work directly on selected areas from first step
     # PROBLEM: AreaController deselects them by disabling multi-selection mode
@@ -453,4 +456,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
     @_hgInstance.newGeometryTool?.destroy()
     @_hgInstance.newGeometryTool = null
 
-    @notifyEditMode 'onDisableAreaEditMode' if not @_isForward
+    # leave edit mode for areas
+    if not @_isForward
+      @_hgInstance.editMode.leaveAreaEditMode()
+      @_hgInstance.areaController.disableMultiSelection()

@@ -98,7 +98,7 @@ def get_init_area_ids(request):
     start_hivent = in_area.start_change.hivent
     if (start_hivent):
       start_date = start_hivent.effect_date
-      out_area['start_hivent'] = view_utils.hivents.prepare_hivent(start_hivent)
+      out_area['start_hivent'] = start_hivent.id
 
     # error handling: areas without a start date do not make sense
     else: continue
@@ -109,13 +109,21 @@ def get_init_area_ids(request):
     if (end_change):
       end_hivent = end_change.hivent
       end_date = end_hivent.effect_date
-      out_area['end_hivent'] = view_utils.hivents.prepare_hivent(end_hivent)
+      out_area['end_hivent'] = end_hivent.id
     else:
       end_date = timezone.now()
       out_area['end_hivent'] = None
 
-    # area is active if current date is in between start and end date of area
-    out_area['active'] = (start_date <= now_date) and (now_date < end_date)
+    # area is visible if current date is in between start and end date of area
+    out_area['visible'] = (start_date <= now_date) and (now_date < end_date)
+
+    # add predecessors and successors to area information
+    out_area['predecessors'] = in_area.get_predecessors()
+    out_area['successors'] = in_area.get_successors()
+
+    # add territorial relations to area information
+    out_area['sovereignt'] = in_area.get_sovereignt()
+    out_area['dependencies'] = in_area.get_dependencies()
 
     areas.append(out_area)
 
@@ -140,20 +148,21 @@ def get_init_areas(request):
       float(request_data['centerLng'])
     )
 
-  chunk_id = int(request_data['chunkId'])
-  chunk_size = int(request_data['chunkSize'])
+  chunk_id =    int(request_data['chunkId'])
+  chunk_size =  int(request_data['chunkSize'])
+  area_ids =    request_data['areaIds']
 
-  area_ids = request_data['areas']
-  areas = Area.objects.filter(id__in=area_ids)
-
-
-  ## PROCESSING
-
-  # get set of areas for this part of the request
-  [areas, chunk_size, chunks_complete] = view_utils.areas.get_area_chunk(areas, viewport_center, chunk_id, chunk_size)
 
   ## OUTPUT
-  return HttpResponse(prepare_area_output(areas, chunk_size, chunks_complete))
+  return HttpResponse(
+    # get set of areas for this part of the request
+    view_utils.areas.get_area_chunk(
+      area_ids,
+      viewport_center,
+      chunk_id,
+      chunk_size
+    )
+  )
 
 
 # ==============================================================================

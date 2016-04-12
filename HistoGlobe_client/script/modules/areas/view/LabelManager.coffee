@@ -95,6 +95,7 @@ class HG.LabelManager
 
     # @DEBUG()
 
+
   # ============================================================================
   remove: (removeLabel) ->
 
@@ -132,8 +133,8 @@ class HG.LabelManager
     # finally remove the label from the list
     @_labelList.removeNode removeNode
 
-
     # @DEBUG()
+
 
   # ============================================================================
   update: (label) ->
@@ -148,6 +149,7 @@ class HG.LabelManager
       # check with all higher priority labels if it gets covered by them now
     # if it got smaller or position has changed
       # check with all lower priority labels if it covers them now
+
 
   # ============================================================================
   zoomIn: () ->
@@ -234,10 +236,6 @@ class HG.LabelManager
 
       # go to next node
       currNode = currNode.next
-
-
-
-
 
 
   ##############################################################################

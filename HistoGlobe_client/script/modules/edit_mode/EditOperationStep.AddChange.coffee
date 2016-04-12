@@ -18,7 +18,9 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
 
     ### SETUP OPERATION ###
 
-    @notifyEditMode 'onEnableAreaEditMode' if not @_isForward
+    if not @_isForward
+      @_hgInstance.areaController.enableMultiSelection HGConfig.max_area_selection.val
+      @_hgInstance.editMode.enterAreaEditMode()
 
     # hivent box: select existing or create new hivent
     @_hiventBox = new HG.NewHiventBox @_hgInstance, @_stepData, "HORST"
@@ -62,4 +64,5 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
     @_hiventBox.destroy()
 
     # TODO: decide which area to have seleted after everything is over
-    @notifyEditMode 'onDisableAreaEditMode' if @_isForward
+    @_hgInstance.editMode.leaveAreaEditMode()
+    @_hgInstance.areaController.disableMultiSelection()

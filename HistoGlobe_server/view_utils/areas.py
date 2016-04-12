@@ -70,19 +70,36 @@ def create_area(area):
 # return chunk, the current size and if it was the last chunk
 # ==============================================================================
 
-def get_area_chunk(required_areas, viewport_center, chunk_id, chunk_size):
+def get_area_chunk(required_area_ids, viewport_center, chunk_id, chunk_size):
 
   # assign a distance value to the viewport center for all areas
   # ->  find all areas that are in a distance of 42000 km (= earths diameter)
   #     to the viewport center = find all areas
   # dist = {'km': 2800}  # DEBUG
   dist = {'km': 42000}
-  areas = required_areas.filter(
+
+  # get territories and filter them by distance to viewport center
+  all_territories = AreaTerritory.filter(area__in=required_areas)
+
+  required_territories = all_territories.filter(
     representative_point__distance_lte=(viewport_center, measure.D(**dist))
   )
 
-  # sort areas by their new distance value
-  areas_sorted = areas.distance(viewport_center).order_by('distance')
+  # sort territories by their new distance value
+  sorted_territories = required_territories.distance(viewport_center).order_by('distance')
+
+  # extract current chunk
+  chunk_territories = sorted_territories[start_id:end_id]
+
+  # get all properties needed for output to the client
+  a_id =                  None
+  short_name =            None
+  formal_name =           None
+  representative_point =  None
+  geometry =              None
+
+  for territory in chunk_territories:
+    areas.append(territory.area)
 
   # check if total number of areas reached
   chunks_complete = False
@@ -96,11 +113,7 @@ def get_area_chunk(required_areas, viewport_center, chunk_id, chunk_size):
     end_id = num_areas
     chunk_size = end_id-start_id
 
-  return [
-    areas_sorted[start_id:end_id],
-    chunk_size,
-    chunks_complete
-  ]
+  return prepare_area_output(areas, chunk_size, chunks_complete)
 
 
 
@@ -110,6 +123,8 @@ def get_area_chunk(required_areas, viewport_center, chunk_id, chunk_size):
 # it looks horrible, but it is the only way I could see to avoid
 # serializing and deserializing the geometry (see #1 json string)
 # ==============================================================================
+
+def prepare_area_output(areas, chunk_size, chunks_complete) :
 
   json_str  = '{'
   json_str +=   '"type":"FeatureCollection",'
@@ -128,7 +143,6 @@ def get_area_chunk(required_areas, viewport_center, chunk_id, chunk_size):
     json_str +=     '"formal_name":"'         + str(area.formal_name.encode('utf-8')) + '",'   # N.B: encode with utf-8!
     json_str +=     '"representative_point":' + area.representative_point.json        + ','
     json_str +=     '"sovereignty_status":"'  + str(area.sovereignty_status)          + '",'
-    json_str +=     '"territory_of":"'        + str(area.territory_of)                + '"'
     json_str +=   '},'
     json_str +=   '"geometry":'               + area.geom.json    #1 json string
     json_str += '}'

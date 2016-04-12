@@ -18,3 +18,6 @@ class HG.AreaName
     @id           = data.id
     @shortName    = data.shortName
     @formalName   = data.formalName
+
+    @startHivent  = null    # HG.HiventHandle
+    @endHivent    = null    # HG.HiventHandle

@@ -17,5 +17,7 @@ class HG.AreaTerritory
     @id                   = data.id
     @geometry             = data.geometry
     @representativePoint  = data.representativePoint
-
     # to reset representativePoint: @geometry.getCenter()
+
+    @startHivent          = null    # HG.HiventHandle
+    @endHivent            = null    # HG.HiventHandle

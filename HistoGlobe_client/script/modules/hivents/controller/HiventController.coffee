@@ -62,7 +62,7 @@ class HG.HiventController
       @_hiventInterface = new HG.HiventInterface
 
       # load start / end hivents of areas
-      @_hgInstance.areaController.onLoadAreaHivents @, (startHiventData, endHiventData, area) =>
+      @_hgInstance.areaController.onLoadAreaHivents @, (startHiventData, endHiventData, areaHandle) =>
 
         if startHiventData
           # check if hivent exists
@@ -82,7 +82,7 @@ class HG.HiventController
             @notifyAll 'onHiventAdded', startHiventHandle
 
           # update model (area)
-          area.setStartHivent startHiventHandle
+          areaHandle.getArea().startHivent = startHiventHandle
 
         if endHiventData
           # check if hivent exists
@@ -102,7 +102,7 @@ class HG.HiventController
             @notifyAll 'onHiventAdded', endHiventHandle
 
           # update model (area)
-          area.setEndHivent endHiventHandle
+          areaHandle.getArea().endHivent = endHiventHandle
 
         @_handlesNeedSorting = true
 
@@ -113,12 +113,9 @@ class HG.HiventController
 
         @_hiventInterface.loadRestHivents @_hiventHandles
         @_hiventInterface.onLoadRestHivent @, (hiventData) =>
-          # create model
           hivent = new HG.Hivent hiventData
           hiventHandle = new HG.HiventHandle hivent
-          # update controller
           @_hiventHandles.push hiventHandle
-          # update view
           @notifyAll 'onHiventAdded', hiventHandle
 
         @_hiventInterface.onFinishLoadingRestHivents @, () =>
@@ -128,17 +125,19 @@ class HG.HiventController
       ### EDIT MODE ###
 
       @_hgInstance.editMode.onCreateHivent @, (hiventFromServer, oldAreas, newAreas) =>
-        # create model
+
+        # create hivent
         hivent = new HG.Hivent @_hiventInterface.loadFromServerModel hiventFromServer, yes
         hiventHandle = new HG.HiventHandle hivent
-        # update model (areas)
-        oldArea.setEndHivent hiventHandle   for oldArea in oldAreas
-        newArea.setStartHivent hiventHandle for newArea in newAreas
-        # update controller
+
+        # update areas properties
+        oldArea.getArea().endHivent = hiventHandle   for oldArea in oldAreas
+        newArea.getArea().startHivent = hiventHandle for newArea in newAreas
+
         @_hiventHandles.push hiventHandle
         @_sortHivents()
-        # update view
         @notifyAll 'onHiventAdded'
+
 
       ### VIEW ###
 
@@ -197,19 +196,6 @@ class HG.HiventController
         # update now date
         @_nowDate = nowDate
 
-      # Register listeners to update filters or react on updated filters.
-      # @_hgInstance.timeline.onIntervalChanged @, (timeFilter) =>
-      #   @setTimeFilter timeFilter
-
-      # @_hgInstance.categoryFilter?.onFilterChanged @,(categoryFilter) =>
-      #   @_currentCategoryFilter = categoryFilter
-      #   @_filterHivents()
-      # @_hgInstance.categoryFilter?.onPrefixFilterChanged @,(categoryFilter) =>
-      #   @_currentCategoryFilter = categoryFilter
-      #   @_filterHivents()
-
-      # @_categoryFilter = hgInstance.categoryFilter if hgInstance.categoryFilter
-
 
   # ============================================================================
   # Returns all stored HiventHandles.
@@ -217,6 +203,7 @@ class HG.HiventController
   # is registered to be called for every Hivent loaded in the future and called
   # for every Hivent that has been loaded already.
   # ============================================================================
+
   getHivents: (object, callbackFunc) ->
     if object? and callbackFunc?
       @onHiventAdded object, callbackFunc
@@ -226,13 +213,16 @@ class HG.HiventController
 
     @_hiventHandles
 
+
   # ============================================================================
   # Sets the current time filter to the value of "timeFilter". The passed value
   # has to be an object of format {start: <Date>, end: <Date>}
   # ============================================================================
+
   setTimeFilter: (timeFilter) ->
     @_currentTimeFilter = timeFilter
     @_filterHivents();
+
 
   # ============================================================================
   # Sets the current space filter to the value of "spaceFilter". The passed
@@ -244,21 +234,19 @@ class HG.HiventController
     @_currentSpaceFilter = spaceFilter
     @_filterHivents()
 
-  '''# ============================================================================
-  setCategoryFilter: (categoryFilter) ->
-    @_currentCategoryFilter = categoryFilter
-    @_filterHivents()'''
 
   # ============================================================================
   # Returns a HiventHandle by the specified "hiventId". Every Hivent has to be
   # assigned a unique ID to avoid unexpected behaviour.
   # ============================================================================
-  getHiventHandleById: (hiventId) ->
+
+  getHiventHandle: (hiventId) ->
     for handle in @_hiventHandles
       if handle.getHivent().id is hiventId
         return handle
     console.log "A Hivent with the id \"#{hiventId}\" does not exist!"
     return null
+
 
   # ============================================================================
   # Returns a HiventHandle by the specified index of the internal array.
@@ -266,12 +254,15 @@ class HG.HiventController
   getHiventHandleByIndex: (handleIndex) ->
     return @_hiventHandles[handleIndex]
 
+
   # ============================================================================
-  # Get the next HiventHandle.
-  # Next in this case means the chronologically closest Hivent after the date
-  # specified by the passed Date object "now". "ignoredIds" can be specified
-  # to exclude specific HiventHandles from being selected.
+  # Get the next / previous HiventHandle.
+  # Next / Previous in this case means the chronologically closest Hivent
+  # after / before the date specified by the passed Date object "now".
+  # "ignoredIds" can be specified to exclude specific HiventHandles from being
+  # selected.
   # ============================================================================
+
   getNextHiventHandle: (now, ignoredIds=[]) ->
     result = null
     distance = -1
@@ -285,12 +276,9 @@ class HG.HiventController
           result = handle
     return result
 
-  # ============================================================================
-  # Get the next HiventHandle.
-  # Next in this case means the chronologically closest Hivent prior to the date
-  # specified by the passed Date object "now". "ignoredIds" can be specified
-  # to exclude specific HiventHandles from being selected.
-  # ============================================================================
+
+  # ----------------------------------------------------------------------------
+
   getPreviousHiventHandle: (now, ignoredIds=[]) ->
     result = null
     distance = -1
@@ -308,6 +296,7 @@ class HG.HiventController
   # ============================================================================
   # Blends in all visible Hivents.
   # ============================================================================
+
   showVisibleHivents: ->
     for handle in @_hiventHandles
 
@@ -335,9 +324,11 @@ class HG.HiventController
             return -1
       return 0
 
+
   # ============================================================================
   # Filters all HiventHandles according to all current filters
   # ============================================================================
+
   _filterHivents: ->
     if @_handlesNeedSorting
       @_sortHivents()
