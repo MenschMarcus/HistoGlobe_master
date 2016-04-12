@@ -19,20 +19,8 @@ class HG.AreaController
     @addCallback 'onLoadAreaHivents'
     @addCallback 'onFinishLoadingAreaHivents'
 
-    @addCallback 'onCreateGeometry'
-    @addCallback 'onCreateName'
-
-    @addCallback 'onUpdateGeometry'
-    @addCallback 'onUpdateName'
-    @addCallback 'onUpdateRepresentativePoint'
-    @addCallback 'onUpdateStatus'
-
-    @addCallback 'onRemoveGeometry'
-    @addCallback 'onRemoveName'
-
-    @addCallback 'onSelect'
-    @addCallback 'onToggleSelect'
-    @addCallback 'onDeselect'
+    @addCallback 'onCreateArea'
+    @addCallback 'onDestroyArea'
 
 
     # handle config
@@ -42,15 +30,39 @@ class HG.AreaController
 
 
     # init members
-    @_areaHandles = []            # all areas in HistoGlobe ((in)active, (un)selected, ...)
-    @_activeAreas = []            # set of all HG.Area's currently active
-    @_inactiveAreas = []          # set of all HG.Area's currently inactive
+    @_areaHandles = []            # all areas in HistoGlobe ((in)visible, (un)selected, ...)
+    @_changeQueue = new Queue()   # queue for all area changes on the map/globe
 
     @_maxSelections = 1           # 1 = single-selection mode, n = multi-selection mode
-    @_selectedAreas = []          # array of all currently active areas
-    @_areaEditMode = off          # in edit mode normal areas can not be selected
 
-    @_changeQueue = new Queue()   # queue for all area changes on the map/globe
+
+
+    ############################################################################
+    # TRASHCAN
+
+    # to AreaHandle?
+    @_visibleAreas = []            # set of all HG.AreaHandle's currently visible
+    @_selectedAreas = []          # array of all currently visible areas
+    @_invisibleAreas = []          # set of all HG.AreaHandle's currently invisible
+
+
+    # @_hgInstance.editMode.onCreateArea @, (id, geometry) ->
+    # @_hgInstance.editMode.onUpdateAreaGeometry @, (id, geometry) ->
+    # @_hgInstance.editMode.onUpdateAreaRepresentativePoint @, (id, reprPoint=null) ->
+    # @_hgInstance.editMode.onAddAreaName @, (id, shortName, formalName) ->
+    # @_hgInstance.editMode.onUpdateAreaName @, (id, shortName, formalName) ->
+    # @_hgInstance.editMode.onRemoveAreaName @, (id) ->
+    # @_hgInstance.editMode.onRemoveArea @, (id) ->
+    # @_hgInstance.editMode.onShowArea @, (id) ->
+    # @_hgInstance.editMode.onHideArea @, (id) ->
+    # @_hgInstance.editMode.onStartEditArea @, (id) ->
+    # @_hgInstance.editMode.onEndEditArea @, (id) ->
+    # @_hgInstance.editMode.onSelectArea @, (id) ->
+    # @_hgInstance.editMode.onDeselectArea @, (id) ->
+
+    ############################################################################
+
+
 
 
   # ============================================================================
@@ -60,56 +72,101 @@ class HG.AreaController
 
 
     ### INTERACTION ###
+
     @_hgInstance.onAllModulesLoaded @, () =>
 
+
+      # ========================================================================
       ### INIT AREAS ###
+      # loading mechanism:
+      # 1) load initial area data
+      #   (id + start hivent, end hivent, area relations, init name/territory id)
+      #   => create Area and AreaHandle to be able to reference to the Area
+      #
+      # 2) load init visible area data
+      #   (id + init name (
+      #     id, short name, formal name,
+      #     start hivent, end hivent )
+      #       + init territory (
+      #     id, geometry, repr point,
+      #     start hivent, end hivent) )
+      #   => update data via id -> AreaHandle -> Area
+      #
+      # 3)
+
+
       @_areaInterface = new HG.AreaInterface
 
       # 1. load all all areas from server (all together)
       # ->  ids
-      #     info: active: yes/no
+      #     info: visible: yes/no
       #     hivents: start and end hivent
       @_areaInterface.loadAllAreaIds @_hgInstance
 
-      # # divert loading hivent data to HiventController
-      # @_areaInterface.onLoadAreaHivents @, (startHivent, endHivent, area) ->
-      #   @notifyAll 'onLoadAreaHivents', startHivent, endHivent, area
+      # divert loading hivent data to HiventController
+      @_areaInterface.onLoadAreaHivents @, (startHiventId, endHiventId, areaHandle) ->
+        # HiventController populates startHivent and endHivent of area
+        @notifyAll 'onLoadAreaHivents', startHiventId, endHiventId, areaHandle
 
-      # @_areaInterface.onFinishLoadingAreaIds @, (areas) ->
-      #   for area in areas
-      #     # update controller
-      #     if area.isActive()
-      #       @_activeAreas.push area
-      #     else # area is inactive
-      #       @_inactiveAreas.push area
-      #   @notifyAll 'onFinishLoadingAreaHivents'
+      @_areaInterface.onFinishLoadingAreaIds @, (areaHandles) ->
 
-      #   # 2. load all active areas from server
-      #   # -> completely, in chunks
-      #   @_areaInterface.loadActiveAreas @_hgInstance, @_activeAreas
-      #   @_areaInterface.onLoadActiveArea @, (area) ->
-      #     # update view
-      #     @notifyAll 'onCreateGeometry', area
-      #     @notifyAll 'onCreateName', area if area.hasName()
+        # add handle to array storing all AreaHandles
+        @_areaHandles.push handle for handle in areaHandles
 
-      #   # 3. load all inactive areas from server (when 2. is completely done)
-      #   # -> completely, in chunks
-      #   @_areaInterface.onFinishLoadingActiveAreas @, () ->
-      #     @_areaInterface.loadInactiveAreas @_hgInstance, @_inactiveAreas
-      #     # nothing to do on load, because everything is already there
-      #     # model: updated in interface
-      #     # controller: area only in @_activeAreas array s(step 1)
-      #     # view: is inactive, so not to be shown
-      #     # if needed later, the callbacks are:
-      #     # @_areaInterface.onLoadInactiveArea @, (area) ->
-      #     # @_areaInterface.onFinishLoadingInactiveAreas @, () ->
+        # determine which areas are visible and which are invisible
+        visibleAreas = []
+        invisibleAreas = []
+
+        for handle in areaHandles
+          area = handle.getArea()
+
+          if handle.tempLoadVars.visible
+            visibleAreas.push area.id
+          else # invisible
+            invisibleAreas.push area.id
+
+          # get area relations
+          area.sovereignt = @getAreaHandle handle.tempLoadVars.sovereignt
+
+          for dependency in handle.tempLoadVars.dependencies
+            area.dependencies.push @getAreaHandle dependency
+
+          for predecessor in handle.tempLoadVars.predecessors
+            area.predecessors.push @getAreaHandle predecessor
+
+          for successor in handle.tempLoadVars.successors
+            area.successors.push @getAreaHandle successor
+
+          # cleanup
+          delete handle.tempLoadVars
+
+
+        # 2. load all visible areas from server
+        # -> completely, in chunks
+        @_areaInterface.loadVisibleAreas visibleAreas
+        @_areaInterface.onLoadVisibleArea @, (area) ->
+          # update view
+          @notifyAll 'onCreateGeometry', area
+          @notifyAll 'onCreateName', area if area.hasName()
+
+        # 3. load all invisible areas from server (when 2. is completely done)
+        # -> completely, in chunks
+        @_areaInterface.onFinishLoadingVisibleAreas @, () ->
+          @_areaInterface.loadInvisibleAreas invisibleAreas
+          # @_areaInterface.onLoadInvisibleArea @, (area) ->
+          # -> nothing to do?
+          @_areaInterface.onFinishLoadingInvisibleAreas @, () ->
+            # finally load all hivents completely
+            @notifyAll 'onFinishLoadingAreaHivents'
+
 
 
       ### INTERFACE: HIVENT CONTROLLER ###
-      # ========================================================================
 
-      ## perform area changes
-      # ------------------------------------------------------------------------
+      # ========================================================================
+      # receive a new set of area changes and prepare it to add to the change
+      # queue to eventually execute it
+      # ========================================================================
 
       @_hgInstance.hiventController.onChangeAreas @, (changes, changeDir, timeLeap) ->
 
@@ -197,318 +254,6 @@ class HG.AreaController
           @_changeQueue.enqueue newChange
 
 
-
-      ### INTERFACE: EDIT MODE ###
-      # ========================================================================
-
-      ## toggle single-selection <-> multi-selection mode
-      # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onEnableMultiSelection @, (num) ->
-
-        # error handling: must be a number and can not be smaller than 1
-        if (num < 1) or (isNaN num)
-          return console.error "There can not be less than 1 area selected"
-
-        # set maximum number of selections
-        @_maxSelections = num
-
-        # if there has been an area already selected in single-selection mode
-        # it will still be in the @_selectedAreas array and can stay there,
-        # since it will never be deselected
-
-        @_DEBUG_OUTPUT 'ENABLE MULTI SELECTION'
-
-      # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onDisableMultiSelection @, (selectedAreaId=null) ->
-
-        # restore single-selection mode
-        @_maxSelections = 1
-
-        # deselect each area
-        # -> except for the one specified by edit mode to be kept selected
-        @_cleanSelectedAreas selectedAreaId
-
-        @_DEBUG_OUTPUT 'DISABLE MULTI SELECTION'
-
-
-      ## toggle normal mode <-> edit mode
-      # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onEnableAreaEditMode @, () ->
-
-        @_areaEditMode = on
-        @_maxSelections = HGConfig.max_area_selection.val
-
-        # if there has been an area already selected in single-selection mode
-        # it will still be in the @_selectedAreas array and can stay there,
-        # since it will never be deselected
-
-        @_DEBUG_OUTPUT 'START EDIT MODE'
-
-
-      # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onDisableAreaEditMode @, (selectedAreaId=null) ->
-
-        @_areaEditMode = off
-        @_maxSelections = 1
-
-        # deselect each area
-        # -> except for the one specified by edit mode to be kept selected
-        @_cleanSelectedAreas selectedAreaId
-
-        @_DEBUG_OUTPUT 'END EDIT MODE'
-
-
-      ##########################################################################
-      ### MOVE TO AreaHandle => call directly from EditOperationStep ###
-
-      ## handle new, updated and old areas
-
-      # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onCreateArea @, (id, geometry) ->
-
-        # error handling: new area must have valid id and geometry
-        return if (not id) or (not geometry.isValid())
-
-        # update model
-        area = new HG.Area id
-        area.setGeometry geometry
-        area.resetRepresentativePoint() # IMP!
-        area.activate()
-        area.select()
-        area.inEdit yes
-
-        # update view
-        @notifyAll 'onCreateGeometry', area
-        @notifyAll 'onSelect', area
-
-        # update controller
-        @_activeAreas.push area
-        @_selectedAreas.push area
-
-        @_DEBUG_OUTPUT 'CREATE AREA'
-
-
-      # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onUpdateAreaGeometry @, (id, geometry) ->
-        area = @getArea id
-
-        # error handling: area must have had geometry before and geometry now
-        return if (not area?) or (not area.hasGeometry()) or (not geometry.isValid())
-
-        # update model
-        area.setGeometry geometry
-
-        # update view
-        @notifyAll 'onUpdateGeometry', area
-
-        @_DEBUG_OUTPUT 'UPDATE GEOMETRY'
-
-      # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onUpdateAreaRepresentativePoint @, (id, reprPoint=null) ->
-        area = @getArea id
-
-        # error handling: area must have had geometry before and geometry now
-        return if (not area?)
-
-        # update model
-        if reprPoint
-          area.setRepresentativePoint reprPoint
-        else
-          area.resetRepresentativePoint()
-
-        # update view
-        @notifyAll 'onUpdateRepresentativePoint', area if area.hasName()
-
-        @_DEBUG_OUTPUT 'UPDATE REPRESENTATIVE POINT'
-
-
-      # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onAddAreaName @, (id, shortName, formalName) ->
-        area = @getArea id
-
-        # error handling: area must be found and names must be given
-        return if (not area?) or (not shortName) or (not formalName)
-
-        # update model
-        area.setShortName shortName
-        area.setFormalName formalName
-
-        # update view
-        @notifyAll 'onCreateName', area
-
-        @_DEBUG_OUTPUT 'CREATE NAME'
-
-
-      # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onUpdateAreaName @, (id, shortName, formalName) ->
-        area = @getArea id
-
-        # error handling: area must have new name now
-        return if (not area?) or (not area.hasName()) or (not shortName) or (not formalName)
-
-        # update model
-        area.setShortName shortName
-        area.setFormalName formalName
-
-        # update view
-        @notifyAll 'onUpdateName', area
-
-        @_DEBUG_OUTPUT 'UPDATE NAME'
-
-      # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onRemoveAreaName @, (id) ->
-        area = @getArea id
-
-        # error handling: area has to be found
-        return if (not area)
-
-        # update model
-        area.removeName()
-
-        # update view
-        @notifyAll 'onRemoveName', area
-
-        @_DEBUG_OUTPUT 'REMOVE NAME'
-
-
-      # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onRemoveArea @, (id) ->
-        area = @getArea id
-
-        # error handling: area has to be found
-        return if (not area)
-
-        # no need to update model, because it will be deleted from all arrays,
-        # so it does not appear anywhere and is therefore gone
-
-        # update view
-        @notifyAll 'onRemoveGeometry', area
-        @notifyAll 'onRemoveName', area if area.hasName()
-        @notifyAll 'onDeselect', area if area.isSelected()
-
-        # update controller
-        idx = @_selectedAreas.indexOf area
-        @_selectedAreas.splice idx, 1   if idx isnt -1
-        idx = @_activeAreas.indexOf area
-        @_activeAreas.splice idx, 1     if idx isnt -1
-        idx = @_inactiveAreas.indexOf area
-        @_inactiveAreas.splice idx, 1   if idx isnt -1
-
-        @_DEBUG_OUTPUT 'REMOVE AREA'
-
-
-      # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onActivateArea @, (id) ->
-        area = @getInactiveArea id
-
-        # error handling: area has to be found and inactive
-        return if (not area) or (area.isActive())
-
-        # update model
-        area.activate()
-
-        # update view
-        @notifyAll 'onCreateGeometry', area
-        @notifyAll 'onCreateName', area if area.hasName()
-
-        # update controller
-        @_activeAreas.push area
-        @_inactiveAreas.splice((@_inactiveAreas.indexOf area), 1)
-
-        @_DEBUG_OUTPUT 'ACTIVATE AREA'
-
-
-      # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onDeactivateArea @, (id) ->
-        area = @getArea id
-
-        # error handling: area has to be found and active
-        return if (not area) or (not area.isActive())
-
-        # update model
-        area.deactivate()
-
-        # update view
-        @notifyAll 'onRemoveName', area if area.hasName()
-        @notifyAll 'onRemoveGeometry', area
-
-        # update controller
-        @_inactiveAreas.push area
-        @_activeAreas.splice((@_activeAreas.indexOf area), 1)
-
-        @_DEBUG_OUTPUT 'DEACTIVATE AREA'
-
-
-      # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onStartEditArea @, (id) ->
-        area = @getArea id
-
-        # error handling: area has to be found and active
-        return if (not area) or (not area.isActive())
-
-        if not area.isInEdit()
-          # update model
-          area.inEdit yes
-          # update view
-          @notifyAll 'onUpdateStatus', area
-
-        @_DEBUG_OUTPUT 'PUT AREA IN EDIT MODE'
-
-
-      # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onEndEditArea @, (id) ->
-        area = @getArea id
-
-        # error handling: area has to be found and active
-        return if (not area) or (not area.isActive())
-
-        if area.isInEdit()
-          # update model
-          area.inEdit no
-          # update view
-          @notifyAll 'onUpdateStatus', area
-
-        @_DEBUG_OUTPUT 'TAKE AREA OUT OF EDIT MODE'
-
-
-      # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onSelectArea @, (id) ->
-        area = @getArea id
-
-        # error handling: area has to be found and active
-        return if (not area) or (not area.isActive())
-
-        if not area.isSelected()
-          # update model
-          area.select()
-          # update controller
-          @_selectedAreas.push area
-          # update view
-          @notifyAll 'onUpdateStatus', area
-          @notifyAll 'onSelect', area
-
-        @_DEBUG_OUTPUT 'SELECT AREA'
-
-
-      # ------------------------------------------------------------------------
-      @_hgInstance.editMode.onDeselectArea @, (id) ->
-        area = @getArea id
-
-        # error handling: area has to be found and active
-        return if (not area) or (not area.isActive())
-
-        if area.isSelected()
-          # update model
-          area.deselect()
-          # update controller
-          @_selectedAreas.splice (@_selectedAreas.indexOf area), 1
-          # update view
-          @notifyAll 'onUpdateStatus', area
-          @notifyAll 'onDeselect', area
-
-        @_DEBUG_OUTPUT 'DESELECT AREA'
-
-
   # ============================================================================
     # infinite loop that executes all changes in the queue
     # find next ready area change and execute it (one at a time)
@@ -523,31 +268,9 @@ class HG.AreaController
         # get next change
         change = @_changeQueue.dequeue()
 
-        # activate all new areas
-        for id in change.newAreas
-          area = @getInactiveArea id
-          if area?
-            # update model
-            area.activate()
-            # update view
-            @notifyAll 'onCreateGeometry', area
-            @notifyAll 'onCreateName', area if area.hasName()
-            # update controller
-            @_activeAreas.push area
-            @_inactiveAreas.splice((@_inactiveAreas.indexOf area), 1)
-
-        # deactivate all old areas
-        for id in change.oldAreas
-          area = @getArea id
-          if area?
-            # update model
-            area.deactivate()
-            # update view
-            @notifyAll 'onRemoveName', area if area.hasName()
-            @notifyAll 'onRemoveGeometry', area
-            # update controller
-            @_inactiveAreas.push area
-            @_activeAreas.splice((@_activeAreas.indexOf area), 1)
+        # show / hide the new / old area
+        areaHandle.show() for areaHandle in change.newAreas
+        areaHandle.hide() for areaHandle in change.oldAreas
 
         # fade-out transition area
         # if change.transitionArea
@@ -561,169 +284,79 @@ class HG.AreaController
 
 
   # ============================================================================
-  ### GETTER ####
+  # receive a new AreaHandle (from EditMode) and add it to the list and tell
+  # the view about it
+  # ============================================================================
 
-  # ----------------------------------------------------------------------------
-  getActiveAreas: () ->     @_activeAreas
-  getSelectedAreas: () ->   @_selectedAreas
+  addNewArea: (areaHandle) ->
+    @_areaHandles.push areaHandle
+    @notifyAll 'onCreateArea', areaHandle
 
-  # ----------------------------------------------------------------------------
-  getArea: (id) ->
-    area = @getActiveArea id
-    area = @getInactiveArea id unless area
-    area
+    # listen to destruction callback and tell everybody about it
+    areaHandle.onDestroy @, () =>
+      @_areaHandles.splice(@_areaHandles.indexOf(areaHandle), 1)
 
-  # ----------------------------------------------------------------------------
-  getActiveArea: (id) ->
-    for area in @_activeAreas
-      if area.getId() is id
-        return area
-        break
-    return null
+    @_DEBUG_OUTPUT 'CREATE AREA'
 
-  # ----------------------------------------------------------------------------
-  getInactiveArea: (id) ->
-    for area in @_inactiveAreas
-      if area.getId() is id
-        return area
-        break
-    return null
 
   # ============================================================================
-  ### SETTER FOR VIEW ###
-  # AreasOnMap, AreasOnGlobe, AreasOnHistoGraph
+  # set / get Single- and Multi-Selection Mode
+  # -> how many areas can be selected at the same time?
+  # ============================================================================
 
-  # ----------------------------------------------------------------------
-  # hover areas => focus?
+  enableMultiSelection: (num) ->
 
-  focusArea: (area) ->
+    # error handling: must be a number and can not be smaller than 1
+    if (num < 1) or (isNaN num)
+      return console.error "There can not be less than 1 area selected"
 
-    # error handling: ignore if area is already focused
-    return if area.isFocused()
+    # set maximum number of selections
+    @_maxSelections = num
 
-    # edit mode: only unselected areas in edit mode can be focused
-    if @_areaEditMode is on
-      if (area.isInEdit()) and (not area.isSelected())
-        # update model
-        area.focus()
-        # update view
-        @notifyAll 'onUpdateStatus', area
+    # if there has been an area already selected in single-selection mode
+    # it will still be in the @_selectedAreas array and can stay there,
+    # since it will never be deselected
 
-    # normal mode: each area can be hovered
-    else  # @_areaEditMode is off
-      # update model
-      area.focus()
-      # update view
-      @notifyAll 'onUpdateStatus', area
+    @_DEBUG_OUTPUT 'ENABLE MULTI SELECTION'
 
 
-  # ----------------------------------------------------------------------
-  # unhover areas => unfocus!
+  # ------------------------------------------------------------------------
+  disableMultiSelection: () ->
 
-  unfocusArea: (area) ->
-    # update model
-    area.unfocus()
-    # update view
-    @notifyAll 'onUpdateStatus', area
+    # restore single-selection mode
+    @_maxSelections = 1
 
+    # is it necessary to clean the selected areas or should that be the
+    # task of the edit mode?
+    # areaHandle.deselect() for areaHandle in @_areaHandles
 
-  # ----------------------------------------------------------------------
-  # click area => (de)select
-
-  selectArea: (area) ->
-
-    # area must be focussed in order for it to be selected
-    # => no distinction between edit mode and normal mode necessary anymore
-    # return if not area.isFocused()
-    # problem: prevents double-clicking area, which wouldn't be good
-
-    # area is selected => deselect
-    if area.isSelected()
-      # update model
-      area.deselect()
-      # update controller
-      @_selectedAreas.splice((@_selectedAreas.indexOf area), 1)
-      # update view
-      @notifyAll 'onUpdateStatus', area
-      @notifyAll 'onDeselect', area
+    @_DEBUG_OUTPUT 'DISABLE MULTI SELECTION'
 
 
-    # area is not selected => decide if it can be selected
-    else
-
-      # single-selection mode: toggle selected area
-      if @_maxSelections is 1
-        ## deselect currently selected area
-        oldSelection = null
-        if @_selectedAreas.length is 1
-          # update model
-          @_selectedAreas[0].deselect()
-          # update view
-          @notifyAll 'onUpdateStatus', @_selectedAreas[0]
-          # update controller
-          oldSelection = @_selectedAreas[0]
-          @_selectedAreas = []
-
-        ## select newly selected area
-        # update model
-        area.select()
-        # update controller
-        @_selectedAreas.push area
-        # update view
-        @notifyAll 'onUpdateStatus', area
-        if oldSelection
-          @notifyAll 'onToggleSelect', oldSelection, area
-        else
-          @notifyAll 'onSelect', area
+  # ------------------------------------------------------------------------
+  getMaxNumOfSelections: () -> @_maxSelections
 
 
-      # multi-selection mode: add to selected area until max limit is reached
-      else  # @_maxSelections > 1
+  # ============================================================================
+  # GETTER for areas
+  # ============================================================================
 
-        # area is not selected and maximum number of selections not reached => select it
-        if @_selectedAreas.length < @_maxSelections
-          # update model
-          area.select()
-          # update controller
-          @_selectedAreas.push area
-          # update view
-          @notifyAll 'onUpdateStatus', area
-          @notifyAll 'onSelect', area
+  getAreaHandle: (id) ->
+    for areaHandle in @_areaHandles
+      area = areaHandle.getArea()
+      if area.getId() is id
+        return areaHandle
+    return null
 
-      # else: area not selected but selection limit reached => no selection
-
-    @_DEBUG_OUTPUT 'SELECT AREA (FROM VIEW)'
-
+  # ----------------------------------------------------------------------------
+  getAreaHandles: () ->
+    @_areaHandles
 
 
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
-
-  # ============================================================================
-  _cleanSelectedAreas: (exceptionAreaId) ->
-    # manuel while loop, because selected areas shrinks while operating in it
-    loopIdx = @_selectedAreas.length-1
-    while loopIdx >= 0
-
-      area = @_selectedAreas[loopIdx]
-
-      # special case: ignore area specified to be still active
-      if area.getId() is exceptionAreaId
-        loopIdx--
-        continue
-
-      # normal case: deselect
-      # update model
-      area.deselect()
-      # update controller
-      @_selectedAreas.splice loopIdx, 1
-      # update view
-      @notifyAll 'onUpdateStatus', area
-      @notifyAll 'onDeselect', area
-
-      loopIdx--
 
   # ============================================================================
   _DEBUG_OUTPUT: (id) ->
@@ -736,7 +369,7 @@ class HG.AreaController
     edi.push a.getId() + " (" + a.getShortName() + ")" for a in @_editAreas
 
     console.log id
+    console.log "areas (act+inact=all): ", @_visibleAreas.length, "+", @_invisibleAreas.length, "=", @_visibleAreas.length + @_invisibleAreas.length
     console.log "max selections + areas:", @_maxSelections, ":", sel.join(', ')
-    console.log "edit mode + areas      ", @_areaEditMode, ":", edi.join(', ')
     console.log "areas (act+inact=all): ", @_activeAreas.length, "+", @_inactiveAreas.length, "=", @_activeAreas.length + @_inactiveAreas.length
     console.log "=============================================================="

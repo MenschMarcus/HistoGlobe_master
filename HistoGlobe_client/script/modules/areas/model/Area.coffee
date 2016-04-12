@@ -22,5 +22,5 @@ class HG.Area
     @endHivent    = null    # HG.HiventHandle
     @predecessors = []      # HG.AreaHandle
     @successors   = []      # HG.AreaHandle
-    @sovereign    = null    # HG.AreaHandle
+    @sovereignt   = null    # HG.AreaHandle
     @dependencies = []      # HG.AreaHandle
