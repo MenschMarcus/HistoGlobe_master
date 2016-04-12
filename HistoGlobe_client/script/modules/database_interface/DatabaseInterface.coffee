@@ -1,21 +1,27 @@
 window.HG ?= {}
 
 # ==============================================================================
-# loads geometries from the server and hands them over in a large array
+# loads initial areas and hivents from the server and creates their links
+# to each other via start/end hivents and ChangeAreas/ChangeAreaNames/Territorie
+# ==============================================================================
 
-class HG.AreaInterface
+class HG.DatabaseInterface
 
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
   ##############################################################################
 
-  # ============================================================================
-  constructor: () ->
 
+  # ============================================================================
+
+  constructor: () ->
     # handle callbacks
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
+
+    @addCallback 'onLoadRestHivent'
+    @addCallback 'onFinishLoadingRestHivents'
 
     @addCallback 'onLoadAreaHivents'
     @addCallback 'onFinishLoadingAreaIds'
@@ -24,8 +30,103 @@ class HG.AreaInterface
     @addCallback 'onLoadInvisibleArea'
     @addCallback 'onFinishLoadingInvisibleAreas'
 
-    # includes
-    @_geometryReader = new HG.GeometryReader
+
+  # ============================================================================
+
+  hgInit: (@_hgInstance) ->
+
+    ### temporary quick and dirty solution ###
+
+    $.ajax
+      url:  'get_all/'
+      type: 'POST'
+      data: ""
+
+      # success callback: load areas and hivents here and connect them
+      success: (response) =>
+        dataObj = $.parseJSON response
+        console.log dataObj
+
+
+      error: @_errorCallback
+
+
+
+
+
+'''
+### the sophisticated version goes here this afternoon
+    # --------------------------------------------------------------------------
+    # loading mechanism:
+    # 1) load initial area ids and create their AreaHandles
+    # ->  2) load initially visible area data and create their Name/Territory
+    #     ->  3) load rest visible area data and create rest Names/Territories/Hivents
+    #         ->  4) load rest data (invisible areas and rest hivents)
+    # --------------------------------------------------------------------------
+
+    @_hgInstance.onAllModulesLoaded @, () =>
+
+      # includes
+      @_geometryReader = new HG.GeometryReader
+      @_areaController = @_hgInstance.areaController
+      @_hiventController = @_hgInstance.hiventController
+
+    # --------------------------------------------------------------------------
+    # 1) load initial area and hivent ids () ->
+    #    (all areas            {id, start hivent it, end hivent id},
+    #     -> current name      {id, start hivent id, end hivent id},
+    #     -> current territory {id, start hivent id, end hivent id},
+    #     all hivents          {id})
+    #   => create Area and AreaHandle
+    #   => create Hivent and HiventHandle
+    # --------------------------------------------------------------------------
+      @_loadInitAreaIds()
+
+    # --------------------------------------------------------------------------
+    # MAIN LOAD TO SEE INITIAL AREAS => as fast as possible
+    # --------------------------------------------------------------------------
+    # 2) load init visible area data ([area id, name id, territory id], [hivent id]) ->
+    #    (visible area    (id),
+    #     init name       (id, short name, formal name),
+    #     init territory  (id, geometry, repr point))
+    #   => get AreaHandle(area id)
+    #   => create AreaName(init name)
+    #   => create AreaTerritory (init territory)
+    # --------------------------------------------------------------------------
+
+    # --------------------------------------------------------------------------
+    # 3) load rest visible area data ([area id, name id, territory id], [hivent id])
+    #    (visible area      (id, predecessors, successors, sovereignt, dependencies),
+    #     rest names       [(id, short name, formal name, start hivent, end hivent)],
+    #     rest territories [(id, geometry, repr point, start hivent, end hivent)],
+    #     hivents          [(id, ...full data...)])
+    #   => get AreaHandle(area id)
+    #     => update Area(predecessors, successors, sovereignt, dependencies)
+    #     => create AreaNames(rest names)
+    #     => create AreaTerritories(rest territories)
+    #   => get HiventHandle
+    #     => update Hivent
+    #     => link start / end hivents of Area <-> Hivent->Change->ChangeArea
+    #       (same for AreaName and AreaTerritory)
+    # --------------------------------------------------------------------------
+
+    # --------------------------------------------------------------------------
+    # 4) load full invisible area data ([area id], [exisiting hivent id])
+    #    (invisible area    (id, predecessors, successors, sovereignt, dependencies) +
+    #     all names        [(id, short name, formal name, start hivent, end hivent)] +
+    #     all territories  [(id, geometry, repr point, start hivent, end hivent)] +
+    #     all rest hivents [(id, ...full data...)])
+    #   => get AreaHandle(area id)
+    #     => update Area(predecessors, successors, sovereignt, dependencies)
+    #     => create AreaNames(rest names)
+    #     => create AreaTerritories(rest territories)
+    #   => get HiventHandle
+    #     => link start / end hivents of Area <-> Hivent->Change->ChangeArea
+    #       (same for AreaName and AreaTerritory)
+    # --------------------------------------------------------------------------
+
+
+
 
 
   # ============================================================================
@@ -80,13 +181,7 @@ class HG.AreaInterface
 
 
       # error callback: print error message
-      error: (xhr, errmsg, err) =>
-        console.log xhr
-        console.log errmsg, err
-        console.log xhr.responseText
-
-
-  # ============================================================================
+      error: @_errorCallback
   # load all areas that are initially (in)visible from the server
   # ============================================================================
 
@@ -183,10 +278,7 @@ class HG.AreaInterface
         @_loadInitAreas request
 
       # error callback: print error message
-      error: (xhr, errmsg, err) =>
-        console.log xhr
-        console.log errmsg, err
-        console.log xhr.responseText
+      error: @_errorCallback
 
   # ============================================================================
   _prepareAreaServerToClient: (areaFromServer) ->
@@ -224,31 +316,6 @@ class HG.AreaInterface
 
     areaOnServer
 
-
-window.HG ?= {}
-
-# ==============================================================================
-# UTIL
-# load hivents from Database
-# ==============================================================================
-
-class HG.HiventInterface
-
-  ##############################################################################
-  #                            PUBLIC INTERFACE                                #
-  ##############################################################################
-
-  # ============================================================================
-  constructor: () ->
-
-    # handle callbacks
-    HG.mixin @, HG.CallbackContainer
-    HG.CallbackContainer.call @
-
-    @addCallback 'onLoadRestHivent'
-    @addCallback 'onFinishLoadingRestHivents'
-
-
   # ============================================================================
   loadRestHivents: (hiventHandles) ->
 
@@ -275,10 +342,7 @@ class HG.HiventInterface
         @notifyAll 'onFinishLoadingRestHivents'
 
       # error callback: print error message
-      error: (xhr, errmsg, err) =>
-        console.log xhr
-        console.log errmsg, err
-        console.log xhr.responseText
+      error: @_errorCallback
 
 
   # ============================================================================
@@ -333,9 +397,15 @@ class HG.HiventInterface
   # _prepareHiventClientToServer: (hiventFromServer) ->
 
 
+  _errorCallback: (xhr, errmsg, err) =>
+    console.log xhr
+    console.log errmsg, err
+    console.log xhr.responseText
+
   # ============================================================================
   # TODO:
   # allow multiple locations per hivent
   # data.location = data.location?.replace(/\s*;\s*/g, ';').split(';')
   # data.lat = "#{data.lat}".replace(/\s*;\s*/g, ';').split(';') if data.lat?
   # data.lng = "#{data.lng}".replace(/\s*;\s*/g, ';').split(';') if data.lng?
+'''
