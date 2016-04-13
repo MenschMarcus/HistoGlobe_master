@@ -413,7 +413,7 @@ load.run()
   snapshot.save()
 
   # populate snapshot with all areas in the database
-  for area in Area.objects.all():
-    snapshot.areas.add(area);
+  # for area in Area.objects.all():
+  #   snapshot.areas.add(area);
 
-  print("Snapshot created for date: " + snapshot.date.strftime('%Y-%m-%d'))
+  # print("Snapshot created for date: " + snapshot.date.strftime('%Y-%m-%d'))

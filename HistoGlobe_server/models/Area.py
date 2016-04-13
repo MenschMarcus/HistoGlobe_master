@@ -1,18 +1,27 @@
 # ==============================================================================
-# Area is the identity dimension of an Area: An integral area, that might change
-# its territory or its common name, but not its formal name
-# new Area <=> new formal name
-# ChangeArea.old_area 1:1 Area, ChangeArea.new_area 1:1 Area
-# access predecessors and successors via start_/end_change
+# An Area represents an administrative unit (e.g. country, state, province,
+# overseas territory, ...) with a specific identity in history. It has an
+# AreaName and an AreaTerritory attached at any givent point in history.
+# The short / common name and the territory of an area can change without
+# changing the identity of the Area. However, as soon as the formal name changes
+# it becomes a new Area.
+#
+# ------------------------------------------------------------------------------
+# Area 1:2 AreaChange
+# Area 1:n AreaName
+# Area 1:n AreaTerritory
+# Area 2:n TerritoryRelation
+#
 # ==============================================================================
 
-# ------------------------------------------------------------------------------
 from django.db import models
+
 
 # ------------------------------------------------------------------------------
 class Area(models.Model):
-  start_change =          models.ForeignKey         ('AreaChange', related_name='area_start_change', null=True)
-  end_change =            models.ForeignKey         ('AreaChange', related_name='area_end_change', null=True)
+
+  start_change =          models.ForeignKey         ('AreaChange', related_name='start_change', null=True)
+  end_change =            models.ForeignKey         ('AreaChange', related_name='end_change', null=True)
 
 
   # ----------------------------------------------------------------------------
@@ -20,7 +29,22 @@ class Area(models.Model):
     return str(self.id)
 
 
-  # ----------------------------------------------------------------------------
+  # ============================================================================
+  # The historical predecessors and successors can be accessed like this:
+  # The start / end_change (AreaChange) of the Area belong to an HistoricalChange.
+  # This HistoricalChange contains of several AreaChanges.
+  #
+  #   predecessors: Area(start_change)            --(1)->
+  #                 AreaChange(historical_change) --(1)->
+  #                 HistoricalChange()            <-(n)--
+  #                 AreaChange(historical_change)
+  #
+  #   successors:   Area(end_change)              --(1)->
+  #                 AreaChange(historical_change) --(1)->
+  #                 HistoricalChange()            <-(n)--
+  #                 AreaChange(historical_change)
+  # ============================================================================
+
   def get_predecessors(self):
     "Returns the historical ancestors (predecessors) of the area"
 
@@ -48,7 +72,11 @@ class Area(models.Model):
     return successors
 
 
-  # ----------------------------------------------------------------------------
+  # ============================================================================
+  # The territorial relations of the areas (sovereignt <-(1)-(n)-> dependency)
+  # can be accessed via the TerritorialRelation entity.
+  # ============================================================================
+
   def get_sovereignt(self):
     "Returns the areas sovereignt (where this area is a dependency)."
 
