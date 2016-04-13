@@ -181,7 +181,6 @@ load.run()
       # update area
       area_name.short_name =    row['short_name'].decode('utf-8')
       area_name.formal_name =   row['formal_name'].decode('utf-8')
-      # area.sovereignty_status = row['sovereignty_status']
       area_name.save()
 
       print("Area " + str(area.id) + ': ' + area_name.short_name + " updated")
@@ -195,41 +194,25 @@ load.run()
         )
       hivent.save()
 
-      change = Change(
-          hivent =      hivent,
-          operation =   'ADD'
-        )
-      change.save()
-
-      change_areas = ChangeAreas(
-          change =      change,
-          old_area =    None,
-          new_area =    area
-        )
-      change_areas.save()
-      area.start_change = change
-      area.save()
-
-      change_area_territories = ChangeAreaTerritories(
-          change =              change,
-          old_area_territory =  None,
+      area_change = AreaChange(
+          hivent =              hivent,
+          operation =           'ADD',
+          area =                area,
+          new_area_name =       area_name,
           new_area_territory =  area_territory
         )
-      change_area_territories.save()
-      area_territory.start_change = change
-      area_territory.save()
+      area_change.save()
 
-      change_area_names = ChangeAreaNames(
-          change =         change,
-          old_area_name =  None,
-          new_area_name =  area_name
-        )
-      change_area_names.save()
-      area_name.start_change = change
+      area.start_change = area_change
+      area.save()
+
+      area_name.start_change = area_change
       area_name.save()
 
+      area_territory.start_change = area_change
+      area_territory.save()
+
       # area is still active, therefore it has no end_change
-      area.save()
 
       print("Hivent " + hivent.name + " saved")
 
@@ -288,7 +271,6 @@ load.run()
           new_geom = MultiPolygon(new_geom)
 
         new_area = Area ()
-        # sovereignty_status =    row['sovereignty_status']
         new_area.save()
 
         new_area_territory = AreaTerritory (
@@ -313,38 +295,23 @@ load.run()
           )
         hivent.save()
 
-        change = Change(
-            hivent =      hivent,
-            operation =   'ADD'
+        area_change = AreaChange(
+            hivent =              hivent,
+            operation =           'ADD',
+            area =                new_area,
+            new_area_name =       new_area_name,
+            new_area_territory =  new_area_territory
           )
-        change.save()
+        area_change.save()
 
-        change_areas = ChangeAreas(
-            change = change,
-            old_area = None,
-            new_area = new_area
-          )
-        change_areas.save()
-        new_area.start_change = change
+        new_area.start_change = area_change
         new_area.save()
 
-        change_area_territories = ChangeAreaTerritories(
-            change = change,
-            old_area_territory = None,
-            new_area_territory = new_area_territory
-          )
-        change_area_territories.save()
-        new_area_territory.start_change = change
-        new_area_territory.save()
-
-        change_area_names = ChangeAreaNames(
-            change = change,
-            old_area_name = None,
-            new_area_name = new_area_name
-          )
-        change_area_names.save()
-        new_area_name.start_change = change
+        new_area_name.start_change = area_change
         new_area_name.save()
+
+        new_area_territory.start_change = area_change
+        new_area_territory.save()
 
         print("Area for " + new_area_name.short_name + " with start hivent " + hivent.name + " created")
 
@@ -405,34 +372,25 @@ load.run()
         print(terr_area_name.short_name + " became territory of " + home_area_name.short_name)
 
         # add its area to creation event
-        change = ChangeAreas.objects.get(new_area=home_area).change
+        area_change = AreaChange.objects.get(area=home_area)
 
-        change_areas = ChangeAreas(
-          change = change,
-          old_area = None,
-          new_area = terr_area
-        )
-        change_areas.save()
-        terr_area.start_change = change
+        area_change = AreaChange(
+            hivent =              hivent,
+            operation =           'ADD',
+            area =                terr_area,
+            new_area_name =       terr_area_name,
+            new_area_territory =  terr_area_territory
+          )
+        area_change.save()
+
+        terr_area.start_change = area_change
         terr_area.save()
 
-        change_area_territories = ChangeAreaTerritories(
-          change = change,
-          old_area_territory = None,
-          new_area_territory = terr_area_territory
-        )
-        change_area_territories.save()
-        terr_area_territory.start_change = change
-        terr_area_territory.save()
-
-        change_area_names = ChangeAreaNames(
-          change = change,
-          old_area_name = None,
-          new_area_name = terr_area_name
-        )
-        change_area_names.save()
-        terr_area_name.start_change = change
+        terr_area_name.start_change = area_change
         terr_area_name.save()
+
+        terr_area_territory.start_change = area_change
+        terr_area_territory.save()
 
         print(terr_area_name.short_name + " added to creation hivent of " + home_area_name.short_name)
 

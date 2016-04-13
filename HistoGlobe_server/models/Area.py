@@ -11,8 +11,8 @@ from django.db import models
 
 # ------------------------------------------------------------------------------
 class Area(models.Model):
-  start_change =          models.ForeignKey         ('Change', related_name='area_start_change', null=True)
-  end_change =            models.ForeignKey         ('Change', related_name='area_end_change', null=True)
+  start_change =          models.ForeignKey         ('AreaChange', related_name='area_start_change', null=True)
+  end_change =            models.ForeignKey         ('AreaChange', related_name='area_end_change', null=True)
 
 
   # ----------------------------------------------------------------------------

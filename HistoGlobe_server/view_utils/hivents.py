@@ -265,30 +265,9 @@ def prepare_hivent(hivent_model):
   hivent = model_to_dict(hivent_model)
 
   # get all Changes associated to the Hivent
-  changes = []
-  for change_model in Change.objects.filter(hivent=hivent_model):
-    change = model_to_dict(change_model)
-
-    # get all ChangeAreas associated to the Change
-    change['change_areas'] = []
-    for change_areas_model in ChangeAreas.objects.filter(change=change_model):
-      change_area = model_to_dict(change_areas_model)
-      change['change_areas'].append(change_area)
-
-    # get all ChangeAreaNames associated to the Change
-    change['change_area_names'] = []
-    for change_area_names_model in ChangeAreaNames.objects.filter(change=change_model):
-      change_area_names = model_to_dict(change_area_names_model)
-      change['change_area_names'].append(change_area_names)
-
-    # get all ChangeAreaTerritories associated to the Change
-    change['change_area_territories'] = []
-    for change_area_territories_model in ChangeAreaTerritories.objects.filter(change=change_model):
-      change_area_territories = model_to_dict(change_area_territories_model)
-      change['change_area_territories'].append(change_area_territories)
-
-    changes.append(change)
-  hivent['changes'] = changes
+  hivent['area_changes'] = []
+  for area_change_model in AreaChange.objects.filter(hivent=hivent_model):
+    hivent['area_changes'].append(model_to_dict(area_change_model))
 
   # prepare dates for output
   hivent['start_date'] =        utils.get_date_string(hivent['start_date'])
