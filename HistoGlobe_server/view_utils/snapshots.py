@@ -14,6 +14,8 @@ from HistoGlobe_server import utils
 # return the snapshot that is the closest to a given date
 # ==============================================================================
 
+'''
+
 def get_closest_snapshot(now_date):
 
   current_snapshot = Snapshot.objects.first()
@@ -28,3 +30,4 @@ def get_closest_snapshot(now_date):
   return current_snapshot
 
 
+'''

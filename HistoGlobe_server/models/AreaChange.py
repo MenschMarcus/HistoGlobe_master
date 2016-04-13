@@ -1,27 +1,30 @@
 # ==============================================================================
-# A change belongs to an Hivent and defines an explicit change of Areas
-# Hivent 1:n Change
+# An AreaChange is one explicit action part of an HistoricalChange and defines
+# which areas are added, deleted or change their name or territory.
+# An AreaChange relates to one specific area and has to specify also on creation
+# and destruction which AreaName/AreaTerritory area new/old.
+#
+# ------------------------------------------------------------------------------
+# AreaChange n:1 HistoricalChange
+# AreaChange 2:1 Area
+# AreaChange 2:2 AreaName
+# AreaChange 2:2 AreaTerritory
 #
 # ------------------------------------------------------------------------------
 # operations:
-#   ADD) add new area:      0 -> A
-#   UNI) unification:       A, B -> C
-#   INC) incorporation:     A, B -> A
-#   SEP) separation:        A -> B, C
-#   SEC) secession:         A -> A, B
-#   NCH) name change:       A -> A
-#   ICH) identity change:   A -> B
-#   DEL) delete area:       A -> 0
+#   ADD) add new area:         -> A
+#   DEL) delete old area:    A ->
+#   NCH) name change:        A -> A
+#   TCH) territory change:   A -> A
 # ==============================================================================
 
-#------------------------------------------------------------------------------
 from django.db import models
 
 
 #------------------------------------------------------------------------------
 class AreaChange(models.Model):
 
-  hivent              = models.ForeignKey ('Hivent', related_name='change_hivent')
+  historical_change   = models.ForeignKey ('HistoricalChange', related_name='historical_change')
   operation           = models.CharField  (default='XXX', max_length=3)
   area                = models.ForeignKey ('Area', related_name='change_area')
   old_area_name       = models.ForeignKey ('AreaName', related_name='new_area_name', null=True)

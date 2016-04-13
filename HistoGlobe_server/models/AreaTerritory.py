@@ -1,10 +1,14 @@
 # ==============================================================================
-# AreaTerritory stores the spatial dimension of an Area
+# AreaTerritory stores the spatial dimension of an Area.
+#
+# ------------------------------------------------------------------------------
+# AreaTerritory n:1 Area
+#
+# ------------------------------------------------------------------------------
 #
 # TODO: calculate reasonable name position with intelligent algorithm
 # ==============================================================================
 
-#------------------------------------------------------------------------------
 from django.db import models
 from django.contrib import gis
 from djgeojson.fields import *

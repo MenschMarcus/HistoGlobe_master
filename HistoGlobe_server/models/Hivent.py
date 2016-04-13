@@ -1,17 +1,23 @@
 # ==============================================================================
-# Hivent represents a significant historical happening (historical event)
-# An Hivent may contain changes to the countries of the world
+# Hivent represents a significant historical happening (historical event).
+# It is the only representation of the temporal dimension in the data model
+# and therefore the main organisational dimension.
+# An Hivent may contain one or many HistoricalChanges to the areas of the world.
+#
+# ------------------------------------------------------------------------------
+# Hivent 1:n HistoricalChange
+#
 # ==============================================================================
 
-#------------------------------------------------------------------------------
 from django.db import models
 from django.utils import timezone
 from django.contrib import gis
 from djgeojson.fields import *
 
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 class Hivent(models.Model):
+
   name =            models.CharField                (max_length=150, default='')
   start_date =      models.DateTimeField            (null=True)
   end_date =        models.DateTimeField            (null=True)
