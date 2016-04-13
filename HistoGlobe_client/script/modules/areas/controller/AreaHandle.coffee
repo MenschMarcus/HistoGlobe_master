@@ -85,7 +85,7 @@ class HG.AreaHandle
   # ============================================================================
   # Notifies all listeners that the Area associated with the AreaHandle has a
   # new territory (geometry and/or representative point). This is triggered when
-  # it gets changed by a step in an EditModeOperation or by an Hivent.
+  # it gets changed by a step in an EditModeOperation or by an AreaChange.
   # Notifies either a specific listener (by specifying an obj) or all listeners.
   # ============================================================================
 
@@ -99,7 +99,7 @@ class HG.AreaHandle
   # Notifies all listeners that the Area associated with the AreaHandle has a
   # now a name (-> add), a new name (-> update) or no name anymore (-> remove).
   # This is triggered when it gets changed by a step in an EditModeOperation or
-  # by an Hivent.
+  # by an AreaChange.
   # Notifies either a specific listener (by specifying an obj) or all listeners.
   # ============================================================================
 

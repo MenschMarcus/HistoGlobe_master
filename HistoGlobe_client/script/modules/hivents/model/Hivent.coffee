@@ -2,8 +2,8 @@ window.HG ?= {}
 
 # ==============================================================================
 # MODEL
-# Hivent is used as a simple data transfer object and stores all information
-# belonging to a specific historical event.
+# Hivent stores all information belonging to a specific historical event.
+# DTO => no functionality
 # ==============================================================================
 
 class HG.Hivent
@@ -26,4 +26,4 @@ class HG.Hivent
     @description    = data.description
     @linkUrl        = data.linkUrl
     @linkDate       = data.linkDate
-    @changes        = data.changes
+    @areaChanges    = []                # HG.AreaChange

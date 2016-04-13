@@ -328,7 +328,7 @@ class HG.AreaController
   getAreaHandle: (id) ->
     for areaHandle in @_areaHandles
       area = areaHandle.getArea()
-      if area.getId() is id
+      if area.id is id
         return areaHandle
     return null
 

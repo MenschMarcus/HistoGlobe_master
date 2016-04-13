@@ -14,10 +14,15 @@ class HG.AreaTerritory
 
   # ============================================================================
   constructor: (data) ->
+
     @id                   = data.id
     @geometry             = data.geometry
     @representativePoint  = data.representativePoint
-    # to reset representativePoint: @geometry.getCenter()
 
-    @startHivent          = null    # HG.HiventHandle
-    @endHivent            = null    # HG.HiventHandle
+    @area                 = null    # HG.Area (!!! not HG.AreaHandle !!!)
+
+    @startChange          = null    # HG.AreaChange
+    @endChange            = null    # HG.AreaChange
+
+
+    # to reset representativePoint: @geometry.getCenter()

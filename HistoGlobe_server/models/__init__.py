@@ -1,9 +1,6 @@
 # HIVENTS
 from HistoGlobe_server.models.Hivent import *
-from HistoGlobe_server.models.Change import *
-from HistoGlobe_server.models.ChangeAreas import *
-from HistoGlobe_server.models.ChangeAreaNames import *
-from HistoGlobe_server.models.ChangeAreaTerritories import *
+from HistoGlobe_server.models.AreaChange import *
 
 # SNAPSHOTS
 from HistoGlobe_server.models.Snapshot import *

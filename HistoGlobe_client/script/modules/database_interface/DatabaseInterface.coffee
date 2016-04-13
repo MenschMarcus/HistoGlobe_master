@@ -35,6 +35,8 @@ class HG.DatabaseInterface
 
   hgInit: (@_hgInstance) ->
 
+    @_geometryReader = new HG.GeometryReader
+
     ### temporary quick and dirty solution ###
 
     $.ajax
@@ -47,8 +49,223 @@ class HG.DatabaseInterface
         dataObj = $.parseJSON response
         console.log dataObj
 
+        # create Areas
+        for areaData in dataObj.areas
+          area = new HG.Area areaData.id
+          handle = new HG.AreaHandle area
+          @_hgInstance.areaController._areaHandles.push handle
+
+        # create AreaNames and AreaTerritories and store them
+        # so they can be linked to ChangeAreas later
+        areaNames = []
+        for areaNameData in dataObj.area_names
+          areaNames.push new HG.AreaName @_areaNameToClient areaNameData
+        areaTerritories = []
+        for areaTerritoryData in dataObj.area_territories
+          areaTerritories.push new HG.AreaTerritory @_areaTerritoryToClient areaTerritoryData
+
+        # create Hivents
+        for hiventData in dataObj.hivents
+          hivent = new HG.Hivent hiventData
+
+          # create AreaChanges
+          for changeData in hiventData.area_changes
+            areaChangeData = {
+              id:               parseInt changeData.id
+              operation:        changeData.operation
+              hivent:           hivent
+              areaHandle:       @_hgInstance.areaController.getAreaHandle changeData.area
+              oldAreaName:      areaNames.filter (obj) -> obj.id is changeData.old_area_name
+              newAreaName:      areaNames.filter (obj) -> obj.id is changeData.new_area_name
+              oldAreaTerritory: areaTerritories.filter (obj) -> obj.id is changeData.old_area_territory
+              newAreaTerritory: areaTerritories.filter (obj) -> obj.id is changeData.new_area_territory
+            }
+            areaChange = new HG.AreaChange @_validateAreaChangeData areaChangeData
+
+            # link ChangeArea <- Hivent
+            hivent.areaChanges.push areaChange
+
+            # link ChangeArea <- Area / AreaName / AreaTerritory
+            switch areaChange.operation
+
+              when 'ADD'
+                areaChange.areaHandle.getArea().startChange = areaChange
+                areaChange.newAreaName.startChange          = areaChange
+                areaChange.newAreaTerritory.startChange     = areaChange
+
+              when 'DEL'
+                areaChange.areaHandle.getArea().endChange   = areaChange
+                areaChange.oldAreaName.endChange            = areaChange
+                areaChange.oldAreaTerritory.endChange       = areaChange
+
+              when 'TCH'
+                areaChange.areaHandle.getArea().updateChanges.push areaChange
+                areaChange.oldAreaTerritory.endChange       = areaChange
+                areaChange.newAreaTerritory.startChange     = areaChange
+
+              when 'NCH'
+                areaChange.areaHandle.getArea().updateChanges.push areaChange
+                areaChange.oldAreaName.endChange            = areaChange
+                areaChange.newAreaName.startChange          = areaChange
+
+          # finalize handle
+          hiventHandle = new HG.HiventHandle hivent
+          @_hgInstance.hiventController._hiventHandles.push handle
 
       error: @_errorCallback
+
+
+
+  ##############################################################################
+  #                            PRIVATE INTERFACE                               #
+  ##############################################################################
+
+
+  # ============================================================================
+  # data objects from the client to the server to each other
+  # ============================================================================
+
+  _areaTerritoryToServer: (dataObj) ->
+    {
+      id:                   parseInt dataObj.id
+      geometry:             dataObj.geometry.wkt()
+      representative_point: dataObj.representativePoint.wkt()
+    }
+
+
+  # ----------------------------------------------------------------------------
+
+  _areaTerritoryToClient: (dataObj) ->
+    {
+      id:                   parseInt dataObj.id
+      geometry:             @_geometryReader.read dataObj.geometry
+      representativePoint:  @_geometryReader.read dataObj.representative_point
+    }
+
+
+  # ----------------------------------------------------------------------------
+
+  _areaNameToServer: (dataObj) ->
+    {
+      id:           parseInt dataObj.id
+      short_name:   dataObj.shortName
+      formal_name:  dataObj.formalName
+    }
+
+
+  # ----------------------------------------------------------------------------
+
+  _areaNameToClient: (dataObj) ->
+    {
+      id:           parseInt dataObj.id
+      shortName:    dataObj.short_name
+      formalName:   dataObj.formal_name
+    }
+
+
+  # ============================================================================
+  # validation for all data in AreaChange
+  # ensures that AreaChange can correctly be executed
+  # ============================================================================
+
+  _validateAreaChangeData: (dataObj) ->
+
+    # check if operation type is correct
+    if ['ADD','DEL','TCH','NCH'].indexOf(dataObj.operation) is -1
+      return console.error "The id of the operation is not correct"
+
+    # check if areaHandle is given
+    if not dataObj.areaHandle
+      return console.error "The associated AreaHandle could not been found"
+
+    # check if old/new area name/territories are singular
+    if dataObj.oldAreaName.length is 0
+      dataObj.oldAreaName = null
+    else if dataObj.oldAreaName.length is 1
+      dataObj.oldAreaName = dataObj.oldAreaName[0]
+    else
+      return console.error "There have been multiple AreaNames found, this is impossible"
+
+    if dataObj.newAreaName.length is 0
+      dataObj.newAreaName = null
+    else if dataObj.newAreaName.length is 1
+      dataObj.newAreaName = dataObj.newAreaName[0]
+    else
+      return console.error "There have been multiple AreaNames found, this is impossible"
+
+    if dataObj.oldAreaTerritory.length is 0
+      dataObj.oldAreaTerritory = null
+    else if dataObj.oldAreaTerritory.length is 1
+      dataObj.oldAreaTerritory = dataObj.oldAreaTerritory[0]
+    else
+      return console.error "There have been multiple AreaTerritorys found, this is impossible"
+
+    if dataObj.newAreaTerritory.length is 0
+      dataObj.newAreaTerritory = null
+    else if dataObj.newAreaTerritory.length is 1
+      dataObj.newAreaTerritory = dataObj.newAreaTerritory[0]
+    else
+      return console.error "There have been multiple AreaTerritorys found, this is impossible"
+
+    # check if operation has necessary new/old area name/territory
+    switch dataObj.operation
+
+      when 'ADD'
+        if not (
+            (dataObj.newAreaName)           and
+            (dataObj.newAreaTerritory)      and
+            (not dataObj.oldAreaName)       and
+            (not dataObj.oldAreaTerritory)
+          )
+          return console.error "The ADD operation does not have the expected data provided"
+
+      when 'DEL'
+        if not (
+            (not dataObj.newAreaName)       and
+            (not dataObj.newAreaTerritory)  and
+            (dataObj.oldAreaName)           and
+            (dataObj.oldAreaTerritory)
+          )
+          return console.error "The DEL operation does not have the expected data provided"
+
+      when 'TCH'
+        if not (
+            (not dataObj.newAreaName)       and
+            (dataObj.newAreaTerritory)      and
+            (not dataObj.oldAreaName)       and
+            (dataObj.oldAreaTerritory)
+          )
+          return console.error "The TCH operation does not have the expected data provided"
+
+      when 'NCH'
+        if not (
+            (dataObj.newAreaName)           and
+            (not dataObj.newAreaTerritory)  and
+            (dataObj.oldAreaName)           and
+            (not dataObj.oldAreaTerritory)
+          )
+          return console.error "The NCH operation does not have the expected data provided"
+
+    # got all the way here? Then everything is good :)
+    return dataObj
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -198,10 +415,6 @@ class HG.DatabaseInterface
     @_prepareAreaClientToServer area
 
 
-
-  ##############################################################################
-  #                            PRIVATE INTERFACE                               #
-  ##############################################################################
 
   # ============================================================================
   # compile request header for initial area loading

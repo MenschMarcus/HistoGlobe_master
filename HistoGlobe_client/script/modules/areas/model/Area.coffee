@@ -15,12 +15,14 @@ class HG.Area
   # ============================================================================
   constructor: (@id) ->
 
-    @territory    = null    # HG.AreaTerritory
-    @name         = null    # HG.AreaName
+    @territory      = null    # HG.AreaTerritory
+    @name           = null    # HG.AreaName
 
-    @startHivent  = null    # HG.HiventHandle
-    @endHivent    = null    # HG.HiventHandle
-    @predecessors = []      # HG.AreaHandle
-    @successors   = []      # HG.AreaHandle
-    @sovereignt   = null    # HG.AreaHandle
-    @dependencies = []      # HG.AreaHandle
+    @startChange    = null    # HG.AreaChange
+    @updateChanges  = []      # HG.AreaChange
+    @endChange      = null    # HG.AreaChange
+
+    @predecessors   = []      # HG.AreaHandle
+    @successors     = []      # HG.AreaHandle
+    @sovereignt     = null    # HG.AreaHandle
+    @dependencies   = []      # HG.AreaHandle
