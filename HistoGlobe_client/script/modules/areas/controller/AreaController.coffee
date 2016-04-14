@@ -16,11 +16,7 @@ class HG.AreaController
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @addCallback 'onLoadAreaHivents'
-    @addCallback 'onFinishLoadingAreaHivents'
-
     @addCallback 'onCreateArea'
-    @addCallback 'onDestroyArea'
 
 
     # handle config
@@ -74,76 +70,6 @@ class HG.AreaController
     ### INTERACTION ###
 
     @_hgInstance.onAllModulesLoaded @, () =>
-
-
-
-
-
-      # @_areaInterface = new HG.AreaInterface
-
-      # # 1. load all all areas from server (all together)
-      # # ->  ids
-      # #     info: visible: yes/no
-      # #     hivents: start and end hivent
-      # @_areaInterface.loadAllAreaIds @_hgInstance
-
-      # # divert loading hivent data to HiventController
-      # @_areaInterface.onLoadAreaHivents @, (startHiventId, endHiventId, areaHandle) ->
-      #   # HiventController populates startHivent and endHivent of area
-      #   @notifyAll 'onLoadAreaHivents', startHiventId, endHiventId, areaHandle
-
-      # @_areaInterface.onFinishLoadingAreaIds @, (areaHandles) ->
-
-      #   # add handle to array storing all AreaHandles
-      #   @_areaHandles.push handle for handle in areaHandles
-
-      #   # determine which areas are visible and which are invisible
-      #   visibleAreas = []
-      #   invisibleAreas = []
-
-      #   for handle in areaHandles
-      #     area = handle.getArea()
-
-      #     if handle.tempLoadVars.visible
-      #       visibleAreas.push area.id
-      #     else # invisible
-      #       invisibleAreas.push area.id
-
-      #     # get area relations
-      #     area.sovereignt = @getAreaHandle handle.tempLoadVars.sovereignt
-
-      #     for dependency in handle.tempLoadVars.dependencies
-      #       area.dependencies.push @getAreaHandle dependency
-
-      #     for predecessor in handle.tempLoadVars.predecessors
-      #       area.predecessors.push @getAreaHandle predecessor
-
-      #     for successor in handle.tempLoadVars.successors
-      #       area.successors.push @getAreaHandle successor
-
-      #     # cleanup
-      #     delete handle.tempLoadVars
-
-
-      #   # 2. load all visible areas from server
-      #   # -> completely, in chunks
-      #   @_areaInterface.loadVisibleAreas visibleAreas
-      #   @_areaInterface.onLoadVisibleArea @, (area) ->
-      #     # update view
-      #     @notifyAll 'onCreateGeometry', area
-      #     @notifyAll 'onCreateName', area if area.hasName()
-
-      #   # 3. load all invisible areas from server (when 2. is completely done)
-      #   # -> completely, in chunks
-      #   @_areaInterface.onFinishLoadingVisibleAreas @, () ->
-      #     @_areaInterface.loadInvisibleAreas invisibleAreas
-      #     # @_areaInterface.onLoadInvisibleArea @, (area) ->
-      #     # -> nothing to do?
-      #     @_areaInterface.onFinishLoadingInvisibleAreas @, () ->
-      #       # finally load all hivents completely
-      #       @notifyAll 'onFinishLoadingAreaHivents'
-
-
 
       ### INTERFACE: HIVENT CONTROLLER ###
 
@@ -268,11 +194,11 @@ class HG.AreaController
 
 
   # ============================================================================
-  # receive a new AreaHandle (from EditMode) and add it to the list and tell
-  # the view about it
+  # Receive a new AreaHandle (from EditMode and DatabaseInterface) and add it to
+  # the list and tell the view about it
   # ============================================================================
 
-  addNewArea: (areaHandle) ->
+  addAreaHandle: (areaHandle) ->
     @_areaHandles.push areaHandle
     @notifyAll 'onCreateArea', areaHandle
 

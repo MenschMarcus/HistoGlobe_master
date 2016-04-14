@@ -16,9 +16,9 @@ class HG.AreaNameLayerOnMap
   # create a LabelLayer given the information extracted from the Area
   # ============================================================================
 
-  constructor: (@_areaHandle, @_labelManager) ->
+  constructor: (@_areaHandle, @_map, @_labelManager) ->
 
-    @_addLayer() if @_hasName()
+    @_addLayer()
 
 
     ### INTERACTION ###
@@ -26,13 +26,13 @@ class HG.AreaNameLayerOnMap
     ## AreaHandle -> THIS
 
     # actual show / hide / update behaviour is managed by a LabelManager
-    @_areaHandle.onUpdateTerritory @, @_updateLayer if @_hasName()
+    @_areaHandle.onUpdateTerritory @, @_updateLayer
 
     @_areaHandle.onAddName @,         @_addLayer
     @_areaHandle.onUpdateName @,      @_updateLayer
     @_areaHandle.onRemoveName @,      @_removeLayer
 
-    @_areaHandle.onShow @,            @_addLayer if @_hasName()
+    @_areaHandle.onShow @,            @_addLayer
     @_areaHandle.onHide @,            @_removeLayer
     @_areaHandle.onDestroy @,         @_removeLayer
 
@@ -42,18 +42,15 @@ class HG.AreaNameLayerOnMap
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
 
-  # ============================================================================
-  # return if the area has a area
-  # ============================================================================
-
-  _hasName: () -> @_areaHandle.getArea().name?
-
 
   # ============================================================================
   # add / update / remove the LabelLayer for the area
   # ============================================================================
 
   _addLayer: () ->
+
+    # error handling: only add if name exists
+    return if not @_areaHandle.getArea().name?
 
     # get data from model
     shortName = @_areaHandle.getArea().name.shortName
@@ -73,6 +70,9 @@ class HG.AreaNameLayerOnMap
 
   # ----------------------------------------------------------------------------
   _updateLayer: () ->
+
+    # error handling: only update if name exists
+    return if not @_areaHandle.getArea().name?
 
     # get updated data from model
     shortName = @_areaHandle.getArea().name.shortName

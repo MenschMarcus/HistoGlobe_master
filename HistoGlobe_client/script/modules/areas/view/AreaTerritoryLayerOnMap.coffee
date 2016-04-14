@@ -16,9 +16,7 @@ class HG.AreaTerritoryLayerOnMap
   # create a MultiPolygonLayer givent the information extracted from the Area
   # ============================================================================
 
-  constructor: (@_areaHandle) ->
-
-    @_map = @_hgInstance.map.getMap()
+  constructor: (@_areaHandle, @_map) ->
 
     @_addLayer()
 
@@ -44,17 +42,21 @@ class HG.AreaTerritoryLayerOnMap
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
 
+
   # ============================================================================
   # add / update / remove the MultiPolygonLayer for the area
   # ============================================================================
 
   _addLayer: () ->
 
-    geometry = @_areaHandle.getArea().area.territory.geometry.latLng()
+    # error handling: only add territory if it exists
+    return if not @_areaHandle.getArea().territory?
+
+    geometry = @_areaHandle.getArea().territory.geometry.latLng()
 
     # styling area in CSS based on its calss is a bad idea, because d3 can not
     # update that => use leaflet layer options
-    properties = @_areaHandle.getArea().getStyle()
+    properties = @_areaHandle.getStyle()
     options = {
       'className':    'area'
       'clickable':    true
@@ -92,6 +94,10 @@ class HG.AreaTerritoryLayerOnMap
 
   # ----------------------------------------------------------------------------
   _updateLayer: () ->
+
+    # error handling: only update territory if it exists
+    return if not @_areaHandle.getArea().territory?
+
     @_areaHandle.multiPolygonLayer.setLatLngs @_areaHandle.getArea().territory.geometry.latLng()
 
   # ----------------------------------------------------------------------------
@@ -112,7 +118,7 @@ class HG.AreaTerritoryLayerOnMap
       'stroke':         properties.borderColor
       'stroke-opacity': properties.borderOpacity
       'stroke-width':   properties.borderWidth
-    }, HGConfig.slow_animation_time.val
+    }, HGConfig.fast_animation_time.val
 
 
   # ============================================================================

@@ -59,67 +59,18 @@ class HG.HiventController
 
       ### INIT Hivents ###
 
-      # @_hiventInterface = new HG.HiventInterface
+      @_hgInstance.databaseInterface.onFinishLoadingInitData @, (minDate) ->
 
-      # # load start / end hivents of areas
-      # @_hgInstance.areaController.onLoadAreaHivents @, (startHiventData, endHiventData, areaHandle) =>
+        @_sortHivents()
 
-      #   if startHiventData
-      #     # check if hivent exists
-      #     startHiventHandle = null
-      #     for handle in @_hiventHandles
-      #       if startHiventData.id is handle.getHivent().id
-      #         startHiventHandle = handle
-      #         break
+        # create current state on the map
+        # -> accumulate all changes from the earliest hivent until now
+        oldDate = minDate
+        nowDate = @_hgInstance.timeController.getNowDate()
 
-      #     # create model (hivent + handle)
-      #     if not startHiventHandle
-      #       startHivent = new HG.Hivent @_hiventInterface.loadFromServerModel startHiventData
-      #       startHiventHandle = new HG.HiventHandle startHivent
-      #       # update controller
-      #       @_hiventHandles.push startHiventHandle
-      #       # update view
-      #       @notifyAll 'onHiventAdded', startHiventHandle
+        @_findHistoricalChanges oldDate, nowDate
 
-      #     # update model (area)
-      #     areaHandle.getArea().startHivent = startHiventHandle
-
-      #   if endHiventData
-      #     # check if hivent exists
-      #     endHiventHandle = null
-      #     for handle in @_hiventHandles
-      #       if startHiventData.id is handle.getHivent().id
-      #         endHiventHandle = handle
-      #         break
-
-      #     # create model (hivent + handle)
-      #     if not endHiventHandle
-      #       endHivent = new HG.Hivent @_hiventInterface.loadFromServerModel endHiventData
-      #       endHiventHandle = new HG.HiventHandle endHivent
-      #       # update controller
-      #       @_hiventHandles.push endHiventHandle
-      #       # update view
-      #       @notifyAll 'onHiventAdded', endHiventHandle
-
-      #     # update model (area)
-      #     areaHandle.getArea().endHivent = endHiventHandle
-
-      #   @_handlesNeedSorting = true
-
-      # # load the rest of the hivents that were not start / end hivents of areas
-      # @_hgInstance.areaController.onFinishLoadingAreaHivents @, () =>
-
-      #   @_sortHivents()
-
-      #   @_hiventInterface.loadRestHivents @_hiventHandles
-      #   @_hiventInterface.onLoadRestHivent @, (hiventData) =>
-      #     hivent = new HG.Hivent hiventData
-      #     hiventHandle = new HG.HiventHandle hivent
-      #     @_hiventHandles.push hiventHandle
-      #     @notifyAll 'onHiventAdded', hiventHandle
-
-      #   @_hiventInterface.onFinishLoadingRestHivents @, () =>
-      #     @_sortHivents()
+        @_nowDate = @_hgInstance.timeController.getNowDate()
 
 
       ### EDIT MODE ###
@@ -128,7 +79,7 @@ class HG.HiventController
 
         # create hivent
         hivent = new HG.Hivent @_hiventInterface.loadFromServerModel hiventFromServer, yes
-        hiventHandle = new HG.HiventHandle hivent
+        hiventHandle = new HG.HiventHandle @_hgInstance, hivent
 
         # update areas properties
         oldArea.getArea().endHivent = hiventHandle   for oldArea in oldAreas
@@ -144,74 +95,17 @@ class HG.HiventController
       ## load hivents that have happened since last now change
       @_hgInstance.timeController.onNowChanged @, (nowDate) =>
 
-        # error handling: initially nowDate is not set => set and ignore
-        if not @_nowDate
-          @_nowDate = nowDate
-          return
+        # error handling: nowDate will not be set
+        return if not @_nowDate
 
         # get change dates
         oldDate = @_nowDate
         newDate = nowDate
-        # change direction: forward (+1) or backward (-1)
-        changeDir = if oldDate < newDate then +1 else -1
 
-        # opposite direction: swap old and new date, so it can be assumed that always oldDate < newDate
-        if changeDir is -1
-          tempDate = oldDate
-          oldDate = newDate
-          newDate = tempDate
+        @_findHistoricalChanges oldDate, newDate
 
-        # distance user has scrolled
-        timeLeap = Math.abs(oldDate.year() - newDate.year())
-
-        # go through all changes in (reversed) order
-        # check if the change date is inside the change range from the old to the new date
-        # as soon as one change is inside, all changes will be executed until one change is outside the range
-        # -> then termination of the loop
-        inChangeRange = no
-        changes = []
-
-        # IMP!!! if change direction is the other way, also the hivents have
-        # to be looped through the other way!
-        for handle in @_hiventHandles by changeDir
-          hivent = handle.getHivent()
-
-          # check if hivent is in range
-          # N.B. > and <= !!!
-          if (hivent.effectDate > oldDate) and (hivent.effectDate <= newDate)
-            changes.push change for change in hivent.changes
-
-            # state that a change is found => entered change range of hivents
-            inChangeRange = yes
-            # => as soon as loop gets out of change range, there will not be any
-            # hivent following
-            # => loop can be broken
-            # N.B: if everything is screwed up: uncomment the following two lines ;)
-          # else
-          #   break if inChangeRange
-
-        # tell everyone if new changes
-        @notifyAll 'onChangeAreas', changes, changeDir, timeLeap if changes.length isnt 0
-
-        # update now date
         @_nowDate = nowDate
 
-
-  # ============================================================================
-  # Returns all stored HiventHandles.
-  # Additionally, if "object" and "callbackFunc" are specified, "callbackFunc"
-  # is registered to be called for every Hivent loaded in the future and called
-  # for every Hivent that has been loaded already.
-  # ============================================================================
-
-  getHivents: (object, callbackFunc) ->
-    if object? and callbackFunc?
-      @onHiventAdded object, callbackFunc
-
-      for handle in @_hiventHandles
-        @notify "onHiventAdded", object, handle
-
-    @_hiventHandles
 
 
   # ============================================================================
@@ -230,9 +124,40 @@ class HG.HiventController
   # { min: {lat: <float>, long: <float>},
   #   max: {lat: <float>, long: <float>}}
   # ===========================================================================
+
   setSpaceFilter: (spaceFilter) ->
     @_currentSpaceFilter = spaceFilter
     @_filterHivents()
+
+
+  # ============================================================================
+  # Adds a created HiventHandle to the list
+  # ============================================================================
+
+  addHiventHandle: (hiventHandle) ->
+    @_hiventHandles.push hiventHandle
+    @_handlesNeedSorting = yes
+
+    # listen to destruction callback and tell everybody about it
+    hiventHandle.onDestroy @, () =>
+      @_hiventHandles.splice(@_hiventHandles.indexOf(hiventHandle), 1)
+
+
+  # ============================================================================
+  # Returns all stored HiventHandles.
+  # Additionally, if "object" and "callbackFunc" are specified, "callbackFunc"
+  # is registered to be called for every Hivent loaded in the future and called
+  # for every Hivent that has been loaded already.
+  # ============================================================================
+
+  getHivents: (object, callbackFunc) ->
+    if object? and callbackFunc?
+      @onHiventAdded object, callbackFunc
+
+      for handle in @_hiventHandles
+        @notify "onHiventAdded", object, handle
+
+    @_hiventHandles
 
 
   # ============================================================================
@@ -307,7 +232,64 @@ class HG.HiventController
         handle.setState state
 
 
-  ############################# MAIN FUNCTIONS #################################
+
+  ##############################################################################
+  #                            PRIVATE INTERFACE                               #
+  ##############################################################################
+
+
+  # ============================================================================
+  # find Hivents happening between two dates and execute their changes
+  # ============================================================================
+
+  _findHistoricalChanges: (oldDate, newDate) ->
+
+      # change direction: forward (+1) or backward (-1)
+      changeDir = if oldDate < newDate then +1 else -1
+
+      # opposite direction: swap old and new date, so it can be assumed that always oldDate < newDate
+      if changeDir is -1
+        tempDate = oldDate
+        oldDate = newDate
+        newDate = tempDate
+
+      # distance user has scrolled
+      timeLeap = Math.abs(oldDate.year() - newDate.year())
+
+      # go through all changes in (reversed) order
+      # check if the change date is inside the change range from the old to the new date
+      # as soon as one change is inside, all changes will be executed until one change is outside the range
+      # -> then termination of the loop
+      inChangeRange = no
+      changes = []
+
+      # IMP!!! if change direction is the other way, also the hivents have
+      # to be looped through the other way!
+      for hiventHandle in @_hiventHandles by changeDir
+
+        if hiventHandle.happenedBetween oldDate, newDate
+
+          # state that a change is found => entered change range of hivents
+          inChangeRange = yes
+
+          # TODO: make nicer later
+          for historicalChange in hiventHandle.getHivent().historicalChanges
+            historicalChange.execute changeDir
+
+        # N.B: if everything is screwed up: comment the following three lines ;)
+        else
+          # loop went out of change range => no hivent will be following
+          break if inChangeRange
+
+
+      # tell everyone if new changes
+      # @notifyAll 'onChangeAreas', changes, changeDir, timeLeap if changes.length isnt 0
+
+
+
+  # ============================================================================
+  # Sorts all HiventHandles by date
+  # ============================================================================
 
   _sortHivents: ->
     # filter by date

@@ -1,6 +1,6 @@
 # ==============================================================================
 # An HistoricalChange belongs to an Hivent and defines what has historically
-# changed because of that event.
+# changed because of that Hivent.
 #
 # ------------------------------------------------------------------------------
 # Hivent 1:n HistoricalChange
@@ -14,7 +14,7 @@
 #   SEC) secession of many areas from one:        A -> A, B
 #   NCH) name change of one or many areas:        A -> A', B -> B'
 #   TCH) territory change of one or many areas:   A -> A', B -> B'
-#   DEL) destruction of an area:                  A ->
+#   DES) destruction of an area:                  A ->
 # ==============================================================================
 
 from django.db import models

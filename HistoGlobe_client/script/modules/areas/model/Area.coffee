@@ -14,15 +14,21 @@ class HG.Area
 
   # ============================================================================
   constructor: (@id) ->
+    @handle         = null    # HG.AreaHandle
 
+    # properties (can change over time)
     @territory      = null    # HG.AreaTerritory
     @name           = null    # HG.AreaName
 
+    # historical changes
     @startChange    = null    # HG.AreaChange
     @updateChanges  = []      # HG.AreaChange
     @endChange      = null    # HG.AreaChange
 
-    @predecessors   = []      # HG.AreaHandle
-    @successors     = []      # HG.AreaHandle
-    @sovereignt     = null    # HG.AreaHandle
-    @dependencies   = []      # HG.AreaHandle
+    # historical context
+    @predecessors   = []      # HG.Area
+    @successors     = []      # HG.Area
+
+    # territorial relation
+    @sovereignt     = null    # HG.Area
+    @dependencies   = []      # HG.Area
