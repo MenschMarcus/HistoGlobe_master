@@ -92,16 +92,19 @@ class HG.HistoricalChange
       @_executeAreaChanges direction
 
 
+
   # ============================================================================
   # execute all its associated AreaChanges
   # ============================================================================
 
-    _executeAreaChanges: (direction) ->
-      # execute all its changes
-      for areaChange in @areaChanges
-        areaChange.execute direction
+  _executeAreaChanges: (direction) ->
+    # execute all its changes
+    for areaChange in @areaChanges
+      areaChange.execute direction
 
-'''
+
+
+'''   ####################### TRASHCAN #####################
 
   ### ChangeQueue ###
 
