@@ -19,7 +19,7 @@ class HG.AreaTerritory
     @geometry             = data.geometry
     @representativePoint  = data.representativePoint
 
-    @area                 = null    # HG.Area (!!! not HG.AreaHandle !!!)
+    @area                 = null    # HG.Area
 
     @startChange          = null    # HG.AreaChange
     @endChange            = null    # HG.AreaChange

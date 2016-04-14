@@ -75,13 +75,16 @@ class HG.TimeController
 
 
   # ============================================================================
-  getNowDate: () ->         @_nowDate
-  getMinMaxDates: () ->    [@_minDate, @_maxDate]
+  getNowDate: () ->    @_nowDate
+  getMinDate: () ->    @_minDate
+  getMaxDate: () ->    @_maxDate
 
 
   ##############################################################################
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
+
+  # ============================================================================
   _cropToMinMax: (date) ->
     date = moment.max date, @_minDate
     date = moment.min date, @_maxDate

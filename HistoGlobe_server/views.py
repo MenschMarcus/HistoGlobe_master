@@ -82,10 +82,11 @@ def get_all(empty_request):
 
 
   out = {
-    'hivents':          [],
-    'areas':            [],
-    'area_names':       [],
-    'area_territories': []
+    'hivents':            [],
+    'areas':              [],
+    'area_names':         [],
+    'area_territories':   [],
+    'territory_relation': []
   }
 
   # 1) get all hivents
@@ -102,6 +103,10 @@ def get_all(empty_request):
 
   for area_territory_model in AreaTerritory.objects.all():
     out['area_territories'].append(view_utils.areas.prepare_territory(area_territory_model))
+
+  # 4) get all territorial relations
+  for territory_relation_model in TerritoryRelation.objects.all():
+    out['territory_relation'].append(model_to_dict(territory_relation_model))
 
   # prepare and deliver everything to the client
   return HttpResponse(json.dumps(out))

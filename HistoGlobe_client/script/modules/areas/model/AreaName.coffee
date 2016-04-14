@@ -19,7 +19,7 @@ class HG.AreaName
     @shortName    = data.shortName
     @formalName   = data.formalName
 
-    @area         = null    # HG.Area (!!! not HG.AreaHandle !!!)
+    @area         = null    # HG.Area
 
     @startChange  = null    # HG.AreaChange
     @endChange    = null    # HG.AreaChange

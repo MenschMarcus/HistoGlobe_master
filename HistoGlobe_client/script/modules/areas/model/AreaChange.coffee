@@ -7,6 +7,12 @@ window.HG ?= {}
 #   old area            -> new area
 #   old area name       -> new area name
 #   old area territory  -> new area territory
+#
+# operations:
+#   ADD) add new area:         -> A
+#   DEL) delete old area:    A ->
+#   NCH) name change:        A -> A
+#   TCH) territory change:   A -> A
 # ==============================================================================
 
 
@@ -20,11 +26,11 @@ class HG.AreaChange
   constructor: (data) ->
 
     @id               = data.id
-    @hivent           = data.hivent           # HG.Hivent
+    @historicalChange = data.historicalChange # HG.HistoricalChange
 
     @operation        = data.operation        # 'ADD', 'DEL', 'TCH' or 'NCH'
 
-    @areaHandle       = data.areaHandle       # HG.AreaHandle
+    @area             = data.area             # HG.Area
     @oldAreaName      = data.oldAreaName      # HG.AreaName
     @newAreaName      = data.newAreaName      # HG.AreaName
     @oldAreaTerritory = data.oldAreaTerritory # HG.AreaTerritory
@@ -48,13 +54,13 @@ class HG.AreaChange
         if direction is 1
           @newAreaName.area.name            = @newAreaName
           @newAreaTerritory.area.territory  = @newAreaTerritory
-          @areaHandle.show()
+          @area.handle.show()
 
         # backward => hide new area
         else
           @newAreaName.area.name            = null
           @newAreaTerritory.area.territory  = null
-          @areaHandle.hide()
+          @area.handle.hide()
 
       # ------------------------------------------------------------------------
       when 'DEL'    # delete area
@@ -63,13 +69,13 @@ class HG.AreaChange
         if direction is 1
           @oldAreaName.area.name            = null
           @oldAreaTerritory.area.territory  = null
-          @areaHandle.hide()
+          @area.handle.hide()
 
         # backward => show old area
         else
           @oldAreaName.area.name            = @oldAreaName
           @oldAreaTerritory.area.territory  = @oldAreaTerritory
-          @areaHandle.show()
+          @area.handle.show()
 
       # ------------------------------------------------------------------------
       when 'TCH'    # change area territory
@@ -77,12 +83,12 @@ class HG.AreaChange
         # forward => update with new territory
         if direction is 1
           @oldAreaTerritory.area.territory  = @newAreaTerritory
-          @areaHandle.updateTerritory()
+          @area.handle.updateTerritory()
 
         # backward => update with old territory
         else
           @oldAreaTerritory.area.territory  = @oldAreaTerritory
-          @areaHandle.updateTerritory()
+          @area.handle.updateTerritory()
 
       # ------------------------------------------------------------------------
       when 'NCH'    # change area name
@@ -90,10 +96,10 @@ class HG.AreaChange
         # forward => update with new name
         if direction is 1
           @oldAreaName.area.name  = @newAreaName
-          @areaHandle.updateName()
+          @area.handle.updateName()
 
         # backward => update with old name
         else
           @oldAreaName.area.name  = @oldAreaName
-          @areaHandle.updateName()
+          @area.handle.updateName()
 

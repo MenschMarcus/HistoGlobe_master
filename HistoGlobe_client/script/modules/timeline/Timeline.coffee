@@ -38,8 +38,8 @@ class HG.Timeline
     @_domElemCreator = new HG.DOMElementCreator
 
     ### INIT MEMBERS ###
-    @_minDate = @_hgInstance.timeController.getMinMaxDates()[0]
-    @_maxDate = @_hgInstance.timeController.getMinMaxDates()[1]
+    @_minDate = @_hgInstance.timeController.getMinDate()
+    @_maxDate = @_hgInstance.timeController.getMaxDate()
 
     @_dateMarkers = []
 

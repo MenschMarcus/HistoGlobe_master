@@ -17,7 +17,7 @@ class HG.AreaHandle
   # Initializes member data and stores a reference to the passed Area object.
   # ============================================================================
 
-  constructor: (@_area) ->
+  constructor: (@_hgInstance, @_area) ->
 
     # Internal states                                           functions to toggle state
     @_visible = no    # is area currently on the map?           show()      hide()
@@ -251,6 +251,7 @@ class HG.AreaHandle
 
     # status change 1) deselected -> selected
     if becameSelected
+      @_selected = yes
       SELECTED_AREAS.push @
       if obj
         @notify 'onSelect', obj, @,
@@ -419,8 +420,8 @@ class HG.AreaHandle
   ##############################################################################
 
   _removeFromArray: (elem, array) ->
-    idx = $.inArray(elem, array)
-    delete array[idx] if idx >= 0
+    idx = array.indexOf elem
+    array.splice(idx, 1) if idx >= 0
 
   ##############################################################################
   #                             STATIC MEMBERS                                 #

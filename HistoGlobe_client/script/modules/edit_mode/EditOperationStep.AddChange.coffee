@@ -38,7 +38,7 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
     ## but I am going to go the easy way :-)
     # builder = new HG.HiventBuilder
     # hivent = builder._createHivent hiventData
-    # hiventHandle = new HG.HiventHandle hivent
+    # hiventHandle = new HG.HiventHandle @_hgInstance, hivent
 
     # @_popover = new HG.HiventInfoPopover(
     #     hiventHandle,

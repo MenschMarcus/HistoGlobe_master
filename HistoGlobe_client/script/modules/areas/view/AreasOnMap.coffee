@@ -32,11 +32,11 @@ class HG.AreasOnMap
 
       # create new leaflet layers when new area gets created
       @_hgInstance.areaController.onCreateArea @, (areaHandle) =>
-        new HG.AreaTerritoryLayerOnMap areaHandle
-        new HG.AreaNameLayerOnMap areaHandle, @_labelManager
+        new HG.AreaTerritoryLayerOnMap areaHandle, @_map
+        new HG.AreaNameLayerOnMap areaHandle, @_map, @_labelManager
 
-        areaHandle.onSelect @, () ->    @_select areaHandle
-        areaHandle.onDeselect @, () ->  @_desselect areaHandle
+        areaHandle.onSelect @, @_select
+        areaHandle.onDeselect @, @_deselect
 
 
       # listen to zoom event from map

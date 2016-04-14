@@ -24,7 +24,7 @@ from django.db import models
 #------------------------------------------------------------------------------
 class AreaChange(models.Model):
 
-  historical_change   = models.ForeignKey ('HistoricalChange', related_name='historical_change')
+  historical_change   = models.ForeignKey ('HistoricalChange', related_name='historical_change', default=0)
   operation           = models.CharField  (default='XXX', max_length=3)
   area                = models.ForeignKey ('Area', related_name='change_area')
   old_area_name       = models.ForeignKey ('AreaName', related_name='new_area_name', null=True)

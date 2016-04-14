@@ -16,7 +16,7 @@ class HG.HiventHandle
   # Constructor
   # Initializes member data and stores a reference to the passed Hivent object.
   # ============================================================================
-  constructor: (hivent) ->
+  constructor: (@_hgInstance, hivent) ->
 
     @_hivent = hivent
 
@@ -47,7 +47,7 @@ class HG.HiventHandle
     @addCallback "onUnLink"
     @addCallback "onFocus"
     @addCallback "onUnFocus"
-    @addCallback "onDestruction"
+    @addCallback "onDestroy"
     @addCallback "onAgeChanged"
 
     @addCallback "onVisiblePast"
@@ -57,9 +57,26 @@ class HG.HiventHandle
   # ============================================================================
   # Returns the assigned Hivent.
   # ============================================================================
+
   getHivent: ->
     @_hivent
 
+
+  # ============================================================================
+  # Returns whether or not the HiventHandle is active.
+  # ============================================================================
+
+  isActive: () ->
+    @_activated
+
+
+  # ============================================================================
+  # Returns whether or not the Hivent happened between two given dates
+  # N.B. > and <= !!!
+  # ============================================================================
+
+  happenedBetween: (dateA, dateB) ->
+    (@_hivent.effectDate > dateA) and (@_hivent.effectDate <= dateB)
 
 
   # ============================================================================
@@ -68,27 +85,18 @@ class HG.HiventHandle
   # clicked. "mousePixelPosition" may be passed and should be the click's
   # location in device coordinates.
   # ============================================================================
+
   activeAll: (mousePixelPosition) ->
     @_activated = true
     ACTIVE_HIVENTS.push @
     @notifyAll "onActive", mousePixelPosition, @
 
-  # ============================================================================
-  # Notifies a specific listener (obj) that the HiventHandle is now active.
-  # Usually, this is triggered when a map or timeline icon belonging to a Hivent
-  # is being clicked. "mousePixelPosition" may be passed and should be the
-  # click's location in device coordinates.
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   active: (obj, mousePixelPosition) ->
     @_activated = true
     ACTIVE_HIVENTS.push @
     @notify "onActive", obj, mousePixelPosition, @
 
-  # ============================================================================
-  # Returns whether or not the HiventHandle is active.
-  # ============================================================================
-  isActive: () ->
-    @_activated
 
   # ============================================================================
   # Notifies all listeners that the HiventHandle is now inactive. Usually, this
@@ -96,28 +104,26 @@ class HG.HiventHandle
   # clicked. "mousePixelPosition" may be passed and should be the click's
   # location in device coordinates.
   # ============================================================================
+
   inActiveAll: (mousePixelPosition) ->
     @_activated = false
     index = $.inArray(@, ACTIVE_HIVENTS)
     if index >= 0 then delete ACTIVE_HIVENTS[index]
     @notifyAll "onInActive", mousePixelPosition, @
 
-  # ============================================================================
-  # Notifies a specific listener (obj) that the HiventHandle is now inactive.
-  # Usually, this is triggered when a map or timeline icon belonging to a Hivent
-  # is being clicked. "mousePixelPosition" may be passed and should be the
-  # click's location in device coordinates.
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   inActive: (obj, mousePixelPosition) ->
     @_activated = false
     index = $.inArray(@, ACTIVE_HIVENTS)
     if index >= 0 then delete ACTIVE_HIVENTS[index]
     @notify "onInActive", obj, mousePixelPosition, @
 
+
   # ============================================================================
   # Toggles the HiventHandle's active state and notifies all listeners according
   # to the new value of "@_activated".
   # ============================================================================
+
   toggleActiveAll: (mousePixelPosition) ->
     @_activated = not @_activated
     if @_activated
@@ -125,10 +131,7 @@ class HG.HiventHandle
     else
       @inActiveAll mousePixelPosition
 
-  # ============================================================================
-  # Toggles the HiventHandle's active state and notifies a specific listener
-  # (obj) according to the new value of "@_activated".
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   toggleActive: (obj, mousePixelPosition) ->
     @_activated = not @_activated
     if @_activated
@@ -137,28 +140,24 @@ class HG.HiventHandle
       @inActive obj, mousePixelPosition
 
 
-
   # ============================================================================
   # Notifies all listeners that the HiventHandle is now marked. Usually, this is
   # triggered when a map or timeline icon belonging to a Hivent is being
   # hovered. "mousePixelPosition" may be passed and should be the mouse's
   # location in device coordinates.
   # ============================================================================
+
   markAll: (mousePixelPosition) ->
     unless @_marked
       @_marked = true
       @notifyAll "onMark", mousePixelPosition
 
-  # ============================================================================
-  # Notifies a specific listener (obj) that the HiventHandle is now marked.
-  # Usually, this is triggered when a map or timeline icon belonging to a Hivent
-  # is being hovered. "mousePixelPosition" may be passed and should be the
-  # mouse's location in device coordinates.
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   mark: (obj, mousePixelPosition) ->
     unless @_marked
       @_marked = true
       @notify "onMark", obj, mousePixelPosition
+
 
   # ============================================================================
   # Notifies all listeners that the HiventHandle is no longer marked. Usually,
@@ -166,36 +165,29 @@ class HG.HiventHandle
   # hovered. "mousePixelPosition" may be passed and should be the mouse's
   # location in device coordinates.
   # ============================================================================
+
   unMarkAll: (mousePixelPosition) ->
     if @_marked
       @_marked = false
       @notifyAll "onUnMark", mousePixelPosition
 
-  # ============================================================================
-  # Notifies a specific listener (obj) that the HiventHandle no longer marked.
-  # Usually, this is triggered when a map or timeline icon belonging to a Hivent
-  # is being hovered. "mousePixelPosition" may be passed and should be the
-  # mouse's location in device coordinates.
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   unMark: (obj, mousePixelPosition) ->
     if @_marked
       @_marked = false
       @notify "onUnMark", obj, mousePixelPosition
 
 
-
   # ============================================================================
   # Notifies all listeners to focus on the Hivent associated with the
   # HiventHandle.
   # ============================================================================
+
   focusAll: () ->
     @_focused = true
     @notifyAll "onFocus"
 
-  # ============================================================================
-  # Notifies a specific listener (obj) to focus on the Hivent associated with
-  # the HiventHandle.
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   focus: (obj) ->
     @_focused = true
     @notify "onFocus", obj
@@ -204,14 +196,12 @@ class HG.HiventHandle
   # Notifies all listeners that the Hivent associated with the HiventHandle
   # shall no longer be focussed.
   # ============================================================================
+
   unFocusAll: () ->
     @_focused = false
     @notifyAll "onUnFocus"
 
-  # ============================================================================
-  # Notifies a specific listener (obj) that the Hivent associated with the
-  # HiventHandle shall no longer be focussed.
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   unFocus: (obj) ->
     @_focused = false
     @notify "onUnFocus", obj
@@ -222,17 +212,15 @@ class HG.HiventHandle
   # Notifies all listeners that the Hivent the HiventHandle is destroyed. This
   # is used to allow for proper clean up.
   # ============================================================================
-  destroyAll: ->
-    @notifyAll "onDestruction"
-    @_destroy()
 
-  # ============================================================================
-  # Notifies a specific listener (obj) that the Hivent the HiventHandle is
-  # destroyed. This is used to allow for proper clean up.
-  # ============================================================================
+  destroyAll: ->
+    @notifyAll "onDestroy"
+    delete @
+
+  # ----------------------------------------------------------------------------
   destroy: (obj) ->
-    @notify "onDestruction", obj
-    @_destroy()
+    @notify "onDestroy", obj
+    delete @
 
 
   # ============================================================================
@@ -257,6 +245,7 @@ class HG.HiventHandle
   # Sets the HiventHandle's age.
   # what is the age?
   # ============================================================================
+
   setAge: (age) ->
     if @_age isnt age
       @_age = age
@@ -267,22 +256,6 @@ class HG.HiventHandle
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
 
-  # ============================================================================
-  _destroy: ->
-    @_onActiveCallbacks = []
-    @_onInActiveCallbacks = []
-    @_onMarkCallbacks = []
-    @_onUnMarkCallbacks = []
-    @_onLinkCallbacks = []
-    @_onUnLinkCallbacks = []
-    @_onUnFocusCallbacks = []
-    @_onFocusCallbacks = []
-    @_onUnFocusCallbacks = []
-
-    @_onDestructionCallbacks = []
-
-    delete @
-    return
 
   ##############################################################################
   #                             STATIC MEMBERS                                 #

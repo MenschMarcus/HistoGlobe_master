@@ -194,8 +194,14 @@ load.run()
         )
       hivent.save()
 
-      area_change = AreaChange(
+      historical_change = HistoricalChange(
           hivent =              hivent,
+          operation =           'CRE'
+        )
+      historical_change.save()
+
+      area_change = AreaChange(
+          historical_change =   historical_change,
           operation =           'ADD',
           area =                area,
           new_area_name =       area_name,
@@ -295,8 +301,14 @@ load.run()
           )
         hivent.save()
 
-        area_change = AreaChange(
+        historical_change = HistoricalChange(
             hivent =              hivent,
+            operation =           'CRE'
+          )
+        historical_change.save()
+
+        area_change = AreaChange(
+            historical_change =   historical_change,
             operation =           'ADD',
             area =                new_area,
             new_area_name =       new_area_name,
@@ -371,11 +383,11 @@ load.run()
         relation.save()
         print(terr_area_name.short_name + " became territory of " + home_area_name.short_name)
 
-        # add its area to creation event
-        area_change = AreaChange.objects.get(area=home_area)
+        # add its area to the creation event
+        historical_change = AreaChange.objects.get(area=home_area).historical_change
 
         area_change = AreaChange(
-            hivent =              hivent,
+            historical_change =   historical_change,
             operation =           'ADD',
             area =                terr_area,
             new_area_name =       terr_area_name,
@@ -395,7 +407,6 @@ load.run()
         print(terr_area_name.short_name + " added to creation hivent of " + home_area_name.short_name)
 
 
-
   ### CREATE REPRESENTATIVE POINTS ###
 
   for area_territory in AreaTerritory.objects.all():
@@ -407,10 +418,10 @@ load.run()
   ### CREATE FIRST SNAPSHOT ###
 
   # save initial snapshot
-  snapshot = Snapshot(
-      date=iso8601.parse_date(init_data_version_date)
-    )
-  snapshot.save()
+  # snapshot = Snapshot(
+  #     date=iso8601.parse_date(init_data_version_date)
+  #   )
+  # snapshot.save()
 
   # populate snapshot with all areas in the database
   # for area in Area.objects.all():

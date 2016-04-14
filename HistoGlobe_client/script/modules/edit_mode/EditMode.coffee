@@ -66,7 +66,7 @@ class HG.EditMode
   hgInit: (@_hgInstance) ->
 
     # add to HG instance
-    @_hgInstance.editMode = @   # N.B. edit mode = edit controller :)
+    @_hgInstance.editMode = @
 
     # append pathes
     @_config.editOperationsPath = @_hgInstance.config.configPath + @_config.editOperationsPath

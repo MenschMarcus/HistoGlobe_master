@@ -264,10 +264,17 @@ def prepare_hivent(hivent_model):
   # -> except for change
   hivent = model_to_dict(hivent_model)
 
-  # get all Changes associated to the Hivent
-  hivent['area_changes'] = []
-  for area_change_model in AreaChange.objects.filter(hivent=hivent_model):
-    hivent['area_changes'].append(model_to_dict(area_change_model))
+  # get all HistoricalChanges associated to the Hivent
+  hivent['historical_changes'] = []
+  for historical_change_model in HistoricalChange.objects.filter(hivent=hivent_model):
+    historical_change = model_to_dict(historical_change_model)
+
+    # get all AreaChanges associated to the Hivent
+    historical_change['area_changes'] = []
+    for area_change_model in AreaChange.objects.filter(historical_change=historical_change_model):
+      historical_change['area_changes'].append(model_to_dict(area_change_model))
+
+    hivent['historical_changes'].append(historical_change)
 
   # prepare dates for output
   hivent['start_date'] =        utils.get_date_string(hivent['start_date'])

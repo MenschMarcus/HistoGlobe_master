@@ -168,6 +168,7 @@ def prepare_territory(territory_model):
 
   return({
     'id':                   territory_model.id,
+    'area':                 territory_model.area.id,
     'start_change':         start_change,
     'end_change':           end_change,
     'representative_point': territory_model.representative_point.wkt,
