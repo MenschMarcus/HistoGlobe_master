@@ -274,7 +274,7 @@ class HG.HiventController
 
           # TODO: make nicer later
           for historicalChange in hiventHandle.getHivent().historicalChanges
-            historicalChange.execute changeDir
+            historicalChange.execute changeDir, timeLeap
 
         # N.B: if everything is screwed up: comment the following three lines ;)
         else
