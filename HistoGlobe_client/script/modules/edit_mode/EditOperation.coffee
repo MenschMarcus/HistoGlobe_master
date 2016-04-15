@@ -115,7 +115,7 @@ class HG.EditOperation
       @undoManager.undo() while @undoManager.hasUndo()
 
     ### LET'S GO ###
-    new HG.EditOperationTransition0to1 @_hgInstance, 1
+    new HG.EditOperationStep @_hgInstance, 1
 
     @undoManager.add {
       undo: => @abort()

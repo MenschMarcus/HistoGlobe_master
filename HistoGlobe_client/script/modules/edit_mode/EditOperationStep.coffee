@@ -38,34 +38,35 @@ class HG.EditOperationStep
 
 
 
-
   # ============================================================================
   # makeTransition method can be intervoked both by clicking next button
   # in the workflow window and by the operation itself
   # (e.g. if last area successfully named)
-  # => executes next EditOperationTransition
   # ============================================================================
 
   _makeTransition: (direction) ->
+
     @_cleanup()
 
-    idx = @_hgInstance.editOperation.operation
+    # go to next step
+    @_hgInstance.editOperation.operation.idx += direction
 
-    if                                       (idx is 1 and direction is -1)
-      new HG.EditOperationTransition0to1 @_hgInstance, direction
-
-    else if (idx is 1 and direction is 1) or (idx is 2 and direction is -1)
-      new HG.EditOperationTransition1to2 @_hgInstance, direction
-
-    else if (idx is 2 and direction is 1) or (idx is 3 and direction is -1)
-      new HG.EditOperationTransition2to3 @_hgInstance, direction
-
-    else if (idx is 3 and direction is 1) or (idx is 4 and direction is -1)
-      new HG.EditOperationTransition3to4 @_hgInstance, direction
-
-    else if (idx is 4 and direction is 1)
-      new HG.EditOperationTransition4to5 @_hgInstance, direction
+    # setup new step
+    switch @_hgInstance.editOperation.operation.idx
+      when 0 then @_hgInstance.editOperation.abort()  # only on undo from first step
+      when 1 then new HG.EditOperationStep.SelectOldAreas        @_hgInstance, direction
+      when 2 then new HG.EditOperationStep.CreateNewTerritories  @_hgInstance, direction
+      when 3 then new HG.EditOperationStep.CreateNewName         @_hgInstance, direction
+      when 4 then new HG.EditOperationStep.AddChange             @_hgInstance, direction
+      when 5 then @_hgInstance.editOperation.finish()
 
     @_undoManager.add {
       undo: => @_makeTransition (-1)*direction
     }
+
+
+  # ============================================================================
+  # cleanup to be implemented by each step on its own
+  # ============================================================================
+
+  _cleanup: () ->

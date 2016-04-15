@@ -22,14 +22,21 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     # tell AreaController to start selecting maximal X number of areas
     @_hgInstance.areaController.enableMultiSelection @_stepData.number.max
 
-    # forward change: select currently selected area (if there is one)
+    # forward change
     if direction is 1
+      # select currently selected area (if there is one)
       @_select (@_hgInstance.areaController.getSelectedAreaHandles())[0]
 
-    # backward change: get current number of selections
+    # backward change
     else
+      # get current number of selections
       for areaChange in @_historicalChange.areaChanges
         @_numSelections++ if areaChange.area.areaHandle.isSelected()
+      # restore areas on the map
+      # for area in @_stepData.outData.selectedAreas
+      #   @notifyEditMode 'onEndEditArea', area
+      #   @notifyEditMode 'onSelectArea', area
+
 
 
     ### REACT ON USER INPUT ###
