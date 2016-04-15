@@ -1,3 +1,4 @@
+
 window.HG ?= {}
 
 # ==============================================================================
@@ -25,8 +26,10 @@ class HG.HistoricalChange
 
   constructor: (data)  ->
     @id             = data.id
-    @operation      = data.operation
     @hivent         = data.hivent       # HG.Hivent
+
+    @operation      = data.operation
+
     @areaChanges    = []                # HG.AreaChange
 
 

@@ -126,12 +126,11 @@ class HG.AreaHandle
 
   # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   ### GET STATE OF THE AREA ###
-  # ->TODO: is that necessary? Is it used anywhere?
   # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   isVisble: () ->   @_visible
-  isActive: () ->   @_active
   isFocused: () ->  @_focused
+  isSelected: () -> @_selected
   isInEdit: () ->   @_inEdit
 
 

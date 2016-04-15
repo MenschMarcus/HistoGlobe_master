@@ -119,6 +119,10 @@ class HG.AreaController
   # GETTER for areas
   # ============================================================================
 
+  getAreaHandles: () ->
+    @_areaHandles
+
+  # ----------------------------------------------------------------------------
   getAreaHandle: (id) ->
     for areaHandle in @_areaHandles
       area = areaHandle.getArea()
@@ -127,9 +131,11 @@ class HG.AreaController
     return null
 
   # ----------------------------------------------------------------------------
-  getAreaHandles: () ->
-    @_areaHandles
-
+  getSelectedAreaHandles: () ->
+    selectedAreas = []
+    for areaHandle in @_areaHandles
+      selectedAreas.push areaHandle if areaHandle.isSelected()
+    selectedAreas
 
 
   ##############################################################################

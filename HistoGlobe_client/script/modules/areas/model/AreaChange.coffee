@@ -8,6 +8,7 @@ window.HG ?= {}
 #   old area name       -> new area name
 #   old area territory  -> new area territory
 #
+# ------------------------------------------------------------------------------
 # operations:
 #   ADD) add new area:         -> A
 #   DEL) delete old area:    A ->

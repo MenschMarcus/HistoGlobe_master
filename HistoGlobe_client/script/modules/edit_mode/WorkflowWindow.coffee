@@ -24,6 +24,8 @@ class HG.WorkflowWindow
   #   numNew:   number of new countries created (null, '1', '2', '1+', '2+')
   #   newGeo:   set geometry of new country/-ies? (bool)
   #   newName:  set name of new country/-ies? (bool)
+  # ============================================================================
+
   constructor: (@_hgInstance, operation) ->
     # add to hg instance
     @_hgInstance.workflowWindow = @

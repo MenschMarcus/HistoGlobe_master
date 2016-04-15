@@ -8,7 +8,7 @@ window.HG ?= {}
 #   set up my own ButtonArea and move leaflet buttons in there
 # ==============================================================================
 
-class HG.NewGeometryTool
+class HG.NewTerritoryTool
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #

@@ -1,6 +1,6 @@
 window.HG ?= {}
 
-SAVE_TO_DB = yes
+SAVE_TO_DB = no
 
 # ==============================================================================
 # control the workflow of a complete operation
@@ -16,11 +16,11 @@ class HG.EditOperation
 
   # ============================================================================
   # setup the whole operation
+  # ============================================================================
+
   constructor: (@_hgInstance, operationConfig) ->
     # add module to HG Instance
     @_hgInstance.editOperation = @
-
-    @_areaInterface = new HG.AreaInterface
 
     # error handling
     if not @_hgInstance.map.getMap()?
@@ -33,208 +33,111 @@ class HG.EditOperation
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @addCallback 'onFinish'
-
     @addCallback 'onStepComplete'
     @addCallback 'onStepIncomplete'
     @addCallback 'onStepTransition'
     @addCallback 'onOperationComplete'
     @addCallback 'onOperationIncomplete'
+    @addCallback 'onFinish'
 
-    # make all actions reversible
-    # -> array for undo managers for each step
-    @_undoManagers = [null, null, null, null]
-    @_fullyAborted = no
+    # includes
+    @_databaseInterface = new HG.DatabaseInterface
 
+    ### SETUP OPERATION DATA CONFIG ###
+    # public -> will be changed by OperationSteps directly
 
-
-    ### SETUP CONFIG ###
-    @_operation =
+    @operation =
       {
-        id:         operationConfig.id
-        title:      operationConfig.title
-        verb:       operationConfig.verb
-        idx:        -1          # = step index -> -1 = start in the beginning
+        id:                 operationConfig.id
+        title:              operationConfig.title
+        verb:               operationConfig.verb
+        historicalChange:   new HG.HistoricalChange {operation: operationConfig.id}
+        idx:                0    # = step index -> 0 = start
         steps: [
           { # idx             0
+            id:               'START'
+          }
+          { # idx             1
             id:               'SEL_OLD_AREA'
             title:            null
             userInput:        no
             number:           {}
-            inData:           {}
-            outData: {
-              selectedAreas:  []
-            }
           },
-          { # idx             1
-            id:               'SET_NEW_GEOM'
+          { # idx             2
+            id:               'SET_NEW_TERR'
             title:            null
             userInput:        no
             number:           {}
-            operationCommand: operationConfig.id
             tempAreas:        []
-            inData:           {}
-            outData: {
-              createdAreas:   []
-            }
           },
-          { # idx             2
+          { # idx             3
             id:               'SET_NEW_NAME'
             title:            null
             userInput:        no
+            number:           {}
             tempAreas:        []
-            inData:           {}
-            outData: {
-              namedAreas:     []
-            }
           },
-          { # idx             3
+          { # idx             4
             id:               'ADD_CHNG'
             title:            "add change <br /> to historical event"
             userInput:        yes
-            inData:           {}
-            outData: {
-              hiventInfo:     {}
-            }
-          },
+          }
         ]
       }
-    @_step = null
 
     # fill up default information with information of loaded change operation
     for stepConfig in operationConfig.steps
-      for stepData in @_operation.steps
+      for stepData in @operation.steps
         if stepData.id is stepConfig.id
           stepData.title = stepConfig.title
           stepData.userInput = yes
-          if stepData.number
-            stepData.number = @_getRequiredNum stepConfig.num
+          stepData.number = (@_getRequiredNum stepConfig.num) if stepData.number
           break
+
+    # current step the user is in
+    @_step = null
 
 
     ### SETUP UI ###
-    new HG.WorkflowWindow @_hgInstance, @_operation
+    new HG.WorkflowWindow @_hgInstance, @operation
 
-    # next step button
-    @_hgInstance.buttons.nextStep.onNext @, () =>
-      @_step.finish()
 
-    # finish button
-    @_hgInstance.buttons.nextStep.onFinish @, () =>
-      @_step.finish()
+    ### UNDO FUNCTIONALITY ###
+    # global, it executed action from UndoManager
+    @undoManager = new UndoManager
 
     # undo button
     @_hgInstance.buttons.undoStep.onClick @, () =>
-      @_undo()
+      @undoManager.undo()
 
     # abort button
     @_hgInstance.buttons.abortOperation.onAbort @, () =>
-      @_undo() while not @_fullyAborted
+      @undoManager.undo() while @undoManager.hasUndo()
 
     ### LET'S GO ###
-    @_makeStep 1
+    new HG.EditOperationTransition0to1 @_hgInstance, 1
+
+    @undoManager.add {
+      undo: => @abort()
+    }
 
 
   # ============================================================================
-  ## handle undo
-
-  # ----------------------------------------------------------------------------
-  # listen to own callback, notified from operation step
-  # @.onAddUndo @, (action) ->
-    # @_undoManager.add action
-
-  # ----------------------------------------------------------------------------
-  addUndoManager: (undoManager) ->
-    @_undoManagers[@_operation.idx] = undoManager
-
-  # ----------------------------------------------------------------------------
-  getUndoManager: () ->
-    @_undoManagers[@_operation.idx]
-
-
-  ##############################################################################
-  #                            PRIVATE INTERFACE                               #
-  ##############################################################################
-
+  # finish up the whole operation, send new data to server and update model
+  # on the client with the reponse data from the server
   # ============================================================================
-  _makeStep: (direction) ->
 
-    # error handling: last step -> forward    => finish
-    #                 first step -> backward  => abort
-    return @_finish() if (@_operation.idx is 3) and (direction is 1)
-    return @_abort()  if (@_operation.idx is 0) and (direction is -1)
-
-    # 'step forward? yes / no?'
-    isForward = direction is 1
-
-    # get old and new step
-    oldStep = @_operation.steps[@_operation.idx]
-    newStep = @_operation.steps[@_operation.idx+direction]
-
-    # step forward
-    # outgoing data of previous (old) step is incoming data for next (new) step
-    if isForward
-      newStep.inData = @_deepCopy oldStep.outData unless @_operation.idx is -1
-
-    # step backward
-    # incoming data of next (old) step is outgoing data for previous (new) step
-    else # not isForward = backward
-      newStep.outData = @_deepCopy oldStep.inData
-
-    # change workflow window
-    if newStep.userInput
-      @notifyAll 'onStepTransition', direction
-      @notifyAll 'onStepIncomplete'
-
-    # setup new step
-    @_operation.idx += direction
-    if @_operation.idx is 0
-      @_step = new HG.EditOperationStep.SelectOldAreas    @_hgInstance, newStep, isForward
-    else if @_operation.idx is 1
-      @_step = new HG.EditOperationStep.CreateNewGeometry @_hgInstance, newStep, isForward
-    else if @_operation.idx is 2
-      @_step = new HG.EditOperationStep.CreateNewName     @_hgInstance, newStep, isForward
-    else if @_operation.idx is 3
-      @_step = new HG.EditOperationStep.AddChange         @_hgInstance, newStep, isForward
-
-    # collect data if step is complete
-    if newStep.userInput
-      @_step.onFinish @, (stepData) ->
-        newStep = stepData
-        @_makeStep 1
-      @_step.onAbort @, () ->
-        @_makeStep -1
-
-    # go to next step if no input required
-    else
-      @_makeStep direction
-
-  # ============================================================================
-  # perform current undo action
-  _undo: () ->
-
-    # if current step has reversible actions
-    # => undo it
-    if @_undoManagers[@_operation.idx].hasUndo()
-      @_undoManagers[@_operation.idx].undo()
-
-    # else current step has no reversible actions
-    # => destroy the step and go one step back
-    else
-      @_step.abort()
-
-  # ============================================================================
-  _finish: () ->
+  finish: () ->
     # TODO: convert action list to new data to be stored in the database
 
-    oldAreas = @_operation.steps[0].outData.selectedAreas
-    newAreas = @_operation.steps[2].outData.namedAreas
-    hivent =   @_operation.steps[3].outData.hiventInfo
+    oldAreas = @operation.steps[0].outData.selectedAreas
+    newAreas = @operation.steps[2].outData.namedAreas
+    hivent =   @operation.steps[3].outData.hiventInfo
 
     request = {
       hivent:       hivent
       change: {
-        operation:  @_operation.id
+        operation:  @operation.id
         old_areas:  oldAreas
         new_areas:  []
       }
@@ -242,12 +145,12 @@ class HG.EditOperation
 
     for area in newAreas
       newArea = @_hgInstance.areaController.getArea area
-      request.change.new_areas.push @_areaInterface.convertToServerModel newArea
+      request.change.new_areas.push @_databaseInterface.convertToServerModel newArea
 
     # save hivent + changes + new areas to server
     if SAVE_TO_DB
       $.ajax
-        url:  'save_operation/'
+        url:  'saveoperation/'
         type: 'POST'
         data: JSON.stringify request
 
@@ -281,13 +184,25 @@ class HG.EditOperation
 
     @notifyAll 'onFinish'
 
-  # ----------------------------------------------------------------------------
-  _abort: () ->
-    @_fullyAborted = yes
-    @notifyAll 'onFinish'
 
   # ============================================================================
+  # break up the whole operation
+  # ============================================================================
+
+  abort: () ->
+    @notifyAll 'onFinish'
+
+
+
+  ##############################################################################
+  #                            PRIVATE INTERFACE                               #
+  ##############################################################################
+
+  # ============================================================================
+  # get minimum / maximum number of areas required for each step
   # possible inputs:  1   1+  2   2+
+  # ============================================================================
+
   _getRequiredNum: (expr) ->
     return 0 if not expr?
     lastChar = expr.substr(expr.length-1)
@@ -297,22 +212,3 @@ class HG.EditOperation
       'min': parseInt(min)
       'max': parseInt(max)
     }
-
-
-  # ============================================================================
-  # possible inputs:  1   1+  2   2+
-  _getOperationDescription: () ->
-    command = @_operation.verb
-    oldAreas = []
-    oldAreas.push id for id in @_operation.steps[0].outData.selectedAreas
-    newAreas = []
-    newAreas.push id for id in @_operation.steps[2].outData.namedAreas
-    return command + " " + oldAreas.join(", ") + " to " + newAreas.join(", ")
-
-
-  # ============================================================================
-  # copy each property from one object to the nect object
-  _deepCopy: (origObj) ->
-    return JSON.parse(JSON.stringify(origObj))
-    # for prop, val of origObj
-    #   destObj[prop] = val

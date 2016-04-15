@@ -12,40 +12,32 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, @_stepData, isForward) ->
+  constructor: (@_hgInstance, direction) ->
 
     # inherit functionality from base class
-    super @_hgInstance, @_stepData, isForward
+    super @_hgInstance, direction
 
-    # skip steps without user input
-    return @finish() if not @_stepData.userInput
+    @_numSelections = 0
 
-
-    ### SETUP OPERATION ###
-
-    ## for both forward and backward step
     # tell AreaController to start selecting maximal X number of areas
-    @notifyEditMode 'onEnableMultiSelection', @_stepData.number.max
+    @_hgInstance.areaController.enableMultiSelection @_stepData.number.max
 
+    # forward change: select currently selected area (if there is one)
+    if direction is 1
+      @_select (@_hgInstance.areaController.getSelectedAreaHandles())[0]
 
-    # forward change: only currently selected area and add it to array
-    if isForward
-      @_initSelectedArea = @_hgInstance.areaController.getSelectedAreas()[0]
-      @_select @_initSelectedArea if @_initSelectedArea
-
-    # backward change: all areas selected
+    # backward change: get current number of selections
     else
-      # put all previously selected areas back on the map
-      for area in @_stepData.outData.selectedAreas
-        @notifyEditMode 'onEndEditArea', area
-        @notifyEditMode 'onSelectArea', area
+      for areaChange in @_historicalChange.areaChanges
+        @_numSelections++ if areaChange.area.areaHandle.isSelected()
 
 
     ### REACT ON USER INPUT ###
-    # listen to area (de)selection from AreaController
 
-    @_hgInstance.areaController.onSelect @, (area) =>    @_select area
-    @_hgInstance.areaController.onDeselect @, (area) =>  @_deselect area
+    # listen to area (de)selection from AreaController
+    for areaHandle in @_hgInstance.areaController.getAreaHandles()
+      areaHandle.onSelect @,    @_select
+      areaHandle.onDeselect @,  @_deselect
 
 
   ##############################################################################
@@ -53,40 +45,66 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
   ##############################################################################
 
   # ============================================================================
-  _select: (area) ->
-    # error handling
-    idx = @_stepData.outData.selectedAreas.indexOf area.getId()
-    return if idx isnt -1
+  # select an area = make him part of the HistoricalChange
+  # -> create an 'DEL' AreaChange for it
+  # ============================================================================
 
-    @_stepData.outData.selectedAreas.push area.getId()
+  _select: (areaHandle) ->
+
+    # error handling
+    return if not areaHandle
+
+    # create AreaChange for the area
+    switch @_historicalChange.operation
+      when 'NCH' then operation = 'NCH'
+      when 'TCH' then operation = 'TCH'
+      else            operation = 'DEL'
+
+    areaChange = new HG.AreaChange {
+        historicalChange:   @_historicalChange
+        operation:          operation
+        area:               areaHandle.getArea()
+        oldAreaName:        areaHandle.getArea().name
+        oldAreaTerritory:   areaHandle.getArea().territory
+      }
+
+    # add to HistoricalChange
+    @_historicalChange.areaChanges.push areaChange
+
+    @_numSelections++
 
     # is step complete?
-    if @_stepData.outData.selectedAreas.length >= @_stepData.number.min
-      @notifyOperation 'onStepComplete'
+    if @_numSelections >= @_stepData.number.min
+      @_hgInstance.editOperation.notifyAll 'onStepComplete'
 
     # make action reversible
     @_undoManager.add {
-      # TODO: why does that work ???
       undo: =>
-        @notifyEditMode 'onDeselectArea', area.getId()
+        areaHandle.deselect()
     }
 
   # ----------------------------------------------------------------------------
-  _deselect: (area) ->
-    # error handling
-    idx = @_stepData.outData.selectedAreas.indexOf area.getId()
-    return if idx is -1
+  _deselect: (areaHandle) ->
 
-    @_stepData.outData.selectedAreas.splice idx, 1
+    # error handling
+    return if not areaHandle
+
+    # remove from HistoricalChange
+    for areaChange, idx in @_historicalChange.areaChanges
+      if areaChange.area is areaHandle.getArea()
+        @_historicalChange.areaChanges.splice idx, 1
+        break
+
+    @_numSelections--
 
     # is step incomplete?
-    if @_stepData.outData.selectedAreas.length < @_stepData.number.min
-      @notifyOperation 'onStepIncomplete'
+    if @_numSelections < @_stepData.number.min
+      @_hgInstance.editOperation.notifyAll 'onStepIncomplete'
 
     # make action reversible
     @_undoManager.add {
       undo: =>
-        @notifyEditMode 'onSelectArea', area.getId()
+        areaHandle.select()
     }
 
 
@@ -94,9 +112,9 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
   _cleanup: () ->
 
     ### STOP LISTENING ###
-    @_hgInstance.areaController.removeListener 'onSelect', @
-    @_hgInstance.areaController.removeListener 'onDeselect', @
+    for areaHandle in @_hgInstance.areaController.getAreaHandles()
+      areaHandle.removeListener 'onSelect', @
+      areaHandle.removeListener 'onDeselect', @
 
-    ### CLEANUP OPERATION ###
-    # TODO: is that a problem that it also happens if there was no user input?
-    @notifyEditMode 'onDisableMultiSelection' # if @_stepData.userInput
+    # tell AreaController to stop selecting multiple areas
+    @_hgInstance.areaController.disableMultiSelection()

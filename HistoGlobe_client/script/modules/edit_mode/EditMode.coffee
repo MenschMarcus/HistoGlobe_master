@@ -25,10 +25,6 @@ class HG.EditMode
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @addCallback 'onEnableMultiSelection'
-    @addCallback 'onDisableMultiSelection'
-
-
     ############################################################################
     # TRASHCAN
 

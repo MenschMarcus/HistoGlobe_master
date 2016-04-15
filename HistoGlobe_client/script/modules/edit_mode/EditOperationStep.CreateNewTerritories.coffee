@@ -4,7 +4,7 @@ window.HG ?= {}
 # Step 2 in Edit Operation Workflow: Newly create geometry(ies)
 # ==============================================================================
 
-class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
+class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
@@ -33,8 +33,8 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
     if @_isForward
       if (@_stepData.operationCommand is 'SEP') or
-         (@_stepData.operationCommand is 'CHB') or
-         (@_stepData.operationCommand is 'CHN')
+         (@_stepData.operationCommand is 'TCH') or
+         (@_stepData.operationCommand is 'NCH')
 
         # set each area as selected and editable
         for area in @_stepData.inData.selectedAreas
@@ -86,7 +86,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
     # --------------------------------------------------------------------------
     ## change name operation
-    else if @_stepData.operationCommand is 'CHN'
+    else if @_stepData.operationCommand is 'NCH'
 
       # each operation changes areas, even if they have the same geometry
       # => A copy area to have completely new area that can be renamed in next step
@@ -125,7 +125,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
     # --------------------------------------------------------------------------
     ## delete operation
-    else if @_stepData.operationCommand is 'DEL'
+    else if @_stepData.operationCommand is 'DES'
 
       if @_isForward
         for id in @_stepData.inData.selectedAreas
@@ -179,7 +179,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
       # ------------------------------------------------------------------------
       ## add new area operation
-      if @_stepData.operationCommand is 'ADD'
+      if @_stepData.operationCommand is 'CRE'
 
         # TODO: check for bug: adding two areas after each other -> what happens?
 
@@ -325,7 +325,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
 # ------------------------------------------------------------------------------
       ## change border operation
-      else if @_stepData.operationCommand is 'CHB'
+      else if @_stepData.operationCommand is 'TCH'
 
         # idea: both areas A and B get a new common border
         # => unify both areas and use the drawn geometry C as a clip polygon
@@ -436,7 +436,7 @@ class HG.EditOperationStep.CreateNewGeometry extends HG.EditOperationStep
 
             # go to previous area
             @_finish = no
-            @_areaIdx = 0 # manual setting, because CHB step does two areas at once
+            @_areaIdx = 0 # manual setting, because TCH step does two areas at once
             @_makeNewGeometry -1
         }
 

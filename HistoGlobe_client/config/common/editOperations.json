@@ -1,17 +1,18 @@
 [
   {
-    "id":           "ADD",
+    "id":           "CRE",
     "title":        "Add new country",
     "verb":         "add",
     "steps":
     [
       {
-        "id":       "SET_NEW_GEOM",
+        "id":       "SET_NEW_TERR",
         "num":      "1",
         "title":    "create territory <br/> of new country"
       },
       {
         "id":       "SET_NEW_NAME",
+        "num":      "1",
         "title":    "create name <br/> of new country"
       }
     ]
@@ -46,7 +47,7 @@
         "title":    "select country <br/> to be separated"
       },
       {
-        "id":       "SET_NEW_GEOM",
+        "id":       "SET_NEW_TERR",
         "num":      "2+",
         "title":    "create territories <br/> of all separated countries"
       },
@@ -57,7 +58,7 @@
     ]
   },
   {
-    "id":           "CHB",
+    "id":           "TCH",
     "verb":         "change borders between",
     "title":        "Change corders between countries",
     "steps":
@@ -68,7 +69,7 @@
         "title":    "select two countries whose <br/> border is to be changed"
       },
       {
-        "id":       "SET_NEW_GEOM",
+        "id":       "SET_NEW_TERR",
         "num":      "2",
         "title":    "create new territories <br/> of both countries"
       },
@@ -79,7 +80,7 @@
     ]
   },
   {
-    "id":           "CHN",
+    "id":           "NCH",
     "verb":         "change name of",
     "title":        "Change name of country",
     "steps":
@@ -91,12 +92,13 @@
       },
       {
         "id":       "SET_NEW_NAME",
+        "num":      "1",
         "title":    "create new name <br/> of the country"
       }
     ]
   },
   {
-    "id":           "DEL",
+    "id":           "DES",
     "verb":         "delete",
     "title":        "Delete country",
     "steps":

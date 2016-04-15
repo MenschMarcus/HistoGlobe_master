@@ -6,7 +6,7 @@ window.HG ?= {}
 # TODO: set names in all languages
 # ==============================================================================
 
-class HG.EditOperationStep.CreateNewName extends HG.EditOperationStep
+class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #

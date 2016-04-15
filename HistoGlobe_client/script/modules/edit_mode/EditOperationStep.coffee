@@ -12,55 +12,60 @@ class HG.EditOperationStep
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, @_stepData, @_isForward) ->
+  constructor: (@_hgInstance, direction) ->
 
-    # console.log "IN :", @_stepData.id, @_stepData
+    # main data: operation and step data (local reference => accessible anywhere)
+    @_historicalChange =  @_hgInstance.editOperation.operation.historicalChange
+    @_stepData =          @_hgInstance.editOperation.operation.steps[@_hgInstance.editOperation.operation.idx]
+    @_undoManager =       @_hgInstance.editOperation.undoManager
 
-    ## handle callbacks
-    HG.mixin @, HG.CallbackContainer
-    HG.CallbackContainer.call @
+    # if step requires user input: setup next step in WorkflowWindow and listen
+    # to its events
+    if @_stepData.userInput
+      @_hgInstance.editOperation.notifyAll 'onStepTransition', direction
+      @_hgInstance.editOperation.notifyAll 'onStepIncomplete'
 
-    @addCallback "onFinish"
-    @addCallback "onAbort"
+      # next step button
+      @_hgInstance.buttons.nextStep.onNext @, () =>
+        @_makeTransition 1
 
-    ## handle undo
-    # only add undo manager on forward direction, to be able to undo the actions
-    # when going backwards through the steps
-    if @_isForward
-      @_undoManager = new UndoManager
-      @_hgInstance.editOperation.addUndoManager @_undoManager
-    else
-      @_undoManager = @_hgInstance.editOperation.getUndoManager()
+      # finish button
+      @_hgInstance.buttons.nextStep.onFinish @, () =>
+        @_makeTransition -1
+
+    else # skip
+      @_makeTransition direction
 
 
-  # ============================================================================
-  # simple interface for each of the steps to divert their notification callbacks
-  # to the EditMode resp. editOperation, so that it can notify all its listeners
-  # => makes EditMode pretty much equivalent to all its subclasses in terms
-  # of callbacks and notifications to the outside
-  # usage: just like with @notifyAll 'onSomething', parameters...
-  #                   ->  @notifyEditMode 'onSomething', parameters...
 
-  # ----------------------------------------------------------------------------
-  notifyEditMode: (callbackName, parameters...) ->
-    @_hgInstance.editMode.notifyAll callbackName, parameters...
-
-  # ----------------------------------------------------------------------------
-  notifyOperation: (callbackName, parameters...) ->
-    @_hgInstance.editOperation.notifyAll callbackName, parameters...
 
   # ============================================================================
-  # finish method can be intervoked both by clicking next button
+  # makeTransition method can be intervoked both by clicking next button
   # in the workflow window and by the operation itself
   # (e.g. if last area successfully named)
-  finish: () ->
+  # => executes next EditOperationTransition
+  # ============================================================================
 
-    # console.log "OUT:", @_stepData.id, @_stepData
+  _makeTransition: (direction) ->
     @_cleanup()
-    @notifyAll 'onFinish', @_stepData
 
-  # ----------------------------------------------------------------------------
-  abort: () ->
-    @_isForward = no  # abort comes from outside, so forward variable has to be explicitly set
-    @_cleanup()
-    @notifyAll 'onAbort', @_stepData
+    idx = @_hgInstance.editOperation.operation
+
+    if                                       (idx is 1 and direction is -1)
+      new HG.EditOperationTransition0to1 @_hgInstance, direction
+
+    else if (idx is 1 and direction is 1) or (idx is 2 and direction is -1)
+      new HG.EditOperationTransition1to2 @_hgInstance, direction
+
+    else if (idx is 2 and direction is 1) or (idx is 3 and direction is -1)
+      new HG.EditOperationTransition2to3 @_hgInstance, direction
+
+    else if (idx is 3 and direction is 1) or (idx is 4 and direction is -1)
+      new HG.EditOperationTransition3to4 @_hgInstance, direction
+
+    else if (idx is 4 and direction is 1)
+      new HG.EditOperationTransition4to5 @_hgInstance, direction
+
+    @_undoManager.add {
+      undo: => @_makeTransition (-1)*direction
+    }
