@@ -133,23 +133,111 @@ class HG.EditOperation
     ### UNDO FUNCTIONALITY ###
 
     # UndoManager is public -> can be accessed by EditOperationSteps
-    @undoManager = new UndoManager
+    @_undoManagers = [null, null, null, null]
+    @_fullyAborted = no
 
-    # click on undo button => perform next undo operation
+    # next step button
+    @_hgInstance.buttons.nextStep.onNext @, () =>
+      @_step.finish()
+
+    # finish button
+    @_hgInstance.buttons.nextStep.onFinish @, () =>
+      @_step.finish()
+
+    # undo button
     @_hgInstance.buttons.undoStep.onClick @, () =>
-      @undoManager.undo()
+      @_undo()
 
-    # click on abort button => perform all undo operation until the end
+    # abort button
     @_hgInstance.buttons.abortOperation.onAbort @, () =>
-      @undoManager.undo() while @undoManager.hasUndo()
+      @_undo() while not @_fullyAborted
 
 
     ### LET'S GO ###
-    new HG.EditOperationStep @_hgInstance, 1, yes
+    @_makeStep 1
 
-    @undoManager.add {
-      undo: => @abort()
-    }
+
+
+  # ============================================================================
+  # manage undo functionality
+  # ============================================================================
+
+  addUndoManager: (undoManager) ->
+    @_undoManagers[@operation.idx] = undoManager
+
+  # ----------------------------------------------------------------------------
+  getUndoManager: () ->
+    @_undoManagers[@operation.idx]
+
+
+  # ============================================================================
+  # create a random id for an object that does not exit yet
+  # ============================================================================
+  getRandomId: () ->
+    newId = Math.round(Math.random()*10000) # create random id
+    if (@_ids.indexOf newId) isnt -1        # if id is already taken
+      @getRandomId()                        #   try anther one
+    else                                    # if id is unique
+      @_ids.push newId                      #   ensure it can't be taken again
+      return newId                          #   and use it
+
+
+  # ============================================================================
+  # manage stepping through the steps
+  # ============================================================================
+
+  _makeStep: (direction) ->
+
+    oldStep = @operation.steps[@operation.idx]
+    newStep = @operation.steps[@operation.idx+direction]
+
+    # transfer data between steps
+    if @operation.idx > 0
+      if direction is 1 then  newStep.inData  = oldStep.outData
+      else                    newStep.outData = oldStep.inData
+
+    # change workflow window
+    if newStep.userInput
+      @notifyAll 'onStepTransition', direction
+      @notifyAll 'onStepIncomplete'
+
+    # go to next step
+    @operation.idx += direction
+
+    # setup new step
+    switch @operation.idx
+      when 0 then @_abort()  # only on undo from first step
+      when 1 then @_step = new HG.EditOperationStep.SelectOldAreas        @_hgInstance, direction
+      when 2 then @_step = new HG.EditOperationStep.CreateNewTerritories  @_hgInstance, direction
+      when 3 then @_step = new HG.EditOperationStep.CreateNewNames        @_hgInstance, direction
+      when 4 then @_step = new HG.EditOperationStep.AddChange             @_hgInstance, direction
+      when 5 then @_finish()
+
+    # react on user input
+    if newStep.userInput
+      @_step.onFinish @, () ->  @_makeStep 1
+      @_step.onAbort @, () ->   @_makeStep -1
+
+    # go to next step if no input required
+    else
+      @_makeStep direction
+
+
+  # ============================================================================
+  # perform undo operation
+  # ============================================================================
+
+  _undo: () ->
+
+    # if current step has reversible actions
+    # => undo it
+    if @_undoManagers[@operation.idx].hasUndo()
+      @_undoManagers[@operation.idx].undo()
+
+    # otherwise destroy the step and go one step back
+    else
+      @_step.abort()
+
 
 
   # ============================================================================
@@ -157,7 +245,7 @@ class HG.EditOperation
   # on the client with the reponse data from the server
   # ============================================================================
 
-  finish: () ->
+  _finish: () ->
     # TODO: convert action list to new data to be stored in the database
 
     oldAreas = @operation.steps[0].outData.selectedAreas
@@ -219,20 +307,8 @@ class HG.EditOperation
   # break up the whole operation
   # ============================================================================
 
-  abort: () ->
+  _abort: () ->
     @notifyAll 'onFinish'
-
-
-  # ============================================================================
-  # util create a random id for an object that does not exit yet
-  # ============================================================================
-  getRandomId: () ->
-    newId = Math.round(Math.random()*10000) # create random id
-    if (@_ids.indexOf newId) isnt -1        # if id is already taken
-      @getRandomId()                        #   try anther one
-    else                                    # if id is unique
-      @_ids.push newId                      #   ensure it can't be taken again
-      return newId                          #   and use it
 
 
   ##############################################################################

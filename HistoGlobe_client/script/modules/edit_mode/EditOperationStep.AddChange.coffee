@@ -11,14 +11,14 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, @_stepData, @_isForward) ->
+  constructor: (@_hgInstance, direction) ->
 
     # inherit functionality from base class
-    super @_hgInstance, @_stepData, @_isForward
+    super @_hgInstance, direction
 
     ### SETUP OPERATION ###
 
-    if not @_isForward
+    if direction is -1
       @_hgInstance.areaController.enableMultiSelection HGConfig.max_area_selection.val
       @_hgInstance.editMode.enterAreaEditMode()
 

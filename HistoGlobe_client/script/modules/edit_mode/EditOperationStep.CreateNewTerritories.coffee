@@ -66,7 +66,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
         @_stepData.outData.areaTerritories[0] =  newTerritory
 
         # go to next step
-        @_makeTransition 1
+        return @finish()
 
       else                # backward
 
@@ -82,7 +82,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
           area.handle.select()
 
         # go to previous step
-        @_makeTransition -1
+        return @abort()
 
 
     ### SETUP OPERATION ###
@@ -112,8 +112,8 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
     # finish criterion:  successful => finish
     #                 first geometry -> backward  => abort
-    return @_makeTransition 1   if @_finish
-    return @_makeTransition -1  if (@_areaIdx is 0) and (direction is -1)
+    return @finish() if @_finish
+    return @abort()  if (@_areaIdx is 0) and (direction is -1)
 
     # go to next/previous area
     @_areaIdx += direction

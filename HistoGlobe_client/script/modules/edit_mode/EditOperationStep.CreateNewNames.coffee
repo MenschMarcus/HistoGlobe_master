@@ -48,9 +48,9 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
   _makeNewName: (direction) ->
 
     # finish criterion: next Step
-    return @_makeTransition 1  if @_finish
+    return @finish()  if @_finish
     # finish criterion: prev Step -> first name and backwards
-    return @_makeTransition -1 if (@_areaIdx is 0) and (direction is -1)
+    return @abort()   if (@_areaIdx is 0) and (direction is -1)
 
     # go to next/previous area
     @_areaIdx += direction

@@ -18,7 +18,7 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     super @_hgInstance, direction
 
     # skip step if not user input
-    @_makeTransition 1 if not @_stepData.userInput
+    @finish() if not @_stepData.userInput
 
 
     ### SETUP OPERATION ###
@@ -37,7 +37,6 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
       # for area in @_stepData.outData
       #   @notifyEditMode 'onEndEditArea', area
       #   @notifyEditMode 'onSelectArea', area
-
 
 
     ### SETUP USER INPUT ###
@@ -101,7 +100,7 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
 
 
   # ============================================================================
-  _cleanup: (direction) ->
+  _cleanup: () ->
 
     ### CLEANUP USER INPUT LISTENING ###
 
