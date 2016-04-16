@@ -56,7 +56,7 @@ class HG.EditOperationStep
       when 0 then @_hgInstance.editOperation.abort()  # only on undo from first step
       when 1 then new HG.EditOperationStep.SelectOldAreas        @_hgInstance, direction
       when 2 then new HG.EditOperationStep.CreateNewTerritories  @_hgInstance, direction
-      when 3 then new HG.EditOperationStep.CreateNewName         @_hgInstance, direction
+      when 3 then new HG.EditOperationStep.CreateNewNames        @_hgInstance, direction
       when 4 then new HG.EditOperationStep.AddChange             @_hgInstance, direction
       when 5 then @_hgInstance.editOperation.finish()
 

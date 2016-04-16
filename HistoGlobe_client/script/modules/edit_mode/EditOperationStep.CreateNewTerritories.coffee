@@ -32,14 +32,14 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
           # hide all areas that are to be deleted
           when 'DEL'
-            areaChange.area.areaHandle.deselect()
-            areaChange.area.areaHandle.hide()
+            areaChange.area.handle.deselect()
+            areaChange.area.handle.hide()
             areaChange.oldAreaTerritory = areaChange.area.territory
             areaChange.area.territory = null
 
           # start editing all areas whose territory is to be changed now
           when 'TCH'
-            areaChange.area.areaHandle.startEdit()
+            areaChange.area.handle.startEdit()
             areaChange.oldAreaTerritory = areaChange.area.territory
             areaChange.area.territory = null
 
@@ -58,7 +58,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
           oldTerritories = []
           for areaChange in @_historicalChange.areaChanges
             if areaChange.operation is 'DEL'
-              oldTerritories.push areaChange.area.territory.geometry
+              oldTerritories.push areaChange.oldAreaTerritory.geometry
 
           # unify old areas to new area
           unifiedGeometry = @_geometryOperator.union oldTerritories
@@ -71,9 +71,11 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
           newArea = new HG.Area @_hgInstance.editOperation.getRandomId()
 
           # create AreaTerritory
-          newTerritory = new HG.AreaTerritory @_hgInstance.editOperation.getRandomId()
-          newTerritory.geometry = unifiedGeometry
-          newTerritory.representativePoint = unifiedGeometry.getCenter()
+          newTerritory = new HG.AreaTerritory {
+              id:                   @_hgInstance.editOperation.getRandomId()
+              geometry:             unifiedGeometry
+              representativePoint:  unifiedGeometry.getCenter()
+            }
 
           # link AreaChange <-> HistoricalChange
           newChange.historicalChange = @_historicalChange
@@ -113,7 +115,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
               newChange = areaChange
 
               # destroy AreaHandle => appearance of Area in system
-              newChange.area.areaHandle.destroy()
+              newChange.area.handle.destroy()
 
               # unlink AreaChange from HistoricalChange
               @_historicalChange.areaChanges.splice idx, 1
@@ -511,11 +513,11 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
           when 'DEL'
             areaChange.area.territory = areaChange.oldAreaTerritory
             areaChange.oldAreaTerritory = null
-            areaChange.area.areaHandle.show()
-            areaChange.area.areaHandle.select()
+            areaChange.area.handle.show()
+            areaChange.area.handle.select()
 
           # start editing all areas whose territory was to be changed
           when 'TCH'
             areaChange.area.territory = areaChange.oldAreaTerritory
             areaChange.oldAreaTerritory = null
-            areaChange.area.areaHandle.endEdit()
+            areaChange.area.handle.endEdit()

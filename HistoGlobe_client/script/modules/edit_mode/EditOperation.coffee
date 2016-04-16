@@ -43,6 +43,11 @@ class HG.EditOperation
     # includes
     @_databaseInterface = new HG.DatabaseInterface
 
+    # random ids that have been created for new objects in EditOperationSteps
+    # => ensures each id will be unique
+    @_ids = []
+
+
     ### SETUP OPERATION DATA CONFIG ###
     # public -> will be changed by OperationSteps directly
 
@@ -51,7 +56,7 @@ class HG.EditOperation
         id:                 operationConfig.id
         title:              operationConfig.title
         verb:               operationConfig.verb
-        historicalChange:   new HG.HistoricalChange {operation: operationConfig.id}
+        historicalChange:   null
         idx:                0    # = step index -> 0 = start
         steps: [
           { # idx             0
@@ -94,28 +99,35 @@ class HG.EditOperation
           stepData.number = (@_getRequiredNum stepConfig.num) if stepData.number
           break
 
+    # create new HistoricalChange for the operation
+    # => main object that will be populated throughout the workflow
+    @operation.historicalChange = new HG.HistoricalChange @getRandomId()
+    @operation.historicalChange.operation = @operation.id
+
     # current step the user is in
     @_step = null
 
 
     ### SETUP UI ###
+
     new HG.WorkflowWindow @_hgInstance, @operation
 
 
     ### UNDO FUNCTIONALITY ###
-    # global, it executed action from UndoManager
+
+    # UndoManager is public -> can be accessed by EditOperationSteps
     @undoManager = new UndoManager
 
-    # undo button
+    # click on undo button => perform next undo operation
     @_hgInstance.buttons.undoStep.onClick @, () =>
       @undoManager.undo()
 
-    # abort button
+    # click on abort button => perform all undo operation until the end
     @_hgInstance.buttons.abortOperation.onAbort @, () =>
       @undoManager.undo() while @undoManager.hasUndo()
 
+
     ### LET'S GO ###
-    # TODO: is there a more elegant way to start the flow?
     new HG.EditOperationStep @_hgInstance, 1, yes
 
     @undoManager.add {
@@ -197,19 +209,13 @@ class HG.EditOperation
   # ============================================================================
   # util create a random id for an object that does not exit yet
   # ============================================================================
-  @_ids = []
   getRandomId: () ->
-    rand = Math.round(Math.random(100000))
-    clash = no
-    for id in @_ids
-      if id is rand
-        clash = yes
-        break
-    if clash
-      @getRandomId()
-    else
-      @_ids.push rand
-      return rand
+    newId = Math.round(Math.random()*10000) # create random id
+    if (@_ids.indexOf newId) isnt -1        # if id is already taken
+      @getRandomId()                        #   try anther one
+    else                                    # if id is unique
+      @_ids.push newId                      #   ensure it can't be taken again
+      return newId                          #   and use it
 
 
   ##############################################################################
