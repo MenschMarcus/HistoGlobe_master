@@ -115,7 +115,8 @@ class HG.EditOperation
       @undoManager.undo() while @undoManager.hasUndo()
 
     ### LET'S GO ###
-    new HG.EditOperationStep @_hgInstance, 1
+    # TODO: is there a more elegant way to start the flow?
+    new HG.EditOperationStep @_hgInstance, 1, yes
 
     @undoManager.add {
       undo: => @abort()
@@ -192,6 +193,23 @@ class HG.EditOperation
   abort: () ->
     @notifyAll 'onFinish'
 
+
+  # ============================================================================
+  # util create a random id for an object that does not exit yet
+  # ============================================================================
+  @_ids = []
+  getRandomId: () ->
+    rand = Math.round(Math.random(100000))
+    clash = no
+    for id in @_ids
+      if id is rand
+        clash = yes
+        break
+    if clash
+      @getRandomId()
+    else
+      @_ids.push rand
+      return rand
 
 
   ##############################################################################

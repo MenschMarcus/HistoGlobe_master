@@ -3,7 +3,6 @@ window.HG ?= {}
 # ============================================================================
 # MODEL class
 # contains data about an AreaName associated to an Area
-# DTO => no functionality
 # ============================================================================
 
 class HG.AreaTerritory
@@ -16,13 +15,19 @@ class HG.AreaTerritory
   constructor: (data) ->
 
     @id                   = data.id
-    @geometry             = data.geometry
-    @representativePoint  = data.representativePoint
 
-    @area                 = null    # HG.Area
+    # main properties
+    @geometry             = data.geometry             # HG.Geometry
+    @representativePoint  = data.representativePoint  # HG.Point
 
-    @startChange          = null    # HG.AreaChange
-    @endChange            = null    # HG.AreaChange
+    # superordinate object
+    @area                 = null                      # HG.Area
+
+    # historical context
+    @startChange          = null                      # HG.AreaChange
+    @endChange            = null                      # HG.AreaChange
 
 
-    # to reset representativePoint: @geometry.getCenter()
+  # ============================================================================
+  resetRepresentativePoint: () ->
+    @representativePoint = @geometry.getCenter()

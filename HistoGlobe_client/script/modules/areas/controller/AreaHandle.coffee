@@ -287,12 +287,13 @@ class HG.AreaHandle
   # ============================================================================
 
   startEdit: (obj=null) ->
-    @_inEdit = yes
-    EDIT_AREAS.push @
-    if obj
-      @notify 'onStartEdit', obj, @
-    else
-      @notifyAll 'onStartEdit', @
+    if not @_inEdit
+      @_inEdit = yes
+      EDIT_AREAS.push @
+      if obj
+        @notify 'onStartEdit', obj, @
+      else
+        @notifyAll 'onStartEdit', @
 
 
   # ============================================================================
@@ -303,12 +304,13 @@ class HG.AreaHandle
   # ============================================================================
 
   endEdit: (obj=null) ->
-    @_inEdit = no
-    @_removeFromArray @, EDIT_AREAS
-    if obj
-      @notify 'onEndEdit', obj, @
-    else
-      @notifyAll 'onEndEdit', @
+    if @_inEdit
+      @_inEdit = no
+      @_removeFromArray @, EDIT_AREAS
+      if obj
+        @notify 'onEndEdit', obj, @
+      else
+        @notifyAll 'onEndEdit', @
 
 
   # ============================================================================
@@ -318,12 +320,17 @@ class HG.AreaHandle
   # ============================================================================
 
   destroy: (obj=null) ->
+    # clean cleanup
+    @unfocus obj
+    @deselect obj
+    @endEdit obj
+    @hide obj
+    # tell everyone
     if obj
-      @notify 'onHide', obj
       @notify 'onDestroy', obj
     else
-      @notify 'onHide'
       @notifyAll 'onDestroy'
+    # really clean cleanup
     delete @
 
 

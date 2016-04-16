@@ -52,45 +52,47 @@ class HG.DatabaseInterface
         # create AreaNames and AreaTerritories and store them
         # so they can be linked to ChangeAreas later
         areaNames = []
-        for areaNameData in dataObj.area_names
-          areaName = new HG.AreaName @_areaNameToClient areaNameData
-          areaName.area = (@_hgInstance.areaController.getAreaHandle areaNameData.area).getArea()
+        for anData in dataObj.area_names
+          anData = @_areaNameToClient anData
+          areaName = new HG.AreaName anData
+          areaName.area = anData.area
           areaNames.push areaName
 
         areaTerritories = []
-        for areaTerritoryData in dataObj.area_territories
-          areaTerritory = new HG.AreaTerritory @_areaTerritoryToClient areaTerritoryData
-          areaTerritory.area = (@_hgInstance.areaController.getAreaHandle areaTerritoryData.area).getArea()
+        for atData in dataObj.area_territories
+          atData = @_areaTerritoryToClient atData
+          areaTerritory = new HG.AreaTerritory atData
+          areaTerritory.area = atData.area
           areaTerritories.push areaTerritory
 
         # keep track of earliest data to know where to start tracing the changes
         minDate = moment()
 
         # create Hivents
-        for hiventData in dataObj.hivents
-          hivent = new HG.Hivent @_validateHivent hiventData
+        for hData in dataObj.hivents
+          hivent = new HG.Hivent @_hiventToClient hData
           minDate = moment.min(minDate, hivent.effectDate)
 
           # create HistoricalChanges
-          for historicalChangeData in hiventData.historical_changes
-            historicalChange = new HG.HistoricalChange @_validateHistoricalChange {
-                id:         parseInt historicalChangeData.id
-                operation:  historicalChangeData.operation
-                hivent:     hivent
-              }
+          for hcData in hData.historical_changes
+            hcData = @_historicalChangeToClient hcData
+            hcData = @_validateHistoricalChange hcData
+            historicalChange = new HG.HistoricalChange  hcData.id
+            historicalChange.operation =                hcData.operation
+            historicalChange.hivent =                   hcData.hivent
 
             # create AreaChanges
-            for areaChangeData in historicalChangeData.area_changes
-              areaChange = new HG.AreaChange @_validateAreaChange {
-                  id:               parseInt areaChangeData.id
-                  operation:        areaChangeData.operation
-                  historicalChange: historicalChange
-                  area:             (@_hgInstance.areaController.getAreaHandle areaChangeData.area)?.getArea()
-                  oldAreaName:      areaNames.filter (obj) -> obj.id is areaChangeData.old_area_name
-                  newAreaName:      areaNames.filter (obj) -> obj.id is areaChangeData.new_area_name
-                  oldAreaTerritory: areaTerritories.filter (obj) -> obj.id is areaChangeData.old_area_territory
-                  newAreaTerritory: areaTerritories.filter (obj) -> obj.id is areaChangeData.new_area_territory
-                }
+            for acData in hcData.areaChanges
+              acData = @_areaChangeToClient acData, areaNames, areaTerritories
+              acData = @_validateAreaChange acData
+              areaChange = new HG.AreaChange acData.id
+              areaChange.operation =        acData.operation
+              areaChange.historicalChange = historicalChange
+              areaChange.area =             acData.area
+              areaChange.oldAreaName =      acData.oldAreaName
+              areaChange.newAreaName =      acData.newAreaName
+              areaChange.oldAreaTerritory = acData.oldAreaTerritory
+              areaChange.newAreaTerritory = acData.newAreaTerritory
 
               # link HistoricalChange <- ChangeArea
               historicalChange.areaChanges.push areaChange
@@ -127,9 +129,9 @@ class HG.DatabaseInterface
           @_hgInstance.hiventController.addHiventHandle hiventHandle
 
         # create territorial relations between areas
-        for territoryRelationData, idx in dataObj.territory_relation
-          sovereignt = (@_hgInstance.areaController.getAreaHandle territoryRelationData.sovereignt)?.getArea()
-          dependency = (@_hgInstance.areaController.getAreaHandle territoryRelationData.dependency)?.getArea()
+        for trData, idx in dataObj.territory_relation
+          sovereignt = (@_hgInstance.areaController.getAreaHandle trData.sovereignt)?.getArea()
+          dependency = (@_hgInstance.areaController.getAreaHandle trData.dependency)?.getArea()
 
           # link both areas
           sovereignt.dependencies.push dependency
@@ -159,44 +161,46 @@ class HG.DatabaseInterface
       id:                   parseInt dataObj.id
       geometry:             dataObj.geometry.wkt()
       representative_point: dataObj.representativePoint.wkt()
+      area:                 dataObj.area?.id
+      start_change:         dataObj.startChange?.id
+      end_change:           dataObj.endChange?.id
     }
 
-
   # ----------------------------------------------------------------------------
-
   _areaTerritoryToClient: (dataObj) ->
     {
       id:                   parseInt dataObj.id
       geometry:             @_geometryReader.read dataObj.geometry
       representativePoint:  @_geometryReader.read dataObj.representative_point
+      area:                 (@_hgInstance.areaController.getAreaHandle dataObj.area).getArea()
+      startChange:          dataObj.start_change  # only id!
+      endChange:            dataObj.end_change    # only id!
     }
 
-
   # ----------------------------------------------------------------------------
-
   _areaNameToServer: (dataObj) ->
     {
-      id:           parseInt dataObj.id
-      short_name:   dataObj.shortName
-      formal_name:  dataObj.formalName
+      id:                   parseInt dataObj.id
+      short_name:           dataObj.shortName
+      formal_name:          dataObj.formalName
+      area:                 dataObj.area?.id
+      start_change:         dataObj.startChange?.id
+      end_change:           dataObj.endChange?.id
     }
-
 
   # ----------------------------------------------------------------------------
-
   _areaNameToClient: (dataObj) ->
     {
-      id:           parseInt dataObj.id
-      shortName:    dataObj.short_name
-      formalName:   dataObj.formal_name
+      id:                   parseInt dataObj.id
+      shortName:            dataObj.short_name
+      formalName:           dataObj.formal_name
+      area:                 (@_hgInstance.areaController.getAreaHandle dataObj.area).getArea()
+      startChange:          dataObj.start_change  # only id!
+      endChange:            dataObj.end_change    # only id!
     }
 
-
-  # ============================================================================
-  # validation for all data in Hivent
-  # ============================================================================
-
-  _validateHivent: (dataObj) ->
+  # ----------------------------------------------------------------------------
+  _hiventToClient: (dataObj) ->
     {
       id :                dataObj.id
       name :              dataObj.name
@@ -211,9 +215,41 @@ class HG.DatabaseInterface
       description :       dataObj.description            ?= null
       linkUrl :           dataObj.link_url               ?= null
       linkDate :          moment(dataObj.link_date?)
-      changes :           []
     }
 
+  # ----------------------------------------------------------------------------
+  _hiventToServer: (dataObj) ->
+    # TODO if necessary
+
+  # ----------------------------------------------------------------------------
+  _historicalChangeToClient: (dataObj) ->
+    {
+      id:           parseInt dataObj.id
+      operation:    dataObj.operation
+      hivent:       dataObj.hivent
+      areaChanges:  dataObj.area_changes  # not changed, yet
+    }
+
+  # ----------------------------------------------------------------------------
+  _historicalChangeToServer: (dataObj) ->
+    # TODO if necessary
+
+  # ----------------------------------------------------------------------------
+  _areaChangeToClient: (dataObj, areaNames, areaTerritories) ->
+    {
+      id:               parseInt dataObj.id
+      operation:        dataObj.operation
+      historicalChange: dataObj.historical_change # not changed, yet
+      area:             (@_hgInstance.areaController.getAreaHandle dataObj.area)?.getArea()
+      oldAreaName:      areaNames.filter (obj) -> obj.id is dataObj.old_area_name
+      newAreaName:      areaNames.filter (obj) -> obj.id is dataObj.new_area_name
+      oldAreaTerritory: areaTerritories.filter (obj) -> obj.id is dataObj.old_area_territory
+      newAreaTerritory: areaTerritories.filter (obj) -> obj.id is dataObj.new_area_territory
+    }
+
+  # ----------------------------------------------------------------------------
+  _areaChangeToServer: (dataObj) ->
+    # TODO if necessary
 
 
   # ============================================================================
@@ -222,6 +258,10 @@ class HG.DatabaseInterface
   # ============================================================================
 
   _validateHistoricalChange: (dataObj) ->
+
+    # check if id is a number
+    if isNaN(dataObj.id)
+      return console.error "The id is not valid"
 
     # check if operation type is correct
     if ['CRE','UNI','INC','SEP','SEC','NCH','TCH','DES'].indexOf(dataObj.operation) is -1
@@ -238,6 +278,10 @@ class HG.DatabaseInterface
 
   _validateAreaChange: (dataObj) ->
 
+    # check if id is a number
+    dataObj.id = parseInt dataObj.id
+    if isNaN(dataObj.id)
+      return console.error "The id is not valid"
     # check if operation type is correct
     if ['ADD','DEL','TCH','NCH'].indexOf(dataObj.operation) is -1
       return console.error "The operation type " + dataObj.operation + " is not valid"

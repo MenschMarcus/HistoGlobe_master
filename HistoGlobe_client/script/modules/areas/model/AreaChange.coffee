@@ -10,10 +10,10 @@ window.HG ?= {}
 #
 # ------------------------------------------------------------------------------
 # operations:
-#   ADD) add new area:         -> A
+#   ADD) add new area:         -> A'
 #   DEL) delete old area:    A ->
-#   NCH) name change:        A -> A
-#   TCH) territory change:   A -> A
+#   NCH) name change:        A -> A'
+#   TCH) territory change:   A -> A'
 # ==============================================================================
 
 
@@ -24,18 +24,18 @@ class HG.AreaChange
   ##############################################################################
 
   # ============================================================================
-  constructor: (data) ->
+  constructor: (id) ->
 
-    @id               = data.id
-    @historicalChange = data.historicalChange # HG.HistoricalChange
+    @id               = id
+    @operation        = null      # 'ADD', 'DEL', 'TCH' or 'NCH'
 
-    @operation        = data.operation        # 'ADD', 'DEL', 'TCH' or 'NCH'
+    @historicalChange = null      # HG.HistoricalChange
 
-    @area             = data.area             # HG.Area
-    @oldAreaName      = data.oldAreaName      # HG.AreaName
-    @newAreaName      = data.newAreaName      # HG.AreaName
-    @oldAreaTerritory = data.oldAreaTerritory # HG.AreaTerritory
-    @newAreaTerritory = data.newAreaTerritory # HG.AreaTerritory
+    @area             = null      # HG.Area
+    @oldAreaName      = null      # HG.AreaName
+    @newAreaName      = null      # HG.AreaName
+    @oldAreaTerritory = null      # HG.AreaTerritory
+    @newAreaTerritory = null      # HG.AreaTerritory
 
 
   # ============================================================================

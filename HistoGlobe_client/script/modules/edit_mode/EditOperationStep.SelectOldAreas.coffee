@@ -19,6 +19,9 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
 
     @_numSelections = 0
 
+
+    ### SETUP OPERATION ###
+
     # tell AreaController to start selecting maximal X number of areas
     @_hgInstance.areaController.enableMultiSelection @_stepData.number.max
 
@@ -39,7 +42,7 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
 
 
 
-    ### REACT ON USER INPUT ###
+    ### SETUP USER INPUT ###
 
     # listen to area (de)selection from AreaController
     for areaHandle in @_hgInstance.areaController.getAreaHandles()
@@ -61,28 +64,41 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     # error handling
     return if not areaHandle
 
-    # create AreaChange for the area
-    switch @_historicalChange.operation
-      when 'NCH' then operation = 'NCH'
-      when 'TCH' then operation = 'TCH'
-      else            operation = 'DEL'
+    # create AreaChange
+    areaChange = new HG.AreaChange @_hgInstance.editOperation.getRandomId()
 
-    areaChange = new HG.AreaChange {
-        historicalChange:   @_historicalChange
-        operation:          operation
-        area:               areaHandle.getArea()
-        oldAreaName:        areaHandle.getArea().name
-        oldAreaTerritory:   areaHandle.getArea().territory
-      }
-
-    # add to HistoricalChange
+    # link AreaChange <-> HistoricalChange
+    areaChange.historicalChange = @_historicalChange
     @_historicalChange.areaChanges.push areaChange
 
-    @_numSelections++
+    # spefify operation for AreaChange and relation to area
+    switch @_historicalChange.operation
+      # ------------------------------------------------------------------------
+      when 'NCH', 'TCH'                     # name change or territorial change
+
+        areaChange.operation = @_historicalChange.operation  # 'NCH' or 'TCH'
+
+        # link AreaChange <-> Area
+        areaChange.area = areaHandle.getArea()
+        areaHandle.getArea().updateChanges.push areaChange
+
+      # ------------------------------------------------------------------------
+      else  # 'UNI','INC','SEP','SEC','DES' => all operations delete the area
+
+        areaChange.operation = 'DEL'
+        # for 'INC' and 'SEC' this may later be changed to 'TCH'
+
+        # link AreaChange <-> Area
+        areaChange.area = areaHandle.getArea()
+        areaHandle.getArea().endChange = areaChange
+
+      # ------------------------------------------------------------------------
 
     # is step complete?
+    @_numSelections++
     if @_numSelections >= @_stepData.number.min
       @_hgInstance.editOperation.notifyAll 'onStepComplete'
+
 
     # make action reversible
     @_undoManager.add {
@@ -96,17 +112,37 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     # error handling
     return if not areaHandle
 
+    # is step incomplete?
+    @_numSelections--
+    if @_numSelections < @_stepData.number.min
+      @_hgInstance.editOperation.notifyAll 'onStepIncomplete'
+
     # remove from HistoricalChange
     for areaChange, idx in @_historicalChange.areaChanges
       if areaChange.area is areaHandle.getArea()
+
+        # unlink AreaChange from HistoricalChange
+        areaChange.historicalChange = null
         @_historicalChange.areaChanges.splice idx, 1
-        break
 
-    @_numSelections--
+        switch @_historicalChange.operation
+          # --------------------------------------------------------------------
+          when 'NCH', 'TCH'                  # name change or territorial change
 
-    # is step incomplete?
-    if @_numSelections < @_stepData.number.min
-      @_hgInstance.editOperation.notifyAll 'onStepIncomplete'
+            # unlink AreaChange from Area
+            chIdx = areaHandle.getArea().updateChanges.indexOf areaChange
+            areaHandle.getArea().updateChanges.splice chIdx, 1
+
+          # --------------------------------------------------------------------
+          else  # 'UNI','INC','SEP','SEC','DES' => all operations delete the area
+
+            # unlink AreaChange from Area
+            areaHandle.getArea().endChange = null
+
+          # --------------------------------------------------------------------
+
+        areaChange = null
+        # no reference to AreaChange anymore => deleted
 
     # make action reversible
     @_undoManager.add {
@@ -118,10 +154,14 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
   # ============================================================================
   _cleanup: () ->
 
-    ### STOP LISTENING ###
+    ### CLEANUP USER INPUT LISTENING ###
+
     for areaHandle in @_hgInstance.areaController.getAreaHandles()
       areaHandle.removeListener 'onSelect', @
       areaHandle.removeListener 'onDeselect', @
+
+
+    ### CLEANUP OPERATION ###
 
     # tell AreaController to stop selecting multiple areas
     @_hgInstance.areaController.disableMultiSelection()

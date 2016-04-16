@@ -3,7 +3,6 @@ window.HG ?= {}
 # ============================================================================
 # MODEL class
 # contains data about an AreaName associated to an Area
-# DTO => no functionality
 # ============================================================================
 
 class HG.AreaName
@@ -16,10 +15,14 @@ class HG.AreaName
   constructor: (data) ->
 
     @id           = data.id
-    @shortName    = data.shortName
-    @formalName   = data.formalName
 
-    @area         = null    # HG.Area
+    # main properties
+    @shortName    = data.shortName      # String
+    @formalName   = data.formalName     # String
 
-    @startChange  = null    # HG.AreaChange
-    @endChange    = null    # HG.AreaChange
+    # superordinate object
+    @area         = null                # HG.Area
+
+    # historical context
+    @startChange  = null                # HG.AreaChange
+    @endChange    = null                # HG.AreaChange

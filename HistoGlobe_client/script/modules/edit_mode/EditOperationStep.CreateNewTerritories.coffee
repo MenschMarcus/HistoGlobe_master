@@ -6,152 +6,192 @@ window.HG ?= {}
 
 class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
+
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, @_stepData, @_isForward) ->
+  constructor: (@_hgInstance, direction) ->
 
     # inherit functionality from base class
-    super @_hgInstance, @_stepData, @_isForward
+    super @_hgInstance, direction
 
-    # get external modules
+    # includes
     @_geometryOperator = new HG.GeometryOperator
 
 
-    ### SETUP OPERATION (1) ###
+    ### PREPARE AREA CHANGE ###
 
-    # reset states
-    if @_isForward
-      @_hgInstance.areaController.enableMultiSelection HGConfig.max_area_selection.val
+    if direction is 1 # forward
       @_hgInstance.editMode.enterAreaEditMode()
 
-    # some operations work directly on selected areas from first step
-    # PROBLEM: AreaController deselects them by disabling multi-selection mode
-    # SOLUTION: bring them manually into edit mode and select them
+      # update area change
+      for areaChange in @_historicalChange.areaChanges
+        switch areaChange.operation
 
-    if @_isForward
-      if (@_stepData.operationCommand is 'SEP') or
-         (@_stepData.operationCommand is 'TCH') or
-         (@_stepData.operationCommand is 'NCH')
+          # hide all areas that are to be deleted
+          when 'DEL'
+            areaChange.area.areaHandle.deselect()
+            areaChange.area.areaHandle.hide()
+            areaChange.oldAreaTerritory = areaChange.area.territory
+            areaChange.area.territory = null
 
-        # set each area as selected and editable
-        for area in @_stepData.inData.selectedAreas
-          @notifyEditMode 'onStartEditArea', area
-          @notifyEditMode 'onSelectArea', area
+          # start editing all areas whose territory is to be changed now
+          when 'TCH'
+            areaChange.area.areaHandle.startEdit()
+            areaChange.oldAreaTerritory = areaChange.area.territory
+            areaChange.area.territory = null
+
 
 
     ### AUTOMATIC PROCESSING ###
 
+    switch @_historicalChange.operation
+
+      # ------------------------------------------------------------------------
+      when 'UNI', 'INC'                                ## unification operation
+
+        if direction is 1 # forward
+
+          # delete all selected areas
+          oldTerritories = []
+          for areaChange in @_historicalChange.areaChanges
+            if areaChange.operation is 'DEL'
+              oldTerritories.push areaChange.area.territory.geometry
+
+          # unify old areas to new area
+          unifiedGeometry = @_geometryOperator.union oldTerritories
+
+          # create AreaChange
+          newChange = new HG.AreaChange @_hgInstance.editOperation.getRandomId()
+          newChange.operation = 'ADD'
+
+          # create Area
+          newArea = new HG.Area @_hgInstance.editOperation.getRandomId()
+
+          # create AreaTerritory
+          newTerritory = new HG.AreaTerritory @_hgInstance.editOperation.getRandomId()
+          newTerritory.geometry = unifiedGeometry
+          newTerritory.representativePoint = unifiedGeometry.getCenter()
+
+          # link AreaChange <-> HistoricalChange
+          newChange.historicalChange = @_historicalChange
+          @_historicalChange.areaChanges.push newChange
+
+          # link Area <-> AreaTerritory
+          newArea.territory = newTerritory
+          newTerritory.area = newArea
+
+          # link AreaChange <-> Area
+          newChange.area = newArea
+          newArea.startChange = newChange
+
+          # link AreaChange <-> AreaTerritory
+          newChange.newAreaTerritory = newTerritory
+          newTerritory.startChange = newChange
+
+          # create AreaHandle <-> Area
+          newHandle = new HG.AreaHandle @_hgInstance, newArea
+          newArea.handle = newHandle
+
+          # show area via areaHandle
+          @_hgInstance.areaController.addAreaHandle newHandle
+          newHandle.startEdit()
+          newHandle.select()
+          newHandle.show()
+
+          # go to next step
+          @_makeTransition 1
+
+
+        else # backward operation => do reverse
+
+          # find responsible AreaChange
+          for areaChange, idx in @_historicalChange.areaChanges
+            if areaChange.operation is 'ADD'
+              newChange = areaChange
+
+              # destroy AreaHandle => appearance of Area in system
+              newChange.area.areaHandle.destroy()
+
+              # unlink AreaChange from HistoricalChange
+              @_historicalChange.areaChanges.splice idx, 1
+
+              # delete AreaChange
+              newChange = null
+
+              # => all links AreaChange <-> Area <-> AreaTerritory destroyed
+              # objects will be garbage collected
+              break
+
+
+      # ------------------------------------------------------------------------
+      when 'NCH'                                      ## name change operation
+
+        # each operation changes areas, even if they have the same geometry
+        # => A copy area to have completely new area that can be renamed in next step
+        # => new identity
+        if direction is 1 # forward
+          # deactivate old area
+          oldAreaId = @_stepData.inData.selectedAreas[0]
+          oldArea = @_hgInstance.areaController.getActiveArea oldAreaId
+          @_stepData.tempAreas[0] = oldAreaId
+          @notifyEditMode 'onEndEditArea', oldAreaId
+          @notifyEditMode 'onDeselectArea', oldAreaId
+          @notifyEditMode 'onDeactivateArea', oldAreaId
+
+          # create and activate new area
+          newAreaId = "NEW_NAME_" + oldAreaId
+          @notifyEditMode 'onCreateArea', newAreaId, oldArea.getGeometry()
+          @notifyEditMode 'onAddAreaName', newAreaId, oldArea.getShortName(), oldArea.getFormalName()
+          @notifyEditMode 'onUpdateAreaRepresentativePoint', newAreaId, oldArea.getRepresentativePoint()
+
+          @_stepData.outData.createdAreas[0] = newAreaId
+
+        else
+          # remove new area
+          newAreaId = @_stepData.outData.createdAreas[0]
+          @notifyEditMode 'onRemoveArea', newAreaId
+
+          # reactivate old area
+          oldAreaId = @_stepData.tempAreas[0]
+          @notifyEditMode 'onActivateArea', oldAreaId
+          @notifyEditMode 'onSelectArea', oldAreaId
+          @notifyEditMode 'onStartEditArea', oldAreaId
+          @_stepData.inData.selectedAreas[0] = oldAreaId
+
+        return @finish() # no user input
+
+
+      # ------------------------------------------------------------------------
+      when 'DES'                                        ## destruction operation
+
+        if direction is 1 # forward
+          for id in @_stepData.inData.selectedAreas
+            area = @_hgInstance.areaController.getActiveArea id
+            # save in temporary areas to restore them later
+            @_stepData.tempAreas.push id
+            @notifyEditMode 'onDeactivateArea', id
+
+        else # backward
+          for id in @_stepData.tempAreas
+            @notifyEditMode 'onActivateArea', id
+
+        return @finish() # no user input
+
+
     # --------------------------------------------------------------------------
-    ## unification operation
-    if @_stepData.operationCommand is 'UNI'
-
-      if @_isForward
-
-        # delete all selected areas
-        oldGeometries = []
-        oldIds = []
-        for id in @_stepData.inData.selectedAreas
-          area = @_hgInstance.areaController.getActiveArea(id)
-          oldIds.push id
-          oldGeometries.push area.getGeometry()
-          # save in temporary areas to restore them later
-          @_stepData.tempAreas.push id
-          @notifyEditMode 'onDeactivateArea', id
-
-        # unify old areas to new area
-        unifiedGeometry = @_geometryOperator.union oldGeometries
-        newId = "UNION"
-        newId += ("_"+areaId) for areaId in oldIds
-
-        @_stepData.outData.createdAreas.push newId
-
-        @notifyEditMode 'onCreateArea', newId, unifiedGeometry
-
-      else # backward operation => do reverse
-
-        # remove unified area
-        unifiedAreaId = @_stepData.outData.createdAreas[0]
-        @_stepData.outData.createdAreas = []
-        @notifyEditMode 'onRemoveArea', unifiedAreaId
-
-        # restore previously selected areasunifiedAreaId
-        for id in @_stepData.tempAreas
-          @notifyEditMode 'onActivateArea', id
-
-      return @finish() # no user input
-
-
-    # --------------------------------------------------------------------------
-    ## change name operation
-    else if @_stepData.operationCommand is 'NCH'
-
-      # each operation changes areas, even if they have the same geometry
-      # => A copy area to have completely new area that can be renamed in next step
-      # => new identity
-      if @_isForward
-        # deactivate old area
-        oldAreaId = @_stepData.inData.selectedAreas[0]
-        oldArea = @_hgInstance.areaController.getActiveArea oldAreaId
-        @_stepData.tempAreas[0] = oldAreaId
-        @notifyEditMode 'onEndEditArea', oldAreaId
-        @notifyEditMode 'onDeselectArea', oldAreaId
-        @notifyEditMode 'onDeactivateArea', oldAreaId
-
-        # create and activate new area
-        newAreaId = "NEW_NAME_" + oldAreaId
-        @notifyEditMode 'onCreateArea', newAreaId, oldArea.getGeometry()
-        @notifyEditMode 'onAddAreaName', newAreaId, oldArea.getShortName(), oldArea.getFormalName()
-        @notifyEditMode 'onUpdateAreaRepresentativePoint', newAreaId, oldArea.getRepresentativePoint()
-
-        @_stepData.outData.createdAreas[0] = newAreaId
-
-      else
-        # remove new area
-        newAreaId = @_stepData.outData.createdAreas[0]
-        @notifyEditMode 'onRemoveArea', newAreaId
-
-        # reactivate old area
-        oldAreaId = @_stepData.tempAreas[0]
-        @notifyEditMode 'onActivateArea', oldAreaId
-        @notifyEditMode 'onSelectArea', oldAreaId
-        @notifyEditMode 'onStartEditArea', oldAreaId
-        @_stepData.inData.selectedAreas[0] = oldAreaId
-
-      return @finish() # no user input
-
-
-    # --------------------------------------------------------------------------
-    ## delete operation
-    else if @_stepData.operationCommand is 'DES'
-
-      if @_isForward
-        for id in @_stepData.inData.selectedAreas
-          area = @_hgInstance.areaController.getActiveArea id
-          # save in temporary areas to restore them later
-          @_stepData.tempAreas.push id
-          @notifyEditMode 'onDeactivateArea', id
-
-      else # backward
-        for id in @_stepData.tempAreas
-          @notifyEditMode 'onActivateArea', id
-
-      return @finish() # no user input
-
-
-    # --------------------------------------------------------------------------
-    ### SETUP OPERATION (2) ###
+    ### SETUP OPERATION ###
     @_finish = no
 
-    if @_isForward
+    if direction is 1 # forward
       @_areaIdx = -1
-      @_makeNewGeometry 1   # direction: positive
+      @_makeNewTerritory direction   # direction: positive
 
     else # backward
       @_areaIdx = @_stepData.outData.createdAreas.length
-      @_makeNewGeometry -1  # direction: negative
+      @_makeNewTerritory direction  # direction: negative
 
 
 
@@ -160,7 +200,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
   ##############################################################################
 
   # ============================================================================
-  _makeNewGeometry: (direction) ->
+  _makeNewTerritory: (direction) ->
 
     # error handling: finish criterion successful => finish
     #                 first geometry -> backward  => abort
@@ -170,16 +210,16 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     # go to next/previous area
     @_areaIdx += direction
 
-    # set up NewGeometryTool to define geometry of an area interactively
-    newGeometryTool = new HG.NewGeometryTool @_hgInstance, @_areaIdx is 0
+    # set up NewTerritoryTool to define geometry of an area interactively
+    newTerritoryTool = new HG.NewTerritoryTool @_hgInstance, @_areaIdx is 0
 
 
     ### LISTEN TO USER INPUT ###
-    newGeometryTool.onSubmit @, (clipGeometry) =>  # incoming geometry: clipGeometry
+    newTerritoryTool.onSubmit @, (clipGeometry) =>  # incoming geometry: clipGeometry
 
       # ------------------------------------------------------------------------
       ## add new area operation
-      if @_stepData.operationCommand is 'CRE'
+      if @_historicalChange.operation is 'CRE'
 
         # TODO: check for bug: adding two areas after each other -> what happens?
 
@@ -232,8 +272,8 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
         @_undoManager.add {
           undo: =>
             # cleanup
-            @_hgInstance.newGeometryTool?.destroy()
-            @_hgInstance.newGeometryTool = null
+            @_hgInstance.newTerritoryTool?.destroy()
+            @_hgInstance.newTerritoryTool = null
 
             # delete created area
             newId = @_stepData.outData.createdAreas.pop()
@@ -250,13 +290,13 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
             # go to previous area
             @_finish = no
-            @_makeNewGeometry -1
+            @_makeNewTerritory -1
         }
 
 
       # ------------------------------------------------------------------------
       ## separate areas operation
-      else if @_stepData.operationCommand is 'SEP'
+      else if @_historicalChange.operation is 'SEP'
         existingArea = @_hgInstance.areaController.getActiveArea @_stepData.inData.selectedAreas[0]
 
         existingAreaId =      existingArea.getId()
@@ -299,8 +339,8 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
         @_undoManager.add {
           undo: =>
             # cleanup
-            @_hgInstance.newGeometryTool?.destroy()
-            @_hgInstance.newGeometryTool = null
+            @_hgInstance.newTerritoryTool?.destroy()
+            @_hgInstance.newTerritoryTool = null
 
             # reset finish criterion
             @_finish = no
@@ -319,13 +359,13 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
             @notifyEditMode 'onRemoveArea', newArea
 
             # go to previous area
-            @_makeNewGeometry -1
+            @_makeNewTerritory -1
         }
 
 
 # ------------------------------------------------------------------------------
       ## change border operation
-      else if @_stepData.operationCommand is 'TCH'
+      else if @_historicalChange.operation is 'TCH'
 
         # idea: both areas A and B get a new common border
         # => unify both areas and use the drawn geometry C as a clip polygon
@@ -411,8 +451,8 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
         @_undoManager.add {
           undo: =>
             # cleanup
-            @_hgInstance.newGeometryTool?.destroy()
-            @_hgInstance.newGeometryTool = null
+            @_hgInstance.newTerritoryTool?.destroy()
+            @_hgInstance.newTerritoryTool = null
 
             # remove new area
             A_new_id = @_stepData.outData.createdAreas[0]
@@ -437,26 +477,45 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
             # go to previous area
             @_finish = no
             @_areaIdx = 0 # manual setting, because TCH step does two areas at once
-            @_makeNewGeometry -1
+            @_makeNewTerritory -1
         }
 
 
       # cleanup
-      @_hgInstance.newGeometryTool?.destroy()
-      @_hgInstance.newGeometryTool = null
+      @_hgInstance.newTerritoryTool?.destroy()
+      @_hgInstance.newTerritoryTool = null
 
       # go to next geometry
-      @_makeNewGeometry 1
+      @_makeNewTerritory 1
 
 
   # ============================================================================
-  _cleanup: () ->
+  _cleanup: (direction) ->
 
     ### CLEANUP OPERATION ###
-    @_hgInstance.newGeometryTool?.destroy()
-    @_hgInstance.newGeometryTool = null
 
-    # leave edit mode for areas
-    if not @_isForward
+    @_hgInstance.newTerritoryTool?.destroy()
+    @_hgInstance.newTerritoryTool = null
+
+
+    ### RESTORE AREA CHANGE ###
+
+    if direction is -1 # backward
       @_hgInstance.editMode.leaveAreaEditMode()
-      @_hgInstance.areaController.disableMultiSelection()
+
+      # restore area change
+      for areaChange in @_historicalChange.areaChanges
+        switch areaChange.operation
+
+          # hide all areas that are to be deleted
+          when 'DEL'
+            areaChange.area.territory = areaChange.oldAreaTerritory
+            areaChange.oldAreaTerritory = null
+            areaChange.area.areaHandle.show()
+            areaChange.area.areaHandle.select()
+
+          # start editing all areas whose territory was to be changed
+          when 'TCH'
+            areaChange.area.territory = areaChange.oldAreaTerritory
+            areaChange.oldAreaTerritory = null
+            areaChange.area.areaHandle.endEdit()

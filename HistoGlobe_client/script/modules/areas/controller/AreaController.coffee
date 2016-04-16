@@ -9,7 +9,6 @@ class HG.AreaController
   #                            PUBLIC INTERFACE                                #
   ##############################################################################
 
-  # ============================================================================
   constructor: (config) ->
 
     # handle callbacks
@@ -18,12 +17,9 @@ class HG.AreaController
 
     @addCallback 'onCreateArea'
 
-
     # handle config
     defaultConfig = {}
-
     @_config = $.extend {}, defaultConfig, config
-
 
     # init members
     @_areaHandles = []            # all areas in HistoGlobe ((in)visible, (un)selected, ...)
@@ -32,12 +28,6 @@ class HG.AreaController
 
     ############################################################################
     # TRASHCAN
-
-    # to AreaHandle?
-    @_visibleAreas = []            # set of all HG.AreaHandle's currently visible
-    @_selectedAreas = []          # array of all currently visible areas
-    @_invisibleAreas = []          # set of all HG.AreaHandle's currently invisible
-
 
     # @_hgInstance.editMode.onCreateArea @, (id, geometry) ->
     # @_hgInstance.editMode.onUpdateAreaGeometry @, (id, geometry) ->
@@ -70,6 +60,8 @@ class HG.AreaController
 
   addAreaHandle: (areaHandle) ->
     @_areaHandles.push areaHandle
+
+    # divert "addAreaHandle" to all the view classes
     @notifyAll 'onCreateArea', areaHandle
 
     # listen to destruction callback and tell everybody about it
@@ -96,10 +88,6 @@ class HG.AreaController
     # set maximum number of selections
     @_maxSelections = num
 
-    # if there has been an area already selected in single-selection mode
-    # it will still be in the @_selectedAreas array and can stay there,
-    # since it will never be deselected
-
     @_DEBUG_OUTPUT 'ENABLE MULTI SELECTION'
 
   # ------------------------------------------------------------------------
@@ -107,10 +95,6 @@ class HG.AreaController
 
     # restore single-selection mode
     @_maxSelections = 1
-
-    # is it necessary to clean the selected areas or should that be the
-    # task of the edit mode?
-    # areaHandle.deselect() for areaHandle in @_areaHandles
 
     @_DEBUG_OUTPUT 'DISABLE MULTI SELECTION'
 
@@ -142,7 +126,6 @@ class HG.AreaController
   #                            PRIVATE INTERFACE                               #
   ##############################################################################
 
-  # ============================================================================
   _DEBUG_OUTPUT: (id) ->
 
     return if not DEBUG
@@ -153,7 +136,6 @@ class HG.AreaController
     edi.push a.getId() + " (" + a.getShortName() + ")" for a in @_editAreas
 
     console.log id
-    console.log "areas (act+inact=all): ", @_visibleAreas.length, "+", @_invisibleAreas.length, "=", @_visibleAreas.length + @_invisibleAreas.length
     console.log "max selections + areas:", @_maxSelections, ":", sel.join(', ')
     console.log "areas (act+inact=all): ", @_activeAreas.length, "+", @_inactiveAreas.length, "=", @_activeAreas.length + @_inactiveAreas.length
     console.log "=============================================================="

@@ -24,13 +24,11 @@ class HG.HistoricalChange
   #                            PUBLIC INTERFACE                                #
   ##############################################################################
 
-  constructor: (data)  ->
-    @id             = data.id
-    @hivent         = data.hivent       # HG.Hivent
-
-    @operation      = data.operation
-
-    @areaChanges    = []                # HG.AreaChange
+  constructor: (id)  ->
+    @id             = id
+    @operation      = null    # one 'XXX' of the list above
+    @hivent         = null    # HG.Hivent
+    @areaChanges    = []      # HG.AreaChange
 
 
   # ============================================================================

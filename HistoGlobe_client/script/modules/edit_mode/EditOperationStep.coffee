@@ -12,7 +12,7 @@ class HG.EditOperationStep
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, direction) ->
+  constructor: (@_hgInstance, direction, start=no) ->
 
     # main data: operation and step data (local reference => accessible anywhere)
     @_historicalChange =  @_hgInstance.editOperation.operation.historicalChange
@@ -33,8 +33,8 @@ class HG.EditOperationStep
       @_hgInstance.buttons.nextStep.onFinish @, () =>
         @_makeTransition -1
 
-    else # skip
-      @_makeTransition direction
+    # initial call: transit immediately to first step
+    @_makeTransition direction if start
 
 
 
@@ -46,7 +46,7 @@ class HG.EditOperationStep
 
   _makeTransition: (direction) ->
 
-    @_cleanup()
+    @_cleanup direction
 
     # go to next step
     @_hgInstance.editOperation.operation.idx += direction
