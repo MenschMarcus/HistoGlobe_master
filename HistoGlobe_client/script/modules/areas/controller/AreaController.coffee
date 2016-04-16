@@ -1,7 +1,6 @@
 window.HG ?= {}
 
 # debug output?
-DEBUG = no
 
 class HG.AreaController
 
@@ -68,8 +67,6 @@ class HG.AreaController
     areaHandle.onDestroy @, () =>
       @_areaHandles.splice(@_areaHandles.indexOf(areaHandle), 1)
 
-    @_DEBUG_OUTPUT 'CREATE AREA'
-
 
   # ============================================================================
   # set / get Single- and Multi-Selection Mode
@@ -88,15 +85,11 @@ class HG.AreaController
     # set maximum number of selections
     @_maxSelections = num
 
-    @_DEBUG_OUTPUT 'ENABLE MULTI SELECTION'
-
   # ------------------------------------------------------------------------
   disableMultiSelection: () ->
 
     # restore single-selection mode
     @_maxSelections = 1
-
-    @_DEBUG_OUTPUT 'DISABLE MULTI SELECTION'
 
 
   # ============================================================================
@@ -120,22 +113,3 @@ class HG.AreaController
     for areaHandle in @_areaHandles
       selectedAreas.push areaHandle if areaHandle.isSelected()
     selectedAreas
-
-
-  ##############################################################################
-  #                            PRIVATE INTERFACE                               #
-  ##############################################################################
-
-  _DEBUG_OUTPUT: (id) ->
-
-    return if not DEBUG
-
-    sel = []
-    sel.push a.getId() + " (" + a.getShortName() + ")" for a in @_selectedAreas
-    edi = []
-    edi.push a.getId() + " (" + a.getShortName() + ")" for a in @_editAreas
-
-    console.log id
-    console.log "max selections + areas:", @_maxSelections, ":", sel.join(', ')
-    console.log "areas (act+inact=all): ", @_activeAreas.length, "+", @_inactiveAreas.length, "=", @_activeAreas.length + @_inactiveAreas.length
-    console.log "=============================================================="

@@ -32,11 +32,9 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
       @_select (@_hgInstance.areaController.getSelectedAreaHandles())[0]
 
     # backward change
-    # else
+    else
       # restore areas on the map
-      # for area in @_stepData.outData
-      #   @notifyEditMode 'onEndEditArea', area
-      #   @notifyEditMode 'onSelectArea', area
+      area.handle.select() for area in @_stepData.outData.areas
 
 
     ### SETUP USER INPUT ###
@@ -100,7 +98,7 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
 
 
   # ============================================================================
-  _cleanup: () ->
+  _cleanup: (direction) ->
 
     ### CLEANUP USER INPUT LISTENING ###
 

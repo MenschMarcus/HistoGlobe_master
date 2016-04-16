@@ -60,6 +60,7 @@ class HG.EditOperation
         steps: [
           { # idx               0
             id:                 'START'
+            userInput:          no
           }
           { # idx               1
             id:                 'SEL_OLD_AREA'

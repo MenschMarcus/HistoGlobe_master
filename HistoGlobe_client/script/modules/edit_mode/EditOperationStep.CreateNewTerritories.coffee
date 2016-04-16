@@ -77,9 +77,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
         newArea.handle.destroy()
 
         # restore previously selected areas
-        for area in @_stepData.inData.areas
-          area.handle.show()
-          area.handle.select()
+        area.handle.show() for area in @_stepData.inData.areas
 
         # go to previous step
         return @abort()

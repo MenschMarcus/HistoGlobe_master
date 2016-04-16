@@ -42,12 +42,12 @@ class HG.EditOperationStep
   # ============================================================================
 
   finish: () ->
-    @_cleanup()
+    @_cleanup 1
     @notifyAll 'onFinish'
 
   # ----------------------------------------------------------------------------
   abort: () ->
-    @_cleanup()
+    @_cleanup -1
     @notifyAll 'onAbort'
 
 
@@ -55,4 +55,4 @@ class HG.EditOperationStep
   # cleanup to be implemented by each step on its own
   # ============================================================================
 
-  _cleanup: () ->
+  _cleanup: (direction) ->
