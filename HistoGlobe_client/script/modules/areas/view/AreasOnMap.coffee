@@ -53,6 +53,8 @@ class HG.AreasOnMap
 
   # ----------------------------------------------------------------------------
   _select: (areaHandle) =>
+    # error handling: do not update if layer not there
+    return if not areaHandle.multiPolygonLayer
     # accumulate fullBound box around all currently selected areas
     fullBound = areaHandle.multiPolygonLayer.getBounds() # L.latLngBounds
     for selArea in @_selectedAreas

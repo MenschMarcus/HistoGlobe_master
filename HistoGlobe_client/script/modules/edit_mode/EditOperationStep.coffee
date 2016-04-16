@@ -31,7 +31,7 @@ class HG.EditOperationStep
 
       # finish button
       @_hgInstance.buttons.nextStep.onFinish @, () =>
-        @_makeTransition -1
+        @_makeTransition 1
 
     # initial call: transit immediately to first step
     @_makeTransition direction if start
@@ -49,12 +49,15 @@ class HG.EditOperationStep
     @_cleanup direction
 
     # transfer data
+    # can not use @_stepData, because if undoManager jumps back in this base
+    # that was called from anothers step inherited class, @_stepData is not what
+    # what you want it to be ;) => regain @_stepData
     if direction is 1
-      thisStep = @_stepData
+      thisStep = @_hgInstance.editOperation.operation.steps[@_hgInstance.editOperation.operation.idx]
       nextStep = @_hgInstance.editOperation.operation.steps[@_hgInstance.editOperation.operation.idx+1]
       nextStep.inData = thisStep.outData
     else
-      thisStep = @_stepData
+      thisStep = @_hgInstance.editOperation.operation.steps[@_hgInstance.editOperation.operation.idx]
       prevStep = @_hgInstance.editOperation.operation.steps[@_hgInstance.editOperation.operation.idx-1]
       prevStep.outData = thisStep.inData
 
@@ -70,13 +73,9 @@ class HG.EditOperationStep
       when 4 then new HG.EditOperationStep.AddChange             @_hgInstance, direction
       when 5 then @_hgInstance.editOperation.finish()
 
-    @_undoManager.add {
-      undo: => @_makeTransition (-1)*direction
-    }
-
 
   # ============================================================================
   # cleanup to be implemented by each step on its own
   # ============================================================================
 
-  _cleanup: () ->
+  _cleanup: (direction) ->

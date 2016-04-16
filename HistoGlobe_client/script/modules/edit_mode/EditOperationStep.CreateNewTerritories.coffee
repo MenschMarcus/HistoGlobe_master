@@ -23,71 +23,66 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
     ### AUTOMATIC PROCESSING ###
 
-    switch @_operationId
+    ## unification operation
+    if @_operationId is 'UNI'
+      if direction is 1   # forward
 
-      # ------------------------------------------------------------------------
-      when 'UNI', 'INC'                                ## unification operation
+        # delete all selected areas
+        oldGeometries = []
+        for areaTerritory in @_stepData.inData.areaTerritories
+          areaTerritory.area.handle.deselect()
+          areaTerritory.area.handle.hide()
+          oldGeometries.push areaTerritory.geometry
 
-        if direction is 1 # forward
+        # unify old areas to new area
+        unifiedGeometry = @_geometryOperator.union oldGeometries
 
-          # delete all selected areas
-          oldGeometries = []
-          for areaTerritory in @_stepData.inData.areaTerritories
-            areaTerritory.area.handle.deselect()
-            areaTerritory.area.handle.hide()
-            oldGeometries.push areaTerritory.geometry
+        # create Area
+        newArea = new HG.Area @_hgInstance.editOperation.getRandomId()
 
-          # unify old areas to new area
-          unifiedGeometry = @_geometryOperator.union oldGeometries
+        # create AreaTerritory
+        newTerritory = new HG.AreaTerritory {
+            id:                   @_hgInstance.editOperation.getRandomId()
+            geometry:             unifiedGeometry
+            representativePoint:  unifiedGeometry.getCenter()
+          }
 
-          # create Area
-          newArea = new HG.Area @_hgInstance.editOperation.getRandomId()
+        # link Area <-> AreaTerritory
+        newArea.territory = newTerritory
+        newTerritory.area = newArea
 
-          # create AreaTerritory
-          newTerritory = new HG.AreaTerritory {
-              id:                   @_hgInstance.editOperation.getRandomId()
-              geometry:             unifiedGeometry
-              representativePoint:  unifiedGeometry.getCenter()
-            }
+        # create AreaHandle <-> Area
+        newHandle = new HG.AreaHandle @_hgInstance, newArea
+        newArea.handle = newHandle
 
-          # link Area <-> AreaTerritory
-          newArea.territory = newTerritory
-          newTerritory.area = newArea
+        # show area via areaHandle
+        newHandle.startEdit()
+        newHandle.select()
+        newHandle.show()
 
-          # create AreaHandle <-> Area
-          newHandle = new HG.AreaHandle @_hgInstance, newArea
-          newArea.handle = newHandle
+        # add to operation workflow
+        @_stepData.outData.areas[0] =            newArea
+        @_stepData.outData.areaNames[0] =        null
+        @_stepData.outData.areaTerritories[0] =  newTerritory
 
-          # show area via areaHandle
-          newHandle.startEdit()
-          newHandle.select()
-          newHandle.show()
+        # go to next step
+        @_makeTransition 1
 
-          # add to operation workflow
-          @_stepData.outData.areas[0] =            newArea
-          @_stepData.outData.areaNames[0] =        null
-          @_stepData.outData.areaTerritories[0] =  newTerritory
+      else                # backward
 
-          # go to next step
-          @_makeTransition 1
+        # get areaHandle from operation workflow
+        newArea = @_stepData.outData.areas[0]
 
+        # remove it => hides, deselects and leaves edit mode automatically
+        newArea.handle.destroy()
 
-      # ------------------------------------------------------------------------
-        else # backward operation => do reverse
+        # restore previously selected areas
+        for area in @_stepData.inData.areas
+          area.handle.show()
+          area.handle.select()
 
-          # get areaHandle from operation workflow
-          newArea = @_stepData.outData.areas[0]
-
-          # remove it => hides, deselects and leaves edit mode automatically
-          newArea.handle.destroy()
-
-          # restore previously selected areas
-          for area in @_stepData.inData.areas
-            area.handle.show()
-            area.handle.select()
-
-
-      # ------------------------------------------------------------------------
+        # go to previous step
+        @_makeTransition -1
 
 
     ### SETUP OPERATION ###
@@ -403,12 +398,14 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
 
   # ============================================================================
+  # end the operation
+  # ============================================================================
+
   _cleanup: (direction) ->
 
     ### CLEANUP OPERATION ###
 
     @_hgInstance.newTerritoryTool?.destroy()
     @_hgInstance.newTerritoryTool = null
-
 
     @_hgInstance.editMode.leaveAreaEditMode() if direction is -1

@@ -84,12 +84,12 @@ class HG.AreaChange
         # forward => update with new territory
         if direction is 1
           @oldAreaTerritory.area.territory  = @newAreaTerritory
-          @area.handle.updateTerritory()
+          @area.handle.update()
 
         # backward => update with old territory
         else
           @oldAreaTerritory.area.territory  = @oldAreaTerritory
-          @area.handle.updateTerritory()
+          @area.handle.update()
 
       # ------------------------------------------------------------------------
       when 'NCH'    # change area name
@@ -97,10 +97,10 @@ class HG.AreaChange
         # forward => update with new name
         if direction is 1
           @oldAreaName.area.name  = @newAreaName
-          @area.handle.updateName()
+          @area.handle.update()
 
         # backward => update with old name
         else
           @oldAreaName.area.name  = @oldAreaName
-          @area.handle.updateName()
+          @area.handle.update()
 

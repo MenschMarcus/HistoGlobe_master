@@ -19,11 +19,17 @@ class HG.AreaHandle
 
   constructor: (@_hgInstance, @_area) ->
 
-    # Internal states                                           functions to toggle state
+    # internal states                                           functions to toggle state
     @_visible = no    # is area currently on the map?           show()      hide()
     @_focused = no    # is area currently in focus (hovered)?   focus()     unfocus()
     @_selected = no   # is area currently active/selected?      select()    deselect()
     @_inEdit = no     # is area in edit mode?                   startEdit() endEdit()
+
+    # handling of main properties
+    @_hasTerritory =    @_area.territory? # model: does area have a territory?
+    @_hasName =         @_area.name?      # model: does area have a name?
+    @_territoryShown =  no                # view: is the territory shown?
+    @_nameShown =       no                # view: is the name shown?
 
     @sortingIndex = -1
 
@@ -34,13 +40,13 @@ class HG.AreaHandle
     # Add callbacks for all states.
     # These are triggered by the corresponding function specified below.
 
+    @addCallback 'onAddTerritory'
     @addCallback 'onUpdateTerritory'
+    @addCallback 'onRemoveTerritory'
     @addCallback 'onAddName'
     @addCallback 'onUpdateName'
     @addCallback 'onRemoveName'
 
-    @addCallback 'onShow'
-    @addCallback 'onHide'
     @addCallback 'onFocus'
     @addCallback 'onUnfocus'
     @addCallback 'onSelect'
@@ -82,52 +88,6 @@ class HG.AreaHandle
 
 
   # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  ### CHANGE PROPERTIES OF THE AREA ###
-  # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  # ============================================================================
-  # Notifies all listeners that the Area associated with the AreaHandle has a
-  # new territory (geometry and/or representative point). This is triggered when
-  # it gets changed by a step in an EditModeOperation or by an AreaChange.
-  # Notifies either a specific listener (by specifying an obj) or all listeners.
-  # ============================================================================
-
-  updateTerritory: (obj=null) ->
-    if obj
-      @notify 'onUpdateTerritory', obj, @
-    else
-      @notifyAll 'onUpdateTerritory', @
-
-  # ============================================================================
-  # Notifies all listeners that the Area associated with the AreaHandle has a
-  # now a name (-> add), a new name (-> update) or no name anymore (-> remove).
-  # This is triggered when it gets changed by a step in an EditModeOperation or
-  # by an AreaChange.
-  # Notifies either a specific listener (by specifying an obj) or all listeners.
-  # ============================================================================
-
-  addName: (obj=null) ->
-    if obj
-      @notify 'onAddName', obj, @
-    else
-      @notifyAll 'onAddName', @
-
-  # ----------------------------------------------------------------------------
-  updateName: (obj=null) ->
-    if obj
-      @notify 'onUpdateName', obj, @
-    else
-      @notifyAll 'onUpdateName', @
-
-  # ----------------------------------------------------------------------------
-  removeName: (obj=null) ->
-    if obj
-      @notify 'onRemoveName', obj, @
-    else
-      @notifyAll 'onUpdateName', @
-
-
-  # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   ### GET STATE OF THE AREA ###
   # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -149,13 +109,20 @@ class HG.AreaHandle
 
   show: (obj=null) ->
     if not @_visible
-      @_visible = yes
+      @_hasTerritory =  @_area.territory?
+      @_hasName =       @_area.name?
+      @_visible =       yes
       VISIBLE_AREAS.push @
-      if obj
-        @notify 'onShow', obj, @
-      else
-        @notifyAll 'onShow', @
 
+      if @_hasTerritory
+        if obj then @notify    'onAddTerritory', obj, @
+        else        @notifyAll 'onAddTerritory', @
+        @_territoryShown = yes
+
+      if @_hasName
+        if obj then @notify    'onAddName', obj, @
+        else        @notifyAll 'onAddName', @
+        @_nameShown = yes
 
   # ============================================================================
   # Notifies all listeners that the Area associated with the AreaHandle is now
@@ -165,12 +132,85 @@ class HG.AreaHandle
 
   hide: (obj=null) ->
     if @_visible
-      @_visible = no
+
+      if @_territoryShown
+        if obj then @notify    'onRemoveTerritory', obj, @
+        else        @notifyAll 'onRemoveTerritory', @
+        @_territoryShown = no
+
+      if @_nameShown
+        if obj then @notify    'onRemoveName', obj, @
+        else        @notifyAll 'onRemoveName', @
+        @_nameShown = no
+
       @_removeFromArray(@, VISIBLE_AREAS)
-      if obj
-        @notify 'onHide', obj, @
-      else
-        @notifyAll 'onHide', @
+      @_visible = no
+
+  # ============================================================================
+  # Notifies all listeners that the Area associated with the AreaHandle has
+  # has changed (either its name or its territory). This is triggered when
+  # the Area gets edited in EditMode.
+  # Notifies either a specific listener (by specifying an obj) or all listeners.
+  # this became really complex. Please admire the complexity and pray that this
+  # piece of code will never need to be changed again. Amen!
+  # ============================================================================
+
+  update: (obj=null) ->
+
+    ## update territory
+    hadTerritoryBefore    = @_hasTerritory
+    hasTerritoryNow       = @_area.territory?
+    @_hasTerritory        = hasTerritoryNow
+
+    territoryShownBefore  = @_territoryShown
+    territoryShownNow     = hasTerritoryNow and @_visible
+
+    if not territoryShownBefore and territoryShownNow
+      if obj then @notify    'onAddTerritory', obj, @
+      else        @notifyAll 'onAddTerritory', @
+      @_territoryShown = yes
+
+    else if territoryShownBefore and territoryShownNow
+      if obj then @notify    'onUpdateTerritory', obj, @
+      else        @notifyAll 'onUpdateTerritory', @
+      @_territoryShown = yes
+
+    else if territoryShownBefore and not territoryShownNow
+      if obj then @notify    'onRemoveTerritory', obj, @
+      else        @notifyAll 'onRemoveTerritory', @
+      @_territoryShown = no
+
+    else # not territoryShownBefore and not territoryShownNow
+      @_territoryShown = no
+
+
+    ## update name
+    hadNameBefore    = @_hasName
+    hasNameNow       = @_area.name?
+    @_hasName        = hasNameNow
+
+    nameShownBefore  = @_nameShown
+    nameShownNow     = hasNameNow and @_visible
+
+    if not nameShownBefore and nameShownNow
+      if obj then @notify    'onAddName', obj, @
+      else        @notifyAll 'onAddName', @
+      @_nameShown = yes
+
+    else if nameShownBefore and nameShownNow
+      if obj then @notify    'onUpdateName', obj, @
+      else        @notifyAll 'onUpdateName', @
+      @_nameShown = yes
+
+    else if nameShownBefore and not nameShownNow
+      if obj then @notify    'onRemoveName', obj, @
+      else        @notifyAll 'onRemoveName', @
+      @_nameShown = no
+
+    else # not nameShownBefore and not nameShownNow
+      @_nameShown = no
+
+
 
 
   # ============================================================================
@@ -195,10 +235,8 @@ class HG.AreaHandle
 
       # update
       if @_focused
-        if obj
-          @notify 'onFocus', obj, @
-        else
-          @notifyAll 'onFocus', @
+        if obj then @notify    'onFocus', obj, @
+        else        @notifyAll 'onFocus', @
 
   # ============================================================================
   # Notifies all listeners to unfocus on the Area associated with the AreaHandle.
@@ -209,10 +247,8 @@ class HG.AreaHandle
   unfocus: (obj=null) ->
     if @_focused
       @_focused = false
-      if obj
-        @notify 'onFocus', obj, @
-      else
-        @notifyAll 'onFocus', @
+      if obj then @notify    'onFocus', obj, @
+      else        @notifyAll 'onFocus', @
 
 
   # ============================================================================
@@ -255,10 +291,8 @@ class HG.AreaHandle
     if becameSelected
       @_selected = yes
       SELECTED_AREAS.push @
-      if obj
-        @notify 'onSelect', obj, @,
-      else
-        @notifyAll 'onSelect', @
+      if obj then @notify    'onSelect', obj, @
+      else        @notifyAll 'onSelect', @
 
     # status change 3) selected -> deselected
     if becameDeselected
@@ -276,10 +310,8 @@ class HG.AreaHandle
     if @_selected
       @_selected = no
       @_removeFromArray(@, SELECTED_AREAS)
-      if obj
-        @notify 'onDeselect', obj, @
-      else
-        @notifyAll 'onDeselect', @
+      if obj then @notify    'onDeselect', obj, @
+      else        @notifyAll 'onDeselect', @
 
 
   # ============================================================================
@@ -293,10 +325,8 @@ class HG.AreaHandle
     if not @_inEdit
       @_inEdit = yes
       EDIT_AREAS.push @
-      if obj
-        @notify 'onStartEdit', obj, @
-      else
-        @notifyAll 'onStartEdit', @
+      if obj then @notify    'onStartEdit', obj, @
+      else        @notifyAll 'onStartEdit', @
 
 
   # ============================================================================
@@ -310,10 +340,8 @@ class HG.AreaHandle
     if @_inEdit
       @_inEdit = no
       @_removeFromArray @, EDIT_AREAS
-      if obj
-        @notify 'onEndEdit', obj, @
-      else
-        @notifyAll 'onEndEdit', @
+      if obj then @notify    'onEndEdit', obj, @
+      else        @notifyAll 'onEndEdit', @
 
 
   # ============================================================================
@@ -329,10 +357,8 @@ class HG.AreaHandle
     @endEdit obj
     @hide obj
     # tell everyone
-    if obj
-      @notify 'onDestroy', obj
-    else
-      @notifyAll 'onDestroy'
+    if obj then @notify    'onDestroy', obj, @
+    else        @notifyAll 'onDestroy', @
     # really clean cleanup
     delete @_area
     delete @
@@ -428,6 +454,11 @@ class HG.AreaHandle
   ##############################################################################
   #                             PRIVATE MEMBERS                                #
   ##############################################################################
+
+  # ============================================================================
+  # clean way to remove an element from an array.
+  # Should be implemented in Array, but this way it is much faster :D
+  # ============================================================================
 
   _removeFromArray: (elem, array) ->
     idx = array.indexOf elem

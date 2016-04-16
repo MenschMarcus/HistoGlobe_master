@@ -18,15 +18,11 @@ class HG.AreaTerritoryLayerOnMap
 
   constructor: (@_areaHandle, @_map) ->
 
-    @_addLayer()
-
-
     ### INTERACTION ###
 
+    @_areaHandle.onAddTerritory @,    @_addLayer
     @_areaHandle.onUpdateTerritory @, @_updateLayer
-
-    @_areaHandle.onShow @,            @_addLayer
-    @_areaHandle.onHide @,            @_removeLayer
+    @_areaHandle.onRemoveTerritory @, @_removeLayer
 
     @_areaHandle.onFocus @,           @_updateStyle
     @_areaHandle.onUnfocus @,         @_updateStyle
@@ -34,8 +30,6 @@ class HG.AreaTerritoryLayerOnMap
     @_areaHandle.onDeselect @,        @_updateStyle
     @_areaHandle.onStartEdit @,       @_updateStyle
     @_areaHandle.onEndEdit @,         @_updateStyle
-
-    @_areaHandle.onDestroy @,         @_removeLayer
 
 
   ##############################################################################
@@ -48,10 +42,6 @@ class HG.AreaTerritoryLayerOnMap
   # ============================================================================
 
   _addLayer: () ->
-
-    # error handling: only add territory if it exists
-    return if not @_areaHandle.getArea().territory?
-
     geometry = @_areaHandle.getArea().territory.geometry.latLng()
 
     # styling area in CSS based on its calss is a bad idea, because d3 can not
@@ -94,10 +84,6 @@ class HG.AreaTerritoryLayerOnMap
 
   # ----------------------------------------------------------------------------
   _updateLayer: () ->
-
-    # error handling: only update territory if it exists
-    return if not @_areaHandle.getArea().territory?
-
     @_areaHandle.multiPolygonLayer.setLatLngs @_areaHandle.getArea().territory.geometry.latLng()
 
   # ----------------------------------------------------------------------------
@@ -111,6 +97,10 @@ class HG.AreaTerritoryLayerOnMap
   # ============================================================================
 
   _updateStyle: () ->
+
+    # error handling: do not update if layer not there
+    return if not @_areaHandle.multiPolygonLayer
+
     properties = @_areaHandle.getStyle()
     @animate {
       'fill':           properties.areaColor

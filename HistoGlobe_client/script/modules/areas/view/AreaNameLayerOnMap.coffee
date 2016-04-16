@@ -18,23 +18,14 @@ class HG.AreaNameLayerOnMap
 
   constructor: (@_areaHandle, @_map, @_labelManager) ->
 
-    @_addLayer()
-
-
     ### INTERACTION ###
 
     ## AreaHandle -> THIS
 
     # actual show / hide / update behaviour is managed by a LabelManager
-    @_areaHandle.onUpdateTerritory @, @_updateLayer
-
     @_areaHandle.onAddName @,         @_addLayer
     @_areaHandle.onUpdateName @,      @_updateLayer
     @_areaHandle.onRemoveName @,      @_removeLayer
-
-    @_areaHandle.onShow @,            @_addLayer
-    @_areaHandle.onHide @,            @_removeLayer
-    @_areaHandle.onDestroy @,         @_removeLayer
 
 
 
@@ -49,18 +40,15 @@ class HG.AreaNameLayerOnMap
 
   _addLayer: () ->
 
-    # error handling: only add if name exists
-    return if not @_areaHandle.getArea().name?
-
     # get data from model
-    shortName = @_areaHandle.getArea().name.shortName
+    shortName =           @_areaHandle.getArea().name.shortName
     representativePoint = @_areaHandle.getArea().territory.representativePoint.latLng()
     priority = Math.round(@_areaHandle.getArea().territory.geometry.getArea()*1000)
 
     # create label with name and position
     @_areaHandle.labelLayer = new L.Label()
     @_areaHandle.labelLayer.setContent shortName
-    @_areaHandle.labelLayer.setLatLng representativePoint
+    @_areaHandle.labelLayer.setLatLng  representativePoint
     @_areaHandle.labelLayer.priority = priority
 
     # create double-link: leaflet label knows HG area and HG area knows leaflet label
@@ -71,17 +59,14 @@ class HG.AreaNameLayerOnMap
   # ----------------------------------------------------------------------------
   _updateLayer: () ->
 
-    # error handling: only update if name exists
-    return if not @_areaHandle.getArea().name?
-
     # get updated data from model
-    shortName = @_areaHandle.getArea().name.shortName
+    shortName =           @_areaHandle.getArea().name.shortName
     representativePoint = @_areaHandle.getArea().territory.representativePoint.latLng()
     priority = Math.round(@_areaHandle.getArea().territory.geometry.getArea()*1000)
 
     # update label information
     @_areaHandle.labelLayer.setContent shortName
-    @_areaHandle.labelLayer.setLatLng representativePoint
+    @_areaHandle.labelLayer.setLatLng  representativePoint
     @_areaHandle.labelLayer.priority = priority
 
     @_labelManager.update @_areaHandle.labelLayer

@@ -61,6 +61,6 @@ class HG.Watermark
       $(@_image).attr 'src', @_config.imageLight
 
   # ============================================================================
-  makenormal: () ->
+  makeNormal: () ->
     if @_image
       $(@_image).attr 'src', @_config.imageNormal

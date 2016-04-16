@@ -48,9 +48,9 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
   _makeNewName: (direction) ->
 
     # finish criterion: next Step
-    return @makeTransition 1  if @_finish
+    return @_makeTransition 1  if @_finish
     # finish criterion: prev Step -> first name and backwards
-    return @makeTransition -1 if (@_areaIdx is 0) and (direction is -1)
+    return @_makeTransition -1 if (@_areaIdx is 0) and (direction is -1)
 
     # go to next/previous area
     @_areaIdx += direction
@@ -93,19 +93,8 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
         newArea = new HG.Area @_hgInstance.editOperation.getRandomId()
         newHandle = new HG.AreaHandle @_hgInstance, newArea
         newArea.handle = newHandle
-
-      # create new AreaName if name has changed
-      if shortNameHasChanged or formalNameHasChanged
-        newName = new HG.AreaName {
-          id:         @_hgInstance.editOperation.getRandomId()
-          shortName:  newShortName
-          formalName: newFormalName
-        }
-        # link Area <-> AreaName
-        newArea.name = newName
-        newName.area = newArea
-        # update area model and view
-        newArea.handle.updateName()
+        # update view
+        newArea.handle.show()
 
       # create new AreaTerritory if representative point has changed
       if reprPointHasChanged
@@ -117,13 +106,30 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
         # link Area <-> AreaTerritory
         newArea.territory = newTerritory
         newTerritory.area = newArea
-        # update area model and view
-        newArea.handle.updateTerritory()
+        # update view_areaHandle
+        newArea.handle.update()
+
+      # create new AreaName if name has changed
+      # N.B. update AreaTerritory before, to get new representative point!
+      if shortNameHasChanged or formalNameHasChanged
+        newName = new HG.AreaName {
+          id:         @_hgInstance.editOperation.getRandomId()
+          shortName:  newShortName
+          formalName: newFormalName
+        }
+        # link Area <-> AreaName
+        newArea.name = newName
+        newName.area = newArea
+        # update view
+        newArea.handle.update()
 
       # add to operation workflow
       @_stepData.outData.areas.push           newArea
       @_stepData.outData.areaNames.push       newArea.name
       @_stepData.outData.areaTerritories.push newArea.territory
+
+      # define when it is finished
+      @_finish = yes if @_areaIdx is @_stepData.inData.areas.length-1
 
       console.log @_hgInstance.editOperation.operation
 
@@ -160,6 +166,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
     # if it has not been updated yet
     # this is not covered by any undo action, because before the new name was
     # not submitted from newNameTool, there is no undo event in the undoManager
-    area = @_stepData.tempAreas[@_areaIdx]
-    if area.nameRemoved and not area.nameUpdated
-      @notifyEditMode 'onAddAreaName', area.id, area.shortName, area.formalName
+    # area = @_stepData.tempAreas[@_areaIdx]
+    # if area.nameRemoved and not area.nameUpdated
+    #   @notifyEditMode 'onAddAreaName', area.id, area.shortName, area.formalName
+    # WTF ?!?
