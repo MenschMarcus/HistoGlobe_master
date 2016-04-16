@@ -47,7 +47,6 @@ class HG.DatabaseInterface
           area = new HG.Area areaData.id
           areaHandle = new HG.AreaHandle @_hgInstance, area
           area.handle = areaHandle
-          @_hgInstance.areaController.addAreaHandle areaHandle
 
         # create AreaNames and AreaTerritories and store them
         # so they can be linked to ChangeAreas later

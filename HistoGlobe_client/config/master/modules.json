@@ -43,8 +43,9 @@
 
   "Watermark":
   {
-    "id": "HGLogo",
-    "image": "common/graphics/logo.png"
+    "id":           "HGLogo",
+    "imageNormal":  "common/graphics/logo_normal.png",
+    "imageLight":   "common/graphics/logo_light.png"
   },
 
   "ControlButtonsTop":

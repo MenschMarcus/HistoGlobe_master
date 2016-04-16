@@ -7,7 +7,7 @@ class HG.NewNameTool
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, initShortName, initFormalName, initPosition) ->
+  constructor: (@_hgInstance, initData) ->
 
     @_hgInstance.newNameTool = @
 
@@ -53,8 +53,8 @@ class HG.NewNameTool
     # short name
     @_shortNameInput = new HG.TextInput @_hgInstance, 'newShortName', ['new-name-input']
     $(@_shortNameInput.getDOMElement()).removeClass 'hg-input'
-    if initShortName    # set either the text that is given (to just accept it)
-      @_shortNameInput.setText initShortName
+    if initData.shortName    # set either the text that is given (to just accept it)
+      @_shortNameInput.setText initData.shortName
     else                # or have only a placeholder
       @_shortNameInput.setPlaceholder 'name'
     @_wrapper.appendChild @_shortNameInput.getDOMElement()
@@ -62,8 +62,8 @@ class HG.NewNameTool
     # formal name
     @_formalNameInput = new HG.TextInput @_hgInstance, 'newFormalName', ['new-name-input']
     $(@_formalNameInput.getDOMElement()).removeClass 'hg-input'
-    if initFormalName   # set either the text that is given (to just accept it)
-      @_formalNameInput.setText initFormalName
+    if initData.formalName   # set either the text that is given (to just accept it)
+      @_formalNameInput.setText initData.formalName
     else                # or have only a placeholder
       @_formalNameInput.setPlaceholder 'formal name'
     @_wrapper.appendChild @_formalNameInput.getDOMElement()
@@ -71,7 +71,7 @@ class HG.NewNameTool
     @_nameInputs = $('.new-name-input')
 
     # set position of wrapper = center of country
-    posPx = @_map.latLngToContainerPoint initPosition.latLng()
+    posPx = @_map.latLngToContainerPoint initData.reprPoint.latLng()
     $(@_wrapper).css 'left', posPx.x
     $(@_wrapper).css 'top',  posPx.y
 

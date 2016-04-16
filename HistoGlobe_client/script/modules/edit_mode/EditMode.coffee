@@ -244,8 +244,15 @@ class HG.EditMode
     # setup title
     @_title = new HG.Title @_hgInstance, "EDIT MODE" # TODO: internationalization
 
+    # make the logo light
+    @_hgInstance.watermark.makeLight()
+
   # ----------------------------------------------------------------------------
   _cleanupEditMode: () ->
+
+    # restore the logo
+    @_hgInstance.watermark.makeNormal()
+
     # remove title
     @_title.destroy()
 

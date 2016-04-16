@@ -15,7 +15,7 @@ class HG.EditOperationStep
   constructor: (@_hgInstance, direction, start=no) ->
 
     # main data: operation and step data (local reference => accessible anywhere)
-    @_historicalChange =  @_hgInstance.editOperation.operation.historicalChange
+    @_operationId =       @_hgInstance.editOperation.operation.id
     @_stepData =          @_hgInstance.editOperation.operation.steps[@_hgInstance.editOperation.operation.idx]
     @_undoManager =       @_hgInstance.editOperation.undoManager
 
@@ -47,6 +47,16 @@ class HG.EditOperationStep
   _makeTransition: (direction) ->
 
     @_cleanup direction
+
+    # transfer data
+    if direction is 1
+      thisStep = @_stepData
+      nextStep = @_hgInstance.editOperation.operation.steps[@_hgInstance.editOperation.operation.idx+1]
+      nextStep.inData = thisStep.outData
+    else
+      thisStep = @_stepData
+      prevStep = @_hgInstance.editOperation.operation.steps[@_hgInstance.editOperation.operation.idx-1]
+      prevStep.outData = thisStep.inData
 
     # go to next step
     @_hgInstance.editOperation.operation.idx += direction

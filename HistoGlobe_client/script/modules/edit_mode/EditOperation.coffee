@@ -53,39 +53,61 @@ class HG.EditOperation
 
     @operation =
       {
-        id:                 operationConfig.id
-        title:              operationConfig.title
-        verb:               operationConfig.verb
-        historicalChange:   null
-        idx:                0    # = step index -> 0 = start
+        id:                     operationConfig.id
+        title:                  operationConfig.title
+        verb:                   operationConfig.verb
+        idx:                    0    # = step index -> 0 = start
         steps: [
-          { # idx             0
-            id:               'START'
+          { # idx               0
+            id:                 'START'
           }
-          { # idx             1
-            id:               'SEL_OLD_AREA'
-            title:            null
-            userInput:        no
-            number:           {}
+          { # idx               1
+            id:                 'SEL_OLD_AREA'
+            title:              null
+            userInput:          no
+            number:             {}
+            outData: {
+              areas:            []
+              areaNames:        []
+              areaTerritories:  []
+            }
           },
-          { # idx             2
-            id:               'SET_NEW_TERR'
-            title:            null
-            userInput:        no
-            number:           {}
-            tempAreas:        []
+          { # idx               2
+            id:                 'SET_NEW_TERR'
+            title:              null
+            userInput:          no
+            number:             {}
+            inData: {
+              areas:            []
+              areaNames:        []
+              areaTerritories:  []
+            }
+            outData: {
+              areas:            []
+              areaNames:        []
+              areaTerritories:  []
+            }
           },
-          { # idx             3
-            id:               'SET_NEW_NAME'
-            title:            null
-            userInput:        no
-            number:           {}
-            tempAreas:        []
+          { # idx               3
+            id:                 'SET_NEW_NAME'
+            title:              null
+            userInput:          no
+            number:             {}
+            inData: {
+              areas:            []
+              areaNames:        []
+              areaTerritories:  []
+            }
+            outData: {
+              areas:            []
+              areaNames:        []
+              areaTerritories:  []
+            }
           },
-          { # idx             4
-            id:               'ADD_CHNG'
-            title:            "add change <br /> to historical event"
-            userInput:        yes
+          { # idx               4
+            id:                 'ADD_CHNG'
+            title:              "add change <br /> to historical event"
+            userInput:          yes
           }
         ]
       }
@@ -98,11 +120,6 @@ class HG.EditOperation
           stepData.userInput = yes
           stepData.number = (@_getRequiredNum stepConfig.num) if stepData.number
           break
-
-    # create new HistoricalChange for the operation
-    # => main object that will be populated throughout the workflow
-    @operation.historicalChange = new HG.HistoricalChange @getRandomId()
-    @operation.historicalChange.operation = @operation.id
 
     # current step the user is in
     @_step = null

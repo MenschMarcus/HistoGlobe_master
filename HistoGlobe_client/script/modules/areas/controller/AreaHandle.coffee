@@ -50,6 +50,9 @@ class HG.AreaHandle
 
     @addCallback 'onDestroy'
 
+    # add myself to AreaController, so everybody knows about me
+    @_hgInstance.areaController.addAreaHandle @
+
 
   # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   ### GET PROPERTIES OF THE AREA ###
@@ -331,6 +334,7 @@ class HG.AreaHandle
     else
       @notifyAll 'onDestroy'
     # really clean cleanup
+    delete @_area
     delete @
 
 

@@ -113,14 +113,11 @@ class HG.GeometryOperator
     # "contain" anything, because it doesn't have an area. Therefore, a Polygon
     # has to be created first
 
-    # problem: contains function only works with polygons and multipolygons
-    # => if LinearRing is given in, it must be converted to a Polygon
-
-    # A = new jsts.geom.Polygon polylineA.jsts()
-    # B = new jsts.geom.Polygon polylineB.jsts()
-
     A = Ageom.jsts()
     B = Bgeom.jsts()
+
+    # problem: 'contains' function only works with polygons and multipolygons
+    # => if LinearRing is given in, it must be converted to a Polygon
 
     A = new jsts.geom.Polygon A if A.getGeometryType() is 'LineString'
     B = new jsts.geom.Polygon B if B.getGeometryType() is 'LineString'
