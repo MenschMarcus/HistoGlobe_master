@@ -52,15 +52,17 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
     ### SETUP OPERATION ###
 
-    # make only edit areas focusable
+    # make only edit areas focusable and make sure multiple areas can be selected
     @_hgInstance.editMode.enterAreaEditMode() if direction is 1
+    @_hgInstance.areaController.enableMultiSelection HGConfig.max_area_selection.val
 
-    # backward into this step => reverse last operation
-    if direction is -1
-      switch @_operationId
-        when 'CRE' then @_CRE_reverse()
-        # when 'SEP' then @_SEP_reverse()
-        # when 'TCH' then @_TCH_reverse()
+    # for SEP and TCH operation, put selected area into edit mode and select it
+    switch @_operationId
+      when 'SEP', 'TCH'
+        for area in @_stepData.inData.areas
+          area.handle.startEdit()
+          area.handle.select()
+
 
     # start at first (forward) resp. last (backward) area
     if direction is 1 then  @_areaIdx = -1
@@ -77,18 +79,29 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
   _makeNewTerritory: (direction) ->
 
     # for backward operation: restore previously drawn clip geometry in the tool
-    restoreLayer = null
-    restoreLayer = @_stepData.tempData.restoreLayers[@_areaIdx] if direction is -1
+    drawLayer = null
+    if direction is -1
+      drawLayer = @_stepData.tempData.drawLayers[@_areaIdx]
+
+      # backward into this step => reverse last operation
+      switch @_operationId
+        when 'CRE' then @_CRE_reverse()
+        when 'SEP' then @_SEP_reverse()
+        # when 'TCH' then @_TCH_reverse()
+
 
     # go to next/previous area
     @_areaIdx += direction
 
     # set up NewTerritoryTool to define geometry of an area interactively
-    newTerritoryTool = new HG.NewTerritoryTool @_hgInstance, restoreLayer, @_areaIdx is 0
+    newTerritoryTool = new HG.NewTerritoryTool @_hgInstance, drawLayer, @_areaIdx is 0
 
 
     ### LISTEN TO USER INPUT ###
-    newTerritoryTool.onSubmit @, (clipGeometry, restoreLayer) =>  # incoming geometry: clipGeometry
+    newTerritoryTool.onSubmit @, (clipGeometry, drawLayer) =>  # incoming geometry: clipGeometry
+
+      # save leaflet:draw layers to be restores later
+      @_stepData.tempData.drawLayers.push drawLayer
 
       switch @_operationId
 
@@ -97,51 +110,17 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
           @_CRE clipGeometry
 
-          @_stepData.tempData.restoreLayers.push restoreLayer
-
           # only one step necessary => finish
           return @finish()
 
         # ======================================================================
         when 'SEP'                                             ## separate areas
 
-          existingArea = @_hgInstance.areaController.getActiveArea @_stepData.inData.selectedAreas[0]
+          complete = @_SEP clipGeometry
 
-          existingAreaId =      existingArea.getId()
-          existingGeometry =    existingArea.getGeometry()
-          existingShortName =   existingArea.getShortName()
-          existingFormalName =  existingArea.getFormalName()
-          existingReprPoint =   existingArea.getRepresentativePoint()
+          # finish when old area was separated completely
+          return @finish() if complete
 
-          # clip incoming geometry (= clipGeometry) to selected geometry
-          # -> create new area
-          newGeometry = @_geometryOperator.intersection existingGeometry, clipGeometry
-          newId = 'SEP_AREA_' + @_stepData.outData.createdAreas.length
-          @notifyEditMode 'onCreateArea', newId, newGeometry
-          @_stepData.outData.createdAreas.push newId
-
-          # update existing areas (or remove when fully separated)
-          updatedGeometry = @_geometryOperator.difference existingGeometry, clipGeometry
-          @notifyEditMode 'onDeselectArea', existingAreaId # why?
-          if updatedGeometry.isValid()
-            @notifyEditMode 'onUpdateAreaGeometry', existingAreaId, updatedGeometry
-            @notifyEditMode 'onUpdateAreaRepresentativePoint', existingAreaId, null
-          else
-            @notifyEditMode 'onDeactivateArea', existingAreaId
-
-          # finish criterion: existing area is completely split up
-          return @finish()
-
-          @_stepData.tempAreas.push {
-            'id':           existingAreaId
-            'clip':         clipGeometry
-            'removed':      not updatedGeometry.isValid()  # was the area rremoved in the process?
-            'geometry':     existingGeometry
-            'shortName':    existingShortName
-            'formalName':   existingFormalName
-            'reprPoint':    existingReprPoint
-            'usedRest':     @_finish    # bool: has user just clicked on rest?
-          }
 
           # --------------------------------------------------------------------
           @_undoManager.add {                               # undo separate area
@@ -338,25 +317,22 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
             # update view
             currArea.handle.update()
 
-            # add to workflow
-            @_stepData.tempData.areas.push          currArea
-            @_stepData.tempData.oldTerritories.push currTerritory
-            @_stepData.tempData.newTerritories.push newTerritory
-
 
           # area has been hidden => remove territory and update
           else
 
             # update Area
+            newTerritory = null
             currArea.territory = null
 
             # update view
             currArea.handle.hide()
 
-            # add to workflow
-            @_stepData.tempData.areas.push          currArea
-            @_stepData.tempData.oldTerritories.push currTerritory
-            @_stepData.tempData.newTerritories.push null
+
+          # add to workflow
+          @_stepData.tempData.areas.push          currArea
+          @_stepData.tempData.oldTerritories.push currTerritory
+          @_stepData.tempData.newTerritories.push null
 
       # test previous area
       areaIdx--
@@ -438,12 +414,12 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     unifiedGeometry = @_geometryOperator.union oldGeometries
 
     # create Area and AreaTerritory
-    newArea = new HG.Area @_hgInstance.editOperation.getRandomId()
+    newArea = new HG.Area   @_hgInstance.editOperation.getRandomId()
     newTerritory = new HG.AreaTerritory {
-        id:                   @_hgInstance.editOperation.getRandomId()
-        geometry:             unifiedGeometry
-        representativePoint:  unifiedGeometry.getCenter()
-      }
+      id:                   @_hgInstance.editOperation.getRandomId()
+      geometry:             unifiedGeometry
+      representativePoint:  unifiedGeometry.getCenter()
+    }
 
     # link Area <-> AreaTerritory
     newArea.territory = newTerritory
@@ -493,10 +469,97 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
   # SEP = Separate Selected Area
   # ============================================================================
 
-  _SEP: () ->
+  _SEP: (clipGeometry) ->
+
+    # area separated completely?
+    separationComplete = no
+
+    ## get current area status
+    if @_areaIdx is 0
+      currArea =      @_stepData.inData.areas[0]
+      currTerritory = @_stepData.inData.areaTerritories[0]
+    else
+      currArea =      @_stepData.tempData.areas[@_areaIdx-1]
+      currTerritory = @_stepData.tempData.newTerritories[@_areaIdx-1]
+
+    ## update selected area and cut the drawn part out of it
+    updateGeometry = @_geometryOperator.difference currTerritory.geometry, clipGeometry
+
+    # area has been clipped => update territory
+    if updateGeometry.isValid()
+
+      # create new Territory
+      updateTerritory = new HG.AreaTerritory {
+        id:                   @_hgInstance.editOperation.getRandomId()
+        geometry:             updateGeometry
+        representativePoint:  updateGeometry.getCenter()
+      }
+
+      # link Area <-> AreaTerritory
+      updateTerritory.area = currArea
+      currArea.territory = updateTerritory
+
+      # update view
+      currArea.handle.update()
+
+    # area has been hidden => remove territory and update
+    else
+
+      # update Area
+      updateTerritory = null
+      currArea.territory = null
+
+      # update view
+      currArea.handle.hide()
+      separationComplete = yes
+
+
+    # add to workflow
+    @_stepData.tempData.areas.push          currArea
+    @_stepData.tempData.oldTerritories.push currTerritory
+    @_stepData.tempData.newTerritories.push updateTerritory
+
+    # deselect current area so it can be selected now for use as rest polygon
+    currArea.handle.deselect()
+
+
+    ## create new area
+    newGeometry = @_geometryOperator.intersection currTerritory.geometry, clipGeometry
+
+    # create Area and AreaTerritory based on the clip geometry
+    newArea = new HG.Area   @_hgInstance.editOperation.getRandomId()
+    newTerritory = new HG.AreaTerritory {
+      id:                   @_hgInstance.editOperation.getRandomId()
+      geometry:             newGeometry
+      representativePoint:  newGeometry.getCenter()
+    }
+
+    # link Area <-> AreaTerritory
+    newArea.territory = newTerritory
+    newTerritory.area = newArea
+
+    # create AreaHandle <-> Area
+    newHandle = new HG.AreaHandle @_hgInstance, newArea
+    newArea.handle = newHandle
+
+    # show area via areaHandle
+    newHandle.show()
+    newHandle.select()
+    newHandle.startEdit()
+
+    # add to operation workflow
+    @_stepData.outData.areas.push            newArea
+    @_stepData.outData.areaNames.push        null
+    @_stepData.outData.areaTerritories.push  newTerritory
+
+    separationComplete
+
 
   # ============================================================================
   _SEP_reverse: () ->
+
+    currArea =      @_stepData.tempData.areas[@_areaIdx]
+    currTerritory = @_stepData.tempData.oldTerritories[@_areaIdx]
 
 
   # ============================================================================

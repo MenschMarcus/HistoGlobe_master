@@ -224,7 +224,7 @@ class HG.AreaHandle
 
       # edit mode: only non-selected areas in edit mode can be focused
       # -> why unselected?
-      areaEditMode = @_hgInstance.editMode?.areaEditMode
+      areaEditMode = @_hgInstance.editMode?.areaEditMode()
       if areaEditMode is on
         if (@_inEdit) and (not @_selected)
           @_focused = yes
