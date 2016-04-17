@@ -61,18 +61,16 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
     # TODO: deep copy?
     # initial values for NewNameTool
     @_initData = {
-      shortName:  null
-      formalName: null
+      shortName:  @_currArea.name?.shortName
+      formalName: @_currArea.name?.formalName
       geometry:   @_currArea.territory.geometry
       reprPoint:  @_currArea.territory.representativePoint
     }
 
-    # for name change operation
-    if @_operationId is 'NCH'
-      @_currArea.handle.hideName()  # TODO
-      # save name as initial value for NewNameTool
-      @_initData.shortName = @_currArea.name.shortName
-      @_initData.formalName = @_currArea.name.formalName
+    # remove the name from the area
+    if @_currArea.name
+      @_currArea.name = null
+      @_currArea.handle.update()
 
     # set up NewNameTool to set name and position of area interactively
     newNameTool = new HG.NewNameTool @_hgInstance, @_initData
@@ -124,30 +122,37 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
         newArea.handle.update()
 
       # add to operation workflow
-      @_stepData.outData.areas.push           newArea
-      @_stepData.outData.areaNames.push       newArea.name
-      @_stepData.outData.areaTerritories.push newArea.territory
+      @_stepData.outData.areas[@_areaIdx] =           newArea
+      @_stepData.outData.areaNames[@_areaIdx] =       newArea.name
+      @_stepData.outData.areaTerritories[@_areaIdx] = newArea.territory
 
       # define when it is finished
       @_finish = yes if @_areaIdx is @_stepData.inData.areas.length-1
 
-      console.log @_hgInstance.editOperation.operation
-
       # make action reversible
       @_undoManager.add {
         undo: =>
-          # # get area
-          # area = 42
-          # # restore old name
-          # if area.nameRemoved
-          #   @notifyEditMode 'onAddAreaName', area.id, area.shortName, area.formalName
-          # else
-          #   @notifyEditMode 'onUpdateAreaName', area.id, area.shortName, area.formalName
-          # @notifyEditMode 'onUpdateAreaRepresentativePoint', area.id, area.reprPoint
+          # restore old area
+          oldTerritory =  @_stepData.inData.areaTerritories[@_areaIdx]
+          oldName =       @_stepData.inData.areaNames[@_areaIdx]
+          oldArea =       @_stepData.inData.areas[@_areaIdx]
 
-          # # go to previous area
-          # @_cleanup()
-          # @_makeNewName -1
+          # reset old properties
+          if oldName
+            oldName.shortName = @_initData.shortName
+            oldName.formalName = @_initData.formalName
+            oldArea.name = oldName
+          if oldTerritory
+            oldTerritory.geometry = @_initData.geometry
+            oldTerritory.representativePoint = @_initData.reprPoint
+            oldArea.territory = oldTerritory
+
+          # update view
+          oldArea.handle.update()
+
+          # go to previous name
+          @_cleanup()
+          @_makeNewName -1
       }
 
       # go to next name

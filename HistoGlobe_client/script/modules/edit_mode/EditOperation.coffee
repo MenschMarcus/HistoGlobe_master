@@ -193,12 +193,12 @@ class HG.EditOperation
     newStep = @operation.steps[@operation.idx+direction]
 
     # transfer data between steps
-    if @operation.idx > 0
+    if newStep? and oldStep?
       if direction is 1 then  newStep.inData  = oldStep.outData
       else                    newStep.outData = oldStep.inData
 
     # change workflow window
-    if newStep.userInput
+    if newStep?.userInput
       @notifyAll 'onStepTransition', direction
       @notifyAll 'onStepIncomplete'
 
@@ -207,15 +207,15 @@ class HG.EditOperation
 
     # setup new step
     switch @operation.idx
-      when 0 then @_abort()  # only on undo from first step
+      when 0 then return @_abort()  # only on undo from first step
       when 1 then @_step = new HG.EditOperationStep.SelectOldAreas        @_hgInstance, direction
       when 2 then @_step = new HG.EditOperationStep.CreateNewTerritories  @_hgInstance, direction
       when 3 then @_step = new HG.EditOperationStep.CreateNewNames        @_hgInstance, direction
       when 4 then @_step = new HG.EditOperationStep.AddChange             @_hgInstance, direction
-      when 5 then @_finish()
+      when 5 then return @_finish()
 
     # react on user input
-    if newStep.userInput
+    if newStep?.userInput
       @_step.onFinish @, () ->  @_makeStep 1
       @_step.onAbort @, () ->   @_makeStep -1
 
@@ -309,6 +309,7 @@ class HG.EditOperation
   # ============================================================================
 
   _abort: () ->
+    @_fullyAborted = yes
     @notifyAll 'onFinish'
 
 
