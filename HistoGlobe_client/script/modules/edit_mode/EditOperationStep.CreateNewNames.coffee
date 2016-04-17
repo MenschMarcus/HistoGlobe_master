@@ -151,6 +151,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
           oldArea.handle.update()
 
           # go to previous name
+          @_finish = no
           @_cleanup()
           @_makeNewName -1
       }

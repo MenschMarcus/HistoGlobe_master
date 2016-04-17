@@ -26,6 +26,10 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     # tell AreaController to start selecting maximal X number of areas
     @_hgInstance.areaController.enableMultiSelection @_stepData.number.max
 
+    # hack for backwards step: is step already complete?
+    if @_stepData.outData.areas.length >= @_stepData.number.min
+      @_hgInstance.editOperation.notifyAll 'onStepComplete'
+
     # forward change
     if direction is 1
       # select currently selected area (if there is one)
