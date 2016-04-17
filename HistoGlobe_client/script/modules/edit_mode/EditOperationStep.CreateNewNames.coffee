@@ -27,8 +27,6 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
     ### SETUP OPERATION ###
 
-    @_finish = no
-
     # forward: start at the first area
     if direction is 1
       @_areaIdx = -1
@@ -47,25 +45,25 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
   # ============================================================================
   _makeNewName: (direction) ->
 
-    # finish criterion: next Step
-    return @finish()  if @_finish
-    # finish criterion: prev Step -> first name and backwards
+    # abort prev Step -> first name and backwards
     return @abort()   if (@_areaIdx is 0) and (direction is -1)
 
     # go to next/previous area
     @_areaIdx += direction
 
     # get area to work with
-    @_currArea = @_stepData.inData.areas[@_areaIdx]
+    @_currArea =      @_stepData.inData.areas[@_areaIdx]
+    @_currName =      @_stepData.inData.areaNames[@_areaIdx]
+    @_currTerritory = @_stepData.inData.areaTerritories[@_areaIdx]
 
-    # TODO: deep copy?
     # initial values for NewNameTool
-    @_initData = {
-      shortName:  @_currArea.name?.shortName
-      formalName: @_currArea.name?.formalName
-      geometry:   @_currArea.territory.geometry
-      reprPoint:  @_currArea.territory.representativePoint
+    initData = {
+      shortName:            @_currName?.shortName
+      formalName:           @_currName?.formalName
+      representativePoint:  @_currTerritory.representativePoint
     }
+    # override with temporary data from last time, if it is available
+    initData = $.extend {}, initData, @_stepData.tempData[@_areaIdx]
 
     # remove the name from the area
     if @_currArea.name
@@ -73,61 +71,75 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
       @_currArea.handle.update()
 
     # set up NewNameTool to set name and position of area interactively
-    newNameTool = new HG.NewNameTool @_hgInstance, @_initData
+    newNameTool = new HG.NewNameTool @_hgInstance, initData
 
 
+    # --------------------------------------------------------------------------
     ### LISTEN TO USER INPUT ###
 
-    newNameTool.onSubmit @, (newShortName, newFormalName, newReprPoint) =>
+    newNameTool.onSubmit @, (newData) =>
+
+      # do not reuse @_curr variables, because they are references
+      # => avoids overriding incoming data
+      newArea       = @_currArea
+      newName       = @_currName
+      newTerritory  = @_currTerritory
+
+      # temprrarily save new data so it can be restores on undo
+      @_stepData.tempData.push newData
 
       # decision: what has changed?
-      shortNameHasChanged = newShortName.localeCompare(@_initData.shortName) isnt 0
-      formalNameHasChanged = newFormalName.localeCompare(@_initData.formalName) isnt 0
-      reprPointHasChanged = not @_geometryOperator.areEqual newReprPoint, @_initData.reprPoint
+      shortNameHasChanged =   newData.shortName.localeCompare(newName?.shortName) isnt 0
+      formalNameHasChanged =  newData.formalName.localeCompare(newName?.formalName) isnt 0
+      reprPointHasChanged =   not @_geometryOperator.areEqual(newData.representativePoint, newTerritory.representativePoint)
 
-      # create new Area for special operation(s)
-      newArea = @_currArea
-      if @_operationId is 'NCH'
+
+      # TODO: create new identity if formalNameHasChanged
+
+      # ------------------------------------------------------------------------
+      if @_operationId is 'NCH'                         # name change operation
+
+        # had no NewTerritoryStep => new Area and AreaHandle to be created here
         newArea = new HG.Area @_hgInstance.editOperation.getRandomId()
-        newHandle = new HG.AreaHandle @_hgInstance, newArea
-        newArea.handle = newHandle
-        # update view
-        newArea.handle.show()
+        newArea.handle = new HG.AreaHandle @_hgInstance, newArea
 
-      # create new AreaTerritory if representative point has changed
-      if reprPointHasChanged
-        newTerritory = new HG.AreaTerritory {
-          id:                   @_hgInstance.editOperation.getRandomId()
-          geometry:             @_initData.geometry
-          representativePoint:  newReprPoint
-        }
-        # link Area <-> AreaTerritory
+        # link Area <-> AreaTerritory (use the current one)
         newArea.territory = newTerritory
         newTerritory.area = newArea
-        # update view_areaHandle
-        newArea.handle.update()
+
+        # show current status
+        newArea.handle.show()
+
+      # ------------------------------------------------------------------------
+                                                      # for all other operations
+      # update AreaTerritory if representative point has changed
+      if reprPointHasChanged
+        newTerritory.representativePoint = newData.representativePoint
+        newTerritory.area.handle.update()
 
       # create new AreaName if name has changed
-      # N.B. update AreaTerritory before, to get new representative point!
       if shortNameHasChanged or formalNameHasChanged
+
         newName = new HG.AreaName {
           id:         @_hgInstance.editOperation.getRandomId()
-          shortName:  newShortName
-          formalName: newFormalName
+          shortName:  newData.shortName
+          formalName: newData.formalName
         }
+
         # link Area <-> AreaName
         newArea.name = newName
         newName.area = newArea
+
         # update view
         newArea.handle.update()
 
       # add to operation workflow
       @_stepData.outData.areas[@_areaIdx] =           newArea
-      @_stepData.outData.areaNames[@_areaIdx] =       newArea.name
-      @_stepData.outData.areaTerritories[@_areaIdx] = newArea.territory
+      @_stepData.outData.areaNames[@_areaIdx] =       newName
+      @_stepData.outData.areaTerritories[@_areaIdx] = newTerritory
 
       # define when it is finished
-      @_finish = yes if @_areaIdx is @_stepData.inData.areas.length-1
+      return @finish() if @_areaIdx is @_stepData.inData.areas.length-1
 
       # make action reversible
       @_undoManager.add {
@@ -138,20 +150,13 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
           oldArea =       @_stepData.inData.areas[@_areaIdx]
 
           # reset old properties
-          if oldName
-            oldName.shortName = @_initData.shortName
-            oldName.formalName = @_initData.formalName
-            oldArea.name = oldName
-          if oldTerritory
-            oldTerritory.geometry = @_initData.geometry
-            oldTerritory.representativePoint = @_initData.reprPoint
-            oldArea.territory = oldTerritory
+          if oldName then       oldArea.name = oldName
+          if oldTerritory then  oldArea.territory = oldTerritory
 
           # update view
           oldArea.handle.update()
 
           # go to previous name
-          @_finish = no
           @_cleanup()
           @_makeNewName -1
       }

@@ -105,16 +105,17 @@ class HG.EditOperation
               areaNames:          []
               areaTerritories:    []
             }
+            tempData:             []
             outData: {
               areas:              []
               areaNames:          []
               areaTerritories:    []
             }
           },
-          { # idx               4
-            id:                 'ADD_CHNG'
-            title:              "add change <br /> to historical event"
-            userInput:          yes
+          { # idx                 4
+            id:                   'ADD_CHNG'
+            title:                "add change <br /> to historical event"
+            userInput:            yes
           }
         ]
       }

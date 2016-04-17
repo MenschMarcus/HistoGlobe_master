@@ -309,20 +309,20 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     # TODO: make more efficient later (Quadtree?)
 
     # manual loop, because some areas might be deleted on the way
-    existingAreas = @_hgInstance.areaController.getAreaHandles()
-    areaIdx = existingAreas.length-1
+    currAreas = @_hgInstance.areaController.getAreaHandles()
+    areaIdx = currAreas.length-1
     while areaIdx >= 0
-      if existingAreas[areaIdx].isVisible()
-        existingArea =        existingAreas[areaIdx].getArea()
-        existingTerritory =   existingAreas[areaIdx].getArea().territory
-        existingName =        existingAreas[areaIdx].getArea().name
+      if currAreas[areaIdx].isVisible()
+        currArea =        currAreas[areaIdx].getArea()
+        currTerritory =   currAreas[areaIdx].getArea().territory
+        currName =        currAreas[areaIdx].getArea().name
 
-        # if new geometry intersects with an existing geometry
-        intersectionGeometry = @_geometryOperator.intersection clipGeometry, existingTerritory.geometry
+        # if new geometry intersects with a current geometry
+        intersectionGeometry = @_geometryOperator.intersection clipGeometry, currTerritory.geometry
         if intersectionGeometry.isValid()
 
-          # => clip the existing geometry to the new geometry and update its area
-          newGeometry = @_geometryOperator.difference existingTerritory.geometry, clipGeometry
+          # => clip the curr geometry to the new geometry and update its area
+          newGeometry = @_geometryOperator.difference currTerritory.geometry, clipGeometry
 
           # area has been clipped => update territory
           if newGeometry.isValid()
@@ -335,15 +335,15 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
             }
 
             # link Area <-> AreaTerritory
-            newTerritory.area = existingArea
-            existingArea.territory = newTerritory
+            newTerritory.area = currArea
+            currArea.territory = newTerritory
 
             # update view
-            existingArea.handle.update()
+            currArea.handle.update()
 
             # add to workflow
-            @_stepData.tempData.areas.push          existingArea
-            @_stepData.tempData.oldTerritories.push existingTerritory
+            @_stepData.tempData.areas.push          currArea
+            @_stepData.tempData.oldTerritories.push currTerritory
             @_stepData.tempData.newTerritories.push newTerritory
 
 
@@ -351,14 +351,14 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
           else
 
             # update Area
-            existingArea.territory = null
+            currArea.territory = null
 
             # update view
-            existingArea.handle.hide()
+            currArea.handle.hide()
 
             # add to workflow
-            @_stepData.tempData.areas.push          existingArea
-            @_stepData.tempData.oldTerritories.push existingTerritory
+            @_stepData.tempData.areas.push          currArea
+            @_stepData.tempData.oldTerritories.push currTerritory
             @_stepData.tempData.newTerritories.push null
 
       # test previous area

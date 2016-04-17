@@ -71,7 +71,7 @@ class HG.NewNameTool
     @_nameInputs = $('.new-name-input')
 
     # set position of wrapper = center of country
-    posPx = @_map.latLngToContainerPoint initData.reprPoint.latLng()
+    posPx = @_map.latLngToContainerPoint initData.representativePoint.latLng()
     $(@_wrapper).css 'left', posPx.x
     $(@_wrapper).css 'top',  posPx.y
 
@@ -126,10 +126,12 @@ class HG.NewNameTool
     @_okButton.onClick @, () =>
       # get center coordinates
       center = new L.Point $(@_wrapper).position().left, $(@_wrapper).position().top
-      newShortName =  @_shortNameInput.getText()
-      newFormalName = @_formalNameInput.getText()
-      newPosition = new HG.Point @_map.containerPointToLatLng center
-      @notifyAll 'onSubmit', newShortName, newFormalName, newPosition
+      newData = {
+        shortName:            @_shortNameInput.getText()
+        formalName:           @_formalNameInput.getText()
+        representativePoint:  new HG.Point @_map.containerPointToLatLng center
+      }
+      @notifyAll 'onSubmit', newData
 
 
   # ============================================================================
