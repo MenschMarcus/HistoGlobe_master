@@ -100,13 +100,15 @@ class HG.Button
 
   # ============================================================================
   disable: () ->
-    @_enabled = no
-    @_resetClasses()
+    if @_enabled
+      @_enabled = no
+      @_resetClasses()
 
   # ----------------------------------------------------------------------------
   enable: () ->
-    @_enabled = yes
-    @_resetClasses()
+    if not @_enabled
+      @_enabled = yes
+      @_resetClasses()
 
   # ----------------------------------------------------------------------------
   isEnabled: () ->

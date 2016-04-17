@@ -15,6 +15,9 @@ class HG.AreaController
     HG.CallbackContainer.call @
 
     @addCallback 'onCreateArea'
+    @addCallback 'onDestroyArea'
+    @addCallback 'onSelectArea'
+    @addCallback 'onDeselectArea'
 
     # handle config
     defaultConfig = {}
@@ -66,6 +69,14 @@ class HG.AreaController
     # listen to destruction callback and tell everybody about it
     areaHandle.onDestroy @, () =>
       @_areaHandles.splice(@_areaHandles.indexOf(areaHandle), 1)
+      @notifyAll 'onDestroyArea', areaHandle
+
+    # listen to select/deselect callback and tell everybody about it
+    areaHandle.onSelect @, () =>
+      @notifyAll 'onSelectArea', areaHandle
+
+    areaHandle.onDeselect @, () =>
+      @notifyAll 'onDeselectArea', areaHandle
 
 
   # ============================================================================

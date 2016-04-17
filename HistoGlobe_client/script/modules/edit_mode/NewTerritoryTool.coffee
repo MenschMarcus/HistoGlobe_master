@@ -15,9 +15,9 @@ class HG.NewTerritoryTool
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, @_firstStep) ->
+  constructor: (@_hgInstance, restoreLayer, @_firstStep) ->
 
-    @_hgInstance.newGeometryTool = @
+    @_hgInstance.newTerritoryTool = @
 
     # handle callbacks
     HG.mixin @, HG.CallbackContainer
@@ -39,13 +39,17 @@ class HG.NewTerritoryTool
 
     # group that contains all drawn territories
     @_featureGroup = new L.FeatureGroup
+
+    # add initial geometry to feature group, if it exists
+    if restoreLayer
+      @_featureGroup.addLayer layer for layer in restoreLayer
+
     @_map.addLayer @_featureGroup
 
 
     ### SETUP UI ###
 
     # leaflets draw control
-    # TODO: restyling!
     @_drawControl = new L.Control.Draw {
         position: 'topright',
         draw: {
@@ -187,9 +191,10 @@ class HG.NewTerritoryTool
     @_buttonArea.addButton @_submitGeomBtn, 'new-geom-finish-group'
 
     # init configuration: only add buttons are available
-    @_editGeomBtn.disable()
-    @_deleteGeomBtn.disable()
-    @_submitGeomBtn.disable()
+    if not restoreLayer
+      @_editGeomBtn.disable()
+      @_deleteGeomBtn.disable()
+      @_submitGeomBtn.disable()
 
     # TODO: implement functionality for import and reuse buttons
     # until then -> disable forever
@@ -212,7 +217,8 @@ class HG.NewTerritoryTool
       @_initFeatureGroup = null
 
       # select leftover area: make this one the selected
-      @_hgInstance.areaController.onSelect @, (area) =>
+      # => listen to select event of all areas
+      @_hgInstance.areaController.onSelectArea @, (areaHandle) =>
 
         # clear feature group
         # CAUTION! potential usability flaw
@@ -223,16 +229,16 @@ class HG.NewTerritoryTool
           @_featureGroup.removeLayer layer
 
         # make this one the selected "drawn" area
-        @_featureGroup.addLayer area.geomLayer
+        @_featureGroup.addLayer areaHandle.multiPolygonLayer
 
         @_submitGeomBtn.enable()
 
 
       # deselect leftover area: restore layeers drawn before
-      @_hgInstance.areaController.onDeselect @, (area) =>
+      @_hgInstance.areaController.onDeselectArea @, (areaHandle) =>
 
         # make this one the selected "drawn" area
-        @_featureGroup.removeLayer area.geomLayer
+        @_featureGroup.removeLayer areaHandle.multiPolygonLayer
 
         # restore feature group
         # CAUTION! potential usability flaw
@@ -251,23 +257,17 @@ class HG.NewTerritoryTool
 
       # immediately stop listening to on(De)SelectArea, to avoid weird behaviour
       if not @_firstStep
-        @_hgInstance.areaController.removeListener 'onSelect', @
-        @_hgInstance.areaController.removeListener 'onDeselect', @
+        @_hgInstance.areaController.removeListener 'onSelectArea', @
+        @_hgInstance.areaController.removeListener 'onDeselectArea', @
 
       geometries = []
       geometries.push @_geometryReader.read layer for layer in @_featureGroup.getLayers()
       finalGeometry = @_geometryOperator.merge geometries
       finalGeometry.fixHoles()
 
-      # problem: if original geometry from NewGeometryTool is handed back to the
-      # EditOperationStep, it is a reference to it, i.e. if featureGroup gets
-      # deleted, also the geometry on the map gets deleted. That is horrible
-      # but logical behaviour => deep copy
-
-
       # merge all of them together
       # -> only works if they are (poly)polygons, not for polylines or points
-      @notifyAll 'onSubmit', finalGeometry
+      @notifyAll 'onSubmit', finalGeometry, @_featureGroup.getLayers()
 
 
   # ============================================================================
@@ -278,8 +278,8 @@ class HG.NewTerritoryTool
     @_map.off 'draw:deleted', @_deletePolygon
 
     # remove interaction: stop listening to AreaController
-    @_hgInstance.areaController.removeListener 'onSelect', @
-    @_hgInstance.areaController.removeListener 'onDeselect', @
+    @_hgInstance.areaController.removeListener 'onSelectArea', @
+    @_hgInstance.areaController.removeListener 'onDeselectArea', @
 
     # cleanup UI
     @_buttonArea.destroy()
@@ -301,7 +301,7 @@ class HG.NewTerritoryTool
     @_featureGroup.addLayer layer
 
     # geometry can now be edited/deleted/submitted
-    if @_featureGroup.getLayers().length is 1    # = if moved from 0 layers to 1 layer
+    if @_featureGroup.getLayers().length > 0
       @_editGeomBtn.enable()
       @_deleteGeomBtn.enable()
       @_submitGeomBtn.enable()

@@ -91,7 +91,7 @@ class HG.AreaHandle
   ### GET STATE OF THE AREA ###
   # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  isVisble: () ->   @_visible
+  isVisible: () ->  @_visible
   isFocused: () ->  @_focused
   isSelected: () -> @_selected
   isInEdit: () ->   @_inEdit

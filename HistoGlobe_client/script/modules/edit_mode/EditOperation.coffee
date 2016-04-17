@@ -53,56 +53,62 @@ class HG.EditOperation
 
     @operation =
       {
-        id:                     operationConfig.id
-        title:                  operationConfig.title
-        verb:                   operationConfig.verb
-        idx:                    0    # = step index -> 0 = start
+        id:                       operationConfig.id
+        title:                    operationConfig.title
+        verb:                     operationConfig.verb
+        idx:                      0    # = step index -> 0 = start
         steps: [
-          { # idx               0
-            id:                 'START'
-            userInput:          no
+          { # idx                 0
+            id:                   'START'
+            userInput:            no
           }
-          { # idx               1
-            id:                 'SEL_OLD_AREA'
-            title:              null
-            userInput:          no
-            number:             {}
+          { # idx                 1
+            id:                   'SEL_OLD_AREA'
+            title:                null
+            userInput:            no
+            number:               {}
             outData: {
-              areas:            []
-              areaNames:        []
-              areaTerritories:  []
+              areas:              []
+              areaNames:          []
+              areaTerritories:    []
             }
           },
-          { # idx               2
-            id:                 'SET_NEW_TERR'
-            title:              null
-            userInput:          no
-            number:             {}
+          { # idx                 2
+            id:                   'SET_NEW_TERR'
+            title:                null
+            userInput:            no
+            number:               {}
             inData: {
-              areas:            []
-              areaNames:        []
-              areaTerritories:  []
+              areas:              []
+              areaNames:          []
+              areaTerritories:    []
+            }
+            tempData: {
+              areas:              []
+              oldTerritories:     []
+              newTerritories:     []
+              restoreLayers:      []
             }
             outData: {
-              areas:            []
-              areaNames:        []
-              areaTerritories:  []
+              areas:              []
+              areaNames:          []
+              areaTerritories:    []
             }
           },
-          { # idx               3
-            id:                 'SET_NEW_NAME'
-            title:              null
-            userInput:          no
-            number:             {}
+          { # idx                 3
+            id:                   'SET_NEW_NAME'
+            title:                null
+            userInput:            no
+            number:               {}
             inData: {
-              areas:            []
-              areaNames:        []
-              areaTerritories:  []
+              areas:              []
+              areaNames:          []
+              areaTerritories:    []
             }
             outData: {
-              areas:            []
-              areaNames:        []
-              areaTerritories:  []
+              areas:              []
+              areaNames:          []
+              areaTerritories:    []
             }
           },
           { # idx               4

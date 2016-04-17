@@ -18,7 +18,7 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     super @_hgInstance, direction
 
     # skip step if not user input
-    @finish() if not @_stepData.userInput
+    return @finish() if not @_stepData.userInput
 
 
     ### SETUP OPERATION ###
@@ -44,9 +44,8 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     ### SETUP USER INPUT ###
 
     # listen to area (de)selection from AreaController
-    for areaHandle in @_hgInstance.areaController.getAreaHandles()
-      areaHandle.onSelect @,    @_select
-      areaHandle.onDeselect @,  @_deselect
+    @_hgInstance.areaController.onSelectArea @,    @_select
+    @_hgInstance.areaController.onDeselectArea @,  @_deselect
 
 
   ##############################################################################
@@ -106,9 +105,8 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
 
     ### CLEANUP USER INPUT LISTENING ###
 
-    for areaHandle in @_hgInstance.areaController.getAreaHandles()
-      areaHandle.removeListener 'onSelect', @
-      areaHandle.removeListener 'onDeselect', @
+    @_hgInstance.areaController.removeListener 'onSelectArea', @
+    @_hgInstance.areaController.removeListener 'onDeselectArea', @
 
 
     ### CLEANUP OPERATION ###
