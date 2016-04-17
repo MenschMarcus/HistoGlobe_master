@@ -113,3 +113,7 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
 
     # tell AreaController to stop selecting multiple areas
     @_hgInstance.areaController.disableMultiSelection()
+
+    # deselect all selected areas (clean cleanup)
+    for area in @_stepData.outData.areas
+      area.handle.deselect()

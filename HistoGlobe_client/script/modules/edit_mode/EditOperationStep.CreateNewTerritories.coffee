@@ -25,17 +25,27 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
     ### AUTOMATIC PROCESSING ###
 
-    if @_operationId is 'UNI'                           ## unification operation
-      if direction is 1   # forward
-        @_UNI()
-        # go to next step
-        return @finish()
+    switch @_operationId
 
       # ------------------------------------------------------------------------
-      else                # backward
-        @_UNI_reverse()
-        # go to previous step
-        return @abort()
+      when 'UNI'                                        ## unification operation
+        if direction is 1   # forward
+          @_UNI()
+          return @finish()
+
+        else                # backward
+          @_UNI_reverse()
+          return @abort()
+
+      # ------------------------------------------------------------------------
+      when 'DES'                                        ## destruction operation
+        if direction is 1   # forward
+          @_DES()
+          return @finish()
+
+        else                # backward
+          @_DES_reverse()
+          return @abort()
 
 
     # ==========================================================================
@@ -86,24 +96,11 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
         when 'CRE'                                            ## create new area
 
           @_CRE clipGeometry
+
           @_stepData.tempData.restoreLayers.push restoreLayer
 
           # only one step necessary => finish
           return @finish()
-
-          @_undoManager.add {                             # undo create new area
-            undo: =>
-              # cleanup
-              @_hgInstance.newTerritoryTool?.destroy()
-              @_hgInstance.newTerritoryTool = null
-
-              # perform actual operation reverse
-              @_CRE_reverse()
-
-              # no previous area => abort step
-              @abort()
-          }
-
 
         # ======================================================================
         when 'SEP'                                             ## separate areas
@@ -424,9 +421,18 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     # delete all selected areas
     oldGeometries = []
     for areaTerritory in @_stepData.inData.areaTerritories
-      areaTerritory.area.handle.deselect()
-      areaTerritory.area.handle.hide()
       oldGeometries.push areaTerritory.geometry
+
+      # get selected area
+      oldArea = areaTerritory.area
+
+      # unlink Area <- AreaName/AreaTerritory
+      oldArea.name = null
+      oldArea.territory = null
+
+      # hide area
+      oldArea.handle.hide()
+
 
     # unify old areas to new area
     unifiedGeometry = @_geometryOperator.union oldGeometries
@@ -448,9 +454,9 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     newArea.handle = newHandle
 
     # show area via areaHandle
-    newHandle.startEdit()
-    newHandle.select()
     newHandle.show()
+    newHandle.select()
+    newHandle.startEdit()
 
     # add to operation workflow
     @_stepData.outData.areas[0] =            newArea
@@ -467,7 +473,72 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     newArea.handle.destroy()
 
     # restore previously selected areas
-    area.handle.show() for area in @_stepData.inData.areas
+    idx = 0
+    while idx < @_stepData.inData.areas.length
+      oldArea =       @_stepData.inData.areas[idx]
+      oldName =       @_stepData.inData.areaNames[idx]
+      oldTerritory =  @_stepData.inData.areaTerritories[idx]
+
+      # link Area <- AreaName/AreaTerritory
+      oldArea.name =      oldName
+      oldArea.territory = oldTerritory
+
+      # show area
+      oldArea.handle.show()
+
+      # restore next area
+      idx++
+
+  # ============================================================================
+  # SEP = Separate Selected Area
+  # ============================================================================
+
+  _SEP: () ->
+
+  # ============================================================================
+  _SEP_reverse: () ->
+
+
+  # ============================================================================
+  # TCH = Change Territory of One or the Border Between Two Territoris
+  # ============================================================================
+
+  _TCH: () ->
+
+  # ============================================================================
+  _TCH_reverse: () ->
+
+
+  # ============================================================================
+  # DES = Destruction of an Area
+  # ============================================================================
+
+  _DES: () ->
+    # get selected area
+    oldArea =       @_stepData.inData.areas[0]
+    oldName =       @_stepData.inData.areaNames[0]
+    oldTerritory =  @_stepData.inData.areaTerritories[0]
+
+    # unlink Area <- AreaName/AreaTerritory
+    oldArea.name =      null
+    oldArea.territory = null
+
+    # hide area
+    oldArea.handle.hide()
+
+  # ============================================================================
+  _DES_reverse: () ->
+    # get selected area
+    oldArea =       @_stepData.inData.areas[0]
+    oldName =       @_stepData.inData.areaNames[0]
+    oldTerritory =  @_stepData.inData.areaTerritories[0]
+
+    # unlink Area <- AreaName/AreaTerritory
+    oldArea.name =      oldName
+    oldArea.territory = oldTerritory
+
+    # show area
+    oldArea.handle.show()
 
 
 
