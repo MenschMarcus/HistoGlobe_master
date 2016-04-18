@@ -21,6 +21,27 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     @_geometryOperator = new HG.GeometryOperator
 
 
+    ### SETUP OPERATION ###
+
+    # make only edit areas focusable and make sure multiple areas can be selected
+    @_hgInstance.editMode.enterAreaEditMode() if direction is 1
+    @_hgInstance.areaController.enableMultiSelection HGConfig.max_area_selection.val
+
+    # for SEP and TCH operation, put selected area into edit mode and select it
+    if direction is 1
+      switch @_operationId
+        when 'SEP', 'TCH', 'NCH'
+          for area in @_stepData.inData.areas
+            area.handle.startEdit()
+            area.handle.select()
+
+    # start at first (forward) resp. last (backward) area
+    if direction is 1
+      @_areaIdx = -1
+    else
+      @_areaIdx = @_stepData.outData.areas.length
+
+
     # ==========================================================================
 
     ### AUTOMATIC PROCESSING ###
@@ -38,6 +59,16 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
           return @abort()
 
       # ------------------------------------------------------------------------
+      when 'NCH'                                        ## name change operation
+        if direction is 1   # forward
+          @_NCH()
+          return @finish()
+
+        else                # backward
+          @_NCH_reverse()
+          return @abort()
+
+      # ------------------------------------------------------------------------
       when 'DES'                                        ## destruction operation
         if direction is 1   # forward
           @_DES()
@@ -47,26 +78,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
           @_DES_reverse()
           return @abort()
 
-
     # ==========================================================================
-
-    ### SETUP OPERATION ###
-
-    # make only edit areas focusable and make sure multiple areas can be selected
-    @_hgInstance.editMode.enterAreaEditMode() if direction is 1
-    @_hgInstance.areaController.enableMultiSelection HGConfig.max_area_selection.val
-
-    # for SEP and TCH operation, put selected area into edit mode and select it
-    switch @_operationId
-      when 'SEP', 'TCH'
-        for area in @_stepData.inData.areas
-          area.handle.startEdit()
-          area.handle.select()
-
-
-    # start at first (forward) resp. last (backward) area
-    if direction is 1 then  @_areaIdx = -1
-    else                    @_areaIdx = @_stepData.outData.areas.length
 
     @_makeNewTerritory direction
 
@@ -602,6 +614,20 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
 
   # ============================================================================
+  # NCH = Name Change of an Area
+  # ============================================================================
+
+  _NCH: () ->
+    # hand over area to next step
+    @_stepData.outData = @_stepData.inData
+
+  # ============================================================================
+  _NCH_reverse: () ->
+    # hand over area to previous step
+    @_stepData.inData = @_stepData.outData
+
+
+  # ============================================================================
   # DES = Destruction of an Area
   # ============================================================================
 
@@ -647,4 +673,10 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     @_hgInstance.newTerritoryTool?.destroy()
     @_hgInstance.newTerritoryTool = null
 
-    @_hgInstance.editMode.leaveAreaEditMode() if direction is -1
+    if direction is -1
+      @_hgInstance.editMode.leaveAreaEditMode()
+      switch @_operationId
+        when 'SEP', 'TCH', 'NCH'
+          for area in @_stepData.inData.areas
+            area.handle.deselect()
+            area.handle.endEdit()

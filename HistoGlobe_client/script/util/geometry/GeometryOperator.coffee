@@ -131,7 +131,7 @@ class HG.GeometryOperator
 
   # ----------------------------------------------------------------------------
   copy: (geometry) ->
-    # nasty way to deep cpoy a string
+    # nasty way to deep copy a string
     # credits to: AffluentOwl
     # http://stackoverflow.com/questions/31712808/how-to-force-javascript-to-deep-copy-a-string
     geometryCopy = (' ' + geometry.wkt()).slice(1)
