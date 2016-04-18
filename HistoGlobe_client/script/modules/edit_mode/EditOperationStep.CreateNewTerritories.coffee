@@ -66,7 +66,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
     # start at first (forward) resp. last (backward) area
     if direction is 1 then  @_areaIdx = -1
-    else                    @_areaIdx = @_stepData.inData.areas.length
+    else                    @_areaIdx = @_stepData.outData.areas.length
 
     @_makeNewTerritory direction
 
@@ -78,20 +78,22 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
   # ============================================================================
   _makeNewTerritory: (direction) ->
 
-    # for backward operation: restore previously drawn clip geometry in the tool
-    drawLayer = null
-    if direction is -1
-      drawLayer = @_stepData.tempData.drawLayers[@_areaIdx]
-
-      # backward into this step => reverse last operation
-      switch @_operationId
-        when 'CRE' then @_CRE_reverse()
-        when 'SEP' then @_SEP_reverse()
-        # when 'TCH' then @_TCH_reverse()
-
-
     # go to next/previous area
     @_areaIdx += direction
+
+    # restore previously drawn clip geometry (if there is one)
+    drawLayer = @_stepData.tempData.drawLayers[@_areaIdx]
+
+    if direction is -1
+      # backward into this step => reverse last operation
+      switch @_operationId
+        when 'CRE'
+          @_CRE_reverse()
+          return @abort()
+        when 'SEP'
+          complete = @_SEP_reverse()
+          return @abort() if complete
+        # when 'TCH' then @_TCH_reverse()
 
     # set up NewTerritoryTool to define geometry of an area interactively
     newTerritoryTool = new HG.NewTerritoryTool @_hgInstance, drawLayer, @_areaIdx is 0
@@ -101,7 +103,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     newTerritoryTool.onSubmit @, (clipGeometry, drawLayer) =>  # incoming geometry: clipGeometry
 
       # save leaflet:draw layers to be restores later
-      @_stepData.tempData.drawLayers.push drawLayer
+      @_stepData.tempData.drawLayers[@_areaIdx] = drawLayer
 
       switch @_operationId
 
@@ -119,32 +121,22 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
           complete = @_SEP clipGeometry
 
           # finish when old area was separated completely
-          return @finish() if complete
+          if complete
+            return @finish()
 
+          # otherwise cleanup and continue with next area
+          else
+            @_hgInstance.newTerritoryTool?.destroy()
+            @_hgInstance.newTerritoryTool = null
+            @_makeNewTerritory 1
 
-          # --------------------------------------------------------------------
-          @_undoManager.add {                               # undo separate area
-            undo: =>
-              # cleanup
-              @_hgInstance.newTerritoryTool?.destroy()
-              @_hgInstance.newTerritoryTool = null
-
-              # restore last area
-              updatedArea = @_stepData.tempAreas.pop()
-              if updatedArea.removed
-                @notifyEditMode 'onActivateArea', updatedArea.id
-              else # update
-                @notifyEditMode 'onUpdateAreaGeometry', updatedArea.id, updatedArea.geometry
-                @notifyEditMode 'onUpdateAreaRepresentativePoint', updatedArea.id, updatedArea.reprPoint
-              @notifyEditMode 'onSelectArea', updatedArea.id
-
-              # delete newly created area
-              newArea = @_stepData.outData.createdAreas.pop()
-              @notifyEditMode 'onRemoveArea', newArea
-
-              # go to previous area
-              @_makeNewTerritory -1
-          }
+            # undo = cleanup and go to previous area
+            @_undoManager.add {
+              undo: =>
+                @_hgInstance.newTerritoryTool?.destroy()
+                @_hgInstance.newTerritoryTool = null
+                @_makeNewTerritory -1
+            }
 
 
         # ======================================================================
@@ -261,14 +253,6 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
               @abort()
           }
 
-      # ========================================================================
-
-      # cleanup
-      @_hgInstance.newTerritoryTool?.destroy()
-      @_hgInstance.newTerritoryTool = null
-
-      # go to next territory
-      @_makeNewTerritory 1
 
 
   ##############################################################################
@@ -475,11 +459,16 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     separationComplete = no
 
     ## get current area status
+    currArea = @_stepData.inData.areas[0]
+
+    # first action: get initial territory and detach name
     if @_areaIdx is 0
-      currArea =      @_stepData.inData.areas[0]
       currTerritory = @_stepData.inData.areaTerritories[0]
+      currArea.name = null
+      currArea.handle.update()
+
+    # every other action: use the temporary territory from last step
     else
-      currArea =      @_stepData.tempData.areas[@_areaIdx-1]
       currTerritory = @_stepData.tempData.newTerritories[@_areaIdx-1]
 
     ## update selected area and cut the drawn part out of it
@@ -548,6 +537,8 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     newHandle.startEdit()
 
     # add to operation workflow
+    # N.B. for outData use push() (forward operation) and pop() (backward)
+    # to ensure that there is only data in that has actually been created
     @_stepData.outData.areas.push            newArea
     @_stepData.outData.areaNames.push        null
     @_stepData.outData.areaTerritories.push  newTerritory
@@ -558,9 +549,47 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
   # ============================================================================
   _SEP_reverse: () ->
 
-    currArea =      @_stepData.tempData.areas[@_areaIdx]
-    currTerritory = @_stepData.tempData.oldTerritories[@_areaIdx]
+    # returned to first area?
+    reverseComplete = no
 
+    # remove new area => hides, deselects and leaves edit mode automatically
+    newArea = @_stepData.outData.areas.pop()
+    newName = @_stepData.outData.areaNames.pop()
+    newTerritory = @_stepData.outData.areaTerritories.pop()
+    newArea.handle.destroy()
+
+    # restore old Area with its AreaTerritory
+    oldArea =       @_stepData.tempData.areas.pop()
+    oldTerritory =  @_stepData.tempData.oldTerritories.pop()
+    newTerritory =  @_stepData.tempData.newTerritories.pop()
+
+    oldArea.territory = oldTerritory
+
+    # Area was visible before => update
+    if newTerritory
+      oldArea.handle.update()
+    # Area was hidden before => show
+    else
+      oldArea.handle.show()
+      oldArea.handle.startEdit()
+      oldArea.handle.select()
+
+
+    # in second step remaining area must be selectable as leftover geometry
+    if @_stepData.tempData.areas.length is 1
+      oldArea.handle.deselect()
+
+    # in first action, prepare area for sending it back to first steP:
+    # reattach the name, leave edit mode and select it
+    else if @_stepData.tempData.areas.length is 0
+      oldName = @_stepData.inData.areaNames[0]
+      oldArea.name = oldName
+      oldArea.handle.update()
+      oldArea.handle.endEdit()
+      oldArea.handle.select()
+      reverseComplete = yes
+
+    reverseComplete
 
   # ============================================================================
   # TCH = Change Territory of One or the Border Between Two Territoris
