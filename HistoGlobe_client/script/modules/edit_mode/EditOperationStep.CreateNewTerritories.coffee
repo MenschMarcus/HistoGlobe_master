@@ -103,18 +103,9 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     # backward into this step => reverse last operation
     if direction is -1
       switch @_operationId
-
-        when 'CRE'
-          @_CRE_reverse()
-          return @abort()
-
-        when 'SEP', 'SEC'
-          complete = @_SEP_reverse()
-          return @abort() if complete
-
-        when 'TCH', 'BCH'
-          @_TCH_reverse()
-          return @abort()
+        when 'CRE'        then @_CRE_reverse()
+        when 'SEP', 'SEC' then @_SEP_reverse()
+        when 'TCH', 'BCH' then @_TCH_reverse()
 
     # set up NewTerritoryTool to define geometry of an area interactively
     newTerritoryTool = new HG.NewTerritoryTool @_hgInstance, drawLayer, @_areaIdx is 0
@@ -151,12 +142,18 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
             @_hgInstance.newTerritoryTool = null
             @_makeNewTerritory 1
 
-            # undo = cleanup and go to previous area
+            # make action reversible
             @_undoManager.add {
               undo: =>
+                # cleanup
                 @_hgInstance.newTerritoryTool?.destroy()
                 @_hgInstance.newTerritoryTool = null
-                @_makeNewTerritory -1
+                # area left to restore => go back one step
+                if @_stepData.tempData.areas.length > 0
+                  @_makeNewTerritory -1
+                # no area left => first action => abort step and go backwards
+                else
+                  @abort()
             }
 
 
@@ -230,7 +227,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
           # add to workflow
           @_stepData.tempData.areas.push          currArea
           @_stepData.tempData.oldTerritories.push currTerritory
-          @_stepData.tempData.newTerritories.push null
+          @_stepData.tempData.newTerritories.push newTerritory
 
       # test previous area
       areaIdx--
@@ -463,9 +460,6 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
   # ============================================================================
   _SEP_reverse: () ->
 
-    # returned to first area?
-    reverseComplete = no
-
     # remove new area => hides, deselects and leaves edit mode automatically
     newArea = @_stepData.outData.areas.pop()
     newName = @_stepData.outData.areaNames.pop()
@@ -501,9 +495,6 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
       oldArea.handle.update()
       oldArea.handle.endEdit()
       oldArea.handle.select()
-      reverseComplete = yes
-
-    reverseComplete
 
   # ============================================================================
   # TCH = change territory of one or the border between two territories
