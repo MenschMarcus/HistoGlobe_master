@@ -223,7 +223,6 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
             # update view
             currArea.handle.hide()
 
-
           # add to workflow
           @_stepData.tempData.areas.push          currArea
           @_stepData.tempData.oldTerritories.push currTerritory
@@ -688,7 +687,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     if direction is -1
       @_hgInstance.editMode.leaveAreaEditMode()
       switch @_operationId
-        when 'SEP', 'TCH', 'NCH'
+        when 'SEP', 'SEC', 'TCH', 'BCH', 'NCH'
           for area in @_stepData.inData.areas
             area.handle.deselect()
             area.handle.endEdit()
