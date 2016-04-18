@@ -329,14 +329,22 @@ class HG.EditOperation
 
   # ============================================================================
   # get minimum / maximum number of areas required for each step
-  # possible inputs:  1   1+  2   2+
+  # possible inputs:  1   1+  2   2+   1|2
   # ============================================================================
 
   _getRequiredNum: (expr) ->
+    # error handling
     return 0 if not expr?
-    lastChar = expr.substr(expr.length-1)
-    max = if lastChar is '+' then HGConfig.max_area_selection.val else lastChar
-    min = (expr.substring 0,1)
+    # is there a deliminator present (either | or -)?
+    delIdx = Math.max(expr.indexOf("|"), expr.indexOf("-"))
+    if (delIdx is -1) # there is no deliminator
+      # if last character is "+", treat max as unlimited
+      lastChar = expr.substr(expr.length-1)
+      min = expr.substring(0,1)
+      max = if lastChar is '+' then HGConfig.max_area_selection.val else lastChar
+    else # there is a deliminator
+      min = expr.substring(0,delIdx)
+      max = expr.substring(delIdx+1,expr.length)
     return {
       'min': parseInt(min)
       'max': parseInt(max)

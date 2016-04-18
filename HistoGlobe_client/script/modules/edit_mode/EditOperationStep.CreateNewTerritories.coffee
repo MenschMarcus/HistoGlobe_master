@@ -30,7 +30,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     # for SEP and TCH operation, put selected area into edit mode and select it
     if direction is 1
       switch @_operationId
-        when 'SEP', 'TCH', 'NCH'
+        when 'SEP', 'SEC', 'TCH', 'BCH', 'NCH'
           for area in @_stepData.inData.areas
             area.handle.startEdit()
             area.handle.select()
@@ -49,7 +49,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     switch @_operationId
 
       # ------------------------------------------------------------------------
-      when 'UNI'                                        ## unification operation
+      when 'UNI', 'INC'                                 ## unification operation
         if direction is 1   # forward
           @_UNI()
           return @finish()
@@ -93,19 +93,28 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     # go to next/previous area
     @_areaIdx += direction
 
+    # special case: 'BCH' operation makes two operations at the same time
+    # => de/increase areaIdx again for this operation
+    @_areaIdx += direction if @_operationId is 'BCH'
+
     # restore previously drawn clip geometry (if there is one)
     drawLayer = @_stepData.tempData.drawLayers[@_areaIdx]
 
+    # backward into this step => reverse last operation
     if direction is -1
-      # backward into this step => reverse last operation
       switch @_operationId
+
         when 'CRE'
           @_CRE_reverse()
           return @abort()
-        when 'SEP'
+
+        when 'SEP', 'SEC'
           complete = @_SEP_reverse()
           return @abort() if complete
-        # when 'TCH' then @_TCH_reverse()
+
+        when 'TCH', 'BCH'
+          @_TCH_reverse()
+          return @abort()
 
     # set up NewTerritoryTool to define geometry of an area interactively
     newTerritoryTool = new HG.NewTerritoryTool @_hgInstance, drawLayer, @_areaIdx is 0
@@ -128,7 +137,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
           return @finish()
 
         # ======================================================================
-        when 'SEP'                                             ## separate areas
+        when 'SEP', 'SEC'                                      ## separate areas
 
           complete = @_SEP clipGeometry
 
@@ -152,123 +161,16 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
 
         # ======================================================================
-        when 'TCH'                                  # territory / border change
+        when 'TCH', 'BCH'                            # territory / border change
 
-          # idea: both areas A and B get a new common border
-          # => unify both areas and use the drawn geometry C as a clip polygon
-          # A' = (A \/ B) /\ C    intersection (A u B) with C
-          # B' = (A \/ B) - C     difference (A u B) with C
+          @_TCH clipGeometry
 
-          A_old_id = @_stepData.inData.selectedAreas[0]
-          B_old_id = @_stepData.inData.selectedAreas[1]
-          A_area = @_hgInstance.areaController.getActiveArea A_old_id
-          B_area = @_hgInstance.areaController.getActiveArea B_old_id
-
-          A_shortName = A_area.getShortName()
-          B_shortName = B_area.getShortName()
-          A_formalName = A_area.getFormalName()
-          B_formalName = B_area.getFormalName()
-          A_reprPoint = A_area.getRepresentativePoint()
-          B_reprPoint = B_area.getRepresentativePoint()
-
-          A = A_area.getGeometry()
-          B = B_area.getGeometry()
-          C = clipGeometry
-
-          # test: which country was covered in clip area?
-          A_covered = @_geometryOperator.isWithin A, C
-
-          AuB = @_geometryOperator.union [A, B]
-
-          # 2 cases: A first and B first
-          if A_covered
-            A_new_geom = @_geometryOperator.intersection AuB, C
-            B_new_geom = @_geometryOperator.difference AuB, C
-          else  # B is covered
-            B_new_geom = @_geometryOperator.intersection AuB, C
-            A_new_geom = @_geometryOperator.difference AuB, C
-
-          @_stepData.tempAreas[0] = {
-            'id':           A_old_id
-            'clip':         C
-            'geometry':     A
-            'shortName':    A_shortName
-            'formalName':   A_formalName
-            'reprPoint':    A_reprPoint
-          }
-          @_stepData.tempAreas[1] = {
-            'id':           B_old_id
-            'clip':         C
-            'geometry':     B
-            'shortName':    B_shortName
-            'formalName':   B_formalName
-            'reprPoint':    B_reprPoint
-          }
-
-          # deactivate old areas
-          @notifyEditMode 'onEndEditArea', A_old_id
-          @notifyEditMode 'onEndEditArea', B_old_id
-          @notifyEditMode 'onDeselectArea', A_old_id
-          @notifyEditMode 'onDeselectArea', B_old_id
-          @notifyEditMode 'onDeactivateArea', A_old_id
-          @notifyEditMode 'onDeactivateArea', B_old_id
-
-          @_stepData.tempAreas[0] = A_old_id
-          @_stepData.tempAreas[1] = B_old_id
-
-          # create and activate new area
-          A_new_id = "NEW_BORDER_" + A_old_id
-          B_new_id = "NEW_BORDER_" + B_old_id
-          @notifyEditMode 'onCreateArea', A_new_id, A_new_geom
-          @notifyEditMode 'onCreateArea', B_new_id, B_new_geom
-          @notifyEditMode 'onAddAreaName', A_new_id, A_shortName, A_formalName
-          @notifyEditMode 'onAddAreaName', B_new_id, B_shortName, B_formalName
-          @notifyEditMode 'onUpdateAreaRepresentativePoint', A_new_id, A_reprPoint
-          @notifyEditMode 'onUpdateAreaRepresentativePoint', B_new_id, B_reprPoint
-
-          @_stepData.outData.createdAreas[0] = A_new_id
-          @_stepData.outData.createdAreas[1] = B_new_id
-
-          # done!
+          # only one step necessary => finish
           return @finish()
-
-          # --------------------------------------------------------------------
-          # TODO: put clip area back and make it editable ;)
-          # -> that would be truly inversible!
-          @_undoManager.add {                   # undo territory / border change
-            undo: =>
-              # cleanup
-              @_hgInstance.newTerritoryTool?.destroy()
-              @_hgInstance.newTerritoryTool = null
-
-              # remove new area
-              A_new_id = @_stepData.outData.createdAreas[0]
-              B_new_id = @_stepData.outData.createdAreas[1]
-              @notifyEditMode 'onRemoveArea', A_new_id
-              @notifyEditMode 'onRemoveArea', B_new_id
-
-              # reactivate old area
-              A_old_id = @_stepData.tempAreas[0]
-              B_old_id = @_stepData.tempAreas[1]
-
-              @notifyEditMode 'onActivateArea', A_old_id
-              @notifyEditMode 'onActivateArea', B_old_id
-              @notifyEditMode 'onSelectArea', A_old_id
-              @notifyEditMode 'onSelectArea', B_old_id
-              @notifyEditMode 'onStartEditArea', A_old_id
-              @notifyEditMode 'onStartEditArea', B_old_id
-
-              @_stepData.inData.selectedAreas[0] = A_old_id
-              @_stepData.inData.selectedAreas[1] = B_old_id
-
-              # only one action in this step => abort step
-              @abort()
-          }
-
 
 
   ##############################################################################
-  ### DEFINITION OF ACTUAL OPERATIONS ###
+  # DEFINITION OF ACTUAL OPERATIONS
 
   # ============================================================================
   # CRE = create new area
@@ -385,7 +287,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
 
   # ============================================================================
-  # UNI = Unify Selected Areas (automatically, no input required)
+  # UNI = unify selected areas (automatically, no input required)
   # ============================================================================
 
   _UNI: () ->
@@ -462,7 +364,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
       idx++
 
   # ============================================================================
-  # SEP = Separate Selected Area
+  # SEP = separate selected area (multiple iterations)
   # ============================================================================
 
   _SEP: (clipGeometry) ->
@@ -604,17 +506,136 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     reverseComplete
 
   # ============================================================================
-  # TCH = Change Territory of One or the Border Between Two Territoris
+  # TCH = change territory of one or the border between two territories
   # ============================================================================
 
-  _TCH: () ->
+  _TCH: (clipGeometry) ->
+
+    # distinction: 1 (TCH) or 2 (BCH) areas changed
+    if @_stepData.inData.areas.length is 1
+      operation = 'TCH'
+    else if @_stepData.inData.areas.length is 2
+      operation = 'BCH'
+    else
+      return console.error "The TCH Operation does not have the necessary number of areas provided"
+
+
+    # --------------------------------------------------------------------------
+    if operation is 'TCH'                         # single-area territory change
+      # write variable in editOperation
+      @_hgInstance.editOperation.operation.id = 'TCH'
+
+      currArea        = @_stepData.inData.areas[0]
+      currName        = @_stepData.inData.areaNames[0]
+      currTerritory   = @_stepData.inData.areaTerritories[0]
+
+      newGeometry = @_geometryOperator.intersection currTerritory.geometry, clipGeometry
+
+      # create AreaTerritory based on the clip geometry
+      newTerritory = new HG.AreaTerritory {
+        id:                   @_hgInstance.editOperation.getRandomId()
+        geometry:             newGeometry
+        representativePoint:  newGeometry.getCenter()
+      }
+
+      # link Area <-> AreaTerritory
+      currArea.territory = newTerritory
+      newTerritory.area = currArea
+
+      # update area
+      currArea.handle.update()
+
+      # add to operation workflow
+      @_stepData.outData.areas[0] =            currArea
+      @_stepData.outData.areaNames[0] =        currName
+      @_stepData.outData.areaTerritories[0] =  newTerritory
+
+
+    # --------------------------------------------------------------------------
+    else                                                # two-area border change
+      # write variable in editOperation
+      @_hgInstance.editOperation.operation.id = 'BCH'
+
+      # idea: both areas A and B get a new common border
+      # => unify both areas and use the drawn geometry C as a clip polygon
+      # A' = (A \/ B) /\ C    intersection (A u B) with C
+      # B' = (A \/ B) - C     difference (A u B) with C
+
+      A_area = @_stepData.inData.areas[0]
+      B_area = @_stepData.inData.areas[1]
+      A_name = @_stepData.inData.areaNames[0]
+      B_name = @_stepData.inData.areaNames[1]
+      A_territory = @_stepData.inData.areaTerritories[0]
+      B_territory = @_stepData.inData.areaTerritories[1]
+
+      A = A_territory.geometry
+      B = B_territory.geometry
+      C = clipGeometry
+
+      # test: which country was covered in clip area?
+      A_covered = @_geometryOperator.isWithin A, C
+
+      AuB = @_geometryOperator.union [A, B]
+
+      # 2 cases: A first and B first
+      if A_covered
+        A_newGeometry = @_geometryOperator.intersection AuB, C
+        B_newGeometry = @_geometryOperator.difference AuB, C
+      else  # B is covered
+        B_newGeometry = @_geometryOperator.intersection AuB, C
+        A_newGeometry = @_geometryOperator.difference AuB, C
+
+      # create new AreaTerritories
+      A_newTerritory = new HG.AreaTerritory {
+        id:                   @_hgInstance.editOperation.getRandomId()
+        geometry:             A_newGeometry
+        representativePoint:  A_newGeometry.getCenter()
+      }
+      B_newTerritory = new HG.AreaTerritory {
+        id:                   @_hgInstance.editOperation.getRandomId()
+        geometry:             B_newGeometry
+        representativePoint:  B_newGeometry.getCenter()
+      }
+
+      # link Area <-> AreaTerritories
+      A_newTerritory.area = A_area
+      A_area.territory = A_newTerritory
+      B_newTerritory.area = B_area
+      B_area.territory = B_newTerritory
+
+      # update handle
+      A_area.handle.update()
+      B_area.handle.update()
+
+      # add to workflow
+      @_stepData.outData.areas[0] = A_area
+      @_stepData.outData.areas[1] = B_area
+      @_stepData.outData.areaNames[0] = A_name
+      @_stepData.outData.areaNames[1] = B_name
+      @_stepData.outData.areaTerritories[0] = A_newTerritory
+      @_stepData.outData.areaTerritories[1] = B_newTerritory
+
 
   # ============================================================================
   _TCH_reverse: () ->
 
+    idx = 0   # for each selected Area
+    while idx < @_stepData.inData.areas.length
+
+      # get old AreaTerritory
+      oldArea = @_stepData.inData.areas[idx]
+      oldTerritory = @_stepData.inData.areaTerritories[idx]
+
+      # restore old AreaTerritory
+      oldArea.territory = oldTerritory
+      oldArea.handle.update()
+
+      # go to next area
+      idx++
+
 
   # ============================================================================
-  # NCH = Name Change of an Area
+  # NCH = change the name of an area
   # ============================================================================
 
   _NCH: () ->
@@ -628,7 +649,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
 
   # ============================================================================
-  # DES = Destruction of an Area
+  # DES = destruct an area
   # ============================================================================
 
   _DES: () ->

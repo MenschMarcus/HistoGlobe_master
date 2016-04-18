@@ -114,12 +114,12 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
           formalName: newData.formalName
         }
 
-        # link Area <-> AreaName
-        newArea.name = newName
-        newName.area = newArea
+      # link Area <-> AreaName
+      newArea.name = newName
+      newName.area = newArea
 
-        # update view
-        newArea.handle.update()
+      # update view (even if name has not changed, to restore it on the map)
+      newArea.handle.update()
 
       # add to operation workflow
       @_stepData.outData.areas[@_areaIdx] =           newArea
@@ -164,12 +164,3 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
     ### CLEANUP OPERATION ###
     @_hgInstance.newNameTool?.destroy()
     @_hgInstance.newNameTool = null
-
-    ### RESTORE NAME OF FIRST AREA ###
-    # if it has not been updated yet
-    # this is not covered by any undo action, because before the new name was
-    # not submitted from newNameTool, there is no undo event in the undoManager
-    # area = @_stepData.tempAreas[@_areaIdx]
-    # if area.nameRemoved and not area.nameUpdated
-    #   @notifyEditMode 'onAddAreaName', area.id, area.shortName, area.formalName
-    # WTF ?!?

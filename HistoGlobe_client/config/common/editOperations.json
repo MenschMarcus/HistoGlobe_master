@@ -65,12 +65,12 @@
     [
       {
         "id":       "SEL_OLD_AREA",
-        "num":      "2",
+        "num":      "1|2",
         "title":    "select two countries whose <br/> border is to be changed"
       },
       {
         "id":       "SET_NEW_TERR",
-        "num":      "2",
+        "num":      "1|2",
         "title":    "create new territories <br/> of both countries"
       },
       {
