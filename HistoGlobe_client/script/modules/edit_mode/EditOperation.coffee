@@ -105,10 +105,7 @@ class HG.EditOperation
               areaNames:          []
               areaTerritories:    []
             }
-            tempData: {
-              nameData:           []
-              origPoints:         []
-            }
+            tempData:             []
             outData: {
               areas:              []
               areaNames:          []

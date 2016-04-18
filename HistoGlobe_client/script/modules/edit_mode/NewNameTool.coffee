@@ -1,3 +1,4 @@
+
 window.HG ?= {}
 
 class HG.NewNameTool
@@ -42,38 +43,130 @@ class HG.NewNameTool
     # B) use HTML text input in the view point
     #   (+) draggable and editable
     #   (-) not in coordinate system
-    #   (-) position does not update on zoom / pan of the map
+    #   (-) position does not automatically update on zoom / pan of the map
     # => possible, but hard...
 
-    # TODO: work on formal name
+    ## draggable wrapper for whole name tool
 
     @_wrapper = @_domElemCreator.create 'div', 'new-name-wrapper', ['hg-input']
     @_hgInstance.getTopArea().appendChild @_wrapper
 
-    # short name
+
+    ## editable input field for short name
+
     @_shortNameInput = new HG.TextInput @_hgInstance, 'newShortName', ['new-name-input']
-    $(@_shortNameInput.getDOMElement()).removeClass 'hg-input'
-    if initData.shortName    # set either the text that is given (to just accept it)
-      @_shortNameInput.setText initData.shortName
-    else                # or have only a placeholder
+    $(@_shortNameInput.getDOMElement()).removeClass 'hg-input' # it is not a normal input field
+
+    # set either the text that is given (to just accept it)
+    if initData.name
+      @_shortNameInput.setText initData.name.shortName
+
+    # or have only a placeholder
+    else
       @_shortNameInput.setPlaceholder 'name'
+
+    # give initial size
+    $(@_shortNameInput).attr 'size', INIT_SIZE
+
     @_wrapper.appendChild @_shortNameInput.getDOMElement()
 
-    # formal name
+
+    ## editable input field for formal name
+
     @_formalNameInput = new HG.TextInput @_hgInstance, 'newFormalName', ['new-name-input']
-    $(@_formalNameInput.getDOMElement()).removeClass 'hg-input'
-    if initData.formalName   # set either the text that is given (to just accept it)
-      @_formalNameInput.setText initData.formalName
-    else                # or have only a placeholder
+    $(@_formalNameInput.getDOMElement()).removeClass 'hg-input' # it is not a normal input field
+
+    # set either the text that is given (to just accept it)
+    if initData.name
+      @_formalNameInput.setText initData.name.formalName
+
+    # or have only a placeholder
+    else
       @_formalNameInput.setPlaceholder 'formal name'
+
+    # give initial size
+    $(@_formalNameInput).attr 'size', INIT_SIZE
+
     @_wrapper.appendChild @_formalNameInput.getDOMElement()
 
+
+    # save short and formal name DOM objects for combined processing
     @_nameInputs = $('.new-name-input')
 
-    # set position of wrapper = center of country
-    posPx = @_map.latLngToContainerPoint initData.representativePoint.latLng()
+    ## autocomplete wrapper to choose a suggestion
+    @_autocompleteWrapper = @_domElemCreator.create 'div', 'autocomplete-wrapper'
+    @_wrapper.appendChild @_autocompleteWrapper
+
+    # inline spacer inside to get actual width of the element
+    @_autocompleteSpacer = @_domElemCreator.create 'div', 'autocomplete-spacer'
+    @_autocompleteWrapper.appendChild @_autocompleteSpacer
+    $(@_autocompleteSpacer).hide()
+
+
+    # setup autocomplete
+    if initData.nameSuggestions
+
+      # for short name: if selected, also fill formal name
+      shortNameSuggestions = []
+      for name in initData.nameSuggestions
+        shortNameSuggestions.push {
+          # I need "label" and "value" for jQuery UI
+          label:  name.shortName
+          value:  name.shortName
+          formal: name.formalName
+        }
+
+      $(@_shortNameInput.getDOMElement()).autocomplete {
+        source: shortNameSuggestions
+        appendTo: '#autocomplete-spacer'
+        open: (evt, ui) =>
+          $(@_autocompleteSpacer).show()
+          $(@_autocompleteWrapper).addClass 'sep-border-top'
+          @_resize()
+        close: (evt, ui) =>
+          $(@_autocompleteSpacer).hide()
+          $('#autocomplete-spacer>ul>li').width 0 # reset width to accurately calculate width
+          $(@_autocompleteWrapper).removeClass 'sep-border-top'
+          @_resize()
+        select: (evt, ui) =>
+          @_shortNameInput.setText ui.item.value
+          @_formalNameInput.setText ui.item.formal
+          @_resize()
+          @_okButton.enable()
+      }
+
+      # for formal name: if selected, only fill formal, do not override short name
+      formalNameSuggestions = []
+      for name in initData.nameSuggestions
+        formalNameSuggestions.push {
+          # I need "label" and "value" for jQuery UI
+          label:  name.formalName
+          value:  name.formalName
+        }
+
+      $(@_formalNameInput.getDOMElement()).autocomplete {
+        source: formalNameSuggestions
+        appendTo: '#autocomplete-spacer'
+        open: (evt, ui) =>
+          $(@_autocompleteSpacer).show()
+          @_resize()
+        close: (evt, ui) =>
+          $(@_autocompleteSpacer).hide()
+          @_resize()
+        select: (evt, ui) =>
+          @_formalNameInput.setText ui.item.value
+          @_resize()
+          @_okButton.enable() if @_shortNameInput.getText()
+      }
+
+
+    # set initial position of wrapper = representative point of areas territory
+    posPx = @_map.latLngToContainerPoint initData.oldPoint.latLng()
     $(@_wrapper).css 'left', posPx.x
     $(@_wrapper).css 'top',  posPx.y
+
+
+    ## OK button to confirm selection
 
     @_okButton = new HG.Button @_hgInstance,
       'newNameOK', ['confirm-button'],
@@ -85,12 +178,11 @@ class HG.NewNameTool
     @_okButton.disable() if (not @_shortNameInput.getText()) or (not @_formalNameInput.getText())
     @_wrapper.appendChild @_okButton.getDOMElement()
 
-    # set up initial position
+    # set initial size
     @_resize()
 
 
     ### INTERACTION ###
-    ## to other modules
 
     # seamless interaction
     @_makeDraggable()
@@ -105,7 +197,7 @@ class HG.NewNameTool
     $(@_nameInputs).on 'focusout', () =>
       $(@_wrapper).removeClass 'new-name-wrapper-focus'
 
-    # type name => change name
+    # user types name => name changes => notify
     # enable / disable OK button if name is complete
     $(@_shortNameInput.getDOMElement()).on 'keyup mouseup', (e) =>
       @notifyAll 'onChangeShortName', @_shortNameInput.getText()
@@ -122,14 +214,25 @@ class HG.NewNameTool
         @_okButton.disable()
 
 
-    # click OK => submit name and position
+    # user clicks OK button => submit name and position
     @_okButton.onClick @, () =>
+
       # get center coordinates
       center = new L.Point $(@_wrapper).position().left, $(@_wrapper).position().top
+
+      # get name user has typed
+      newName = {
+        shortName:  @_shortNameInput.getText()
+        formalName: @_formalNameInput.getText()
+      }
+
+      # return new data by preserving original point and name suggestions
+      # (for further processing)
       newData = {
-        shortName:            @_shortNameInput.getText()
-        formalName:           @_formalNameInput.getText()
-        representativePoint:  new HG.Point @_map.containerPointToLatLng center
+        nameSuggestions:  initData.nameSuggestions
+        name:             newName
+        oldPoint:         initData.oldPoint
+        newPoint:         new HG.Point @_map.containerPointToLatLng center
       }
       @notifyAll 'onSubmit', newData
 
@@ -151,21 +254,30 @@ class HG.NewNameTool
   ##############################################################################
 
   # ============================================================================
+  # Compute the actual width that is necessary to show all the elements and then
+  # set their width accordingly.
+  # It was f*** hard to come up with a div layout that allows for centering
+  # both name inputs and the suggestions. Please no major changes to this
+  # function and also to the CSS layout in NewNameTool.less
+  # ============================================================================
+
   _resize: (e) =>
-    # TODO: set actual width, independent from font-size
-    # TODO: animate to the new width -> works not with 'size' but only with 'width' (size is not a CSS property)
-    width = Math.max(
-      MIN_SIZE,  # ensures width >= 4                     # magic factor to scale width with increasing size
-      ($(@_shortNameInput.getDOMElement()).val().length)  * HGConfig.short_name_font_size.val,
-      ($(@_formalNameInput.getDOMElement()).val().length) * HGConfig.formal_name_font_size.val
-    )
-    $(@_nameInputs).attr  'size', width
 
-    # adapt width because of smaller font size
-    nameWidth = $(@_shortNameInput.getDOMElement()).width()
-    $(@_formalNameInput.getDOMElement()).width(nameWidth)
+    # get width that elements actually need
+    newWidth = Math.max(
+        MIN_WIDTH,
+        $(@_shortNameInput.getDOMElement()).width(),    # actual width of short name
+        $(@_formalNameInput.getDOMElement()).width(),   # actual width of formal name
+        $('#autocomplete-spacer>ul>li').width()         # actual width of autocomplete suggestions
+      )
 
-    # recenter
+    # set the new width
+    $(@_shortNameInput.getDOMElement()).width newWidth
+    $(@_formalNameInput.getDOMElement()).width newWidth
+    $(@_autocompleteWrapper).width newWidth
+    $('#autocomplete-spacer>ul>li').width newWidth
+
+    # recenter accordingly
     $(@_wrapper).css 'margin-top',  -($(@_shortNameInput.getDOMElement()).height() / 2)
     $(@_wrapper).css 'margin-left', -($(@_shortNameInput.getDOMElement()).width()  / 2)
 
@@ -239,4 +351,5 @@ class HG.NewNameTool
 
 
   # ============================================================================
-  MIN_SIZE = 4
+  INIT_SIZE = 7
+  MIN_WIDTH = 100

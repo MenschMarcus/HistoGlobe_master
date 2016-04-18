@@ -24,7 +24,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     ### SETUP OPERATION ###
 
     # make only edit areas focusable and make sure multiple areas can be selected
-    @_hgInstance.editMode.enterAreaEditMode() if direction is 1
+    @_hgInstance.editMode.enterAreaEditMode()
     @_hgInstance.areaController.enableMultiSelection HGConfig.max_area_selection.val
 
     # for SEP and TCH operation, put selected area into edit mode and select it
@@ -684,8 +684,10 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     @_hgInstance.newTerritoryTool?.destroy()
     @_hgInstance.newTerritoryTool = null
 
+    # reverse action of setup
     if direction is -1
       @_hgInstance.editMode.leaveAreaEditMode()
+      @_hgInstance.areaController.disableMultiSelection()
       switch @_operationId
         when 'SEP', 'SEC', 'TCH', 'BCH', 'NCH'
           for area in @_stepData.inData.areas

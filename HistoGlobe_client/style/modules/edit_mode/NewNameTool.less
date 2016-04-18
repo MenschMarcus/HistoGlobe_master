@@ -24,19 +24,18 @@
   background: none;
   box-shadow: none;
   text-align: center;
+  color: @color_white;
 }
 
 #newShortName
 {
   font-size: @short_name_font_size;
-  color: @color_white;
 }
 
 #newFormalName
 {
   font-size: @formal_name_font_size;
   font-style: italic;
-  color: @color_white;
 }
 
 
@@ -52,5 +51,54 @@
 {
   position: absolute;
   right: -(@button_diameter+@element_window_distance);
-  bottom: 0;
+  top: 0;
+}
+
+/*
+  It was f*** hard to come up with a div layout that allows for centering
+  both name inputs and the suggestions. CSS is horrible and should be renovated.
+  Please no major changes to this CSS layout and also to the @_resize() function
+  in NewNameTool.coffee
+ */
+
+#autocomplete-wrapper
+{
+  position: relative;
+  display: block;
+  width: auto;
+  text-align: center;
+}
+
+#autocomplete-spacer
+{
+  position: relative;
+  display: inline-block;
+  width: auto;
+  border-top: 1px solid @color_active;
+  padding-top: @border_radius/2;
+  padding-bottom: @border_radius/2;
+}
+
+
+/* override jQuery UI */
+#autocomplete-spacer > .ui-autocomplete
+{
+  position: static !important;
+  width: 100% !important;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  list-style: none;
+  white-space: nowrap;
+  text-align: center;
+  color: @color_white;
+}
+#autocomplete-spacer > .ui-autocomplete > li:hover
+{
+  cursor: pointer;
+  background-color: @color_active;
+}
+#autocomplete-spacer .ui-state-focus
+{
+  background-color: @color_active;
 }

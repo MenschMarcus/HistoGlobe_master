@@ -57,18 +57,49 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
     @_currName =      @_stepData.inData.areaNames[@_areaIdx]
     @_currTerritory = @_stepData.inData.areaTerritories[@_areaIdx]
 
-    # initial values for NewNameTool
-    initData = {
-      shortName:            @_currName?.shortName
-      formalName:           @_currName?.formalName
-      representativePoint:  @_currTerritory.representativePoint
-    }
-    # override with temporary data from last time, if it is available
-    initData = $.extend {}, initData, @_stepData.tempData.nameData[@_areaIdx]
+    # get all name suggestions that are possible to autocomplete into
+    @_nameSuggestions = []    # all possible names (HG.AreaName)
+    defaultName = null        # name that is displayed as default to the user
 
-    # save original representative point to restore it later
-    if direction is 1   # only forward and with deep copy!
-      @_stepData.tempData.origPoints[@_areaIdx] = @_geometryOperator.copy @_currTerritory.representativePoint
+    switch @_operationId
+
+      # for UNI/INC and SEP/SEC: make it possible to autocomplete to the name of
+      # any selected area from the first step => make them suggestions
+      when 'UNI', 'INC', 'SEP', 'SEC'
+        for areaName in @_hgInstance.editOperation.operation.steps[1].outData.areaNames
+          @_nameSuggestions.push areaName
+
+      # for NCH and TCH/BCH: set the current name of the area as default value
+      # to work immediately on it or just use it
+      when 'NCH', 'TCH', 'BCH'
+        @_nameSuggestions.push @_currName
+        defaultName = {
+          shortName:  @_currName.shortName
+          formalName: @_currName.formalName
+        }
+
+      # for CRE: no old area => no possible suggestion => ignore
+      # for DES: no new area => ignore
+
+
+    # initial values for NewNameTool
+    tempData = {
+      nameSuggestions:    []
+      name:               defaultName
+      oldPoint:           @_currTerritory.representativePoint
+      newPoint:           null
+    }
+
+    # do not hand the HG.AreaName into NewNameTool, but only the name strings
+    # => used nameAuggestion will be determined later by string comparison
+    for nameSuggestion in @_nameSuggestions
+      tempData.nameSuggestions.push {
+        shortName:  nameSuggestion.shortName
+        formalName: nameSuggestion.formalName
+      }
+
+    # override with temporary data from last time, if it is available
+    tempData = $.extend {}, tempData, @_stepData.tempData[@_areaIdx]
 
     # remove the name from the area
     if @_currArea.name
@@ -76,7 +107,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
       @_currArea.handle.update()
 
     # set up NewNameTool to set name and position of area interactively
-    newNameTool = new HG.NewNameTool @_hgInstance, initData
+    newNameTool = new HG.NewNameTool @_hgInstance, tempData
 
 
     # --------------------------------------------------------------------------
@@ -91,27 +122,20 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
       newTerritory  = @_currTerritory
 
       # temporarily save new data so it can be restores on undo
-      @_stepData.tempData.nameData[@_areaIdx] = newData
+      @_stepData.tempData[@_areaIdx] = newData
 
-      # decision: what has changed?
-      shortNameHasChanged =   newData.shortName.localeCompare(newName?.shortName) isnt 0
-      formalNameHasChanged =  newData.formalName.localeCompare(newName?.formalName) isnt 0
-      reprPointHasChanged =   not @_geometryOperator.areEqual(newData.representativePoint, newTerritory.representativePoint)
-
-      # TODO: create new identity if formalNameHasChanged
-
-      # update AreaTerritory if representative point has changed
-      if reprPointHasChanged
-        newTerritory.representativePoint = newData.representativePoint
-        newTerritory.area.handle.update()
+      # update AreaTerritory (representative point has always changed, at least slightly)
+      newTerritory.representativePoint = newData.newPoint
+      newTerritory.area.handle.update()
 
       # create new AreaName if name has changed
-      if shortNameHasChanged or formalNameHasChanged
+      if  (newData.name.shortName.localeCompare(newName?.shortName) isnt 0) or
+          (newData.name.formalName.localeCompare(newName?.formalName) isnt 0)
 
         newName = new HG.AreaName {
           id:         @_hgInstance.editOperation.getRandomId()
-          shortName:  newData.shortName
-          formalName: newData.formalName
+          shortName:  newData.name.shortName
+          formalName: newData.name.formalName
         }
 
       # link Area <-> AreaName
@@ -120,6 +144,12 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
       # update view (even if name has not changed, to restore it on the map)
       newArea.handle.update()
+
+      # handle special case in UNI or SEP operation:
+      # if the formal name of one of the selected areas is the same than
+      # one of the new areas, these two areas keep have the same identity
+      # => change UNI -> INC resp. SEP -> SEC operation
+
 
       # add to operation workflow
       @_stepData.outData.areas[@_areaIdx] =           newArea
@@ -139,7 +169,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
           if oldName
             oldArea.name = oldName
           if oldTerritory
-            oldTerritory.representativePoint = @_stepData.tempData.origPoints[@_areaIdx]
+            oldTerritory.representativePoint = @_stepData.tempData[@_areaIdx].oldPoint
             oldArea.territory = oldTerritory
 
           # update view
