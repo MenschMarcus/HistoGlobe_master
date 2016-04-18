@@ -175,8 +175,11 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
           # update view
           oldArea.handle.update()
 
+          # cleanup
+          @_hgInstance.newNameTool?.destroy()
+          @_hgInstance.newNameTool = null
+
           # go to previous name
-          @_cleanup()
           @_makeNewName -1
       }
 
@@ -189,7 +192,14 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
 
   # ============================================================================
-  _cleanup: () ->
+  _cleanup: (direction) ->
+
+    # backwards step => restore name previously on the area
+    if direction is -1
+      if not @_currArea.name
+        @_currArea.name = @_currName
+        @_currArea.handle.update()
+
 
     ### CLEANUP OPERATION ###
     @_hgInstance.newNameTool?.destroy()
