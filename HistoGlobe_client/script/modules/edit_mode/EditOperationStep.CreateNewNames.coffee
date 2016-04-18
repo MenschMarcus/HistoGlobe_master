@@ -106,8 +106,14 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
       @_currArea.name = null
       @_currArea.handle.update()
 
+    # do not allow a change of name, but only a change of point for TCH/BCH
+    allowNameChange = yes
+    switch @_operationId
+      when 'TCH', 'BCH' then allowNameChange = no
+
+
     # set up NewNameTool to set name and position of area interactively
-    newNameTool = new HG.NewNameTool @_hgInstance, tempData
+    newNameTool = new HG.NewNameTool @_hgInstance, tempData, allowNameChange
 
 
     # --------------------------------------------------------------------------
@@ -115,18 +121,26 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
     newNameTool.onSubmit @, (newData) =>
 
+      # temporarily save new data so it can be restores on undo
+      @_stepData.tempData[@_areaIdx] = newData
+
       # do not reuse @_curr variables, because they are references
       # => avoids overriding incoming data
       newArea       = @_currArea
       newName       = @_currName
       newTerritory  = @_currTerritory
 
-      # temporarily save new data so it can be restores on undo
-      @_stepData.tempData[@_areaIdx] = newData
 
-      # update AreaTerritory (representative point has always changed, at least slightly)
-      newTerritory.representativePoint = newData.newPoint
-      newTerritory.area.handle.update()
+      # check if formal name matches one of the name suggestions
+      for oldName in @_nameSuggestions
+        if (oldName.formalName.localeCompare(newData.name.formalName) is 0)
+
+          # if so, this area keeps on exsting
+          oldName
+
+          # this can only happen once
+          break
+
 
       # create new AreaName if name has changed
       if  (newData.name.shortName.localeCompare(newName?.shortName) isnt 0) or
@@ -150,6 +164,10 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
       # one of the new areas, these two areas keep have the same identity
       # => change UNI -> INC resp. SEP -> SEC operation
 
+
+      # update AreaTerritory (representative point has always changed, at least slightly)
+      newTerritory.representativePoint = newData.newPoint
+      newTerritory.area.handle.update()
 
       # add to operation workflow
       @_stepData.outData.areas[@_areaIdx] =           newArea

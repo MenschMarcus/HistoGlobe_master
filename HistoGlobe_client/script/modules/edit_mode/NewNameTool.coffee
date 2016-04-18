@@ -8,7 +8,7 @@ class HG.NewNameTool
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, initData) ->
+  constructor: (@_hgInstance, initData, allowNameChange=yes) ->
 
     @_hgInstance.newNameTool = @
 
@@ -61,12 +61,11 @@ class HG.NewNameTool
     if initData.name
       @_shortNameInput.setText initData.name.shortName
 
-    # or have only a placeholder
+    # or have only a placeholder + give initial size
     else
       @_shortNameInput.setPlaceholder 'name'
+      $(@_shortNameInput).attr 'size', INIT_SIZE
 
-    # give initial size
-    $(@_shortNameInput).attr 'size', INIT_SIZE
 
     @_wrapper.appendChild @_shortNameInput.getDOMElement()
 
@@ -80,18 +79,23 @@ class HG.NewNameTool
     if initData.name
       @_formalNameInput.setText initData.name.formalName
 
-    # or have only a placeholder
+    # or have only a placeholder + give initial size
     else
       @_formalNameInput.setPlaceholder 'formal name'
-
-    # give initial size
-    $(@_formalNameInput).attr 'size', INIT_SIZE
+      $(@_formalNameInput).attr 'size', INIT_SIZE
 
     @_wrapper.appendChild @_formalNameInput.getDOMElement()
 
 
     # save short and formal name DOM objects for combined processing
     @_nameInputs = $('.new-name-input')
+
+    # if name can not be changed, add additional class to input elements and
+    # make readonly
+    if not allowNameChange
+      @_nameInputs.attr 'readonly', true
+      @_nameInputs.addClass 'no-value-change'
+
 
     ## autocomplete wrapper to choose a suggestion
     @_autocompleteWrapper = @_domElemCreator.create 'div', 'autocomplete-wrapper'

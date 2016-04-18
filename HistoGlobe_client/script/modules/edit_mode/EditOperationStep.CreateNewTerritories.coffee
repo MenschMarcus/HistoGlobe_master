@@ -111,7 +111,9 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     newTerritoryTool = new HG.NewTerritoryTool @_hgInstance, drawLayer, @_areaIdx is 0
 
 
+    # --------------------------------------------------------------------------
     ### LISTEN TO USER INPUT ###
+
     newTerritoryTool.onSubmit @, (clipGeometry, drawLayer) =>  # incoming geometry: clipGeometry
 
       # save leaflet:draw layers to be restores later
