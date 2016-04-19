@@ -118,16 +118,19 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
         # ----------------------------------------------------------------------
         when 'CRE'
+
           @_updateAreaName_reverse()
           @_updateRepresentativePoint_reverse()
 
         # ----------------------------------------------------------------------
         when 'UNI'
+
           @_updateAreaName_reverse()
           @_updateRepresentativePoint_reverse()
 
         # ----------------------------------------------------------------------
         when 'INC'
+
           @_continueIdentity_reverse()
 
         # ----------------------------------------------------------------------
@@ -150,10 +153,12 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
         # ----------------------------------------------------------------------
         when 'TCH', 'BCH'
+
           @_updateRepresentativePoint_reverse()
 
         # ----------------------------------------------------------------------
         when 'NCH'
+
           @_updateAreaName_reverse()
           @_updateRepresentativePoint_reverse()
 
@@ -184,6 +189,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
         # ----------------------------------------------------------------------
         when 'CRE'
+
           @_updateAreaName newShortName, newFormalName
           @_updateRepresentativePoint newPoint
 
@@ -268,7 +274,24 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
         # ----------------------------------------------------------------------
         when 'TCH', 'BCH'
+
           @_updateRepresentativePoint newPoint
+
+          # get areas
+          currArea =      @_stepData.inData.areas[@_areaIdx]
+          currName =      @_stepData.inData.areaNames[@_areaIdx]
+          currTerritory = @_stepData.inData.areaTerritories[@_areaIdx]
+
+          # put names back on the map
+          currArea.name = currName
+
+          # update view
+          currArea.handle.update()
+
+          # add to workflow
+          @_stepData.outData.areas[@_areaIdx] =           currArea
+          @_stepData.outData.areaNames[@_areaIdx] =       currName
+          @_stepData.outData.areaTerritories[@_areaIdx] = currTerritory
 
           # only one step necessary => finish
           return @finish()
