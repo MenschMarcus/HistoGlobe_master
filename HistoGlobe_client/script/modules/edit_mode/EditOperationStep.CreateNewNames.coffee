@@ -344,8 +344,9 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
   _continueIdentity: (origAreaName, newShortName, newFormalName, newPoint) ->
 
-    # restore original Area to continue its identity
-    origArea = origAreaName.area
+    # get Areas to work with
+    oldArea =   @_stepData.inData.areas[@_areaIdx]  # temporal Area that is to be removed
+    origArea =  origAreaName.area                   # Area to continue its identity
 
     # attach new territory to it and update its representative point
     origArea.territory = oldArea.territory

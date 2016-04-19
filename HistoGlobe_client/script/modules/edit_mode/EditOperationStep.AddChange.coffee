@@ -16,6 +16,8 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
     # inherit functionality from base class
     super @_hgInstance, direction
 
+    console.log @_getOperationId()
+
     ### SETUP OPERATION ###
 
     if direction is -1
