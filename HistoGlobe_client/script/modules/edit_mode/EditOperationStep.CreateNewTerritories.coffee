@@ -7,7 +7,7 @@ window.HG ?= {}
 class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
 
-  ##############################################################################
+  ###################################################################@###########
   #                            PUBLIC INTERFACE                                #
   ##############################################################################
 
@@ -29,7 +29,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
     # for SEP and TCH operation, put selected area into edit mode and select it
     if direction is 1
-      switch @_operationId
+      switch @_getOperationId()
         when 'SEP', 'SEC', 'TCH', 'BCH', 'NCH', 'ICH'
           for area in @_stepData.inData.areas
             area.handle.startEdit()
@@ -46,7 +46,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
     ### AUTOMATIC PROCESSING ###
 
-    switch @_operationId
+    switch @_getOperationId()
 
       # ------------------------------------------------------------------------
       when 'UNI', 'INC'                            ## unification, incorporation
@@ -95,14 +95,14 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
     # special case: 'BCH' operation makes two operations at the same time
     # => de/increase areaIdx again for this operation
-    @_areaIdx += direction if @_operationId is 'BCH'
+    @_areaIdx += direction if @_getOperationId() is 'BCH'
 
     # restore previously drawn clip geometry (if there is one)
     drawLayer = @_stepData.tempData.drawLayers[@_areaIdx]
 
     # backward into this step => reverse last operation
     if direction is -1
-      switch @_operationId
+      switch @_getOperationId()
         when 'CRE'        then @_CRE_reverse()
         when 'SEP', 'SEC' then @_SEP_reverse()
         when 'TCH', 'BCH' then @_TCH_reverse()
@@ -119,7 +119,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
       # save leaflet:draw layers to be restores later
       @_stepData.tempData.drawLayers[@_areaIdx] = drawLayer
 
-      switch @_operationId
+      switch @_getOperationId()
 
         # ----------------------------------------------------------------------
         when 'CRE'                                            ## create new area
@@ -511,17 +511,15 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
     # distinction: 1 (TCH) or 2 (BCH) areas changed
     if @_stepData.inData.areas.length is 1
-      operation = 'TCH'
+      @_setOperationId 'TCH'
     else if @_stepData.inData.areas.length is 2
-      operation = 'BCH'
+      @_setOperationId 'BCH'
     else
       return console.error "The TCH Operation does not have the necessary number of areas provided"
 
 
     # --------------------------------------------------------------------------
-    if operation is 'TCH'                         # single-area territory change
-      # update historical operation
-      @_operationId = 'TCH'
+    if @_getOperationId() is 'TCH'                         # single-area territory change
 
       currArea        = @_stepData.inData.areas[0]
       currName        = @_stepData.inData.areaNames[0]
@@ -550,9 +548,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
 
     # --------------------------------------------------------------------------
-    else                                                # two-area border change
-      # update historical operation
-      @_operationId = 'BCH'
+    else # BCH                                          # two-area border change
 
       # idea: both areas A and B get a new common border
       # => unify both areas and use the drawn geometry C as a clip polygon
@@ -699,7 +695,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     if direction is -1
       @_hgInstance.editMode.leaveAreaEditMode()
       @_hgInstance.areaController.disableMultiSelection()
-      switch @_operationId
+      switch @_getOperationId()
         when 'SEP', 'SEC', 'TCH', 'BCH', 'NCH', 'ICH'
           for area in @_stepData.inData.areas
             area.handle.deselect()

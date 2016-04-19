@@ -53,9 +53,14 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
     @_areaIdx += direction
 
     # get current area to work with
-    @_currArea =      @_stepData.inData.areas[@_areaIdx]
-    @_currName =      @_stepData.inData.areaNames[@_areaIdx]
-    @_currTerritory = @_stepData.inData.areaTerritories[@_areaIdx]
+    if direction is 1 # forward
+      currArea =      @_stepData.inData.areas[@_areaIdx]
+      currName =      @_stepData.inData.areaNames[@_areaIdx]
+      currTerritory = @_stepData.inData.areaTerritories[@_areaIdx]
+    else # backward
+      currArea =      @_stepData.outData.areas[@_areaIdx]
+      currName =      @_stepData.outData.areaNames[@_areaIdx]
+      currTerritory = @_stepData.outData.areaTerritories[@_areaIdx]
 
     # original names of areas from 1st step (HG.AreaName)
     @_origNames = @_hgInstance.editOperation.operation.steps[1].outData.areaNames
@@ -64,7 +69,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
     tempData = {
       nameSuggestions:    []
       name:               null
-      oldPoint:           @_currTerritory.representativePoint
+      oldPoint:           currTerritory.representativePoint
       newPoint:           null
     }
 
@@ -80,46 +85,46 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
     tempData = $.extend {}, tempData, @_stepData.tempData[@_areaIdx]
 
     # remove the name from the area
-    if @_currArea.name
-      @_currArea.name = null
-      @_currArea.handle.update()
+    if currArea.name
+      currArea.name = null
+      currArea.handle.update()
 
 
     # get initial data for NewNameTool
     allowNameChange = yes     # is the user allowed to change the name?
-    switch @_operationId
+    switch @_getOperationId()
 
       # for NCH/ICH: set the current name of the area as default value
       # to work immediately on it or just use it
       when 'NCH', 'ICH'
         tempData.name = {
-          shortName:  @_currName.shortName
-          formalName: @_currName.formalName
+          shortName:  currName.shortName
+          formalName: currName.formalName
         }
 
       # for TCH/BCH: set the current name of the area as default value
       # that can not be changed (only name position can be changed)
       when 'TCH', 'BCH'
         tempData.name = {
-          shortName:  @_currName.shortName
-          formalName: @_currName.formalName
+          shortName:  currName.shortName
+          formalName: currName.formalName
         }
         allowNameChange = no
 
 
     # backward into this step => reverse last operation
     if direction is -1
-      switch @_operationId
+      switch @_getOperationId()
         when 'CRE'        then @_CRE_reverse()
         when 'UNI', 'INC'
           @_UNI_reverse()
-          console.log @_operationId
-          console.log "in area ", @_stepData.inData.areas[0]
-          console.log "in name ", @_stepData.inData.areaNames[0]
-          console.log "in terr ", @_stepData.inData.areaTerritories[0]
-          console.log "out area", @_stepData.outData.areas[0]
-          console.log "out name", @_stepData.outData.areaNames[0]
-          console.log "out terr", @_stepData.outData.areaTerritories[0]
+          # console.log @_getOperationId()
+          # console.log "in area ", @_stepData.inData.areas[0]
+          # console.log "in name ", @_stepData.inData.areaNames[0]
+          # console.log "in terr ", @_stepData.inData.areaTerritories[0]
+          # console.log "out area", @_stepData.outData.areas[0]
+          # console.log "out name", @_stepData.outData.areaNames[0]
+          # console.log "out terr", @_stepData.outData.areaTerritories[0]
 
         when 'SEP', 'SEC' then @_SEP_reverse()
         when 'TCH', 'BCH' then @_TCH_reverse()
@@ -144,7 +149,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
       newPoint =    newData.newPoint
 
       # handle different operations
-      switch @_operationId
+      switch @_getOperationId()
 
         # ----------------------------------------------------------------------
         when 'CRE'
@@ -157,13 +162,13 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
         when 'UNI', 'INC'
           @_UNI shortName, formalName, newPoint
 
-          console.log @_operationId
-          console.log "in area ", @_stepData.inData.areas[0]
-          console.log "in name ", @_stepData.inData.areaNames[0]
-          console.log "in terr ", @_stepData.inData.areaTerritories[0]
-          console.log "out area", @_stepData.outData.areas[0]
-          console.log "out name", @_stepData.outData.areaNames[0]
-          console.log "out terr", @_stepData.outData.areaTerritories[0]
+          # console.log @_getOperationId()
+          # console.log "in area ", @_stepData.inData.areas[0]
+          # console.log "in name ", @_stepData.inData.areaNames[0]
+          # console.log "in terr ", @_stepData.inData.areaTerritories[0]
+          # console.log "out area", @_stepData.outData.areas[0]
+          # console.log "out name", @_stepData.outData.areaNames[0]
+          # console.log "out terr", @_stepData.outData.areaTerritories[0]
 
           # only one step necessary => finish
           return @finish()
@@ -227,6 +232,9 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
   _CRE: (newShortName, newFormalName, newPoint) ->
 
+    # get area to work with
+    oldArea = @_stepData.inData.areas[0]
+
     # create new AreaName
     newName = new HG.AreaName {
       id:         @_getId()
@@ -235,19 +243,19 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
     }
 
     # link Area and AreaName
-    @_currArea.name = newName
-    newName.area = @_currArea
+    oldArea.name = newName
+    newName.area = oldArea
 
     # update representative point
-    @_currTerritory.representativePoint = newPoint
+    oldArea.territory.representativePoint = newPoint
 
     # update view
-    @_currArea.handle.update()
+    oldArea.handle.update()
 
     # add to operation workflow
-    @_stepData.outData.areas[0] =           @_currArea
+    @_stepData.outData.areas[0] =           oldArea
     @_stepData.outData.areaNames[0] =       newName
-    @_stepData.outData.areaTerritories[0] = @_currTerritory
+    @_stepData.outData.areaTerritories[0] = oldArea.territory
 
 
   # ============================================================================
@@ -282,19 +290,22 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
     # change of formal name => new identity => same as CRE operation
     if not sameFormalName
-      @_operationId = 'UNI'
+      @_setOperationId 'UNI'
       @_CRE newShortName, newFormalName, newPoint
 
     # no change in formal name => continue this areas identity
     else
       # change operation id to incorporation
-      @_operationId = 'INC'
+      @_setOperationId 'INC'
+
+      # get area to work with
+      oldArea = @_stepData.inData.areas[0]
 
       # restore original Area to continue its identity
       origArea = sameFormalName.area
 
       # attach new territory to it and update its representative point
-      origArea.territory = @_currArea.territory
+      origArea.territory = oldArea.territory
       origArea.territory.representativePoint = newPoint
 
       # find out if short name has changed -> need for new AreaName?
@@ -318,10 +329,10 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
       # hide the area that was created in the previous NewTerritory step
       # and mark it for deletion in last step unless it is not to be restored
       # and restore (show) the updated area of this step
-      @_currArea.handle.deselect()
-      @_currArea.handle.endEdit()
-      @_currArea.handle.hide()
-      @_stepData.tempData.handleToBeDestroyed = @_currArea.handle
+      oldArea.handle.deselect()
+      oldArea.handle.endEdit()
+      oldArea.handle.hide()
+      @_stepData.tempData.handleToBeDestroyed = oldArea.handle
       origArea.handle.show()
       origArea.handle.startEdit()
       origArea.handle.select()
@@ -338,7 +349,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
     # TODO: fix this
 
     # action in UNI was the same than action in CRE => reverse is the same
-    if @_operationId is 'UNI'
+    if @_getOperationId() is 'UNI'
       @_CRE_reverse()
 
     else # 'INC'
@@ -358,12 +369,10 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
       # reset name
       oldArea.name = oldName
-      oldName.area = oldArea
       newArea.name = null
 
       # reset territory
       oldArea.territory = oldTerritory
-      oldTerritory.area = oldArea
       newArea.territory = null
 
       # update view
@@ -432,6 +441,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
     # backwards step => restore name previously on the area
     if direction is -1
-      if not @_currArea.name
-        @_currArea.name = @_currName
-        @_currArea.handle.update()
+      oldArea = @_stepData.inData.areas[@_areaIdx]
+      oldName = @_stepData.inData.areaNames[@_areaIdx]
+      oldArea.name = oldName
+      oldArea.handle.update()

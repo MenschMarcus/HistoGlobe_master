@@ -182,7 +182,8 @@ class HG.EditOperation
   # create a random id for an object that does not exit yet
   # ============================================================================
   getRandomId: () ->
-    newId = Math.round(Math.random()*10000) # create random id
+    # create random id [1000..9999]
+    newId = 1000 + Math.round(Math.random()*8999)
     if (@_ids.indexOf newId) isnt -1        # if id is already taken
       @getRandomId()                        #   try anther one
     else                                    # if id is unique
