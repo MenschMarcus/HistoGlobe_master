@@ -133,12 +133,17 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
         # ----------------------------------------------------------------------
         when 'SEP', 'SEC'
 
-          # reverse the step which continued the identity of the selected area
-          if @_stepData.outData.handleToBeDeleted.area.id is @_stepData.inData.areas[0].id
+          # define if this area was continued in its identity
+          # -> Area that caused secession instead of separation
+          identityArea = @_stepData.outData.handleToBeDeleted?.getArea().id
+          thisIsIdentityArea = identityArea and identityArea is @_stepData.inData.areas[0].id
+
+          # reverse action which continued the identity of the selected area
+          if thisIsIdentityArea
             @_continueIdentity_reverse()
             @_setOperationId 'SEP'
 
-          # reverse every other "normal" step that created a new AreaName
+          # reverse action that created a new AreaName
           else
             @_updateAreaName_reverse()
             @_updateRepresentativePoint_reverse()
@@ -233,7 +238,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
           # no change in formal name => continue this areas identity
           else
             @_setOperationId 'SEC'
-            @_continueIdentity origAreaName, newShortName, newFormalName newPoint
+            @_continueIdentity origAreaName, newShortName, newFormalName, newPoint
 
 
           # finish when old area was separated completely
