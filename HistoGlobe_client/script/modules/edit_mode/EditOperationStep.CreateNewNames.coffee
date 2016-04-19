@@ -52,47 +52,25 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
     # go to next/previous area
     @_areaIdx += direction
 
-    # get area to work with
+    # get current area to work with
     @_currArea =      @_stepData.inData.areas[@_areaIdx]
     @_currName =      @_stepData.inData.areaNames[@_areaIdx]
     @_currTerritory = @_stepData.inData.areaTerritories[@_areaIdx]
 
-    # get all name suggestions that are possible to autocomplete into
-    @_nameSuggestions = []    # all possible names (HG.AreaName)
-    defaultName = null        # name that is displayed as default to the user
-
-    switch @_operationId
-
-      # for UNI/INC and SEP/SEC: make it possible to autocomplete to the name of
-      # any selected area from the first step => make them suggestions
-      when 'UNI', 'INC', 'SEP', 'SEC'
-        for areaName in @_hgInstance.editOperation.operation.steps[1].outData.areaNames
-          @_nameSuggestions.push areaName
-
-      # for NCH and TCH/BCH: set the current name of the area as default value
-      # to work immediately on it or just use it
-      when 'NCH', 'TCH', 'BCH'
-        @_nameSuggestions.push @_currName
-        defaultName = {
-          shortName:  @_currName.shortName
-          formalName: @_currName.formalName
-        }
-
-      # for CRE: no old area => no possible suggestion => ignore
-      # for DES: no new area => ignore
-
+    # original names of areas from 1st step (HG.AreaName)
+    @_origNames = @_hgInstance.editOperation.operation.steps[1].outData.areaNames
 
     # initial values for NewNameTool
     tempData = {
       nameSuggestions:    []
-      name:               defaultName
+      name:               null
       oldPoint:           @_currTerritory.representativePoint
       newPoint:           null
     }
 
     # do not hand the HG.AreaName into NewNameTool, but only the name strings
     # => used nameAuggestion will be determined later by string comparison
-    for nameSuggestion in @_nameSuggestions
+    for nameSuggestion in @_origNames
       tempData.nameSuggestions.push {
         shortName:  nameSuggestion.shortName
         formalName: nameSuggestion.formalName
@@ -106,10 +84,46 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
       @_currArea.name = null
       @_currArea.handle.update()
 
-    # do not allow a change of name, but only a change of point for TCH/BCH
-    allowNameChange = yes
+
+    # get initial data for NewNameTool
+    allowNameChange = yes     # is the user allowed to change the name?
     switch @_operationId
-      when 'TCH', 'BCH' then allowNameChange = no
+
+      # for NCH/ICH: set the current name of the area as default value
+      # to work immediately on it or just use it
+      when 'NCH', 'ICH'
+        tempData.name = {
+          shortName:  @_currName.shortName
+          formalName: @_currName.formalName
+        }
+
+      # for TCH/BCH: set the current name of the area as default value
+      # that can not be changed (only name position can be changed)
+      when 'TCH', 'BCH'
+        tempData.name = {
+          shortName:  @_currName.shortName
+          formalName: @_currName.formalName
+        }
+        allowNameChange = no
+
+
+    # backward into this step => reverse last operation
+    if direction is -1
+      switch @_operationId
+        when 'CRE'        then @_CRE_reverse()
+        when 'UNI', 'INC'
+          @_UNI_reverse()
+          console.log @_operationId
+          console.log "in area ", @_stepData.inData.areas[0]
+          console.log "in name ", @_stepData.inData.areaNames[0]
+          console.log "in terr ", @_stepData.inData.areaTerritories[0]
+          console.log "out area", @_stepData.outData.areas[0]
+          console.log "out name", @_stepData.outData.areaNames[0]
+          console.log "out terr", @_stepData.outData.areaTerritories[0]
+
+        when 'SEP', 'SEC' then @_SEP_reverse()
+        when 'TCH', 'BCH' then @_TCH_reverse()
+        when 'NCH', 'ICH' then @_NCH_reverse()
 
 
     # set up NewNameTool to set name and position of area interactively
@@ -124,101 +138,300 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
       # temporarily save new data so it can be restores on undo
       @_stepData.tempData[@_areaIdx] = newData
 
-      # do not reuse @_curr variables, because they are references
-      # => avoids overriding incoming data
-      newArea       = @_currArea
-      newName       = @_currName
-      newTerritory  = @_currTerritory
+      # get data for appling changes
+      shortName =   newData.name.shortName
+      formalName =  newData.name.formalName
+      newPoint =    newData.newPoint
+
+      # handle different operations
+      switch @_operationId
+
+        # ----------------------------------------------------------------------
+        when 'CRE'
+          @_CRE shortName, formalName, newPoint
+
+          # only one step necessary => finish
+          return @finish()
+
+        # ----------------------------------------------------------------------
+        when 'UNI', 'INC'
+          @_UNI shortName, formalName, newPoint
+
+          console.log @_operationId
+          console.log "in area ", @_stepData.inData.areas[0]
+          console.log "in name ", @_stepData.inData.areaNames[0]
+          console.log "in terr ", @_stepData.inData.areaTerritories[0]
+          console.log "out area", @_stepData.outData.areas[0]
+          console.log "out name", @_stepData.outData.areaNames[0]
+          console.log "out terr", @_stepData.outData.areaTerritories[0]
+
+          # only one step necessary => finish
+          return @finish()
+
+        # ----------------------------------------------------------------------
+        when 'SEP', 'SEC'
+          complete = @_SEP shortName, formalName, newPoint
+
+          # finish when old area was separated completely
+          if complete
+            return @finish()
+
+          # otherwise cleanup and continue with next area
+          else
+            @_hgInstance.newNameTool?.destroy()
+            @_hgInstance.newNameTool = null
+            @_makeNewName 1
+
+            # make action reversible
+            @_undoManager.add {
+              undo: =>
+                # cleanup
+                @_hgInstance.newNameTool?.destroy()
+                @_hgInstance.newNameTool = null
+                # area left to restore => go back one step
+                if @_areaIdx > 0
+                  @_makeNewName -1
+                # no area left => first action => abort step and go backwards
+                else
+                  @abort()
+            }
+
+        # ----------------------------------------------------------------------
+        when 'TCH', 'BCH'
+          @_TCH shortName, formalName, newPoint
+
+          # only one step necessary => finish
+          return @finish()
 
 
-      # check if formal name matches one of the name suggestions
-      for oldName in @_nameSuggestions
-        if (oldName.formalName.localeCompare(newData.name.formalName) is 0)
+        # ----------------------------------------------------------------------
+        when 'NCH', 'ICH'
+          @_NCH shortName, formalName, newPoint
 
-          # if so, this area keeps on exsting
-          oldName
-
-          # this can only happen once
-          break
+          # only one step necessary => finish
+          return @finish()
 
 
-      # create new AreaName if name has changed
-      if  (newData.name.shortName.localeCompare(newName?.shortName) isnt 0) or
-          (newData.name.formalName.localeCompare(newName?.formalName) isnt 0)
-
-        newName = new HG.AreaName {
-          id:         @_hgInstance.editOperation.getRandomId()
-          shortName:  newData.name.shortName
-          formalName: newData.name.formalName
-        }
-
-      # link Area <-> AreaName
-      newArea.name = newName
-      newName.area = newArea
-
-      # update view (even if name has not changed, to restore it on the map)
-      newArea.handle.update()
-
-      # handle special case in UNI or SEP operation:
-      # if the formal name of one of the selected areas is the same than
-      # one of the new areas, these two areas keep have the same identity
-      # => change UNI -> INC resp. SEP -> SEC operation
+        # ----------------------------------------------------------------------
+        # nothing to do for 'DES' operation
 
 
-      # update AreaTerritory (representative point has always changed, at least slightly)
-      newTerritory.representativePoint = newData.newPoint
-      newTerritory.area.handle.update()
 
-      # add to operation workflow
-      @_stepData.outData.areas[@_areaIdx] =           newArea
-      @_stepData.outData.areaNames[@_areaIdx] =       newName
-      @_stepData.outData.areaTerritories[@_areaIdx] = newTerritory
+  ##############################################################################
+  #                     DEFINITION OF ACTUAL OPERATIONS                        #
+  ##############################################################################
 
+  # ============================================================================
+  # CRE = create new area
+  # ============================================================================
 
-      # make action reversible
-      @_undoManager.add {
-        undo: =>
-          # restore old area
-          oldTerritory =  @_stepData.inData.areaTerritories[@_areaIdx]
-          oldName =       @_stepData.inData.areaNames[@_areaIdx]
-          oldArea =       @_stepData.inData.areas[@_areaIdx]
+  _CRE: (newShortName, newFormalName, newPoint) ->
 
-          # reset old properties
-          if oldName
-            oldArea.name = oldName
-          if oldTerritory
-            oldTerritory.representativePoint = @_stepData.tempData[@_areaIdx].oldPoint
-            oldArea.territory = oldTerritory
+    # create new AreaName
+    newName = new HG.AreaName {
+      id:         @_getId()
+      shortName:  newShortName
+      formalName: newFormalName
+    }
 
-          # update view
-          oldArea.handle.update()
+    # link Area and AreaName
+    @_currArea.name = newName
+    newName.area = @_currArea
 
-          # cleanup
-          @_hgInstance.newNameTool?.destroy()
-          @_hgInstance.newNameTool = null
+    # update representative point
+    @_currTerritory.representativePoint = newPoint
 
-          # go to previous name
-          @_makeNewName -1
-      }
+    # update view
+    @_currArea.handle.update()
 
-      # define when it is finished
-      return @finish() if @_areaIdx is @_stepData.inData.areas.length-1
-
-      # go to next name
-      @_cleanup()
-      @_makeNewName 1
+    # add to operation workflow
+    @_stepData.outData.areas[0] =           @_currArea
+    @_stepData.outData.areaNames[0] =       newName
+    @_stepData.outData.areaTerritories[0] = @_currTerritory
 
 
   # ============================================================================
+  _CRE_reverse: () ->
+
+    # restore old area
+    oldArea =       @_stepData.inData.areas[0]
+    oldName =       @_stepData.inData.areaNames[0]
+    oldTerritory =  @_stepData.inData.areaTerritories[0]
+
+    # reset old properties
+    oldArea.name = oldName
+    oldTerritory.representativePoint = @_stepData.tempData[0].oldPoint
+
+    # update view
+    oldArea.handle.update()
+
+
+  # ============================================================================
+  # UNI = unify selected areas to a new area
+  # INC = incorporate selected areas into another selected area
+  # ============================================================================
+
+  _UNI: (newShortName, newFormalName, newPoint) ->
+
+    # find out if new area continues the identity of one of the old areas
+    # -> check if formal name equals
+    sameFormalName = null
+    for oldName in @_origNames
+      if oldName.formalName.localeCompare(newFormalName) is 0
+        sameFormalName = oldName
+
+    # change of formal name => new identity => same as CRE operation
+    if not sameFormalName
+      @_operationId = 'UNI'
+      @_CRE newShortName, newFormalName, newPoint
+
+    # no change in formal name => continue this areas identity
+    else
+      # change operation id to incorporation
+      @_operationId = 'INC'
+
+      # restore original Area to continue its identity
+      origArea = sameFormalName.area
+
+      # attach new territory to it and update its representative point
+      origArea.territory = @_currArea.territory
+      origArea.territory.representativePoint = newPoint
+
+      # find out if short name has changed -> need for new AreaName?
+      if sameFormalName.shortName.localeCompare(newShortName) is 0
+        # also same short name => reuse old AreaName
+        sameFormalName.area = origArea
+        origArea.name = sameFormalName
+
+      else
+        # different short name, but same formal name
+        # => identitiy stays the same, but it still needs new AreaName
+        newName = new HG.AreaName {
+          id:         @_getId()
+          shortName:  newShortName
+          formalName: newFormalName
+        }
+        newName.area = origArea
+        origArea.name = newName
+
+      # update model and view:
+      # hide the area that was created in the previous NewTerritory step
+      # and mark it for deletion in last step unless it is not to be restored
+      # and restore (show) the updated area of this step
+      @_currArea.handle.deselect()
+      @_currArea.handle.endEdit()
+      @_currArea.handle.hide()
+      @_stepData.tempData.handleToBeDestroyed = @_currArea.handle
+      origArea.handle.show()
+      origArea.handle.startEdit()
+      origArea.handle.select()
+
+      # add to operation workflow
+      @_stepData.outData.areas[0] =           origArea
+      @_stepData.outData.areaNames[0] =       origArea.name
+      @_stepData.outData.areaTerritories[0] = origArea.territory
+
+
+  # ============================================================================
+  _UNI_reverse: () ->
+
+    # TODO: fix this
+
+    # action in UNI was the same than action in CRE => reverse is the same
+    if @_operationId is 'UNI'
+      @_CRE_reverse()
+
+    else # 'INC'
+
+      # get old and new data
+      newArea =       @_stepData.outData.areas[0]
+      newName =       @_stepData.outData.areaNames[0]
+      newTerritory =  @_stepData.outData.areaTerritories[0]
+
+      oldArea =       @_stepData.inData.areas[0]
+      oldName =       @_stepData.inData.areaNames[0]
+      oldTerritory =  @_stepData.inData.areaTerritories[0]
+
+      # reset old representative point
+      oldTerritory.representativePoint = @_stepData.tempData[@_areaIdx].oldPoint
+      newTerritory.representativePoint = @_stepData.tempData[@_areaIdx].oldPoint
+
+      # reset name
+      oldArea.name = oldName
+      oldName.area = oldArea
+      newArea.name = null
+
+      # reset territory
+      oldArea.territory = oldTerritory
+      oldTerritory.area = oldArea
+      newArea.territory = null
+
+      # update view
+      newArea.handle.deselect()
+      newArea.handle.endEdit()
+      newArea.handle.hide()
+      oldArea.handle.show()
+      oldArea.handle.startEdit()
+      oldArea.handle.select()
+
+
+      # unmark handle for deletion
+      @_stepData.tempData.handleToBeDestroyed = null
+
+
+  # ============================================================================
+  # SEP = separate selected area into multiple areas (multiple iterations)
+  # SEC = seize multiple areas from one area
+  # ============================================================================
+
+  _SEP: (newShortName, newFormalName, newPoint) ->
+
+
+  # ============================================================================
+  _SEP_reverse: () ->
+
+
+
+  # ============================================================================
+  # TCH = change territory of one area
+  # BCH = change the border between two territories
+  # ============================================================================
+
+  _TCH: (newShortName, newFormalName, newPoint) ->
+
+
+  # ============================================================================
+  _TCH_reverse: () ->
+
+
+  # ============================================================================
+  # NCH = change the name of an area
+  # ICH = identity change
+  # ============================================================================
+
+  _NCH: (newShortName, newFormalName, newPoint) ->
+
+
+  # ============================================================================
+  _NCH_reverse: () ->
+
+
+
+
+  ##############################################################################
+
+  # ============================================================================
+  # end of operation
+  # ============================================================================
+
   _cleanup: (direction) ->
+
+    ### CLEANUP OPERATION ###
+    @_hgInstance.newNameTool?.destroy()
+    @_hgInstance.newNameTool = null
 
     # backwards step => restore name previously on the area
     if direction is -1
       if not @_currArea.name
         @_currArea.name = @_currName
         @_currArea.handle.update()
-
-
-    ### CLEANUP OPERATION ###
-    @_hgInstance.newNameTool?.destroy()
-    @_hgInstance.newNameTool = null

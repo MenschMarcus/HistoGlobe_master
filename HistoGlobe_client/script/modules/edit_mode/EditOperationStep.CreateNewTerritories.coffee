@@ -30,7 +30,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     # for SEP and TCH operation, put selected area into edit mode and select it
     if direction is 1
       switch @_operationId
-        when 'SEP', 'SEC', 'TCH', 'BCH', 'NCH'
+        when 'SEP', 'SEC', 'TCH', 'BCH', 'NCH', 'ICH'
           for area in @_stepData.inData.areas
             area.handle.startEdit()
             area.handle.select()
@@ -49,7 +49,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     switch @_operationId
 
       # ------------------------------------------------------------------------
-      when 'UNI', 'INC'                                 ## unification operation
+      when 'UNI', 'INC'                            ## unification, incorporation
         if direction is 1   # forward
           @_UNI()
           return @finish()
@@ -59,7 +59,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
           return @abort()
 
       # ------------------------------------------------------------------------
-      when 'NCH'                                        ## name change operation
+      when 'NCH', 'ICH'                          ## name change, identity change
         if direction is 1   # forward
           @_NCH()
           return @finish()
@@ -69,7 +69,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
           return @abort()
 
       # ------------------------------------------------------------------------
-      when 'DES'                                        ## destruction operation
+      when 'DES'                                                  ## destruction
         if direction is 1   # forward
           @_DES()
           return @finish()
@@ -111,7 +111,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     newTerritoryTool = new HG.NewTerritoryTool @_hgInstance, drawLayer, @_areaIdx is 0
 
 
-    # --------------------------------------------------------------------------
+    # ==========================================================================
     ### LISTEN TO USER INPUT ###
 
     newTerritoryTool.onSubmit @, (clipGeometry, drawLayer) =>  # incoming geometry: clipGeometry
@@ -121,7 +121,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
       switch @_operationId
 
-        # ======================================================================
+        # ----------------------------------------------------------------------
         when 'CRE'                                            ## create new area
 
           @_CRE clipGeometry
@@ -129,8 +129,8 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
           # only one step necessary => finish
           return @finish()
 
-        # ======================================================================
-        when 'SEP', 'SEC'                                      ## separate areas
+        # ----------------------------------------------------------------------
+        when 'SEP', 'SEC'                               ## separation, secession
 
           complete = @_SEP clipGeometry
 
@@ -158,9 +158,8 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
                   @abort()
             }
 
-
-        # ======================================================================
-        when 'TCH', 'BCH'                            # territory / border change
+        # ----------------------------------------------------------------------
+        when 'TCH', 'BCH'                      # territory change, border change
 
           @_TCH clipGeometry
 
@@ -169,7 +168,8 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
 
   ##############################################################################
-  # DEFINITION OF ACTUAL OPERATIONS
+  #                     DEFINITION OF ACTUAL OPERATIONS                        #
+  ##############################################################################
 
   # ============================================================================
   # CRE = create new area
@@ -202,7 +202,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
             # create new Territory
             newTerritory = new HG.AreaTerritory {
-              id:                   @_hgInstance.editOperation.getRandomId()
+              id:                   @_getId()
               geometry:             newGeometry
               representativePoint:  newGeometry.getCenter()
             }
@@ -234,9 +234,9 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
       areaIdx--
 
     ## create area based on the clip geometry
-    newArea = new HG.Area @_hgInstance.editOperation.getRandomId()
+    newArea = new HG.Area @_getId()
     newTerritory = new HG.AreaTerritory {
-      id:                   @_hgInstance.editOperation.getRandomId()
+      id:                   @_getId()
       geometry:             clipGeometry
       representativePoint:  clipGeometry.getCenter()
     }
@@ -285,7 +285,9 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
 
   # ============================================================================
-  # UNI = unify selected areas (automatically, no input required)
+  # UNI = unify selected areas to a new area
+  # INC = incorporate selected areas into another selected area
+  # -> automatically, no input required
   # ============================================================================
 
   _UNI: () ->
@@ -310,9 +312,9 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     unifiedGeometry = @_geometryOperator.union oldGeometries
 
     # create Area and AreaTerritory
-    newArea = new HG.Area   @_hgInstance.editOperation.getRandomId()
+    newArea = new HG.Area   @_getId()
     newTerritory = new HG.AreaTerritory {
-      id:                   @_hgInstance.editOperation.getRandomId()
+      id:                   @_getId()
       geometry:             unifiedGeometry
       representativePoint:  unifiedGeometry.getCenter()
     }
@@ -361,8 +363,10 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
       # restore next area
       idx++
 
+
   # ============================================================================
-  # SEP = separate selected area (multiple iterations)
+  # SEP = separate selected area into multiple areas (multiple iterations)
+  # SEC = seize multiple areas from one area
   # ============================================================================
 
   _SEP: (clipGeometry) ->
@@ -391,7 +395,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
       # create new Territory
       updateTerritory = new HG.AreaTerritory {
-        id:                   @_hgInstance.editOperation.getRandomId()
+        id:                   @_getId()
         geometry:             updateGeometry
         representativePoint:  updateGeometry.getCenter()
       }
@@ -428,9 +432,9 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     newGeometry = @_geometryOperator.intersection currTerritory.geometry, clipGeometry
 
     # create Area and AreaTerritory based on the clip geometry
-    newArea = new HG.Area   @_hgInstance.editOperation.getRandomId()
+    newArea = new HG.Area   @_getId()
     newTerritory = new HG.AreaTerritory {
-      id:                   @_hgInstance.editOperation.getRandomId()
+      id:                   @_getId()
       geometry:             newGeometry
       representativePoint:  newGeometry.getCenter()
     }
@@ -497,8 +501,10 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
       oldArea.handle.endEdit()
       oldArea.handle.select()
 
+
   # ============================================================================
-  # TCH = change territory of one or the border between two territories
+  # TCH = change territory of one area
+  # BCH = change the border between two territories
   # ============================================================================
 
   _TCH: (clipGeometry) ->
@@ -514,8 +520,8 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
     # --------------------------------------------------------------------------
     if operation is 'TCH'                         # single-area territory change
-      # write variable in editOperation
-      @_hgInstance.editOperation.operation.id = 'TCH'
+      # update historical operation
+      @_operationId = 'TCH'
 
       currArea        = @_stepData.inData.areas[0]
       currName        = @_stepData.inData.areaNames[0]
@@ -525,7 +531,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
       # create AreaTerritory based on the clip geometry
       newTerritory = new HG.AreaTerritory {
-        id:                   @_hgInstance.editOperation.getRandomId()
+        id:                   @_getId()
         geometry:             newGeometry
         representativePoint:  newGeometry.getCenter()
       }
@@ -545,8 +551,8 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
     # --------------------------------------------------------------------------
     else                                                # two-area border change
-      # write variable in editOperation
-      @_hgInstance.editOperation.operation.id = 'BCH'
+      # update historical operation
+      @_operationId = 'BCH'
 
       # idea: both areas A and B get a new common border
       # => unify both areas and use the drawn geometry C as a clip polygon
@@ -579,12 +585,12 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
       # create new AreaTerritories
       A_newTerritory = new HG.AreaTerritory {
-        id:                   @_hgInstance.editOperation.getRandomId()
+        id:                   @_getId()
         geometry:             A_newGeometry
         representativePoint:  A_newGeometry.getCenter()
       }
       B_newTerritory = new HG.AreaTerritory {
-        id:                   @_hgInstance.editOperation.getRandomId()
+        id:                   @_getId()
         geometry:             B_newGeometry
         representativePoint:  B_newGeometry.getCenter()
       }
@@ -611,6 +617,8 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
   # ============================================================================
   _TCH_reverse: () ->
 
+    ## handles both TCH and BCH
+
     idx = 0   # for each selected Area
     while idx < @_stepData.inData.areas.length
 
@@ -628,6 +636,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
   # ============================================================================
   # NCH = change the name of an area
+  # ICH = identity change
   # ============================================================================
 
   _NCH: () ->
@@ -691,7 +700,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
       @_hgInstance.editMode.leaveAreaEditMode()
       @_hgInstance.areaController.disableMultiSelection()
       switch @_operationId
-        when 'SEP', 'SEC', 'TCH', 'BCH', 'NCH'
+        when 'SEP', 'SEC', 'TCH', 'BCH', 'NCH', 'ICH'
           for area in @_stepData.inData.areas
             area.handle.deselect()
             area.handle.endEdit()

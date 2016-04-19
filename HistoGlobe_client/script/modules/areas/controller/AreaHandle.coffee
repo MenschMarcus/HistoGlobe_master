@@ -361,6 +361,7 @@ class HG.AreaHandle
     else        @notifyAll 'onDestroy', @
     # really clean cleanup
     delete @_area
+    # incredibly Mr. Proper clean cleanup
     delete @
 
 
