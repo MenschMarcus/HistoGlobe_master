@@ -306,6 +306,12 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
               @_hgInstance.newNameTool?.destroy()
               @_hgInstance.newNameTool = null
 
+              # restore area
+              oldArea = @_stepData.inData.areas[@_areaIdx]
+              oldName = @_stepData.inData.areaNames[@_areaIdx]
+              oldArea.name = oldName
+              oldArea.handle.update()
+
               # area left to restore => go back one step
               if @_areaIdx > 0
                 @_makeNewName -1
@@ -636,7 +642,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
     # backwards step => restore name previously on the area
     if direction is -1
-      oldArea = @_stepData.inData.areas[@_areaIdx]
-      oldName = @_stepData.inData.areaNames[@_areaIdx]
+      oldArea = @_stepData.inData.areas[0]
+      oldName = @_stepData.inData.areaNames[0]
       oldArea.name = oldName
       oldArea.handle.update()
