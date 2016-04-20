@@ -30,7 +30,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     # for SEP and TCH operation, put selected area into edit mode and select it
     if direction is 1
       switch @_getOperationId()
-        when 'SEP', 'SEC', 'TCH', 'BCH'
+        when 'SEP', 'SEC', 'TCH', 'BCH', 'NCH', 'ICH'
           for area in @_stepData.inData.areas
             area.handle.startEdit()
             area.handle.select()
@@ -636,64 +636,11 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
   # ============================================================================
 
   _NCH: () ->
-
-    # get old Area
-    oldArea = @_stepData.inData.areas[0]
-
-    # create new Area
-    newArea = new HG.Area @_getId()
-
-    # copy AreaTerritory
-    newTerritory = new HG.AreaTerritory {
-      id:                   @_getId()
-      geometry:             @_geometryOperator.copy oldArea.territory.geometry
-      representativePoint:  @_geometryOperator.copy oldArea.territory.representativePoint
-    }
-
-    # link new Area <-> old AreaTerritory
-    newArea.territory = newTerritory
-    newTerritory.area = newArea
-
-    # create AreaHandle <-> Area
-    newHandle = new HG.AreaHandle @_hgInstance, newArea
-    newArea.handle = newHandle
-
-    # remove old area from model and hide
-    oldArea.name =      null
-    oldArea.territory = null
-    oldArea.handle.deselect()
-    oldArea.handle.hide()
-
-    # show new area
-    newArea.handle.show()
-    newArea.handle.select()
-    newArea.handle.startEdit()
-
-    # add to operation workflow
-    @_stepData.outData.areas[0] =            newArea
-    @_stepData.outData.areaNames[0] =        null
-    @_stepData.outData.areaTerritories[0] =  newTerritory
-
+    @_stepData.outData = @_stepData.inData
 
   # ============================================================================
   _NCH_reverse: () ->
-
-    # get old area
-    oldArea =       @_stepData.inData.areas[0]
-    oldName =       @_stepData.inData.areaNames[0]
-    oldTerritory =  @_stepData.inData.areaTerritoriess[0]
-
-    # reset model
-    oldArea.name = oldName
-    oldArea.territory = oldTerritory
-
-    # update view
-    oldArea.handle.show()
-    oldArea.handle.select()
-
-    # destroy new area
-    newArea = @_stepData.outData.areas[0]
-    newArea.handle.destroy()
+    @_stepData.inData = @_stepData.outData
 
 
   # ============================================================================
@@ -747,7 +694,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
       @_hgInstance.editMode.leaveAreaEditMode()
       @_hgInstance.areaController.disableMultiSelection()
       switch @_getOperationId()
-        when 'SEP', 'SEC', 'TCH', 'BCH'
+        when 'SEP', 'SEC', 'TCH', 'BCH', 'NCH', 'ICH'
           for area in @_stepData.inData.areas
             area.handle.deselect()
             area.handle.endEdit()

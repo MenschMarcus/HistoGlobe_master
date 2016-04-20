@@ -164,7 +164,11 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
         # ----------------------------------------------------------------------
         when 'ICH'
-          @_continueIdentity_reverse()
+
+          @_copyAreaWithNewName_reverse()
+          @_updateRepresentativePoint_reverse()
+
+        # ----------------------------------------------------------------------
 
 
     # set up NewNameTool to set name and position of area interactively
@@ -273,28 +277,44 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
           }
 
         # ----------------------------------------------------------------------
-        when 'TCH', 'BCH'
+        when 'TCH'
 
           @_updateRepresentativePoint newPoint
-
-          # get areas
-          currArea =      @_stepData.inData.areas[@_areaIdx]
-          currName =      @_stepData.inData.areaNames[@_areaIdx]
-          currTerritory = @_stepData.inData.areaTerritories[@_areaIdx]
-
-          # put names back on the map
-          currArea.name = currName
-
-          # update view
-          currArea.handle.update()
-
-          # add to workflow
-          @_stepData.outData.areas[@_areaIdx] =           currArea
-          @_stepData.outData.areaNames[@_areaIdx] =       currName
-          @_stepData.outData.areaTerritories[@_areaIdx] = currTerritory
+          @_restoreAreaName()
 
           # only one step necessary => finish
           return @finish()
+
+        # ----------------------------------------------------------------------
+        when 'BCH'
+
+          @_updateRepresentativePoint newPoint
+          @_restoreAreaName()
+
+          if @_areaIdx is 0
+            @_hgInstance.newNameTool?.destroy()
+            @_hgInstance.newNameTool = null
+            @_makeNewName 1
+
+          else # areaIdx is 1
+            return @finish()
+
+          # make action reversible
+          @_undoManager.add {
+            undo: =>
+              # cleanup
+              @_hgInstance.newNameTool?.destroy()
+              @_hgInstance.newNameTool = null
+
+              # area left to restore => go back one step
+              if @_areaIdx > 0
+                @_makeNewName -1
+
+              # no area left => first action => abort step and go backwards
+              else @abort()
+          }
+
+
 
 
         # ----------------------------------------------------------------------
@@ -302,19 +322,28 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
           # find out if new area continues the identity of the old area
           # -> check if formal name equals
-          shortNameChanged =  @_origNames[0].shortName.localeCompare(newShortName) is 0
-          formalNameChanged = @_origNames[0].formalName.localeCompare(newFormalName) is 0
+          shortNameChanged =  @_stepData.inData.areaNames[0].shortName.localeCompare(newShortName) isnt 0
+          formalNameChanged = @_stepData.inData.areaNames[0].formalName.localeCompare(newFormalName) isnt 0
 
           if formalNameChanged # => new identity
-            @_setOperationId 'NCH'
-            @_updateAreaName newShortName, newFormalName
+            @_setOperationId 'ICH'
+
             @_updateRepresentativePoint newPoint
 
-          else  # formal name stayed the same
-            @_setOperationId 'ICH'
-            @_continueIdentity @_origNames[0], newShortName, newFormalName, newPoint
+            # get a new Area with the same AreaTerritory than the original Area
+            # sets the short and formal name and the new Point
+            @_copyAreaWithNewName newShortName, newFormalName
 
-            if not shortNameChanged
+
+          else  # formal name stayed the same
+
+            if shortNameChanged
+              @_setOperationId 'NCH'
+              @_updateAreaName newShortName, newFormalName
+              @_updateRepresentativePoint newPoint
+
+            else
+              @_updateRepresentativePoint newPoint
               @_stepData.outData.emptyOperation = yes
 
           # only one step necessary => finish
@@ -451,6 +480,116 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
     # unmark handle for deletion
     @_stepData.outData.handleToBeDeleted = null
+
+
+  # ============================================================================
+  # puts the AreaName that was just erased in the beginning of the step back on
+  # the map
+  # ============================================================================
+
+  _restoreAreaName: () ->
+
+    # get areas
+    currArea =      @_stepData.inData.areas[@_areaIdx]
+    currName =      @_stepData.inData.areaNames[@_areaIdx]
+    currTerritory = @_stepData.inData.areaTerritories[@_areaIdx]
+
+    # put names back on the map
+    currArea.name = currName
+
+    # update view
+    currArea.handle.update()
+
+    # add to workflow
+    @_stepData.outData.areas[@_areaIdx] =           currArea
+    @_stepData.outData.areaNames[@_areaIdx] =       currName
+    @_stepData.outData.areaTerritories[@_areaIdx] = currTerritory
+
+
+  # ----------------------------------------------------------------------------
+  _restoreAreaName_resverse: () ->
+
+
+  # ============================================================================
+  # copy an Area and its AreaTerritory to a new Area + new Handle
+  # ============================================================================
+
+  _copyAreaWithNewName: (newShortName, newFormalName) ->
+
+    # get old Area
+    oldArea = @_stepData.inData.areas[0]
+
+    # create new Area
+    newArea = new HG.Area @_getId()
+
+    # copy AreaTerritory
+    newTerritory = new HG.AreaTerritory {
+      id:                   @_getId()
+      geometry:             @_geometryOperator.copy oldArea.territory.geometry
+      representativePoint:  @_geometryOperator.copy oldArea.territory.representativePoint
+    }
+
+    # link new Area <-> old AreaTerritory
+    newArea.territory = newTerritory
+    newTerritory.area = newArea
+
+    # create new AreaName with names given
+    newName = new HG.AreaName {
+      id:         @_getId()
+      shortName:  newShortName
+      formalName: newFormalName
+    }
+
+    # link new Area <-> new AreaName
+    newArea.name = newName
+    newName.area = newArea
+
+    # create AreaHandle <-> Area
+    newHandle = new HG.AreaHandle @_hgInstance, newArea
+    newArea.handle = newHandle
+
+    # remove old area from model and hide
+    oldArea.name =      null
+    oldArea.territory = null
+    oldArea.handle.endEdit()
+    oldArea.handle.deselect()
+    oldArea.handle.hide()
+
+    # show new area
+    newArea.handle.show()
+    newArea.handle.select()
+    newArea.handle.startEdit()
+
+    # add to operation workflow
+    @_stepData.outData.areas[0] =            newArea
+    @_stepData.outData.areaNames[0] =        newName
+    @_stepData.outData.areaTerritories[0] =  newTerritory
+
+
+  # ----------------------------------------------------------------------------
+  _copyAreaWithNewName_reverse: () ->
+
+    # restore old areas
+    oldArea =       @_stepData.inData.areas[0]
+    oldName =       @_stepData.inData.areaNames[0]
+    oldTerritory =  @_stepData.inData.areaTerritories[0]
+
+    # reset link old Area <-> old AreaTerritory
+    oldArea.territory = oldTerritory
+    oldTerritory.area = oldArea
+
+    # reset link new Area <-> new AreaName
+    oldArea.name = oldName
+    oldName.area = oldArea
+
+    # show old area
+    oldArea.handle.show()
+    oldArea.handle.select()
+    oldArea.handle.startEdit()
+
+    # remove new area
+    newArea = @_stepData.outData.areas[0]
+    newArea.handle.destroy()
 
 
   # ============================================================================
