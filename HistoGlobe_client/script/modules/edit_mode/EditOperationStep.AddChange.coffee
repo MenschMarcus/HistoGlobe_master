@@ -17,7 +17,7 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
     super @_hgInstance, direction
 
     # get the historical change data
-    @_historicalChange = @_prepareChange()
+    @_prepareChange()
 
     console.log @_historicalChange
 
@@ -74,20 +74,20 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
 
 
   # ============================================================================
+  # assemble HistoricalChange including all AreaChanges
+  # ============================================================================
+
   _prepareChange: () ->
 
     # get relevant data from operations object
     stepsData = @_hgInstance.editOperation.operation.steps
-    oldAreas = stepsData[1].outData
-    newAreas = stepsData[3].outData
-
+    @_oldAreas = stepsData[1].outData
+    @_newAreas = stepsData[3].outData
 
     # => main HistoricalChange object that contains the AreaChanges
     # made in the workflow
-    historicalChange = new HG.HistoricalChange @_getId()
-    historicalChange.operation = @_getOperationId()
-
-    areaChanges = []
+    @_historicalChange = new HG.HistoricalChange @_getId()
+    @_historicalChange.operation = @_getOperationId()
 
 
     ### PREPARE AREA CHANGES ###
@@ -99,211 +99,129 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
         # TODO: what to do with the areas that got cut off?
         magic = 42
 
-
       # ------------------------------------------------------------------------
       when 'UNI'
 
-        # create AreaChange to hide old Areas
+        # delete old Areas
         idx = 0
-        while idx < oldAreas.areas.length
-          oldChange = new HG.AreaChange @_getId()
-          oldChange.operation =        'DEL'
-          oldChange.historicalChange = historicalChange
-          oldChange.area =             oldAreas.areas[idx]
-          oldChange.oldAreaName =      oldAreas.areaNames[idx]
-          oldChange.oldAreaTerritory = oldAreas.areaTerritories[idx]
-          historicalChange.areaChanges.push oldChange
-
+        while idx < @_oldAreas.areas.length
+          @_makeDEL idx
           idx++
 
-        # create AreaChange to show new Area
-        newChange = new HG.AreaChange @_getId()
-        newChange.operation =        'ADD'
-        newChange.historicalChange = historicalChange
-        newChange.area =             newAreas.areas[0]
-        newChange.newAreaName =      newAreas.areaNames[0]
-        newChange.newAreaTerritory = newAreas.areaTerritories[0]
-        historicalChange.areaChanges.push newChange
-
+        # add new Area
+        @_makeADD 0
 
       # ------------------------------------------------------------------------
       when 'INC'
 
         # Area that the others are incorporated in
-        incArea = newAreas.areas[0]
-        incOldAreaIdx = null  # at which index in the oldAreas array is the Area?
+        incArea = @_newAreas.areas[0]
 
-        # create AreaChange to hide old Areas
         idx = 0
-        while idx < oldAreas.areas.length
+        while idx < @_oldAreas.areas.length
 
-          # except for the incorporation area which will be handled afterwards
-          if oldAreas.areas[idx] is incArea
-            incOldAreaIdx = idx
-            idx++
-            continue
+          # incorporation area creates a TCH, because it continues the identity
+          # if formal name has changed, add this NCH areaChange as well
+          if @_oldAreas.areas[idx] is incArea
+            @_makeTCH idx, 0
+            @_makeNCH idx, 0 if @_oldAreas.areaNames[idx] isnt @_newAreas.areaNames[0]
 
-          oldChange = new HG.AreaChange @_getId()
-          oldChange.operation =        'DEL'
-          oldChange.historicalChange = historicalChange
-          oldChange.area =             oldAreas.areas[idx]
-          oldChange.oldAreaName =      oldAreas.areaNames[idx]
-          oldChange.oldAreaTerritory = oldAreas.areaTerritories[idx]
-          historicalChange.areaChanges.push oldChange
+          # normal non-incorporation area will be deleted
+          else @_makeDEL idx
 
           idx++
 
-        # create AreaChange to change the territory of the incorporation Area
-        updateChange = new HG.AreaChange @_getId()
-        updateChange.operation =        'TCH'
-        updateChange.historicalChange = historicalChange
-        updateChange.area =             newAreas.areas[0]
-        updateChange.oldAreaTerritory = oldAreas.areaTerritories[incOldAreaIdx]
-        updateChange.newAreaTerritory = newAreas.areaTerritories[0]
-        historicalChange.areaChanges.push updateChange
-
-        # if formal name has changed, add this areaChange as well
-        if oldAreas.areaNames[incOldAreaIdx] isnt newAreas.areaNames[0]
-          updateChange = new HG.AreaChange @_getId()
-          updateChange.operation =        'NCH'
-          updateChange.historicalChange = historicalChange
-          updateChange.area =             newAreas.areas[0]
-          updateChange.oldAreaName =      oldAreas.areaNames[incOldAreaIdx]
-          updateChange.newAreaName =      newAreas.areaNames[0]
-          historicalChange.areaChanges.push updateChange
-
-
       # ------------------------------------------------------------------------
       when 'SEP'
+        # delete old Area
+        @_makeDEL 0
 
-        # create AreaChange to hide old Area
-        oldChange = new HG.AreaChange @_getId()
-        oldChange.operation =        'DEL'
-        oldChange.historicalChange = historicalChange
-        oldChange.area =             oldAreas.areas[0]
-        oldChange.oldAreaName =      oldAreas.areaNames[0]
-        oldChange.oldAreaTerritory = oldAreas.areaTerritories[0]
-        historicalChange.areaChanges.push oldChange
-
-        # create AreaChanges to show new Areas
+        # add new Areas
         idx = 0
-        while idx < newAreas.areas.length
-          newChange = new HG.AreaChange @_getId()
-          newChange.operation =        'ADD'
-          newChange.historicalChange = historicalChange
-          newChange.area =             newAreas.areas[idx]
-          newChange.newAreaName =      newAreas.areaNames[idx]
-          newChange.newAreaTerritory = newAreas.areaTerritories[idx]
-          historicalChange.areaChanges.push newChange
-
+        while idx < @_newAreas.areas.length
+          @_makeADD idx
           idx++
 
       # ------------------------------------------------------------------------
       when 'SEC'
 
         # Area that the others are seceded from
-        secArea = oldAreas.areas[0]
-        secNewAreaIdx = null  # at which index in the oldAreas array is the Area?
+        secArea = @_oldAreas.areas[0]
 
-        # create AreaChange to show new Areas
         idx = 0
-        while idx < newAreas.areas.length
+        while idx < @_newAreas.areas.length
 
-          # except for the secession area which will be handled afterwards
-          if newAreas.areas[idx] is secArea
-            secNewAreaIdx = idx
-            idx++
-            continue
+          # secession area creates a TCH, because it continues the identity
+          # if formal name has changed, add this NCH areaChange as well
+          if @_newAreas.areas[idx] is secArea
+            @_makeTCH 0, idx
+            @_makeNCH 0, idx if @_oldAreas.areaNames[0] isnt @_newAreas.areaNames[idx]
 
-          newChange = new HG.AreaChange @_getId()
-          newChange.operation =        'ADD'
-          newChange.historicalChange = historicalChange
-          newChange.area =             newAreas.areas[idx]
-          newChange.newAreaName =      newAreas.areaNames[idx]
-          newChange.newAreaTerritory = newAreas.areaTerritories[idx]
-          historicalChange.areaChanges.push newChange
+          # normal non-secession area will be added
+          else @_makeADD idx
 
           idx++
 
-        # create AreaChange to change the territory of the secession Area
-        updateChange = new HG.AreaChange @_getId()
-        updateChange.operation =        'TCH'
-        updateChange.historicalChange = historicalChange
-        updateChange.area =             oldAreas.areas[0]
-        updateChange.oldAreaTerritory = oldAreas.areaTerritories[0]
-        updateChange.newAreaTerritory = newAreas.areaTerritories[secNewAreaIdx]
-        historicalChange.areaChanges.push updateChange
-
-        # if formal name has changed, add this areaChange as well
-        if oldAreas.areaNames[0] isnt newAreas.areaNames[secNewAreaIdx]
-          updateChange = new HG.AreaChange @_getId()
-          updateChange.operation =        'NCH'
-          updateChange.historicalChange = historicalChange
-          updateChange.area =             oldAreas.areas[0]
-          updateChange.oldAreaName =      oldAreas.areaNames[0]
-          updateChange.newAreaName =      newAreas.areaNames[secNewAreaIdx]
-          historicalChange.areaChanges.push updateChange
-
-
       # ------------------------------------------------------------------------
       when 'TCH', 'BCH'
-
-        # create AreaChange to change the territory
         idx = 0
-        while idx < newAreas.areas.length
-          updateChange = new HG.AreaChange @_getId()
-          updateChange.operation =        'TCH'
-          updateChange.historicalChange = historicalChange
-          updateChange.area =             oldAreas.areas[idx]
-          updateChange.oldAreaTerritory = oldAreas.areaTerritories[idx]
-          updateChange.newAreaTerritory = newAreas.areaTerritories[idx]
-          historicalChange.areaChanges.push updateChange
-
+        while idx < @_newAreas.areas.length
+          @_makeTCH idx, idx
           idx++
 
       # ------------------------------------------------------------------------
       when 'NCH'
-
-        # create AreaChange to change the name
-        updateChange = new HG.AreaChange @_getId()
-        updateChange.operation =        'NCH'
-        updateChange.historicalChange = historicalChange
-        updateChange.area =             oldAreas.areas[0]
-        updateChange.oldAreaName =      oldAreas.areaNames[0]
-        updateChange.newAreaName =      newAreas.areaNames[0]
-        historicalChange.areaChanges.push updateChange
+        @_makeNCH 0, 0
 
       # ------------------------------------------------------------------------
       when 'ICH'
-
-        # create AreaChange to hide old Area (with old AreaName)
-        oldChange = new HG.AreaChange @_getId()
-        oldChange.operation =        'DEL'
-        oldChange.historicalChange = historicalChange
-        oldChange.area =             oldAreas.areas[0]
-        oldChange.oldAreaName =      oldAreas.areaNames[0]
-        oldChange.oldAreaTerritory = oldAreas.areaTerritories[0]
-        historicalChange.areaChanges.push oldChange
-
-        # create AreaChanges to show new Areas (with new AreaName)
-        newChange = new HG.AreaChange @_getId()
-        newChange.operation =        'ADD'
-        newChange.historicalChange = historicalChange
-        newChange.area =             newAreas.areas[0]
-        newChange.newAreaName =      newAreas.areaNames[0]
-        newChange.newAreaTerritory = newAreas.areaTerritories[0]
-        historicalChange.areaChanges.push newChange
+        @_makeDEL 0
+        @_makeADD 0
 
       # ------------------------------------------------------------------------
       when 'DES'
+        @_makeDEL 0
 
-        # create AreaChange to hide old Area
-        oldChange = new HG.AreaChange @_getId()
-        oldChange.operation =        'DEL'
-        oldChange.historicalChange = historicalChange
-        oldChange.area =             oldAreas.areas[0]
-        oldChange.oldAreaName =      oldAreas.areaNames[0]
-        oldChange.oldAreaTerritory = oldAreas.areaTerritories[0]
-        historicalChange.areaChanges.push oldChange
 
-    return historicalChange
+  # ============================================================================
+  # helper functions to create a single AreaChange for each operation
+  # ============================================================================
+
+  _makeADD: (idx) ->
+    newChange = new HG.AreaChange @_getId()
+    newChange.operation =        'ADD'
+    newChange.historicalChange = @_historicalChange
+    newChange.area =             @_newAreas.areas[idx]
+    newChange.newAreaName =      @_newAreas.areaNames[idx]
+    newChange.newAreaTerritory = @_newAreas.areaTerritories[idx]
+    @_historicalChange.areaChanges.push newChange
+
+  # ----------------------------------------------------------------------------
+  _makeDEL: (idx) ->
+    newChange = new HG.AreaChange @_getId()
+    newChange.operation =        'DEL'
+    newChange.historicalChange = @_historicalChange
+    newChange.area =             @_oldAreas.areas[idx]
+    newChange.oldAreaName =      @_oldAreas.areaNames[idx]
+    newChange.oldAreaTerritory = @_oldAreas.areaTerritories[idx]
+    @_historicalChange.areaChanges.push newChange
+
+  # ----------------------------------------------------------------------------
+  _makeNCH: (oldIdx, newIdx) ->
+    newChange = new HG.AreaChange @_getId()
+    newChange.operation =        'NCH'
+    newChange.historicalChange = @_historicalChange
+    newChange.area =             @_oldAreas.areas[oldIdx]
+    newChange.oldAreaName =      @_oldAreas.areaNames[oldIdx]
+    newChange.newAreaName =      @_newAreas.areaNames[newIdx]
+    @_historicalChange.areaChanges.push newChange
+
+  # ----------------------------------------------------------------------------
+  _makeTCH: (oldIdx, newIdx) ->
+    newChange = new HG.AreaChange @_getId()
+    newChange.operation =        'TCH'
+    newChange.historicalChange = @_historicalChange
+    newChange.area =             @_oldAreas.areas[oldIdx]
+    newChange.oldAreaTerritory = @_oldAreas.areaTerritories[oldIdx]
+    newChange.newAreaTerritory = @_newAreas.areaTerritories[newIdx]
+    @_historicalChange.areaChanges.push newChange

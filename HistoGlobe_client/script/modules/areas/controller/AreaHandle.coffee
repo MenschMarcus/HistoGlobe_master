@@ -297,6 +297,7 @@ class HG.AreaHandle
     if becameDeselected
       @deselect obj
 
+
   # ============================================================================
   # Notifies listeners that the Area associated with the AreaHandle is now not
   # selected anymore. This is triggered when a selected map area layer belonging
@@ -310,6 +311,7 @@ class HG.AreaHandle
       @_removeFromArray(@, SELECTED_AREAS)
       if obj then @notify    'onDeselect', obj, @
       else        @notifyAll 'onDeselect', @
+
 
   # ============================================================================
   # Notifies listeners that the Area associated with the AreaHandle is now in
@@ -325,9 +327,6 @@ class HG.AreaHandle
       if obj then @notify    'onStartEdit', obj, @
       else        @notifyAll 'onStartEdit', @
 
-    console.log "--------------------------------------------------------------"
-    console.log "start edit", @_area.id, @_area.name?.shortName
-    console.log EDIT_AREAS
 
   # ============================================================================
   # Notifies listeners that the AreaHandle is now not selected anymore. This is
@@ -343,9 +342,6 @@ class HG.AreaHandle
       if obj then @notify    'onEndEdit', obj, @
       else        @notifyAll 'onEndEdit', @
 
-    console.log "--------------------------------------------------------------"
-    console.log "end edit", @_area.id, @_area.name?.shortName
-    console.log EDIT_AREAS
 
   # ============================================================================
   # Notifies listeners that the Area in the AreaHandle is destroyed. This
