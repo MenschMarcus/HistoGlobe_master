@@ -10,7 +10,7 @@ window.HG ?= {}
 #
 # ------------------------------------------------------------------------------
 # operations:
-#   ADD) add new area:         -> A'
+#   ADD) add new area:         -> A
 #   DEL) delete old area:    A ->
 #   NCH) name change:        A -> A'
 #   TCH) territory change:   A -> A'

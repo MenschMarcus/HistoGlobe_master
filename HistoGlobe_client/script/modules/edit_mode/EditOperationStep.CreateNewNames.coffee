@@ -139,7 +139,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
           # define if this area was continued in its identity
           # -> Area that caused secession instead of separation
           identityArea = @_stepData.outData.handleToBeDeleted?.getArea().id
-          thisIsIdentityArea = identityArea and identityArea is @_stepData.inData.areas[0].id
+          thisIsIdentityArea = identityArea and identityArea is @_stepData.inData.areas[@_areaIdx].id
 
           # reverse action which continued the identity of the selected area
           if thisIsIdentityArea
@@ -584,9 +584,10 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
     oldArea.territory = oldTerritory
     oldTerritory.area = oldArea
 
-    # reset link new Area <-> new AreaName
-    oldArea.name = oldName
+    # do not reset link new Area <-> new AreaName
+    # because that would show the area on the map again
     oldName.area = oldArea
+    # oldArea.name = oldName # Leave uncommented!
 
     # show old area
     oldArea.handle.show()

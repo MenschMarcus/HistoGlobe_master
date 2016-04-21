@@ -222,8 +222,7 @@ class HG.AreaHandle
   focus: (obj=null) ->
     if not @_focused
 
-      # edit mode: only non-selected areas in edit mode can be focused
-      # -> why unselected?
+      # edit mode: only selected areas in edit mode can be focused
       areaEditMode = @_hgInstance.editMode?.areaEditMode()
       if areaEditMode is on
         if (@_inEdit) and (not @_selected)
@@ -294,10 +293,6 @@ class HG.AreaHandle
       if obj then @notify    'onSelect', obj, @
       else        @notifyAll 'onSelect', @
 
-    console.log "--------------------------------------------------------------"
-    console.log "select", @_area.id, @_area.name?.shortName
-    console.log SELECTED_AREAS
-
     # status change 3) selected -> deselected
     if becameDeselected
       @deselect obj
@@ -315,10 +310,6 @@ class HG.AreaHandle
       @_removeFromArray(@, SELECTED_AREAS)
       if obj then @notify    'onDeselect', obj, @
       else        @notifyAll 'onDeselect', @
-
-    console.log "--------------------------------------------------------------"
-    console.log "deselect", @_area.id, @_area.name?.shortName
-    console.log SELECTED_AREAS
 
   # ============================================================================
   # Notifies listeners that the Area associated with the AreaHandle is now in

@@ -60,7 +60,7 @@ class HG.EditOperationStep
   # get a new random id
   # ============================================================================
 
-  _getId: () -> @_hgInstance.editOperation.getRandomId()
+  _getId: () -> @_hgInstance.editOperation.getNewId()
 
   # ============================================================================
   # cleanup to be implemented by each step on its own

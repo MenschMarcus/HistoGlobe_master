@@ -45,7 +45,7 @@ class HG.EditOperation
 
     # random ids that have been created for new objects in EditOperationSteps
     # => ensures each id will be unique
-    @_ids = []
+    @_idCtr = 0
 
 
     ### SETUP OPERATION DATA CONFIG ###
@@ -181,15 +181,9 @@ class HG.EditOperation
   # ============================================================================
   # create a random id for an object that does not exit yet
   # ============================================================================
-  getRandomId: () ->
-    # create random id [1000..9999]
-    newId = 1000 + Math.round(Math.random()*8999)
-    if (@_ids.indexOf newId) isnt -1        # if id is already taken
-      @getRandomId()                        #   try anther one
-    else                                    # if id is unique
-      @_ids.push newId                      #   ensure it can't be taken again
-      return newId                          #   and use it
-
+  getNewId: () ->
+    @_idCtr++       # next id that has not been assigned yet
+    "T" + @_idCtr   # unique id = "T" for "temporary" + contiguous number
 
   # ============================================================================
   # manage stepping through the steps

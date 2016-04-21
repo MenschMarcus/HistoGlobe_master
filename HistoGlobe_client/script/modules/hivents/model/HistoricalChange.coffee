@@ -6,15 +6,17 @@ window.HG ?= {}
 # HistoricalChange defines what has historically changed because of an Hivent.
 # DTO => no functionality
 #
-# operations:
-#   CRE) creation of new area:                         -> A
+# operations:                                     AreaChanges
+#   CRE) creation of new area:                    0 -> A
 #   UNI) unification of many to one area:         A, B -> C
 #   INC) incorporation of many into one area:     A, B -> A
 #   SEP) separation of one into many areas:       A -> B, C
 #   SEC) secession of many areas from one:        A -> A, B
-#   NCH) name change of one or many areas:        A -> A', B -> B'
-#   TCH) territory change of one or many areas:   A -> A', B -> B'
-#   DES) destruction of an area:                  A ->
+#   TCH) territory change of one areas:           A -> A'
+#   BCH) border change between two areas:         A -> A', B -> B'
+#   NCH) name change of one area:                 A -> A'
+#   ICH) identity change of an area:              A -> 0, 0 -> B
+#   DES) destruction of an area:                  A -> 0
 # ==============================================================================
 
 
@@ -26,7 +28,7 @@ class HG.HistoricalChange
 
   constructor: (id)  ->
     @id             = id
-    @operation      = null    # one 'XXX' of the list above
+    @operation      = null    # 'XXX' of the list above
     @hivent         = null    # HG.Hivent
     @areaChanges    = []      # HG.AreaChange
 
