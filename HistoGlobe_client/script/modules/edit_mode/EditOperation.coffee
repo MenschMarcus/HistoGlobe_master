@@ -87,6 +87,8 @@ class HG.EditOperation
               areas:              []
               oldTerritories:     []
               newTerritories:     []
+              oldNames:           []
+              newNames:           []
               drawLayers:         []
             }
             outData: {

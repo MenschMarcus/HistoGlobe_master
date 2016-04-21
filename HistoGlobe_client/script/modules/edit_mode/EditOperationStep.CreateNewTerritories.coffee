@@ -177,63 +177,10 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
   _CRE: (clipGeometry) ->
 
-    # approach: clip new geometry to existing geometries
-    # check for intersection with each active area on the map
-    # TODO: make more efficient later (Quadtree?)
+    # little hack: access the workflow data of the first step and manipulate it
+    selectedAreaData = @_hgInstance.editOperation.operation.steps[1].outData
 
-    # manual loop, because some areas might be deleted on the way
-    currAreas = @_hgInstance.areaController.getAreaHandles()
-    areaIdx = currAreas.length-1
-    while areaIdx >= 0
-      if currAreas[areaIdx].isVisible()
-        currArea =        currAreas[areaIdx].getArea()
-        currTerritory =   currAreas[areaIdx].getArea().territory
-        currName =        currAreas[areaIdx].getArea().name
-
-        # if new geometry intersects with a current geometry
-        intersectionGeometry = @_geometryOperator.intersection clipGeometry, currTerritory.geometry
-        if intersectionGeometry.isValid()
-
-          # => clip the curr geometry to the new geometry and update its area
-          newGeometry = @_geometryOperator.difference currTerritory.geometry, clipGeometry
-
-          # area has been clipped => update territory
-          if newGeometry.isValid()
-
-            # create new Territory
-            newTerritory = new HG.AreaTerritory {
-              id:                   @_getId()
-              geometry:             newGeometry
-              representativePoint:  newGeometry.getCenter()
-            }
-
-            # link Area <-> AreaTerritory
-            newTerritory.area = currArea
-            currArea.territory = newTerritory
-
-            # update view
-            currArea.handle.update()
-
-
-          # area has been hidden => remove territory and update
-          else
-
-            # update Area
-            newTerritory = null
-            currArea.territory = null
-
-            # update view
-            currArea.handle.hide()
-
-          # add to workflow
-          @_stepData.tempData.areas.push          currArea
-          @_stepData.tempData.oldTerritories.push currTerritory
-          @_stepData.tempData.newTerritories.push newTerritory
-
-      # test previous area
-      areaIdx--
-
-    ## create area based on the clip geometry
+    ## create new Area based on the clip geometry
     newArea = new HG.Area @_getId()
     newTerritory = new HG.AreaTerritory {
       id:                   @_getId()
@@ -249,18 +196,101 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     newHandle = new HG.AreaHandle @_hgInstance, newArea
     newArea.handle = newHandle
 
-    # show area via areaHandle
-    newHandle.show()
-    newHandle.select()
-    newHandle.startEdit()
+    # update view
+    # -> do not do it here, because if the area is visible, it will get selected
+    # to be clipped in the following action of this step
 
     # add to operation workflow
-    @_stepData.outData.areas[0] =            newArea
-    @_stepData.outData.areaNames[0] =        null
-    @_stepData.outData.areaTerritories[0] =  newTerritory
+    @_stepData.outData.areas.push            newArea
+    @_stepData.outData.areaNames.push        null
+    @_stepData.outData.areaTerritories.push  newTerritory
+
+    # hack: add empty area to output of first step to make sure indices match
+    # for the comparison in the upcoming areas
+    selectedAreaData.areas.push             null
+    selectedAreaData.areaNames.push         null
+    selectedAreaData.areaTerritories.push   null
 
 
-  # ============================================================================
+    # approach to treat the rest of the areas that change because of the newly
+    # created Area: clip new geometry to existing geometries and check for
+    # intersection with each active area on the map
+    #   -> new Area overlaps current Area =>  TCH of the current Area
+    #   -> new Area covers current Area =>    DES of the current Area
+    # TODO: make more efficient later (Quadtree?)
+
+    # manual loop, because some areas might be deleted on the way
+    currAreas = @_hgInstance.areaController.getAreaHandles()
+    areaIdx = currAreas.length-1
+    while areaIdx >= 0
+      if currAreas[areaIdx].isVisible()
+
+        # get the Area that changes due to the creation of the new Area
+        currArea =        currAreas[areaIdx].getArea()
+        currTerritory =   currAreas[areaIdx].getArea().territory
+        currName =        currAreas[areaIdx].getArea().name
+
+        # if new geometry intersects with a current geometry
+        intersectionGeometry = @_geometryOperator.intersection clipGeometry, currTerritory.geometry
+        if intersectionGeometry.isValid()
+
+          # => clip the curr geometry to the new geometry and update its area
+          newGeometry = @_geometryOperator.difference currTerritory.geometry, clipGeometry
+
+          # area has been clipped => TCH
+          if newGeometry.isValid()
+
+            # create new Territory
+            newTerritory = new HG.AreaTerritory {
+              id:                   @_getId()
+              geometry:             newGeometry
+              representativePoint:  newGeometry.getCenter()
+            }
+
+            # link Area <-> AreaTerritory
+            newTerritory.area = currArea
+            currArea.territory = newTerritory
+
+            # name doesn't change
+            newName = currName
+
+            # update view
+            currArea.handle.update()
+            currArea.handle.startEdit()
+
+            # add to workflow: treat as Areas in TCH operation
+            @_stepData.outData.areas.push           currArea
+            @_stepData.outData.areaNames.push       currName
+            @_stepData.outData.areaTerritories.push newTerritory
+
+
+          # area has been hidden => DES
+          else
+
+            # update Area
+            currArea.territory = null
+            currArea.name = null
+
+            # update view
+            currArea.handle.hide()
+
+          # hack: add both cases to the workflow and treat them as if they would
+          # have been selected in the non-existent first OperationStep
+          selectedAreaData.areas.push             currArea
+          selectedAreaData.areaNames.push         currName
+          selectedAreaData.areaTerritories.push   currTerritory
+
+      # test previous area
+      areaIdx--
+
+
+    # finally show new Area
+    newArea.handle.show()
+    newArea.handle.select()
+    newArea.handle.startEdit()
+
+
+  # ----------------------------------------------------------------------------
   _CRE_reverse: () ->
 
     # delete created area
@@ -268,20 +298,29 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     newArea.handle.destroy()
 
     # restore old areas
-    while @_stepData.tempData.areas.length > 0
-      area =          @_stepData.tempData.areas.pop()
-      oldTerritory =  @_stepData.tempData.oldTerritories.pop()
-      newTerritory =  @_stepData.tempData.newTerritories.pop()
+    idx = 1   # N.B. do not start at the first Area [0] -> that was the new Area
+    while idx < @_stepData.inData.areas.length
+      oldArea =       @_stepData.inData.areas[idx]
+      oldName =       @_stepData.inData.areaNames[idx]
+      oldTerritory =  @_stepData.inData.areaTerritories[idx]
 
-      # area has been clipped => recreate old territory
-      if newTerritory
-        area.territory = oldTerritory
-        area.handle.update()
+      # was the Area completely deleted?
+      areaWasDeleted = not oldArea.territory?
 
-      # area has been hidden => recreate whole area with old territory
+      # link Area <- AreaName/AreaTerritory
+      oldArea.name =      oldName
+      oldArea.territory = oldTerritory
+
+      # show resp. update area
+      if areaWasDeleted
+        oldArea.handle.show()
       else
-        area.territory = oldTerritory
-        area.handle.show()
+        oldArea.handle.update()
+        oldArea.handle.deselect()
+        oldArea.handle.endEdit()
+
+      # restore next area
+      idx++
 
 
   # ============================================================================
@@ -337,7 +376,8 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     @_stepData.outData.areaNames[0] =        null
     @_stepData.outData.areaTerritories[0] =  newTerritory
 
-  # ============================================================================
+
+  # ----------------------------------------------------------------------------
   _UNI_reverse: () ->
 
     # get areaHandle from operation workflow
@@ -462,7 +502,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     separationComplete
 
 
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   _SEP_reverse: () ->
 
     # remove new area => hides, deselects and leaves edit mode automatically
@@ -610,7 +650,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
       @_stepData.outData.areaTerritories[1] = B_newTerritory
 
 
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   _TCH_reverse: () ->
 
     ## handles both TCH and BCH
@@ -638,7 +678,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
   _NCH: () ->
     @_stepData.outData = @_stepData.inData
 
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   _NCH_reverse: () ->
     @_stepData.inData = @_stepData.outData
 
@@ -660,7 +700,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     # hide area
     oldArea.handle.hide()
 
-  # ============================================================================
+  # ----------------------------------------------------------------------------
   _DES_reverse: () ->
     # get selected area
     oldArea =       @_stepData.inData.areas[0]

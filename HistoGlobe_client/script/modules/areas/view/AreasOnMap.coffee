@@ -80,9 +80,9 @@ class HG.AreasOnMap
     newZoom = @_map.getZoom()
 
     # check zoom direction and update labels
-    if newZoom > oldZoom # zoom in
+    if newZoom > oldZoom  # zoom in
       @_labelManager.zoomIn()
-    else
+    else                  # zoom out
       @_labelManager.zoomOut()
 
     # update zoom level

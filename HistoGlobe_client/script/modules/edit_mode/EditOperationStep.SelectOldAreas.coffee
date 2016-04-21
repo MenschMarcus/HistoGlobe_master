@@ -18,7 +18,11 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     super @_hgInstance, direction
 
     # skip step if not user input
-    return @finish() if not @_stepData.userInput
+    if not @_stepData.userInput
+      if direction is 1 # forward
+        return @finish()
+      else # backward
+        return @abort()
 
 
     ### SETUP OPERATION ###
@@ -115,5 +119,6 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
     @_hgInstance.areaController.disableMultiSelection()
 
     # deselect all selected areas (clean cleanup)
-    for area in @_stepData.outData.areas
-      area.handle.deselect()
+    if direction is 1
+      for area in @_stepData.outData.areas
+        area.handle.deselect()

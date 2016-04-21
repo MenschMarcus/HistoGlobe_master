@@ -96,8 +96,27 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
 
       # ------------------------------------------------------------------------
       when 'CRE'
-        # TODO: what to do with the areas that got cut off?
-        magic = 42
+
+        # add new Area
+        @_makeADD 0
+
+        # for all other areas: decide if their territory has been changed or removed
+        oldIdx = 1  # N.B. start NOT at 0, because 0 is the ADD area
+        while oldIdx < @_oldAreas.areas.length
+
+          # get corresponding area from newAreas array, if there is any
+          newIdx = @_newAreas.areas.indexOf @_oldAreas.areas[oldIdx]
+
+          # if there is no corresponding Area, it was removed => DES
+          if newIdx is -1
+            @_makeDEL oldIdx
+
+          # if there is a corresponding Area, its territory got changed => TCH
+          else
+            @_makeTCH oldIdx, newIdx
+
+          oldIdx++
+
 
       # ------------------------------------------------------------------------
       when 'UNI'

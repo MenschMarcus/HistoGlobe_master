@@ -62,7 +62,18 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
       currName =      @_stepData.outData.areaNames[@_areaIdx]
       currTerritory = @_stepData.outData.areaTerritories[@_areaIdx]
 
-    # original names of areas from 1st step (HG.AreaName)
+    # remove the name from the area, so it can be set in NewNameTool
+    if currArea.name
+      currArea.name = null
+      currArea.handle.update()
+
+    # hack for CRE operation: select the Area so it is visible for the user
+    # which Area is currently get its name set
+    if @_getOperationId() is 'CRE' and @_areaIdx > 0
+      currArea.handle.select()
+
+    # get original names of areas from 1st step (HG.AreaName)
+    # to set them as name suggestions for the NewNameTool (autocomplete in there)
     @_origNames = @_hgInstance.editOperation.operation.steps[1].outData.areaNames
 
     # initial values for NewNameTool
@@ -74,25 +85,32 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
     }
 
     # do not hand the HG.AreaName into NewNameTool, but only the name strings
-    # => used nameAuggestion will be determined later by string comparison
+    # => used name suggestion will be determined later by string comparison
     for nameSuggestion in @_origNames
-      tempData.nameSuggestions.push {
-        shortName:  nameSuggestion.shortName
-        formalName: nameSuggestion.formalName
-      }
+      if nameSuggestion?
+        tempData.nameSuggestions.push {
+          shortName:  nameSuggestion.shortName
+          formalName: nameSuggestion.formalName
+        }
 
     # override with temporary data from last time, if it is available
     tempData = $.extend {}, tempData, @_stepData.tempData[@_areaIdx]
 
-    # remove the name from the area
-    if currArea.name
-      currArea.name = null
-      currArea.handle.update()
-
-
     # get initial data for NewNameTool
     allowNameChange = yes     # is the user allowed to change the name?
     switch @_getOperationId()
+
+      # for CRE: treat the first Area (the one that gets created) normally
+      # -> no default name
+      # treat every other area just like Areas in TCH
+      # -> default name that can not be changed
+      when 'CRE'
+        if @_areaIdx > 0
+          tempData.name = {
+            shortName:  currName.shortName
+            formalName: currName.formalName
+          }
+          allowNameChange = no
 
       # for NCH/ICH: set the current name of the area as default value
       # to work immediately on it or just use it
@@ -119,8 +137,13 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
         # ----------------------------------------------------------------------
         when 'CRE'
 
-          @_updateAreaName_reverse()
+          # the 1st Area in the workflow is the one that actually got set new
+          if @_areaIdx is 0
+            @_updateAreaName_reverse()
+
+          # all the other ones are treated just like Areas in TCH operation
           @_updateRepresentativePoint_reverse()
+
 
         # ----------------------------------------------------------------------
         when 'UNI'
@@ -194,11 +217,43 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
         # ----------------------------------------------------------------------
         when 'CRE'
 
-          @_updateAreaName newShortName, newFormalName
+          # first Area: newly created area => update its AreaName
+          if @_areaIdx is 0
+            @_updateAreaName newShortName, newFormalName
+
+          # every other Area: restore the name that has been there before
+          else
+            # deselect again
+            @_restoreAreaName yes
+
+          # update reprsentative point for any area
           @_updateRepresentativePoint newPoint
 
-          # only one step necessary => finish
-          return @finish()
+          # finish when old area was separated completely
+          if @_areaIdx is @_stepData.inData.areas.length-1
+            return @finish()
+
+          # otherwise cleanup and continue with next area
+          else
+            @_hgInstance.newNameTool?.destroy()
+            @_hgInstance.newNameTool = null
+            @_makeNewName 1
+
+          # make action reversible
+          @_undoManager.add {
+            undo: =>
+              # cleanup
+              @_hgInstance.newNameTool?.destroy()
+              @_hgInstance.newNameTool = null
+
+              # area left to restore => go back one step
+              if @_areaIdx > 0
+                @_restoreAreaName yes
+                @_makeNewName -1
+
+              # no area left => first action => abort step and go backwards
+              else @abort()
+          }
 
         # ----------------------------------------------------------------------
         when 'UNI', 'INC'
@@ -493,7 +548,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
   # the map
   # ============================================================================
 
-  _restoreAreaName: () ->
+  _restoreAreaName: (deselect=no) ->
 
     # get areas
     currArea =      @_stepData.inData.areas[@_areaIdx]
@@ -505,6 +560,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
     # update view
     currArea.handle.update()
+    currArea.handle.deselect() if deselect
 
     # add to workflow
     @_stepData.outData.areas[@_areaIdx] =           currArea
@@ -513,7 +569,17 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
 
   # ----------------------------------------------------------------------------
-  _restoreAreaName_resverse: () ->
+  _restoreAreaName_reverse: (deselect=no) ->
+
+    # get areas
+    currArea =      @_stepData.inData.areas[@_areaIdx]
+
+    # delete area from the map
+    currArea.name = null
+
+    # update view
+    currArea.handle.update()
+    currArea.handle.deselect() if deselect
 
 
   # ============================================================================
