@@ -18,41 +18,60 @@ class HG.DoublyLinkedList
 
     @_length = 0    # length of list
 
+
   # ============================================================================
   # get number of elements / length / size of list
+  # ============================================================================
+
   length: () ->     @_length
   size: () ->       @_length
   num: () ->        @_length
 
   isEmpty: () ->    @_length is 0
 
-  # ============================================================================
-  # add element in the list after another
-  addAfter: (element, predecessor) ->   @_addAfter  element, predecessor
 
   # ============================================================================
   # add element in the list after another
+  # ============================================================================
+
+  addAfter: (element, predecessor) ->   @_addAfter  element, predecessor
+
+
+  # ============================================================================
+  # add element in the list after another
+  # ============================================================================
+
   addBefore: (element, sucessor) ->     @_addBefore element, sucessor
+
 
   # ============================================================================
   # add an element to the front of the list
+  # ============================================================================
+
   addFront: (element) ->                @_addAfter  element, @head
   pushFront: (element) ->               @_addAfter  element, @head
   prepend: (element) ->                 @_addAfter  element, @head
 
+
   # ============================================================================
   # add an element to the end of the list
+  # ============================================================================
+
   addBack: (element) ->                 @_addBefore element, @tail
   pushBack: (element) ->                @_addBefore element, @tail
   append: (element) ->                  @_addBefore element, @tail
 
   # ============================================================================
-  # remove a node from the list
+  # remove a node or an element from the list
+  # ============================================================================
+
   removeElement: (element) ->           @_remove @_getNode element
   removeNode: (node) ->                 @_remove node
 
   # ============================================================================
   # get the node associated to that element
+  # ============================================================================
+
   getNode: (element) ->                 @_getNode element
 
 
@@ -100,6 +119,7 @@ class HG.DoublyLinkedList
 
     @_length++
 
+
   # ============================================================================
   _remove: (node) ->
 
@@ -115,6 +135,7 @@ class HG.DoublyLinkedList
     @tail = node.prev if @tail is node
 
     @_length--
+
 
   # ============================================================================
   _getNode: (element) ->

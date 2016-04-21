@@ -23,8 +23,7 @@ class HG.LabelManager
 
     # initially show the label to know how much space it occupies on the map
     # => retrieve geometric properties
-    @_map.showLabel newLabel
-    @_recenter newLabel
+    @_show newLabel
 
     # init members
     newLabel.isVisible = yes    # status variable to check if a label is shown or hidden
@@ -79,12 +78,13 @@ class HG.LabelManager
         return if not currNode
 
         # check for each label (until the tail of the list is reached)
+        # TODO: make more efficient
         while not currNode.isTail()
 
           currLabel = currNode.data
 
           # current label has definitely lower priority than new label
-          # => if they overlap, currLabel will be hidden
+          # => if they overlap, current label will be hidden
           if @_labelsOverlap newLabel, currLabel
             currLabel.coveredBy.push newLabel
             newLabel.covers.push currLabel
@@ -102,36 +102,36 @@ class HG.LabelManager
     # error handling
     return if not removeLabel
 
-    # hide label from the map
+    # remove label from the map
     @_hide removeLabel
 
-    # idea: show all lower priority labels that have space now
-    # = that used to be covered by removeLabel
-    removeNode = @_labelList.getNode removeLabel
-    currNode = removeNode.next  # start with the next node to avoid checking with itself
+    # idea: each label that was covered by this label and has space now => show
+    for coveredLabel, idx in removeLabel.covers
 
-    # check for each label (until the tail of the list is reached)
-    while not currNode.isTail()
+      # update coveredBy list of covered label
+      removeIdx = coveredLabel.coveredBy.indexOf removeLabel
+      coveredLabel.coveredBy.splice removeIdx, 1
 
-      currLabel = currNode.data
+      # check if covered label can be to be shown now
+      # = if no more other label covers it
+      @_show coveredLabel if (coveredLabel.coveredBy.length is 0)
 
-      # check if current label was covered by remove label
-      removeIdx = currLabel.coveredBy.indexOf removeLabel
-      if (not currLabel.isVisible) and (removeIdx isnt -1)
+    # removeLabel does not cover any other label anymore
+    removeLabel.covers = []
 
-        # update cover lists
-        currLabel.coveredBy.splice removeIdx, 1
-        removeIdx = removeLabel.covers.indexOf currLabel
-        removeLabel.covers.splice removeIdx, 1
+    # unlink label from all labels that it is covered by
+    # -> no other action required, because this does not influence other labels
+    for coveringLabel, idx in removeLabel.coveredBy
 
-        # check if current label can be to be shown now
-        # = if no more other label covers it
-        @_show currLabel if (currLabel.coveredBy.length is 0)
+      # update covers list of covering label
+      removeIdx = coveringLabel.covers.indexOf removeLabel
+      coveringLabel.covers.splice removeIdx, 1
 
-      currNode = currNode.next
+    # removeLabel is not covered by any other label anymore
+    removeLabel.coveredBy = []
 
     # finally remove the label from the list
-    @_labelList.removeNode removeNode
+    @_labelList.removeElement removeLabel
 
     # @DEBUG()
 
@@ -244,6 +244,7 @@ class HG.LabelManager
 
   # ============================================================================
   # main decision function: collission or not?
+  # ============================================================================
 
   _labelsOverlap: (labelA, labelB) ->
     # error handling: if one label does not exist -> abort check
