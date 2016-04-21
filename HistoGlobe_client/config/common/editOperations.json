@@ -1,8 +1,6 @@
 [
   {
     "id":           "CRE",
-    "title":        "Add new country",
-    "verb":         "add",
     "steps":
     [
       {
@@ -19,8 +17,6 @@
   },
   {
     "id":           "UNI",
-    "verb":         "unite",
-    "title":        "Unite countries",
     "steps":
     [
       {
@@ -37,8 +33,6 @@
   },
   {
     "id":           "SEP",
-    "verb":         "separate",
-    "title":        "Separate country",
     "steps":
     [
       {
@@ -59,8 +53,6 @@
   },
   {
     "id":           "TCH",
-    "verb":         "change borders between",
-    "title":        "Change corders between countries",
     "steps":
     [
       {
@@ -81,8 +73,6 @@
   },
   {
     "id":           "NCH",
-    "verb":         "change name of",
-    "title":        "Change name of country",
     "steps":
     [
       {
@@ -99,8 +89,6 @@
   },
   {
     "id":           "DES",
-    "verb":         "delete",
-    "title":        "Delete country",
     "steps":
     [
       {

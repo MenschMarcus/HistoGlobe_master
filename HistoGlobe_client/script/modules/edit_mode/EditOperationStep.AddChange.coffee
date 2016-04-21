@@ -19,8 +19,6 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
     # get the historical change data
     @_prepareChange()
 
-    console.log @_historicalChange
-
     ### SETUP OPERATION ###
 
     if direction is -1
@@ -28,7 +26,7 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
       @_hgInstance.editMode.enterAreaEditMode()
 
     # hivent box: select existing or create new hivent
-    @_hiventBox = new HG.NewHiventBox @_hgInstance, @_stepData, "HORST"
+    @_hiventBox = new HG.NewHiventBox @_hgInstance, @_stepData, @_historicalChange.getDescription()
 
     ### INTERACTION ###
     # tell workflow window to change to the finish button

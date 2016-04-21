@@ -34,6 +34,45 @@ class HG.HistoricalChange
 
 
   # ============================================================================
+  # get a textual description of what happened in the Change
+  # ============================================================================
+
+  getDescription: () ->
+
+    # get short names of all old and new areas
+    oldAreaNames = []
+    newAreaNames = []
+    tchAreaNames = []
+    nchAreaNames = []
+    for change in @areaChanges
+      switch change.operation
+        when 'ADD' then newAreaNames.push change.newAreaName.shortName
+        when 'DEL' then oldAreaNames.push change.oldAreaName.shortName
+        when 'TCH' then tchAreaNames.push change.area.name.shortName
+        when 'NCH'
+          nchAreaNames.push change.oldAreaName.shortName
+          nchAreaNames.push change.newAreaName.shortName
+
+    # concatenate names together by ',' but the last one by 'and'
+    oldStr = @_joinToEnum oldAreaNames
+    newStr = @_joinToEnum newAreaNames
+    tchStr = @_joinToEnum tchAreaNames
+    nchStr = @_joinToEnum nchAreaNames, "to"
+
+    switch @operation
+      when 'CRE' then return "Creation of " + newStr
+      when 'UNI' then return "Unification of " + oldStr + " to " + newStr
+      when 'INC' then return "Incorporation of " + oldStr + " into " + tchStr
+      when 'SEP' then return "Separation of " + oldStr + " into " + newStr
+      when 'SEC' then return "Secession of " + newStr + " from " + tchStr
+      when 'TCH' then return "Territory Change of " + tchStr
+      when 'BCH' then return "Border Change between " + tchStr
+      when 'NCH' then return "Name Change of " + nchStr
+      when 'ICH' then return "Name Change of " + nchStr + " (new identity)"
+      when 'DES' then return "Destruction of " + oldStr
+
+
+  # ============================================================================
   # execute the change: visualize areas of interest and
   # then execute all its associated AreaChanges
   # ============================================================================
@@ -104,6 +143,16 @@ class HG.HistoricalChange
     # execute all its changes
     for areaChange in @areaChanges
       areaChange.execute direction
+
+  # ============================================================================
+  # join with a keyword as the separator between the last two elements
+  # ============================================================================
+
+  _joinToEnum: (array, separatorBetweenLastTwoElements='and') ->
+    [
+      array.slice(0, -1).join(', ')
+      array.slice(-1)[0]
+    ].join if array.length < 2 then '' else ' ' + separatorBetweenLastTwoElements + ' '
 
 
 

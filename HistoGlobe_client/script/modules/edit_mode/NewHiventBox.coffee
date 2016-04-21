@@ -34,6 +34,7 @@ class HG.NewHiventBox
     ## 2.2) create new hivent
     @_hgInstance.buttons.newHiventInBox.onClick @, () ->
       # cleanup box and repupulate with new form
+      tooltip.remove() for tooltip in $('body > .tooltip') # hacky hacky lady
       $(@_hiventBox).empty()
       @_makeNewHiventForm()
 

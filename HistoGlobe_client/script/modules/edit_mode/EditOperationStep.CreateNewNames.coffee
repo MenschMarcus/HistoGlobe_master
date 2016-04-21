@@ -183,6 +183,12 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
         when 'NCH'
 
           @_updateAreaName_reverse()
+
+          # hack: remove the area name again
+          # :( the code is getting really horrible here...
+          @_stepData.inData.areas[@_areaIdx].name = null
+          @_stepData.inData.areas[@_areaIdx].handle.update()
+
           @_updateRepresentativePoint_reverse()
 
         # ----------------------------------------------------------------------
@@ -374,8 +380,6 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
               # no area left => first action => abort step and go backwards
               else @abort()
           }
-
-
 
 
         # ----------------------------------------------------------------------

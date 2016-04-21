@@ -54,8 +54,6 @@ class HG.EditOperation
     @operation =
       {
         id:                       operationConfig.id
-        title:                    operationConfig.title
-        verb:                     operationConfig.verb
         idx:                      0    # = step index -> 0 = start
         steps: [
           { # idx                 0
