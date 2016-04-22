@@ -375,12 +375,6 @@ load.run()
         terr_area_name.formal_name =  row['formal_name'].decode('utf-8')   # encoding problem :/
         terr_area_name.save()
 
-        # setup territorial relation
-        relation = TerritoryRelation(
-            sovereignt = home_area,
-            dependency = terr_area
-          )
-        relation.save()
         print(terr_area_name.short_name + " became territory of " + home_area_name.short_name)
 
         # add its area to the creation event
@@ -413,18 +407,5 @@ load.run()
     area_territory.representative_point = area_territory.geometry.point_on_surface
     area_territory.save()
   print("representative point calculated for all areas")
-
-
-  ### CREATE FIRST SNAPSHOT ###
-
-  # save initial snapshot
-  # snapshot = Snapshot(
-  #     date=iso8601.parse_date(init_data_version_date)
-  #   )
-  # snapshot.save()
-
-  # populate snapshot with all areas in the database
-  # for area in Area.objects.all():
-  #   snapshot.areas.add(area);
 
   # print("Snapshot created for date: " + snapshot.date.strftime('%Y-%m-%d'))

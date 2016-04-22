@@ -30,6 +30,8 @@ class HG.NewHiventBox
     ## 2.1) select existing hivent
     @_hgInstance.buttons.existingHiventSearch.onClick @, () ->
       # TODO: write id into out data and be ready :-)
+      # indicate that the hivent is updated
+      @_stepData.outData.hiventData.status = 'upd'
 
     ## 2.2) create new hivent
     @_hgInstance.buttons.newHiventInBox.onClick @, () ->
@@ -37,6 +39,8 @@ class HG.NewHiventBox
       tooltip.remove() for tooltip in $('body > .tooltip') # hacky hacky lady
       $(@_hiventBox).empty()
       @_makeNewHiventForm()
+      # indicate that the hivent is new
+      @_stepData.outData.hiventData.status = 'new'
 
 
   # ============================================================================
@@ -49,6 +53,8 @@ class HG.NewHiventBox
 
   # ============================================================================
   # decision: select existing hivent OR create new one?
+  # ============================================================================
+
   _makeDecisionStep: () ->
 
     ## option A) select existing hivent
@@ -105,7 +111,9 @@ class HG.NewHiventBox
 
 
   # ============================================================================
-  # forms with Hivent information
+  # create forms with Hivent information
+  # ============================================================================
+
   _makeNewHiventForm: () ->
 
     ### SETUP UI ###
@@ -179,7 +187,7 @@ class HG.NewHiventBox
     ## name done => ready to submit
     hiventName.onChange @, (name) ->
       # save to data
-      @_stepData.outData.hiventInfo.name = name
+      @_stepData.outData.hiventData.name = name
       # tell everyone: "I am done"
       if name isnt ''
         @notifyAll 'onReady'
@@ -190,27 +198,27 @@ class HG.NewHiventBox
     # timeline -> hivent box
     @_hgInstance.timeController.onNowChanged @, (date) ->
       hiventDate.setValue date.format(@_hgInstance.config.dateFormat)
-      @_stepData.outData.hiventInfo.start_date = date.format()  # RFC 3339
+      @_stepData.outData.hiventData.startDate = date.format()  # RFC 3339
 
     # timeline <- hivent box
     hiventDate.onChange @, (dateString) ->
       date = moment(dateString, @_hgInstance.config.dateFormat)
       @_hgInstance.timeController.setNowDate @, date
-      @_stepData.outData.hiventInfo.start_date = date.format()  # RFC 3339
+      @_stepData.outData.hiventData.startDate = date.format()  # RFC 3339
 
     # hack: it is possible to finish this step without changing the date
     # => date has to be initially written into output
-    @_stepData.outData.hiventInfo.start_date = @_hgInstance.timeController.getNowDate().format()
+    @_stepData.outData.hiventData.startDate = @_hgInstance.timeController.getNowDate().format()
 
     ## convert location to lat/lng coordinates
     # TODO: geocoding
     hiventLocation.onChange @, (location) ->
-      @_stepData.outData.hiventInfo.location_name = location
+      @_stepData.outData.hiventData.locationName = location
 
     ## save the description
     hiventDescription.onChange @, (description) ->
-      @_stepData.outData.hiventInfo.description = description
+      @_stepData.outData.hiventData.description = description
 
     ## save the link
     hiventLink.onChange @, (link) ->
-      @_stepData.outData.hiventInfo.link_url = link
+      @_stepData.outData.hiventData.linkUrl = link

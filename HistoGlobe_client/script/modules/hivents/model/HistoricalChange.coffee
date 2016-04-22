@@ -28,8 +28,8 @@ class HG.HistoricalChange
 
   constructor: (id)  ->
     @id             = id
-    @operation      = null    # 'XXX' of the list above
     @hivent         = null    # HG.Hivent
+    @operation      = null    # 'XXX' of the list above
     @areaChanges    = []      # HG.AreaChange
 
 

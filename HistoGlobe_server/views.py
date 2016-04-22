@@ -27,7 +27,6 @@ import datetime
 # own
 from HistoGlobe_server.models import *
 from HistoGlobe_server import utils
-from HistoGlobe_server import view_utils
 
 
 # ==============================================================================
@@ -72,16 +71,14 @@ def index(request):
   return render(request, 'HistoGlobe_client/index.htm', {})
 
 
-################################################################################
-################################################################################
-################################################################################
-
-# temporary fast quick and dirty solution
+# ==============================================================================
+# get all initial data (Hivents, Areas, Relations) from Server to Client
+# quick and Dirty, but works fine for now
+# ==============================================================================
 
 def get_all(empty_request):
 
-
-  out = {
+  response = {
     'hivents':            [],
     'areas':              [],
     'area_names':         [],
@@ -90,143 +87,23 @@ def get_all(empty_request):
   }
 
   # 1) get all hivents
-  for hivent_model in Hivent.objects.all():
-    out['hivents'].append(view_utils.hivents.prepare_hivent(hivent_model))
+  for hivent in Hivent.objects.all():
+    response['hivents'].append(hivent.prepare_output())
 
   # 2) get all areas
-  for area_model in Area.objects.all():
-    out['areas'].append(model_to_dict(area_model))
+  for area in Area.objects.all():
+    response['areas'].append(model_to_dict(area))
 
-  # 3) get all additional information to all Areas
-  for area_name_model in AreaName.objects.all():
-    out['area_names'].append(model_to_dict(area_name_model))
+  # 3) get all Areanamess
+  for area_name in AreaName.objects.all():
+    response['area_names'].append(model_to_dict(area_name))
 
-  for area_territory_model in AreaTerritory.objects.all():
-    out['area_territories'].append(view_utils.areas.prepare_territory(area_territory_model))
-
-  # 4) get all territorial relations
-  for territory_relation_model in TerritoryRelation.objects.all():
-    out['territory_relation'].append(model_to_dict(territory_relation_model))
+  # 4) get all AreaTerritories
+  for area_territory in AreaTerritory.objects.all():
+    response['area_territories'].append(area_territory.prepare_output())
 
   # prepare and deliver everything to the client
-  return HttpResponse(json.dumps(out))
-
-################################################################################
-################################################################################
-################################################################################
-
-
-
-# ==============================================================================
-# get set of all areas (their ids, start and end hivents)
-# not their names or geometries
-# ==============================================================================
-
-def get_init_area_ids(request):
-
-  ## INPUT
-
-  # deserialize object string -> dictionary
-  request_data = json.loads(request.body)
-
-  now_date = utils.get_date_object(request_data['date'])
-
-  ## PROCESSING
-  # N.B: each area can only exist ONCE => once it is deleted, it never comes back!
-
-  areas = []
-  for in_area in Area.objects.all():
-    out_area = {}
-    out_area['id'] = in_area.id
-
-    # extract creation date for area from hivent that created it
-    # N.B: can be None, if there is no change that ever created them
-    start_hivent = in_area.start_change.hivent
-    if (start_hivent):
-      start_date = start_hivent.effect_date
-      out_area['start_hivent'] = start_hivent.id
-
-    # error handling: areas without a start date do not make sense
-    else: continue
-
-    # extract secession date from area from hivent that deleted it
-    # N.B: if there is no change ever deleted it, it is valid until today
-    end_change = in_area.end_change
-    if (end_change):
-      end_hivent = end_change.hivent
-      end_date = end_hivent.effect_date
-      out_area['end_hivent'] = end_hivent.id
-    else:
-      end_date = timezone.now()
-      out_area['end_hivent'] = None
-
-    # area is visible if current date is in between start and end date of area
-    out_area['visible'] = (start_date <= now_date) and (now_date < end_date)
-
-    # add predecessors and successors to area information
-    out_area['predecessors'] = in_area.get_predecessors()
-    out_area['successors'] = in_area.get_successors()
-
-    # add territorial relations to area information
-    out_area['sovereignt'] = in_area.get_sovereignt()
-    out_area['dependencies'] = in_area.get_dependencies()
-
-    areas.append(out_area)
-
-  ## OUTPUT
-  return HttpResponse(json.dumps(areas))
-
-
-# ==============================================================================
-# get all attribute data of areas (from Territory and Name)
-# send data in chunks
-# ==============================================================================
-
-def get_init_areas(request):
-
-  ## INPUT
-
-  # deserialize object string -> dictionary
-  request_data = json.loads(request.body)
-
-  viewport_center = Point(
-      float(request_data['centerLat']),
-      float(request_data['centerLng'])
-    )
-
-  chunk_id =    int(request_data['chunkId'])
-  chunk_size =  int(request_data['chunkSize'])
-  area_ids =    request_data['areaIds']
-
-
-  ## OUTPUT
-  return HttpResponse(
-    # get set of areas for this part of the request
-    view_utils.areas.get_area_chunk(
-      area_ids,
-      viewport_center,
-      chunk_id,
-      chunk_size
-    )
-  )
-
-
-# ==============================================================================
-# get all hivents that were not included in the initial area ids sending
-# -> all hivents without changes
-# ==============================================================================
-
-def get_rest_hivents(request):
-
-  ## INPUT
-  request_data = json.loads(request.body)
-  existing_hivents = request_data['hiventIds']
-
-  ## PROCESSING
-  rest_hivents = view_utils.hivents.get_rest_hivents(existing_hivents)
-
-  ## OUTPUT
-  return HttpResponse(json.dumps(rest_hivents))
+  return HttpResponse(json.dumps(response))
 
 
 # ==============================================================================
@@ -245,53 +122,116 @@ def save_operation(request):
   #   a.delete()
 
 
-  ### init variables
+  ### INIT VARIABLES ###
+
+  # prepare output to response
+  response = {
+    hivent:   {} ,   # dictionary of properties
+    historical_change: {
+      new_id: None,  # int
+      area_changes: [
+      # {
+      #   old_id:                 int
+      #   new_id:                 int
+      #   area_id:                int
+      #   new_area_name_id:       int
+      #   new_area_territory_id:  int
+      # }
+      ]
+    }
+  }
+
+  # load input from request
   request_data = json.loads(request.body)
-  response_data = {}
 
-  operation = request_data['change']['operation']
-  old_areas = request_data['change']['old_areas']
-  new_areas = []
-
-
-  ### create new areas and save their id's
-  # -> so they can be updated on the client
-
-  response_data['old_areas'] = old_areas
-  response_data['new_areas'] = []
-
-  for area in request_data['change']['new_areas']:
-    old_area_id = area['id']
-    area = view_utils.areas.create_area(area)
-    new_area_id = area.id
-
-    # update id and prepare for output
-    new_areas.append(new_area_id)
-    response_data['new_areas'].append({
-      'old_id': old_area_id,
-      'new_id': new_area_id
-    })
+  hivent_data =             request_data['hivent']
+  hivent_status =           request_data['hivent_status']
+  historical_change_data =  request_data['historical_change']
+  new_areas =               request_data['new_areas']
+  new_area_names =          request_data['new_area_names']
+  new_area_territories =    request_data['new_area_territories']
 
 
-  ### existing hivent?
-  # TODO
-  # get hivent from model
+  ### PROCESS HIVENT ###
+
+  hivent = None
+
+  # create new hivent
+  if hivent_status == 'new':
+    [validated_hivent_data, error_message] = utils.validate_hivent(hivent_data)
+    # error handling
+    if validated_hivent_data is False: return HttpResponse(error_message)
+    hivent = Hivent(
+        name =            validated_hivent_data['name'],                 # CharField          (max_length=150)
+        start_date =      validated_hivent_data['start_date'],           # DateTimeField      (default=date.today)
+        end_date =        validated_hivent_data['end_date'],             # DateTimeField      (null=True)
+        effect_date =     validated_hivent_data['effect_date'],          # DateTimeField      (default=start_date)
+        secession_date =  validated_hivent_data['secession_date'],       # DateTimeField      (null=True)
+        location_name =   validated_hivent_data['location_name'],        # CharField          (null=True, max_length=150)
+        location_point =  validated_hivent_data['location_point'],       # PointField         (null=True)
+        location_area =   validated_hivent_data['location_area'],        # MultiPolygonField  (null=True)
+        description =     validated_hivent_data['description'],          # CharField          (null=True, max_length=1000)
+        link_url =        validated_hivent_data['link_url'],             # CharField          (max_length=300)
+        link_date =       validated_hivent_data['link_date']             # DateTimeField      (default=date.today)
+      )
+    hivent.save()
+
+  # or update existing hivent
+  elif hivent_status == 'upd':
+    hivent = Hivent.objects.get(id=hivent_data['id'])
+    [validated_hivent_data, error_message] = utils.validate_hivent(hivent_data)
+    # error handling
+    if validated_hivent_data is False: return HttpResponse(error_message)
+    # update hivent
+    hivent.update(validated_hivent_data)
+
+  # add to output
+  response['hivent'] = hivent
 
 
-  ### new hivent?
-  [hivent, error_message] = view_utils.hivents.validate_hivent(request_data['hivent'])
-  if hivent is False:
-    return HttpResponse(error_message)
-
-  # else: hivent is valid and filled with data
-  # =>  create hivent + changes + change_areas
-  #     and update start / end hivent for areas
-  new_hivent = view_utils.hivents.save_hivent(hivent)
-  new_change = view_utils.hivents.save_change(new_hivent, operation)
-  view_utils.hivents.save_change_areas(new_change, operation, old_areas, new_areas)
-
-  ## get whole hivent, including change(areas) as response to the client
-  response_data['hivent'] = view_utils.hivents.prepare_hivent(Hivent.objects.get(new_hivent.id))
+  ### PROCESS HISTORICAL CHANGE ###
 
 
-  return HttpResponse(json.dumps(response_data))  # N.B: mind the HttpResponse(function)
+  '''
+    # init old / new area
+    old_area = None
+    new_area = None
+
+    # get old/new areas for operations
+    if operation == 'ADD':      #   0  ->  1
+      new_area = Area.objects.get(id=new_areas[idx])
+
+    elif operation == 'UNI':    #   2+ ->  1
+      old_area = Area.objects.get(id=old_areas[idx])
+      new_area = Area.objects.get(id=new_areas[0])
+
+    elif operation == 'SEP':    #   1  ->  2+
+      old_area = Area.objects.get(id=old_areas[0])
+      new_area = Area.objects.get(id=new_areas[idx])
+
+    elif operation == 'CHB':    #   2  ->  2
+      old_area = Area.objects.get(id=old_areas[idx])
+      new_area = Area.objects.get(id=new_areas[idx])
+
+    elif operation == 'CHN':    #   1  ->  1  => = CHB case
+      old_area = Area.objects.get(id=old_areas[idx])
+      new_area = Area.objects.get(id=new_areas[idx])
+
+    elif operation == 'DEL':    #   1  ->  0
+      old_area = Area.objects.get(id=old_areas[idx])
+
+    # update ChangeAreas <- Area
+    new_change_areas.old_area = old_area
+    new_change_areas.new_area = new_area
+    new_change_areas.save()
+
+    # update Area <- Hivent
+    if old_area:
+      old_area.end_hivent = change.hivent
+      old_area.save()
+    if new_area:
+      new_area.start_hivent = change.hivent
+      new_area.save()
+  '''
+
+  # return HttpResponse(json.dumps(response))  # N.B: mind the HttpResponse(function)

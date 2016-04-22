@@ -28,26 +28,6 @@ class HG.AreaController
     @_maxSelections = 1           # 1 = single-selection mode, n = multi-selection mode
 
 
-    ############################################################################
-    # TRASHCAN
-
-    # @_hgInstance.editMode.onCreateArea @, (id, geometry) ->
-    # @_hgInstance.editMode.onUpdateAreaGeometry @, (id, geometry) ->
-    # @_hgInstance.editMode.onUpdateAreaRepresentativePoint @, (id, reprPoint=null) ->
-    # @_hgInstance.editMode.onAddAreaName @, (id, shortName, formalName) ->
-    # @_hgInstance.editMode.onUpdateAreaName @, (id, shortName, formalName) ->
-    # @_hgInstance.editMode.onRemoveAreaName @, (id) ->
-    # @_hgInstance.editMode.onRemoveArea @, (id) ->
-    # @_hgInstance.editMode.onShowArea @, (id) ->
-    # @_hgInstance.editMode.onHideArea @, (id) ->
-    # @_hgInstance.editMode.onStartEditArea @, (id) ->
-    # @_hgInstance.editMode.onEndEditArea @, (id) ->
-    # @_hgInstance.editMode.onSelectArea @, (id) ->
-    # @_hgInstance.editMode.onDeselectArea @, (id) ->
-
-    ############################################################################
-
-
   # ============================================================================
   hgInit: (@_hgInstance) ->
     # add module to HG instance

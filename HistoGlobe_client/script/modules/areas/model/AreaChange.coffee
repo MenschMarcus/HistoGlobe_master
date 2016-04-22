@@ -27,15 +27,47 @@ class HG.AreaChange
   constructor: (id) ->
 
     @id               = id
-    @operation        = null      # 'ADD', 'DEL', 'TCH' or 'NCH'
-
     @historicalChange = null      # HG.HistoricalChange
+
+    @operation        = null      # 'ADD', 'DEL', 'TCH' or 'NCH'
 
     @area             = null      # HG.Area
     @oldAreaName      = null      # HG.AreaName
     @newAreaName      = null      # HG.AreaName
     @oldAreaTerritory = null      # HG.AreaTerritory
     @newAreaTerritory = null      # HG.AreaTerritory
+
+
+  # ============================================================================
+  # link AreaChange to its Areas, AreaNames, AreaTerritories
+  # ============================================================================
+
+  establishAreaLinks: () ->
+    switch @operation
+
+      # ------------------------------------------------------------------------
+      when 'ADD'
+        @area.startChange =             @
+        @newAreaName.startChange =      @
+        @newAreaTerritory.startChange = @
+
+      # ------------------------------------------------------------------------
+      when 'TCH'
+        @area.updateChanges.push        @
+        @oldAreaTerritory.endChange =   @
+        @newAreaTerritory.startChange = @
+
+      # ------------------------------------------------------------------------
+      when 'NCH'
+        @area.updateChanges.push        @
+        @oldAreaName.endChange =        @
+        @newAreaName.startChange =      @
+
+      # ------------------------------------------------------------------------
+      when 'DES'
+        @area.endChange =               @
+        @oldAreaName.endChange =        @
+        @oldAreaTerritory.endChange =   @
 
 
   # ============================================================================

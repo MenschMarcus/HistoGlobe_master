@@ -34,5 +34,5 @@ class HG.Area
     @successors     = []              # HG.Area
 
     # territorial relation
-    @sovereignt     = null            # HG.Area
-    @dependencies   = []              # HG.Area
+    # @sovereignt     = null            # HG.Area
+    # @dependencies   = []              # HG.Area

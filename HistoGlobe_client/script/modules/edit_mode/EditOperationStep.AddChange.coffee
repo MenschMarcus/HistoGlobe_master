@@ -16,8 +16,10 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
     # inherit functionality from base class
     super @_hgInstance, direction
 
-    # get the historical change data
+    # get the historical change data and add to workflow
     @_prepareChange()
+    @_stepData.outData.historicalChange = @_historicalChange
+
 
     ### SETUP OPERATION ###
 
@@ -28,13 +30,15 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
     # hivent box: select existing or create new hivent
     @_hiventBox = new HG.NewHiventBox @_hgInstance, @_stepData, @_historicalChange.getDescription()
 
+
     ### INTERACTION ###
-    # tell workflow window to change to the finish button
+
+    # tell workflow window to change the finish button
     @_hiventBox.onReady @, () ->
-      @notifyOperation 'onOperationComplete'
+      @_hgInstance.editOperation.notifyAll 'onOperationComplete'
 
     @_hiventBox.onUnready @, () ->
-      @notifyOperation 'onOperationIncomplete'
+      @_hgInstance.editOperation.notifyAll 'onOperationIncomplete'
 
 
     ## that would be the nice way to do it, directly in HistoGlobe
@@ -128,6 +132,7 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
         # add new Area
         @_makeADD 0
 
+
       # ------------------------------------------------------------------------
       when 'INC'
 
@@ -148,8 +153,10 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
 
           idx++
 
+
       # ------------------------------------------------------------------------
       when 'SEP'
+
         # delete old Area
         @_makeDEL 0
 
@@ -158,6 +165,7 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
         while idx < @_newAreas.areas.length
           @_makeADD idx
           idx++
+
 
       # ------------------------------------------------------------------------
       when 'SEC'
@@ -179,12 +187,15 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
 
           idx++
 
+
       # ------------------------------------------------------------------------
       when 'TCH', 'BCH'
+
         idx = 0
         while idx < @_newAreas.areas.length
           @_makeTCH idx, idx
           idx++
+
 
       # ------------------------------------------------------------------------
       when 'NCH'

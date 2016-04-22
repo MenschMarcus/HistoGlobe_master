@@ -1,7 +1,5 @@
 window.HG ?= {}
 
-SAVE_TO_DB = no
-
 # ==============================================================================
 # control the workflow of a complete operation
 # manage operation window (init, send data, get data)
@@ -39,9 +37,6 @@ class HG.EditOperation
     @addCallback 'onOperationComplete'
     @addCallback 'onOperationIncomplete'
     @addCallback 'onFinish'
-
-    # includes
-    @_databaseInterface = new HG.DatabaseInterface
 
     # random ids that have been created for new objects in EditOperationSteps
     # => ensures each id will be unique
@@ -116,6 +111,10 @@ class HG.EditOperation
             id:                   'ADD_CHNG'
             title:                "add change <br /> to historical event"
             userInput:            yes
+            outData: {
+              hiventData:         {}
+              historicalChange:   null
+            }
           }
         ]
       }
@@ -249,61 +248,15 @@ class HG.EditOperation
   # ============================================================================
 
   _finish: () ->
-    # TODO: convert action list to new data to be stored in the database
 
-    oldAreas = @operation.steps[0].outData.selectedAreas
-    newAreas = @operation.steps[2].outData.namedAreas
-    hivent =   @operation.steps[3].outData.hiventInfo
+    # get data for hivent and historical change
+    hiventData =        @operation.steps[4].outData.hiventData
+    historicalChange =  @operation.steps[4].outData.historicalChange
 
-    request = {
-      hivent:       hivent
-      change: {
-        operation:  @operation.id
-        old_areas:  oldAreas
-        new_areas:  []
-      }
-    }
+    @_hgInstance.databaseInterface.saveHistoricalOperation hiventData, historicalChange
 
-    for area in newAreas
-      newArea = @_hgInstance.areaController.getArea area
-      request.change.new_areas.push @_databaseInterface.convertToServerModel newArea
-
-    # save hivent + changes + new areas to server
-    if SAVE_TO_DB
-      $.ajax
-        url:  'saveoperation/'
-        type: 'POST'
-        data: JSON.stringify request
-
-        # success callback: add id to hivent and save it in hivent controller
-        success: (response) =>
-          data = $.parseJSON response
-
-          # get old areas
-          oldAreas = []
-          for areaId in data.old_areas
-            oldAreas.push @_hgInstance.areaController.getArea areaId
-
-          # get and update new areas
-          newAreas = []
-          for areaData in data.new_areas
-            area = @_hgInstance.areaController.getArea areaData.old_id
-            area.setId areaData.new_id
-            newAreas.push area
-
-          # save hivent (call in the name of EditMode)
-          @_hgInstance.editMode.notifyAll 'onCreateHivent', data.hivent, oldAreas, newAreas
-
-          # TODO: update dates ?!? what ?
-
-        # error callback: print error
-        error: (xhr, errmsg, err) =>
-          console.log xhr
-          console.log errmsg, err
-          console.log xhr.responseText
-
-
-    @notifyAll 'onFinish'
+    @_hgInstance.databaseInterface.onFinishSavingHivent @, () =>
+      @notifyAll 'onFinish'
 
 
   # ============================================================================

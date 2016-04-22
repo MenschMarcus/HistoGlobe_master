@@ -1,7 +1,7 @@
 window.HG ?= {}
 
 # DEBUG: take out if not needed anymore
-TEST_BUTTON = no
+TEST_BUTTON = yes
 
 # ==============================================================================
 # EditMode registers clicks on edit operation buttons -> init operation
@@ -24,29 +24,6 @@ class HG.EditMode
     # handle callbacks
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
-
-    ############################################################################
-    # TRASHCAN
-
-    @addCallback 'onCreateArea'
-    @addCallback 'onUpdateAreaGeometry'
-    @addCallback 'onUpdateAreaRepresentativePoint'
-    @addCallback 'onAddAreaName'
-    @addCallback 'onUpdateAreaName'
-    @addCallback 'onRemoveAreaName'
-    @addCallback 'onRemoveArea'
-
-    @addCallback 'onActivateArea'
-    @addCallback 'onDeactivateArea'
-    @addCallback 'onSelectArea'
-    @addCallback 'onDeselectArea'
-    @addCallback 'onStartEditArea'
-    @addCallback 'onEndEditArea'
-
-    @addCallback 'onCreateHivent'
-
-    ############################################################################
-
 
     # init config
     defaultConfig =
@@ -82,33 +59,9 @@ class HG.EditMode
         # TEST PLAYGROUND START HERE
         examplePath = @_hgInstance.config.configPath + 'common/example.json'
 
-        $.getJSON(examplePath, (request) =>
+        $.getJSON examplePath, (request) =>
+          @_hgInstance.databaseInterface.testSave request
 
-          # save to server
-          $.ajax
-            url:  'save_operation/'
-            type: 'POST'
-            data: JSON.stringify request
-
-            # success callback: add id to hivent and save it in hivent controller
-            success: (response) =>
-              data = $.parseJSON response
-              console.log data
-              # save hivent
-              @notifyAll 'onCreateHivent', data.hivent
-
-              # update areas
-              for areaData in data.new_areas
-                area = @_hgInstance.areaController.getArea areaData.old_id
-                area.setId areaData.new_id
-
-
-            # error callback: print error
-            error: (xhr, errmsg, err) =>
-              console.log xhr
-              console.log errmsg, err
-              console.log xhr.responseText
-        )
 
         # TEST PLAYGROUND END HERE
     ############################################################################

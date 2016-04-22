@@ -15,11 +15,13 @@ class HG.DatabaseInterface
 
   # ============================================================================
   constructor: () ->
+
     # handle callbacks
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
     @addCallback 'onFinishLoadingInitData'
+    @addCallback 'onFinishSavingHistoricalOperation'
 
 
   # ============================================================================
@@ -31,7 +33,8 @@ class HG.DatabaseInterface
     # include
     @_geometryReader = new HG.GeometryReader
 
-    ### temporary quick and dirty solution ###
+    # temporary quick and dirty solution
+    # that actually works quite well for now :P
 
     $.ajax
       url:  'get_all/'
@@ -128,19 +131,181 @@ class HG.DatabaseInterface
           @_hgInstance.hiventController.addHiventHandle hiventHandle
 
         # create territorial relations between areas
-        for trData, idx in dataObj.territory_relation
-          sovereignt = (@_hgInstance.areaController.getAreaHandle trData.sovereignt)?.getArea()
-          dependency = (@_hgInstance.areaController.getAreaHandle trData.dependency)?.getArea()
+        # for trData, idx in dataObj.territory_relation
+        #   sovereignt = (@_hgInstance.areaController.getAreaHandle trData.sovereignt)?.getArea()
+        #   dependency = (@_hgInstance.areaController.getAreaHandle trData.dependency)?.getArea()
 
-          # link both areas
-          sovereignt.dependencies.push dependency
-          dependency.sovereignt = sovereignt
+        #   # link both areas
+        #   sovereignt.dependencies.push dependency
+        #   dependency.sovereignt = sovereignt
 
         # DONE!
         # hack: make min date slightly smaller to detect also first change
         newMinDate = minDate.clone()
         newMinDate.subtract 10, 'year'
         @notifyAll 'onFinishLoadingInitData', newMinDate
+
+      error: @_errorCallback
+
+
+  # ============================================================================
+  # Save the outcome of an historical Operation to the server: the Hivent,
+  # its associated HistoricalChange and their AreaChanges, including their
+  # associated Areas, AreaNames and AreaTerritories.
+  # All objects have temporary IDs, the server will create real IDs and return
+  # them. This function also updates the IDs.
+  # ============================================================================
+
+  saveHistoricalOperation: (hiventData, historicalChange) ->
+
+    # request data sent to the server
+
+    request = {
+      hivent:               null
+      hivent_status:        null # 'new' or 'upd'
+      historical_change:    {}
+      new_areas:            []
+      new_area_names:       []
+      new_area_territories: []
+    }
+
+    # assemble relevant data for the request, resolving the circular double-link
+    # structure to a one-directional hierarchical structure:
+    # Hivent -> HistoricalChange -> [AreaChange] --> Area
+    #                                            |-> AreaName / AreaTerritory
+
+    ## Hivent: create new or update?
+    if hiventData.status is 'new' #   => create new Hivent
+      hivent = new HG.Hivent hiventData
+      hiventHandle = new HG.HiventHandle @_hgInstance, hivent
+      hivent.handle = hiventHandle
+
+    else # hiventData.status is 'upd' => update existing Hivent
+      hiventHandle = @_hgInstance.hiventController.getHiventHandle hiventData.id
+      hivent = hiventHandle.getHivent()
+      # override hivent data with new info from server
+      $.extend hivent, hiventData
+
+    # add to request
+    request.hivent = @_hiventToServer hivent
+    request.hivent_status = hiventData.status
+
+
+    ## HistoricalChange: omit Hivent (link upward)
+    request.historical_change_data = {
+      id:           historicalChange.id
+      operation:    historicalChange.operation
+      area_changes: []  # store only ids, so they can be associated
+    }
+
+    ## AreaChanges: omit HistoricalChange (link upward), save only ids of Areas
+    for areaChange in historicalChange.areaChanges
+      request.historical_change_data.area_changes.push {
+        id:                   areaChange.id
+        operation:            areaChange.operation
+        area:                 areaChange.area.id
+        old_area_name:        areaChange.oldAreaName?.id
+        old_area_territory:   areaChange.oldAreaTerritory?.id
+        new_area_name:        areaChange.newAreaName?.id
+        new_area_territory:   areaChange.newAreaTerritory?.id
+      }
+
+      ## new Area is part of each ADD operation
+      if areaChange.operation is 'ADD'
+        request.new_areas.push {
+          id:   areaChange.area.id
+        }
+
+      ## new AreaName is part of each ADD and NCH operation
+      if areaChange.operation is 'ADD' or areaChange.operation is 'NCH'
+        request.new_area_names.push {
+          id:           areaChange.newAreaName.id
+          short_name:   areaChange.newAreaName.shortName
+          formal_name:  areaChange.newAreaName.formalName
+        }
+
+      ## new AreaTerritory is part of each ADD and TCH operation
+      if areaChange.operation is 'ADD' or areaChange.operation is 'TCH'
+        request.new_area_territories.push {
+          id:                   areaChange.newAreaTerritory.id
+          geometry:             areaChange.newAreaTerritory.geometry.wkt()
+          representative_point: areaChange.newAreaTerritory.representativePoint.wkt()
+        }
+
+      # make hivent and historicalChange accessible in success callback
+      @_hivent =            hivent
+      @_historicalChange =  historicalChange
+
+
+  ### get request from EditMode -> Test Button ###
+  testSave: (request) ->
+
+    $.ajax
+      url:  'save_operation/'
+      type: 'POST'
+      data: JSON.stringify request
+
+      # success callback: load areas and hivents here and connect them
+      success: (response) =>
+        dataObj = $.parseJSON response
+
+        ### UPDATE IDS AND ESTABLISH DOUBLE-LINKS ###
+
+        ## Hivent: update with possibly new data from server
+        @_hivent = $.extend @_hivent, @_hiventToClient response.hivent
+
+
+        ## HistoricalChange
+        @_historicalChange.id = response.historical_change.new_id
+
+        # Hivent <-> HistoricalChange
+        hivent.historicalChanges.push @_historicalChange
+        @_historicalChange.hivent = hivent
+
+
+        ## AreaChanges
+        for areaChange in @_historicalChange.areasChanges
+
+          # find associated areaChangeData id in response data
+          for area_change in response.historical_change.area_changes
+            if areaChange.id is area_change.old_id
+
+              # update id
+              areaChange.id = area_change.new_id
+
+              ## Area
+              areaChange.area.id = area_change.area_id
+
+              # AreaChange <- Area
+              switch areaChange.operation
+                when 'ADD' then         areaChange.area.startChange =       areaChange
+                when 'DEL' then         areaChange.area.endChange =         areaChange
+                when 'TCH', 'NCH' then  areaChange.area.updateChanges.push  areaChange
+
+              ## AreaName
+              if areaChange.oldAreaName
+                # id is already up to data
+                # AreaChange <- AreaName
+                areaChange.oldAreaName.endChange = areaChange
+
+              if areaChange.newAreaName
+                # update id
+                areaChange.newAreaName.id = area_change.new_area_name_id
+                # AreaChange <- AreaName
+                areaChange.newAreaName.startChange = areaChange
+
+              ## AreaTerritory
+              if areaChange.oldAreaTerritory
+                # id is already up to data
+                # AreaChange <- AreaTerritory
+                areaChange.oldAreaTerritory.endChange = areaChange
+
+              if areaChange.newAreaTerritory
+                # update id
+                areaChange.newAreaTerritory.id = area_change.new_area_territory_id
+                # AreaChange <- AreaTerritory
+                areaChange.newAreaTerritory.startChange = areaChange
+
 
       error: @_errorCallback
 
@@ -209,8 +374,8 @@ class HG.DatabaseInterface
       secessionDate :     moment(dataObj.secession_date?)
       displayDate :       moment(dataObj.display_date?)
       locationName :      dataObj.location_name          ?= null
-      locationPoint :     dataObj.location_point         ?= null
-      locationArea :      dataObj.location_area          ?= null
+      locationPoint :     if dataObj.location_point then @_geometryReader.read dataObj.location_point else null
+      locationArea :      if dataObj.location_area  then @_geometryReader.read dataObj.location_area  else null
       description :       dataObj.description            ?= null
       linkUrl :           dataObj.link_url               ?= null
       linkDate :          moment(dataObj.link_date?)
@@ -218,7 +383,20 @@ class HG.DatabaseInterface
 
   # ----------------------------------------------------------------------------
   _hiventToServer: (dataObj) ->
-    # TODO if necessary
+    {
+      id :                dataObj.id
+      name :              dataObj.name
+      start_date :        dataObj.startDate
+      end_date :          dataObj.endDate
+      effect_date :       dataObj.effectDate
+      secession_date :    dataObj.secessionDate
+      location_name :     dataObj.locationName
+      location_point :    dataObj.locationPoint?.wkt()
+      location_area :     dataObj.locationArea?.wkt()
+      description :       dataObj.description
+      link_url :          dataObj.linkUrl
+      link_date :         dataObj.linkData
+    }
 
   # ----------------------------------------------------------------------------
   _historicalChangeToClient: (dataObj) ->
@@ -361,288 +539,11 @@ class HG.DatabaseInterface
     return dataObj
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-'''
-### the sophisticated version goes here this afternoon
-    # --------------------------------------------------------------------------
-    # loading mechanism:
-    # 1) load initial area ids and create their AreaHandles
-    # ->  2) load initially visible area data and create their Name/Territory
-    #     ->  3) load rest visible area data and create rest Names/Territories/Hivents
-    #         ->  4) load rest data (invisible areas and rest hivents)
-    # --------------------------------------------------------------------------
-
-    @_hgInstance.onAllModulesLoaded @, () =>
-
-      # includes
-      @_geometryReader = new HG.GeometryReader
-      @_areaController = @_hgInstance.areaController
-      @_hiventController = @_hgInstance.hiventController
-
-    # --------------------------------------------------------------------------
-    # 1) load initial area and hivent ids () ->
-    #    (all areas            {id, start hivent it, end hivent id},
-    #     -> current name      {id, start hivent id, end hivent id},
-    #     -> current territory {id, start hivent id, end hivent id},
-    #     all hivents          {id})
-    #   => create Area and AreaHandle
-    #   => create Hivent and HiventHandle
-    # --------------------------------------------------------------------------
-      @_loadInitAreaIds()
-
-    # --------------------------------------------------------------------------
-    # MAIN LOAD TO SEE INITIAL AREAS => as fast as possible
-    # --------------------------------------------------------------------------
-    # 2) load init visible area data ([area id, name id, territory id], [hivent id]) ->
-    #    (visible area    (id),
-    #     init name       (id, short name, formal name),
-    #     init territory  (id, geometry, repr point))
-    #   => get AreaHandle(area id)
-    #   => create AreaName(init name)
-    #   => create AreaTerritory (init territory)
-    # --------------------------------------------------------------------------
-
-    # --------------------------------------------------------------------------
-    # 3) load rest visible area data ([area id, name id, territory id], [hivent id])
-    #    (visible area      (id, predecessors, successors, sovereignt, dependencies),
-    #     rest names       [(id, short name, formal name, start hivent, end hivent)],
-    #     rest territories [(id, geometry, repr point, start hivent, end hivent)],
-    #     hivents          [(id, ...full data...)])
-    #   => get AreaHandle(area id)
-    #     => update Area(predecessors, successors, sovereignt, dependencies)
-    #     => create AreaNames(rest names)
-    #     => create AreaTerritories(rest territories)
-    #   => get HiventHandle
-    #     => update Hivent
-    #     => link start / end hivents of Area <-> Hivent->Change->ChangeArea
-    #       (same for AreaName and AreaTerritory)
-    # --------------------------------------------------------------------------
-
-    # --------------------------------------------------------------------------
-    # 4) load full invisible area data ([area id], [exisiting hivent id])
-    #    (invisible area    (id, predecessors, successors, sovereignt, dependencies) +
-    #     all names        [(id, short name, formal name, start hivent, end hivent)] +
-    #     all territories  [(id, geometry, repr point, start hivent, end hivent)] +
-    #     all rest hivents [(id, ...full data...)])
-    #   => get AreaHandle(area id)
-    #     => update Area(predecessors, successors, sovereignt, dependencies)
-    #     => create AreaNames(rest names)
-    #     => create AreaTerritories(rest territories)
-    #   => get HiventHandle
-    #     => link start / end hivents of Area <-> Hivent->Change->ChangeArea
-    #       (same for AreaName and AreaTerritory)
-    # --------------------------------------------------------------------------
-
-
-
-
-
-  # ============================================================================
-  # get initial set of information about area from the server:
-  # id, start and endHivent and territorial relation
-  # no name and geometry yet (to load fast which areas will eventually be there)
-  # ============================================================================
-
-  loadAllAreaIds: (@_hgInstance) ->
-
-    request = {
-      date: moment(@_hgInstance.timeController.getNowDate()).format()
-    }
-
-    $.ajax
-      url:  'get_init_area_ids/'
-      type: 'POST'
-      data: JSON.stringify request
-
-      # success callback: load areas here
-      success: (response) =>
-
-        # deserialize string to object
-        dataObj = $.parseJSON response
-
-        console.log dataObj
-
-        # create an area with id for each feature
-        areaHandles = []
-        $.each dataObj, (key, val) =>
-          # create Area only with id
-          area = new HG.Area val.id
-
-          # create AreaHandle that is handed through the application
-          areaHandle = new HG.AreaHandle @_hgInstance area
-
-          # little hack: set temporary loading variables that will be replaced later
-          areaHandle.tempLoadVars = {
-            visible:      val.visible
-            predecessors: val.predecessors
-            successors:   val.successors
-            sovereignt:   val.sovereignt
-            dependencies: val.dependencies
-          }
-          areaHandles.push areaHandles
-
-          # load Hivents in HiventController
-          @notifyAll 'onLoadAreaHivents', val.start_hivent, val.end_hivent, areaHandle
-
-        # load Areas completely in AreaController
-        @notifyAll 'onFinishLoadingAreaIds', areaHandles
-
-
-      # error callback: print error message
-      error: @_errorCallback
-  # load all areas that are initially (in)visible from the server
-  # ============================================================================
-
-  loadVisibleAreas: (visibleAreas) ->
-    @_loadInitAreas @_getRequest visibleAreas, 'onLoadVisibleArea', 'onFinishLoadingVisibleAreas'
-
-  # ----------------------------------------------------------------------------
-  loadInvisibleAreas: (invisibleAreas) ->
-    @_loadInitAreas @_getRequest invisibleAreas, 'onLoadInvisibleArea', 'onFinishLoadingInvisibleAreas'
-
-
-  # ============================================================================
-  convertToServerModel: (area) ->
-    @_prepareAreaClientToServer area
-
-
-
-  # ============================================================================
-  # compile request header for initial area loading
-  # ============================================================================
-
-  _getRequest: (areaIds, areaLoadCallback, finishCallback) ->
-
-    request = {
-      areaIds:            areaIds
-      centerLat:          @_hgInstance.map.getCenter()[0]
-      centerLng:          @_hgInstance.map.getCenter()[1]
-      chunkId:            0  # initial value
-      chunkSize:          HGConfig.area_loading_chunk_size.val
-      areaLoadCallback:   areaLoadCallback
-      finishCallback:     finishCallback
-    }
-
-
-  # ============================================================================
-  # recursively load all initially active areas from the server
-  # ============================================================================
-
-  _loadInitAreas: (request) ->
-
-    $.ajax
-      url:  'get_init_areas/'
-      type: 'POST'
-      data: JSON.stringify request
-
-      # success callback: load areas here
-      success: (response) =>
-
-        # deserialize string to object
-        dataObj = $.parseJSON response
-
-        # update area properties for each loaded area
-        $.each dataObj.features, (key, val) =>
-          areaData = @_prepareAreaServerToClient val
-          area = @_hgInstance.areaController.getArea areaData.id
-
-          area.setGeometry areaData.geometry
-          area.setRepresentativePoint areaData.representativePoint
-          area.setShortName areaData.shortName
-          area.setFormalName areaData.formalName
-          area.setSovereigntyStatus areaData.sovereigntyStatus
-          area.setTerritoryOf areaData.territoryOf
-
-          @notifyAll request.areaLoadCallback, area
-
-
-    # # get list of all associated names and their creation date
-    # current_name = None
-    # for name in AreaName.objects.filter(area=self):
-
-    #   # get start and end date of the name
-    #   start_date = name.start_change.hivent.effect_date
-    #   try:
-    #     end_date = name.end_change.hivent.effect_date
-    #   except:
-    #     end_date = timezone.now()
-
-    #   # pick the 1 name that is inside the start and end date
-    #   if (start_date <= request_date) and (request_date < end_date):
-    #     current_name = name
-    #     break
-
-
-
-    # error handling: id and name must be given
-    return null if (not hiventFromServer.id) or (not hiventFromServer.name)
-
-    hiventData = {
-      id :                hiventFromServer.id
-      name :              hiventFromServer.name
-      startDate :         moment(hiventFromServer.start_date)
-      endDate :           moment(hiventFromServer.end_date?)
-      effectDate :        moment(hiventFromServer.effect_date)
-      secessionDate :     moment(hiventFromServer.secession_date?)
-      displayDate :       moment(hiventFromServer.display_date?)
-      locationName :      hiventFromServer.location_name          ?= null
-      locationPoint :     hiventFromServer.location_point         ?= null
-      locationArea :      hiventFromServer.location_area          ?= null
-      description :       hiventFromServer.description            ?= null
-      linkUrl :           hiventFromServer.link_url               ?= null
-      linkDate :          moment(hiventFromServer.link_date?)
-      changes :           []
-    }
-
-    # prepare changes
-    for change in hiventFromServer.changes
-      changeData = {
-        operation:  change.operation
-        oldAreas:   []
-        newAreas:   []
-      }
-      # create unique array (each area is only once in the old/newArea array)
-      for area in change.change_areas
-        changeData.oldAreas.push area.old_area if (area.old_area?) and (changeData.oldAreas.indexOf(area.old_area) is -1)
-        changeData.newAreas.push area.new_area if (area.new_area?) and (changeData.newAreas.indexOf(area.new_area) is -1)
-      # add change to hivent
-      hiventData.changes.push changeData
-
-    return hiventData
-
-  # ============================================================================
-  # _prepareHiventClientToServer: (hiventFromServer) ->
-
-
-  _errorCallback: (xhr, errmsg, err) =>
-    console.log xhr
-    console.log errmsg, err
-    console.log xhr.responseText
-
-  # ============================================================================
-  # TODO:
-  # allow multiple locations per hivent
-  # data.location = data.location?.replace(/\s*;\s*/g, ';').split(';')
-  # data.lat = "#{data.lat}".replace(/\s*;\s*/g, ';').split(';') if data.lat?
-  # data.lng = "#{data.lng}".replace(/\s*;\s*/g, ';').split(';') if data.lng?
-'''
+    # ==========================================================================
+    # error callback
+    # ==========================================================================
+
+    _errorCallback: (xhr, status, errorThrown) ->
+      console.log xhr
+      console.log status
+      console.log errorThrown

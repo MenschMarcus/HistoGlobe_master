@@ -50,15 +50,16 @@ class HG.HiventController
   # Issues configuration depending on the current HistoGlobe instance.
   # ============================================================================
   hgInit: (@_hgInstance) ->
+
     # add module to HistoGlobe instance
     @_hgInstance.hiventController = @
 
+
     ### INTERACTION ###
+
     @_hgInstance.onAllModulesLoaded @, () =>
 
-
-      ### INIT Hivents ###
-
+      # load initial Hivents on load from DatabaseInterface
       @_hgInstance.databaseInterface.onFinishLoadingInitData @, (minDate) ->
 
         @_sortHivents()
@@ -73,21 +74,11 @@ class HG.HiventController
         @_nowDate = @_hgInstance.timeController.getNowDate()
 
 
-      ### EDIT MODE ###
+      # load initial Hivents on load from DatabaseInterface
+      @_hgInstance.databaseInterface.onFinishSavingHistoricalOperation @, () ->
 
-      @_hgInstance.editMode.onCreateHivent @, (hiventFromServer, oldAreas, newAreas) =>
-
-        # create hivent
-        hivent = new HG.Hivent @_hiventInterface.loadFromServerModel hiventFromServer, yes
-        hiventHandle = new HG.HiventHandle @_hgInstance, hivent
-
-        # update areas properties
-        oldArea.getArea().endHivent = hiventHandle   for oldArea in oldAreas
-        newArea.getArea().startHivent = hiventHandle for newArea in newAreas
-
-        @_hiventHandles.push hiventHandle
         @_sortHivents()
-        @notifyAll 'onHiventAdded'
+
 
 
       ### VIEW ###

@@ -15,11 +15,15 @@
 # ==============================================================================
 
 from django.db import models
+from django.forms.models import model_to_dict
 
 
 # ------------------------------------------------------------------------------
 class Area(models.Model):
 
+  # no properties except for id
+
+  # historical context
   start_change =          models.ForeignKey         ('AreaChange', related_name='start_change', null=True)
   end_change =            models.ForeignKey         ('AreaChange', related_name='end_change', null=True)
 
