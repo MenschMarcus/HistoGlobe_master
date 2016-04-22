@@ -15,9 +15,6 @@ from django.contrib import gis
 from djgeojson.fields import *
 from django.forms.models import model_to_dict
 
-import chromelogger as console
-
-
 
 # ------------------------------------------------------------------------------
 class Hivent(models.Model):

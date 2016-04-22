@@ -76,32 +76,6 @@ class Area(models.Model):
     return successors
 
 
-  # ============================================================================
-  # The territorial relations of the areas (sovereignt <-(1)-(n)-> dependency)
-  # can be accessed via the TerritorialRelation entity.
-  # ============================================================================
-
-  def get_sovereignt(self):
-    "Returns the areas sovereignt (where this area is a dependency)."
-
-    from HistoGlobe_server.models import TerritoryRelations
-
-    return TerritoryRelations.objects.get(dependency=self).sovereignt.id
-
-
-  # ----------------------------------------------------------------------------
-  def get_dependencies(self):
-    "Returns the areas dependencies (where this area is the sovereignt)."
-
-    from HistoGlobe_server.models import TerritoryRelations
-
-    dependencies = []
-    for dependency in TerritoryRelations.objects.filter(sovereignt=self):
-      dependencies.append(dependency.id)
-
-    return dependencies
-
-
   # ----------------------------------------------------------------------------
   class Meta:
     app_label = 'HistoGlobe_server'

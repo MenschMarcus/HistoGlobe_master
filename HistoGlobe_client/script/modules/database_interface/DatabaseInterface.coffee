@@ -130,15 +130,6 @@ class HG.DatabaseInterface
           hivent.handle = hiventHandle
           @_hgInstance.hiventController.addHiventHandle hiventHandle
 
-        # create territorial relations between areas
-        # for trData, idx in dataObj.territory_relation
-        #   sovereignt = (@_hgInstance.areaController.getAreaHandle trData.sovereignt)?.getArea()
-        #   dependency = (@_hgInstance.areaController.getAreaHandle trData.dependency)?.getArea()
-
-        #   # link both areas
-        #   sovereignt.dependencies.push dependency
-        #   dependency.sovereignt = sovereignt
-
         # DONE!
         # hack: make min date slightly smaller to detect also first change
         newMinDate = minDate.clone()

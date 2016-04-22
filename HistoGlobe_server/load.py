@@ -375,7 +375,6 @@ load.run()
         terr_area_name.formal_name =  row['formal_name'].decode('utf-8')   # encoding problem :/
         terr_area_name.save()
 
-        print(terr_area_name.short_name + " became territory of " + home_area_name.short_name)
 
         # add its area to the creation event
         historical_change = AreaChange.objects.get(area=home_area).historical_change

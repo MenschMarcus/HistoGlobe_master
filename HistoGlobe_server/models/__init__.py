@@ -7,4 +7,3 @@ from HistoGlobe_server.models.AreaChange import *
 from HistoGlobe_server.models.Area import *
 from HistoGlobe_server.models.AreaName import *
 from HistoGlobe_server.models.AreaTerritory import *
-from HistoGlobe_server.models.TerritoryRelation import *
