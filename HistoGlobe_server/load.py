@@ -11,7 +11,7 @@
   how to run:
   -----------
 
-sudo su - postgres
+sudo su postgres
 psql
 CREATE DATABASE histoglobe_database;
 CREATE USER HistoGlobe_user WITH PASSWORD '12345';
@@ -189,8 +189,7 @@ load.run()
       creation_date = iso8601.parse_date(row['creation_date'])
       hivent = Hivent(
           name =        str(row['hivent_name']),
-          start_date =  creation_date,
-          effect_date = creation_date
+          date =        creation_date,
         )
       hivent.save()
 
@@ -296,8 +295,7 @@ load.run()
         creation_date = iso8601.parse_date(row['creation_date'])
         hivent = Hivent(
             name =        str(row['hivent_name']),
-            start_date =  creation_date,
-            effect_date = creation_date
+            date =        creation_date,
           )
         hivent.save()
 

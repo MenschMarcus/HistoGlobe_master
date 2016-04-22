@@ -20,16 +20,10 @@ from django.forms.models import model_to_dict
 class Hivent(models.Model):
 
   name =            models.CharField                (max_length=150, default='')
-  start_date =      models.DateTimeField            (null=True)
-  end_date =        models.DateTimeField            (null=True)
-  effect_date =     models.DateTimeField            (default=timezone.now)
-  secession_date =  models.DateTimeField            (null=True)
-  location_name =   models.CharField                (null=True, max_length=150)
-  location_point =  gis.db.models.PointField        (null=True)
-  location_area =   gis.db.models.MultiPolygonField (null=True)
+  date =            models.DateTimeField            (default=timezone.now)
+  location =        models.CharField                (null=True, max_length=150)
   description =     models.CharField                (null=True, max_length=1000)
-  link_url =        models.CharField                (null=True, max_length=300)
-  link_date =       models.DateTimeField            (null=True, default=timezone.now)
+  link =            models.CharField                (null=True, max_length=300)
 
 
   # ============================================================================
@@ -44,17 +38,11 @@ class Hivent(models.Model):
   def update(self, hivent_data):
 
     ## save in database
-    self.name =            hivent_data['name']                 # CharField          (max_length=150)
-    self.start_date =      hivent_data['start_date']           # DateTimeField      (default=date.today)
-    self.end_date =        hivent_data['end_date']             # DateTimeField      (null=True)
-    self.effect_date =     hivent_data['effect_date']          # DateTimeField      (default=start_date)
-    self.secession_date =  hivent_data['secession_date']       # DateTimeField      (null=True)
-    self.location_name =   hivent_data['location_name']        # CharField          (null=True, max_length=150)
-    self.location_point =  hivent_data['location_point']       # PointField         (null=True)
-    self.location_area =   hivent_data['location_area']        # MultiPolygonField  (null=True)
-    self.description =     hivent_data['description']          # CharField          (null=True, max_length=1000)
-    self.link_url =        hivent_data['link_url']             # CharField          (max_length=300)
-    self.link_date =       hivent_data['link_date']            # DateTimeField      (default=date.today)
+    self.name =             hivent_data['name']                 # CharField          (max_length=150)
+    self.date =             hivent_data['start_date']           # DateTimeField      (default=timezone.now)
+    self.location =         hivent_data['location']             # CharField          (null=True, max_length=150)
+    self.description =      hivent_data['description']          # CharField          (null=True, max_length=1000)
+    self.link =             hivent_data['link']                 # CharField          (max_length=300)
 
     hivent.save()
 
@@ -87,20 +75,13 @@ class Hivent(models.Model):
 
       hivent['historical_changes'].append(historical_change)
 
-    # prepare dates for output
-    hivent['start_date'] =        utils.get_date_string(hivent['start_date'])
-    if hivent['end_date'] != None:
-      hivent['end_date'] =        utils.get_date_string(hivent['start_date'])
-    hivent['effect_date'] =       utils.get_date_string(hivent['effect_date'])
-    if hivent['secession_date'] != None:
-      hivent['secession_date'] =  utils.get_date_string(hivent['effect_date'])
-    if hivent['link_date'] != None:
-      hivent['link_date'] =       utils.get_date_string(timezone.now())
+    # prepare date for output
+    hivent['date'] = utils.get_date_string(hivent['date'])
 
     return hivent
 
 
   # ============================================================================
   class Meta:
-    ordering = ['-effect_date']  # descending order (2000 -> 0 -> -2000 -> ...)
+    ordering = ['-date']  # descending order (2000 -> 0 -> -2000 -> ...)
     app_label = 'HistoGlobe_server'

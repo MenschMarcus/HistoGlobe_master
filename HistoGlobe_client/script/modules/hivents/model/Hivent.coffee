@@ -17,16 +17,9 @@ class HG.Hivent
 
     @id                 = data.id
     @name               = data.name
-    @startDate          = data.startDate
-    @endDate            = data.endDate
-    @effectDate         = data.effectDate
-    @secessionDate      = data.secessionDate
-    @displayDate        = data.displayDate
-    @locationName       = data.locationName
-    @locationPoint      = data.locationPoint
-    @locationArea       = data.locationArea
+    @date               = data.date
+    @location           = data.location
     @description        = data.description
-    @linkUrl            = data.linkUrl
-    @linkDate           = data.linkDate
+    @link               = data.link
 
     @historicalChanges  = []     # HG.HistoricalChange

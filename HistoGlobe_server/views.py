@@ -162,17 +162,11 @@ def save_operation(request):
     # error handling
     if validated_hivent_data is False: return HttpResponse(error_message)
     hivent = Hivent(
-        name =            validated_hivent_data['name'],                 # CharField          (max_length=150)
-        start_date =      validated_hivent_data['start_date'],           # DateTimeField      (default=date.today)
-        end_date =        validated_hivent_data['end_date'],             # DateTimeField      (null=True)
-        effect_date =     validated_hivent_data['effect_date'],          # DateTimeField      (default=start_date)
-        secession_date =  validated_hivent_data['secession_date'],       # DateTimeField      (null=True)
-        location_name =   validated_hivent_data['location_name'],        # CharField          (null=True, max_length=150)
-        location_point =  validated_hivent_data['location_point'],       # PointField         (null=True)
-        location_area =   validated_hivent_data['location_area'],        # MultiPolygonField  (null=True)
-        description =     validated_hivent_data['description'],          # CharField          (null=True, max_length=1000)
-        link_url =        validated_hivent_data['link_url'],             # CharField          (max_length=300)
-        link_date =       validated_hivent_data['link_date']             # DateTimeField      (default=date.today)
+        name =            validated_hivent_data['name'],           # CharField          (max_length=150)
+        date =            validated_hivent_data['date'],           # DateTimeField      (default=timezone.now)
+        location =        validated_hivent_data['location_name'],  # CharField          (null=True, max_length=150)
+        description =     validated_hivent_data['description'],    # CharField          (null=True, max_length=1000)
+        link =            validated_hivent_data['link'],           # CharField          (max_length=300)
       )
     hivent.save()
 

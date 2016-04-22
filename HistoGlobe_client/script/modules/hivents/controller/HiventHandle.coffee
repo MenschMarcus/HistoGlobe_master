@@ -76,7 +76,7 @@ class HG.HiventHandle
   # ============================================================================
 
   happenedBetween: (dateA, dateB) ->
-    (@_hivent.effectDate > dateA) and (@_hivent.effectDate <= dateB)
+    (@_hivent.date > dateA) and (@_hivent.date <= dateB)
 
 
   # ============================================================================

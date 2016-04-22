@@ -73,7 +73,7 @@ class HG.DatabaseInterface
         # create Hivents
         for hData in dataObj.hivents
           hivent = new HG.Hivent @_hiventToClient hData
-          minDate = moment.min(minDate, hivent.effectDate)
+          minDate = moment.min(minDate, hivent.date)
 
           # create HistoricalChanges
           for hcData in hData.historical_changes
@@ -335,58 +335,45 @@ class HG.DatabaseInterface
   # ----------------------------------------------------------------------------
   _areaNameToServer: (dataObj) ->
     {
-      id:                   parseInt dataObj.id
-      short_name:           dataObj.shortName
-      formal_name:          dataObj.formalName
-      area:                 dataObj.area?.id
-      start_change:         dataObj.startChange?.id
-      end_change:           dataObj.endChange?.id
+      id:           parseInt dataObj.id
+      short_name:   dataObj.shortName
+      formal_name:  dataObj.formalName
+      area:         dataObj.area?.id
+      start_change: dataObj.startChange?.id
+      end_change:   dataObj.endChange?.id
     }
 
   # ----------------------------------------------------------------------------
   _areaNameToClient: (dataObj) ->
     {
-      id:                   parseInt dataObj.id
-      shortName:            dataObj.short_name
-      formalName:           dataObj.formal_name
-      area:                 (@_hgInstance.areaController.getAreaHandle dataObj.area).getArea()
-      startChange:          dataObj.start_change  # only id!
-      endChange:            dataObj.end_change    # only id!
+      id:           parseInt dataObj.id
+      shortName:    dataObj.short_name
+      formalName:   dataObj.formal_name
+      area:         (@_hgInstance.areaController.getAreaHandle dataObj.area).getArea()
+      startChange:  dataObj.start_change  # only id!
+      endChange:    dataObj.end_change    # only id!
     }
 
   # ----------------------------------------------------------------------------
   _hiventToClient: (dataObj) ->
     {
-      id :                dataObj.id
-      name :              dataObj.name
-      startDate :         moment(dataObj.start_date)
-      endDate :           moment(dataObj.end_date?)
-      effectDate :        moment(dataObj.effect_date)
-      secessionDate :     moment(dataObj.secession_date?)
-      displayDate :       moment(dataObj.display_date?)
-      locationName :      dataObj.location_name          ?= null
-      locationPoint :     if dataObj.location_point then @_geometryReader.read dataObj.location_point else null
-      locationArea :      if dataObj.location_area  then @_geometryReader.read dataObj.location_area  else null
-      description :       dataObj.description            ?= null
-      linkUrl :           dataObj.link_url               ?= null
-      linkDate :          moment(dataObj.link_date?)
+      id:           dataObj.id
+      name:         dataObj.name
+      date:         moment(dataObj.date)
+      location:     dataObj.location    ?= null
+      description:  dataObj.description ?= null
+      link:         dataObj.link        ?= null
     }
 
   # ----------------------------------------------------------------------------
   _hiventToServer: (dataObj) ->
     {
-      id :                dataObj.id
-      name :              dataObj.name
-      start_date :        dataObj.startDate
-      end_date :          dataObj.endDate
-      effect_date :       dataObj.effectDate
-      secession_date :    dataObj.secessionDate
-      location_name :     dataObj.locationName
-      location_point :    dataObj.locationPoint?.wkt()
-      location_area :     dataObj.locationArea?.wkt()
-      description :       dataObj.description
-      link_url :          dataObj.linkUrl
-      link_date :         dataObj.linkData
+      id:           dataObj.id
+      name:         dataObj.name
+      date:         dataObj.date
+      location:     dataObj.location
+      description:  dataObj.description
+      link:         dataObj.link
     }
 
   # ----------------------------------------------------------------------------

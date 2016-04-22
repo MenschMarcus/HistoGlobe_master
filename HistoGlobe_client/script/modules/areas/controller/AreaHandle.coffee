@@ -77,12 +77,12 @@ class HG.AreaHandle
 
   getStartDate: () ->
     # startHivent must be given, so no error handling necessary
-    @_area.startHivent.getHivent().effectDate
+    @_area.startHivent.getHivent().date
 
   # ----------------------------------------------------------------------------
   getEndDate: () ->
     if @_area.endHivent # if it has an end hivent
-      @_area.endHivent.getHivent().effectDate
+      @_area.endHivent.getHivent().date
     else                # if it does nothave an end hivent, it is still valid
       moment()          # = now
 

@@ -287,8 +287,8 @@ class HG.HiventController
     @_hiventHandles.sort (a, b) =>
       if a? and b?
         # sort criterion 1) effect date
-        unless a.getHivent().effectDate is b.getHivent().effectDate
-          return a.getHivent().effectDate - b.getHivent().effectDate
+        unless a.getHivent().date is b.getHivent().date
+          return a.getHivent().date - b.getHivent().date
         # sort criterion 2) id
         else
           if a.getHivent().id > b.getHivent().id

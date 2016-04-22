@@ -50,62 +50,21 @@ def validate_hivent(hivent):
   ## dates
 
   # start date has to be valid
-  if validate_date(hivent['start_date']) is False:
-    return [False, ("The start date of the Hivent is not valid")]
-    # else: start_date is OK
-
-  # end date can be either None or valid
-  if ('end_date' in hivent) and (hivent['end_date'] is not None):
-    if validate_date(hivent['end_date']) is False:
-      return [False, ("The end date of the Hivent is not valid")]
-    # end date must be later than start date
-    if get_date_object(hivent['end_date']) < get_date_object(hivent['start_date']):
-      return [False, ("The end date of the Hivent can not be before the start date")]
-    # else: end_date is OK
-
-  else:
-    hivent['end_date'] = None
-
-
-  # effect date is either itself or the start date
-  if ('effect_date' in hivent) and (hivent['effect_date'] is not None):
-    if validate_date(hivent['effect_date']) is False:
-      return [False, ("The effect date of the Hivent is not valid")]
-    # else: effect_date is OK
-
-  else:
-    hivent['effect_date'] = hivent['start_date']
-
-
-  # end date can be either None or valid
-  if ('secession_date' in hivent) and (hivent['secession_date'] is not None):
-    if validate_date(hivent['secession_date']) is False:
-      return [False, ("The secession date of the Hivent is not valid")]
-    # secession date must be later than the effect date
-    if get_date_object(hivent['secession_date']) < get_date_object(hivent['effect_date']):
-      return [False, ("The secession date of the Hivent can not be before the effect date")]
-    # else: secession_date is OK
-
-  else:
-    hivent['secession_date'] = None
+  if validate_date(hivent['date']) is False:
+    return [False, ("The date of the Hivent is not valid")]
+    # else: date is OK
 
 
   ## location
 
   # location name can be either a string or None
-  if 'location_name' in hivent:
-    if validate_string(hivent['location_name']) is False:
+  if 'location' in hivent:
+    if validate_string(hivent['location']) is False:
       return [False, ('The location name you were giving to the Hivent is not valid')]
-    # else: location_name is ok
+    # else: location is ok
 
   else:
-    hivent['location_name'] = None
-
-
-  # TODO: location point
-  hivent['location_point'] = None
-  # TODO: location area
-  hivent['location_area'] = None
+    hivent['location'] = None
 
 
   ## description
@@ -122,16 +81,12 @@ def validate_hivent(hivent):
 
   ## link
   # link can be either a valid URL or None
-  if 'link_url' in hivent:
-    if validate_url(hivent['link_url']) is False:
+  if 'link' in hivent:
+    if validate_url(hivent['link']) is False:
       return [False, ('The link you were giving to the Hivent is not valid')]
 
-    # link_url is OK, link_date is set to today (= just checked)
-    hivent['link_date'] = get_date_string(datetime.date.today())
-
   else:
-    hivent['link_url'] = None
-    hivent['link_date'] = None
+    hivent['link'] = None
 
   # everything is fine => return hivent
   return [hivent, None]
