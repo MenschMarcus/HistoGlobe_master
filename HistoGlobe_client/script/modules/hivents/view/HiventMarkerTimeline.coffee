@@ -18,7 +18,7 @@ class HG.HiventMarkerTimeline extends HG.HiventMarker
     @_timeline = timeline
     @_id = id
 
-    time = hiventHandle.getHivent().startDate.getTime()
+    time = hiventHandle.getHivent().date.getTime()
 
     yRow=
       0: HGConfig.timeline_row0_position.val + 25    # main topic
@@ -53,8 +53,8 @@ class HG.HiventMarkerTimeline extends HG.HiventMarker
     @_div.style.display = "none" if !@_timeline.topicsloaded
 
     # new
-    '''if hiventHandle.getHivent().startDate.getTime() isnt hiventHandle.getHivent().endDate.getTime()
-      xDiff = @_timeline.dateToPosition(hiventHandle.getHivent().endDate) - @_timeline.dateToPosition(hiventHandle.getHivent().startDate)
+    '''if hiventHandle.getHivent().date.getTime() isnt hiventHandle.getHivent().endDate.getTime()
+      xDiff = @_timeline.dateToPosition(hiventHandle.getHivent().endDate) - @_timeline.dateToPosition(hiventHandle.getHivent().date)
       @_div.style.width = xDiff + "px"
       @_div.style.background = "rgba(255, 0, 0, 1)"'''
 
@@ -152,7 +152,7 @@ class HG.HiventMarkerTimeline extends HG.HiventMarker
   _destroy: =>
     # @notifyAll "onMarkerDestruction"
 
-    Y_OFFSETS[@getHiventHandle().getHivent().startDate.getTime()] -= 1
+    Y_OFFSETS[@getHiventHandle().getHivent().date.getTime()] -= 1
     @getHiventHandle().unMarkAll()
     @_div.parentNode.removeChild @_div
 

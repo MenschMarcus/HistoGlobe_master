@@ -117,7 +117,7 @@ class HG.Popover
     gotoDateBig.className = "fa fa-clock-o"
     $(gotoDateBig).tooltip {title: "Springe zum Ereignisdatum", placement: "right", container:"#histoglobe"}
     gotoDateBig.addEventListener 'mouseup', () =>
-      @_hgInstance.timeline.moveToDate @_config.hiventHandle.getHivent().startDate, 0.5
+    @_hgInstance.timeline.moveToDate @_config.hiventHandle.getHivent().date, 0.5
     dateBig.appendChild gotoDateBig
 
     # =================================================================

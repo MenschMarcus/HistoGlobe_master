@@ -76,9 +76,7 @@ class HG.HiventController
 
       # load initial Hivents on load from DatabaseInterface
       @_hgInstance.databaseInterface.onFinishSavingHistoricalOperation @, () ->
-
         @_sortHivents()
-
 
 
       ### VIEW ###
@@ -186,7 +184,7 @@ class HG.HiventController
 
     for handle in handles
       if handle._state isnt 0 and not (handle.getHivent().id in ignoredIds)
-        diff = handle.getHivent().startDate.getTime() - now.getTime()
+        diff = handle.getHivent().date.getTime() - now.getTime()
         if (distance is -1 or diff < distance) and diff >= 0
           distance = diff
           result = handle
@@ -202,7 +200,7 @@ class HG.HiventController
 
     for handle in handles
       if handle._state isnt 0 and not (handle.getHivent().id in ignoredIds)
-        diff = now.getTime() - handle.getHivent().startDate.getTime()
+        diff = now.getTime() - handle.getHivent().date.getTime()
         if (distance is -1 or diff < distance) and diff >= 0
           distance = diff
           result = handle
@@ -326,11 +324,11 @@ class HG.HiventController
 
       if state isnt 0 and @_currentTimeFilter?
         # start date in visible future
-        if hivent.startDate.getTime() > @_currentTimeFilter.now.getTime() and hivent.startDate.getTime() < @_currentTimeFilter.end.getTime()
+        if hivent.date.getTime() > @_currentTimeFilter.now.getTime() and hivent.date.getTime() < @_currentTimeFilter.end.getTime()
           #make them visible in future
           state = 1
         # completely  outside
-        else if hivent.startDate.getTime() > @_currentTimeFilter.end.getTime() or hivent.endDate.getTime() < @_currentTimeFilter.start.getTime()
+        else if hivent.date.getTime() > @_currentTimeFilter.end.getTime() or hivent.endDate.getTime() < @_currentTimeFilter.start.getTime()
           state = 0
 
       # filter by location

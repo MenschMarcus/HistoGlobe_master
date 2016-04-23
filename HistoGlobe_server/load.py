@@ -95,34 +95,6 @@ def run(verbose=True):
   # automate this using:
   # psycopg2
 
-  ### CREATE DATABASE ###
-  """
-## setup postgres database and user
-sudo su - postgres
-psql
-CREATE DATABASE histoglobe_database;
-CREATE USER HistoGlobe_user WITH PASSWORD '12345';
-ALTER ROLE HistoGlobe_user SET client_encoding TO 'utf8';
-ALTER ROLE HistoGlobe_user SET default_transaction_isolation TO 'read committed';
-ALTER ROLE HistoGlobe_user SET timezone TO 'UTC';
-\c histoglobe_database
-CREATE EXTENSION postgis;
-CREATE EXTENSION postgis_topology;
-CREATE EXTENSION fuzzystrmatch;
-CREATE EXTENSION postgis_tiger_geocoder;
-\q
-exit
-
-## load model migrate
-python manage.py makemigrations
-python manage.py migrate
-
-## prepare
-python manage.py shell
-from HistoGlobe_server import load
-load.run()
-
-  """
 
   ### CLEANUP ###
 

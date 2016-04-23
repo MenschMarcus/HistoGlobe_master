@@ -7,17 +7,17 @@ class HG.NewHiventBox
   ##############################################################################
 
   # ============================================================================
-  constructor: (@_hgInstance, @_stepData, @_operationDescription) ->
+  constructor: (@_hgInstance, @_operationDescription) ->
 
     # handle callbacks
     HG.mixin @, HG.CallbackContainer
     HG.CallbackContainer.call @
 
-    @addCallback 'onReady'
-    @addCallback 'onUnready'
+    @addCallback 'onSubmit'
 
     # include
     @_domElemCreator = new HG.DOMElementCreator
+    @_newHivent = yes
 
     ### SETUP UI ###
 
@@ -31,7 +31,7 @@ class HG.NewHiventBox
     @_hgInstance.buttons.existingHiventSearch.onClick @, () ->
       # TODO: write id into out data and be ready :-)
       # indicate that the hivent is updated
-      @_stepData.outData.hiventData.status = 'upd'
+      @_newHivent = no
 
     ## 2.2) create new hivent
     @_hgInstance.buttons.newHiventInBox.onClick @, () ->
@@ -40,7 +40,7 @@ class HG.NewHiventBox
       $(@_hiventBox).empty()
       @_makeNewHiventForm()
       # indicate that the hivent is new
-      @_stepData.outData.hiventData.status = 'new'
+      @_newHivent = yes
 
 
   # ============================================================================
@@ -150,75 +150,52 @@ class HG.NewHiventBox
     formWrapper.appendChild hiventLink.getDOMElement()
 
     ## changes
-    # TODO: put in information about current change
-    # TODO: connect this with hg action language
-    hiventChanges = @_domElemCreator.create 'div', 'newHiventChanges', ['new-hivent-information']
+    hiventChanges = @_domElemCreator.create 'div', 'newHiventChanges', ['new-hivent-information', 'hg-input']
     $(hiventChanges).html @_operationDescription
     formWrapper.appendChild hiventChanges
 
 
     ## buttons
-    # TODO: are the buttons really necessary or can't I reuse the buttons from the workflow window?
-    # is against "direct manipulation" paradigm, but kind of makes sense
-    # -> no! I should include them
-    # abortButton = new HG.Button @_hgInstance,
-        # 'addChangeAbort', ['button-abort'],
-    #   [
-    #     {
-    #       'iconFA':   'times'
-    #       'callback': 'onClick'
-    #     }
-    #   ]
-    # formWrapper.appendChild abortButton.getDOMElement()
-
-    # okButton = new HG.Button @_hgInstance,
-        # 'addChangeOK', null,
-    #   [
-    #     {
-    #       'iconFA':   'check'
-    #       'callback': 'onClick'
-    #     }
-    #   ]
-    # formWrapper.appendChild okButton.getDOMElement()
+    okButton = new HG.Button @_hgInstance,
+      'confirmOperation', null,
+      [
+        {
+          'iconFA':   'check'
+          'callback': 'onClick'
+        }
+      ]
+    okButton.disable()
+    formWrapper.appendChild okButton.getDOMElement()
 
 
     ### INTERACTION ###
 
-    ## name done => ready to submit
+    ## name done => ready to submit?
     hiventName.onChange @, (name) ->
-      # save to data
-      @_stepData.outData.hiventData.name = name
-      # tell everyone: "I am done"
       if name isnt ''
-        @notifyAll 'onReady'
+        okButton.enable()
       else
-        @notifyAll 'onUnready'
+        okButton.disable()
 
     ## synchronize hivent date with timeline
+    # TODO: error handling. avoid changing date drastically
     # timeline -> hivent box
     @_hgInstance.timeController.onNowChanged @, (date) ->
       hiventDate.setValue date.format(@_hgInstance.config.dateFormat)
-      @_stepData.outData.hiventData.startDate = date.format()  # RFC 3339
 
     # timeline <- hivent box
     hiventDate.onChange @, (dateString) ->
       date = moment(dateString, @_hgInstance.config.dateFormat)
       @_hgInstance.timeController.setNowDate @, date
-      @_stepData.outData.hiventData.startDate = date.format()  # RFC 3339
 
-    # hack: it is possible to finish this step without changing the date
-    # => date has to be initially written into output
-    @_stepData.outData.hiventData.startDate = @_hgInstance.timeController.getNowDate().format()
-
-    ## convert location to lat/lng coordinates
-    # TODO: geocoding
-    hiventLocation.onChange @, (location) ->
-      @_stepData.outData.hiventData.locationName = location
-
-    ## save the description
-    hiventDescription.onChange @, (description) ->
-      @_stepData.outData.hiventData.description = description
-
-    ## save the link
-    hiventLink.onChange @, (link) ->
-      @_stepData.outData.hiventData.linkUrl = link
+    # click on OK => finalize and return information
+    okButton.onClick @, () =>
+      hiventData = {
+        isNew:        @_newHivent
+        name:         hiventName.getText()
+        date:         @_hgInstance.timeController.getNowDate().format()
+        location:     hiventLocation.getText()
+        description:  hiventDescription.getText()
+        link:         hiventLink.getText()
+      }
+      @notifyAll 'onSubmit', hiventData

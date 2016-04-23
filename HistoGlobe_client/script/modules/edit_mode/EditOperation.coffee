@@ -255,7 +255,7 @@ class HG.EditOperation
 
     @_hgInstance.databaseInterface.saveHistoricalOperation hiventData, historicalChange
 
-    @_hgInstance.databaseInterface.onFinishSavingHivent @, () =>
+    @_hgInstance.databaseInterface.onFinishSavingHistoricalOperation @, () =>
       @notifyAll 'onFinish'
 
 

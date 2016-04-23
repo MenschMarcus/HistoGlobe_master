@@ -103,12 +103,22 @@
 
 #newHiventDescription
 {
-  height: @input_text_height*5;
+  height: @input_text_height*4.5;
 }
 
 #newHiventChanges
 {
-  border: none;
   text-align: left;
-  color: @color_disabled;
+  color: @color_disabled_active;
+  width: 78%;
+  margin-right: 12%;
+  height: @input_text_height*2;
+  box-shadow: 0 0 10px -2px @color_disabled_active;
+}
+
+#confirmOperation
+{
+  position: absolute;
+  bottom: 0;
+  right: @element_window_distance;
 }

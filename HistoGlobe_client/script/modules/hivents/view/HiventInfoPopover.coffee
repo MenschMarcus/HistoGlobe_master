@@ -54,7 +54,7 @@ class HG.HiventInfoPopover
     gotoDate.className = "fa fa-clock-o"
     $(gotoDate).tooltip {title: "Springe zum Ereignisdatum", placement: "right", container:"#histoglobe"}
     $(gotoDate).click () =>
-      @_hgInstance.timeline.moveToDate @_hiventHandle.getHivent().startDate, 0.5
+      @_hgInstance.timeline.moveToDate @_hiventHandle.getHivent().date, 0.5
     date.appendChild gotoDate
 
     text.appendChild date

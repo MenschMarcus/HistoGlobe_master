@@ -26,6 +26,7 @@ class Area(models.Model):
   # historical context
   start_change =          models.ForeignKey         ('AreaChange', related_name='start_change', null=True)
   end_change =            models.ForeignKey         ('AreaChange', related_name='end_change', null=True)
+  # update_changes = ??? ManyToManyRelation
 
 
   # ----------------------------------------------------------------------------

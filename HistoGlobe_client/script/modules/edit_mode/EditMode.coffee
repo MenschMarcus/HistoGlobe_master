@@ -1,7 +1,7 @@
 window.HG ?= {}
 
 # DEBUG: take out if not needed anymore
-TEST_BUTTON = yes
+TEST_BUTTON = no
 
 # ==============================================================================
 # EditMode registers clicks on edit operation buttons -> init operation
@@ -57,10 +57,11 @@ class HG.EditMode
       @_testButton.onClick @, () =>
 
         # TEST PLAYGROUND START HERE
-        examplePath = @_hgInstance.config.configPath + 'common/example.json'
+        @_hgInstance.databaseInterface.saveHistoricalOperation(42,99)
+        # examplePath = @_hgInstance.config.configPath + 'common/example.json'
 
-        $.getJSON examplePath, (request) =>
-          @_hgInstance.databaseInterface.testSave request
+        # $.getJSON examplePath, (request) =>
+        #   @_hgInstance.databaseInterface.testSave request
 
 
         # TEST PLAYGROUND END HERE

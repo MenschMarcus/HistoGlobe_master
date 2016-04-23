@@ -31,7 +31,7 @@ class HG.EditOperationStep
       @_undoManager = @_hgInstance.editOperation.getUndoManager()
 
     # main data: operation and step data (local reference => accessible anywhere)
-    @_stepData =          @_hgInstance.editOperation.operation.steps[@_hgInstance.editOperation.operation.idx]
+    @_stepData = @_hgInstance.editOperation.operation.steps[@_hgInstance.editOperation.operation.idx]
 
 
   # ============================================================================

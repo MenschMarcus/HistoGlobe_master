@@ -153,7 +153,7 @@ class HG.DatabaseInterface
 
     request = {
       hivent:               null
-      hivent_status:        null # 'new' or 'upd'
+      hivent_is_new:        yes
       historical_change:    {}
       new_areas:            []
       new_area_names:       []
@@ -166,12 +166,12 @@ class HG.DatabaseInterface
     #                                            |-> AreaName / AreaTerritory
 
     ## Hivent: create new or update?
-    if hiventData.status is 'new' #   => create new Hivent
+    if hiventData.isNew   # => create new Hivent
       hivent = new HG.Hivent hiventData
       hiventHandle = new HG.HiventHandle @_hgInstance, hivent
       hivent.handle = hiventHandle
 
-    else # hiventData.status is 'upd' => update existing Hivent
+    else # not isNew        => update existing Hivent
       hiventHandle = @_hgInstance.hiventController.getHiventHandle hiventData.id
       hivent = hiventHandle.getHivent()
       # override hivent data with new info from server
@@ -179,11 +179,11 @@ class HG.DatabaseInterface
 
     # add to request
     request.hivent = @_hiventToServer hivent
-    request.hivent_status = hiventData.status
+    request.hivent_is_new = hiventData.isNew
 
 
     ## HistoricalChange: omit Hivent (link upward)
-    request.historical_change_data = {
+    request.historical_change = {
       id:           historicalChange.id
       operation:    historicalChange.operation
       area_changes: []  # store only ids, so they can be associated
@@ -191,7 +191,7 @@ class HG.DatabaseInterface
 
     ## AreaChanges: omit HistoricalChange (link upward), save only ids of Areas
     for areaChange in historicalChange.areaChanges
-      request.historical_change_data.area_changes.push {
+      request.historical_change.area_changes.push {
         id:                   areaChange.id
         operation:            areaChange.operation
         area:                 areaChange.area.id
@@ -228,77 +228,78 @@ class HG.DatabaseInterface
       @_historicalChange =  historicalChange
 
 
-  ### get request from EditMode -> Test Button ###
-  testSave: (request) ->
+      $.ajax
+        url:  'save_operation/'
+        type: 'POST'
+        data: JSON.stringify request
 
-    $.ajax
-      url:  'save_operation/'
-      type: 'POST'
-      data: JSON.stringify request
+        # success callback: load areas and hivents here and connect them
+        success: (response) =>
 
-      # success callback: load areas and hivents here and connect them
-      success: (response) =>
-        dataObj = $.parseJSON response
+          dataObj = $.parseJSON response
 
-        ### UPDATE IDS AND ESTABLISH DOUBLE-LINKS ###
+          ### UPDATE IDS AND ESTABLISH DOUBLE-LINKS ###
 
-        ## Hivent: update with possibly new data from server
-        @_hivent = $.extend @_hivent, @_hiventToClient response.hivent
+          ## Hivent: update with possibly new data from server
+          @_hivent = $.extend @_hivent, @_hiventToClient dataObj.hivent
 
 
-        ## HistoricalChange
-        @_historicalChange.id = response.historical_change.new_id
+          ## HistoricalChange
+          @_historicalChange.id = dataObj.historical_change_id
 
-        # Hivent <-> HistoricalChange
-        hivent.historicalChanges.push @_historicalChange
-        @_historicalChange.hivent = hivent
+          # Hivent <-> HistoricalChange
+          hivent.historicalChanges.push @_historicalChange
+          @_historicalChange.hivent = hivent
 
 
-        ## AreaChanges
-        for areaChange in @_historicalChange.areasChanges
+          ## AreaChanges
+          for areaChange in @_historicalChange.areaChanges
 
-          # find associated areaChangeData id in response data
-          for area_change in response.historical_change.area_changes
-            if areaChange.id is area_change.old_id
+            # find associated areaChangeData id in response data
+            for area_change in dataObj.area_changes
+              if areaChange.id is area_change.old_id
 
-              # update id
-              areaChange.id = area_change.new_id
-
-              ## Area
-              areaChange.area.id = area_change.area_id
-
-              # AreaChange <- Area
-              switch areaChange.operation
-                when 'ADD' then         areaChange.area.startChange =       areaChange
-                when 'DEL' then         areaChange.area.endChange =         areaChange
-                when 'TCH', 'NCH' then  areaChange.area.updateChanges.push  areaChange
-
-              ## AreaName
-              if areaChange.oldAreaName
-                # id is already up to data
-                # AreaChange <- AreaName
-                areaChange.oldAreaName.endChange = areaChange
-
-              if areaChange.newAreaName
                 # update id
-                areaChange.newAreaName.id = area_change.new_area_name_id
-                # AreaChange <- AreaName
-                areaChange.newAreaName.startChange = areaChange
+                areaChange.id = area_change.new_id
 
-              ## AreaTerritory
-              if areaChange.oldAreaTerritory
-                # id is already up to data
-                # AreaChange <- AreaTerritory
-                areaChange.oldAreaTerritory.endChange = areaChange
+                ## Area
+                areaChange.area.id = area_change.area_id
 
-              if areaChange.newAreaTerritory
-                # update id
-                areaChange.newAreaTerritory.id = area_change.new_area_territory_id
-                # AreaChange <- AreaTerritory
-                areaChange.newAreaTerritory.startChange = areaChange
+                # AreaChange <- Area
+                switch areaChange.operation
+                  when 'ADD' then         areaChange.area.startChange =       areaChange
+                  when 'DEL' then         areaChange.area.endChange =         areaChange
+                  when 'TCH', 'NCH' then  areaChange.area.updateChanges.push  areaChange
 
+                ## AreaName
+                if areaChange.oldAreaName
+                  # id is already up to data
+                  # AreaChange <- AreaName
+                  areaChange.oldAreaName.endChange = areaChange
 
-      error: @_errorCallback
+                if areaChange.newAreaName
+                  # update id
+                  areaChange.newAreaName.id = area_change.new_area_name_id
+                  # AreaChange <- AreaName
+                  areaChange.newAreaName.startChange = areaChange
+
+                ## AreaTerritory
+                if areaChange.oldAreaTerritory
+                  # id is already up to data
+                  # AreaChange <- AreaTerritory
+                  areaChange.oldAreaTerritory.endChange = areaChange
+
+                if areaChange.newAreaTerritory
+                  # update id
+                  areaChange.newAreaTerritory.id = area_change.new_area_territory_id
+                  # AreaChange <- AreaTerritory
+                  areaChange.newAreaTerritory.startChange = areaChange
+
+          # finalize: make Hivent known to HistoGlobe (HiventController)
+          @_hgInstance.hiventController.addHiventHandle @_hivent.handle
+          @notifyAll 'onFinishSavingHistoricalOperation'
+
+        error: @_errorCallback
 
 
 

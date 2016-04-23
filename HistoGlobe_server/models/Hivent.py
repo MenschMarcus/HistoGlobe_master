@@ -39,7 +39,7 @@ class Hivent(models.Model):
 
     ## save in database
     self.name =             hivent_data['name']                 # CharField          (max_length=150)
-    self.date =             hivent_data['start_date']           # DateTimeField      (default=timezone.now)
+    self.date =             hivent_data['date']                 # DateTimeField      (default=timezone.now)
     self.location =         hivent_data['location']             # CharField          (null=True, max_length=150)
     self.description =      hivent_data['description']          # CharField          (null=True, max_length=1000)
     self.link =             hivent_data['link']                 # CharField          (max_length=300)

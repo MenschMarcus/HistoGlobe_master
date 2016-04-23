@@ -53,7 +53,7 @@ def validate_hivent(hivent):
   if validate_date(hivent['date']) is False:
     return [False, ("The date of the Hivent is not valid")]
     # else: date is OK
-
+  hivent['date'] = get_date_object(hivent['date'])
 
   ## location
 
@@ -81,12 +81,7 @@ def validate_hivent(hivent):
 
   ## link
   # link can be either a valid URL or None
-  if 'link' in hivent:
-    if validate_url(hivent['link']) is False:
-      return [False, ('The link you were giving to the Hivent is not valid')]
-
-  else:
-    hivent['link'] = None
+  hivent['link'] = validate_url(hivent['link'])
 
   # everything is fine => return hivent
   return [hivent, None]
@@ -124,6 +119,44 @@ def validate_name(area_name):
   if area_name['short_name'] == False:
     return [False, ('The formal name of the AreaName is not valid')]
 
+  # everything is fine
+  return [area_name, None]
+
+
+# ==============================================================================
+# given operation id, make sure it is supported
+# ==============================================================================
+
+def validate_historical_operation_id(operation_id):
+
+  # test if string
+  operation_id = validate_string(operation_id)
+  if operation_id == False:
+    return [False, ('The operation id is not a string')]
+
+  # test if id is valid
+  valid_ids = ['CRE', 'UNI', 'INC', 'SEP', 'SEC', 'TCH', 'BCH', 'NCH', 'ICH', 'DES']
+  if not any(operation_id in i for i in valid_ids):
+    return [False, ('The operation id ' + operation_id + ' is not supported')]
+
+  # everything is fine
+  return [operation_id, None]
+
+# ------------------------------------------------------------------------------
+def validate_area_operation_id(operation_id):
+
+  # test if string
+  operation_id = validate_string(operation_id)
+  if operation_id == False:
+    return [False, ('The operation id is not a string')]
+
+  # test if id is valid
+  valid_ids = ['ADD', 'TCH', 'NCH', 'DEL']
+  if not any(operation_id in i for i in valid_ids):
+    return [False, ('The operation id ' + operation_id + ' is not supported')]
+
+  # everything is fine
+  return [operation_id, None]
 
 
 ################################################################################
@@ -148,21 +181,21 @@ def validate_date(date_string):
   try:
     get_date_object(date_string)
   except ValueError:
-    return False
+    return None
 
   # everything is fine
   return date_string
 
 
 # ==============================================================================
-# strings and urls: validation
+# strings and urls: get_date_object(date_string)
 
 # ------------------------------------------------------------------------------
 def validate_string(in_string):
   if not isinstance(in_string, basestring):
     return ("Not a string")
-  if (in_string == ''):
-    return False
+  if in_string is '':
+    return None
 
   # everything is fine
   return in_string
@@ -185,6 +218,7 @@ def validate_url(in_url):
 def validate_area_id(in_num):
   if not isinstance(in_num, (int, long)):
     return False
+  # is id unique?
   if (len(Area.objects.filter(id=in_num)) != 1):
     return False
 

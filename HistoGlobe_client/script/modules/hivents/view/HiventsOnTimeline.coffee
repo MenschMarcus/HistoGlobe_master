@@ -55,7 +55,7 @@ class HG.HiventsOnTimeline
       @_hgInstance.hiventController.getHivents @, (handle) =>
         show = (self, oldState) =>
           if oldState is 0 # invisible
-            hiventMarkerDate = self.getHivent().startDate
+            hiventMarkerDate = self.getHivent().date
             #rowPosition = @_config.default_row_position
 
             # TODO: get topics from timeline and check hivent for mapping
@@ -131,14 +131,14 @@ class HG.HiventsOnTimeline
       for marker, i in @_hiventMarkers
         marker.getDiv().style.zIndex = currentZ
         currentZ += 1
-        hiventMarkerDate = marker.getHiventHandle().getHivent().startDate
+        hiventMarkerDate = marker.getHiventHandle().getHivent().date
         newPos = @_hgInstance.timeline.dateToPosition(hiventMarkerDate)
         previousMarker = @_hiventMarkers[i-1]
 
         if previousMarker?
           previousMarkers[previousMarker.rowPosition] = previousMarker
           if previousMarkers[marker.rowPosition]?
-            unless hiventMarkerDate.getTime() is previousMarkers[marker.rowPosition].getHiventHandle().getHivent().startDate.getTime()
+            unless hiventMarkerDate.getTime() is previousMarkers[marker.rowPosition].getHiventHandle().getHivent().date.getTime()
               if (newPos - minDistance) <= previousMarkers[marker.rowPosition].getPosition().x
                 newPos = previousMarkers[marker.rowPosition].getPosition().x + minDistance
 
@@ -151,8 +151,8 @@ class HG.HiventsOnTimeline
       hiventA = a.getHiventHandle()
       hiventB = b.getHiventHandle()
       if hiventA? and hiventB?
-        unless hiventA.getHivent().startDate.getTime() is hiventB.getHivent().startDate.getTime()
-            return hiventA.getHivent().startDate.getTime() - hiventB.getHivent().startDate.getTime()
+        unless hiventA.getHivent().date.getTime() is hiventB.getHivent().date.getTime()
+            return hiventA.getHivent().date.getTime() - hiventB.getHivent().date.getTime()
           else
             if hiventA.getHivent().id > hiventB.getHivent().id
               return 1

@@ -28,37 +28,12 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
       @_hgInstance.editMode.enterAreaEditMode()
 
     # hivent box: select existing or create new hivent
-    @_hiventBox = new HG.NewHiventBox @_hgInstance, @_stepData, @_historicalChange.getDescription()
+    @_hiventBox = new HG.NewHiventBox @_hgInstance, @_historicalChange.getDescription()
 
+    @_hiventBox.onSubmit @, (hiventData) ->
+      @_stepData.outData.hiventData = hiventData
+      @finish()
 
-    ### INTERACTION ###
-
-    # tell workflow window to change the finish button
-    @_hiventBox.onReady @, () ->
-      @_hgInstance.editOperation.notifyAll 'onOperationComplete'
-
-    @_hiventBox.onUnready @, () ->
-      @_hgInstance.editOperation.notifyAll 'onOperationIncomplete'
-
-
-    ## that would be the nice way to do it, directly in HistoGlobe
-    ## but I am going to go the easy way :-)
-    # builder = new HG.HiventBuilder
-    # hivent = builder._createHivent hiventData
-    # hiventHandle = new HG.HiventHandle @_hgInstance, hivent
-
-    # @_popover = new HG.HiventInfoPopover(
-    #     hiventHandle,
-    #     @_hgInstance.getTopArea(),
-    #     @_hgInstance,
-    #     1,
-    #     yes
-    #   )
-
-    # $('.guiPopoverTitle')[0].contentEditable = true
-    # $('.hivent-content')[0].contentEditable = true
-
-    # @_popover.show new HG.Vector $('body').width()-237, 380
 
 
   ##############################################################################
@@ -70,9 +45,17 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
 
     @_hiventBox.destroy()
 
-    # TODO: decide which area to have seleted after everything is over
+    # set all handles out of edit mode
+    for area in @_stepData.inData.areas
+      area.handle.endEdit()
+      area.handle.deselect()
+
     @_hgInstance.editMode.leaveAreaEditMode()
     @_hgInstance.areaController.disableMultiSelection()
+
+    # select the one area that is most important for the operation
+    # randomly take the first one :D
+    @_stepData.inData.areas[0].handle.select()
 
 
   # ============================================================================
@@ -119,7 +102,6 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
 
           oldIdx++
 
-
       # ------------------------------------------------------------------------
       when 'UNI'
 
@@ -131,7 +113,6 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
 
         # add new Area
         @_makeADD 0
-
 
       # ------------------------------------------------------------------------
       when 'INC'
@@ -153,7 +134,6 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
 
           idx++
 
-
       # ------------------------------------------------------------------------
       when 'SEP'
 
@@ -165,7 +145,6 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
         while idx < @_newAreas.areas.length
           @_makeADD idx
           idx++
-
 
       # ------------------------------------------------------------------------
       when 'SEC'
@@ -187,7 +166,6 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
 
           idx++
 
-
       # ------------------------------------------------------------------------
       when 'TCH', 'BCH'
 
@@ -195,7 +173,6 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
         while idx < @_newAreas.areas.length
           @_makeTCH idx, idx
           idx++
-
 
       # ------------------------------------------------------------------------
       when 'NCH'
