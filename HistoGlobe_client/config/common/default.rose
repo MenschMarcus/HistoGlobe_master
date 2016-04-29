@@ -85,10 +85,10 @@ $histograph_area_line_width         = 5px
 $histograph_hivent_circle_radius    = 10px
 
 
-// EDIT OPERATION WINDOW -------------------------------------------------------
+// WORKFLOW WINDOW -------------------------------------------------------------
 
-$operation_window_height            = 120px
-$operation_step_width               = 175px
+$workflow_window_height             = 120px
+$workflow_window_step_width         = 145px
 $edit_buttons_top_distance          = 88px
 
 

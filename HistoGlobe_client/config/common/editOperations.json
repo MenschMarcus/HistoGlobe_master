@@ -1,7 +1,7 @@
 [
   {
     "id":           "CRE",
-    "title":        "Create a new country",
+    "title":        "Create a New Country",
     "steps":
     [
       {
@@ -13,17 +13,12 @@
         "id":       "SET_NEW_NAME",
         "num":      "1",
         "title":    "create new name"
-      },
-      {
-        "id":       "SET_NEW_PROP",
-        "num":      "1",
-        "title":    "set new options"
       }
     ]
   },
   {
     "id":           "UNI",
-    "title":        "unify two or many countries to a new country",
+    "title":        "Unify Countries",
     "steps":
     [
       {
@@ -39,13 +34,13 @@
       {
         "id":       "SET_NEW_PROP",
         "num":      "1",
-        "title":    "set new options"
+        "title":    "set special options"
       }
     ]
   },
   {
     "id":           "SEP",
-    "title":        "separate one country into two or more countries",
+    "title":        "Separate a Country",
     "steps":
     [
       {
@@ -65,19 +60,19 @@
       {
         "id":       "SET_NEW_PROP",
         "num":      "1",
-        "title":    "set new options"
+        "title":    "set special options"
       }
     ]
   },
   {
     "id":           "TCH",
-    "title":        "change the territory of one or the border between two countries",
+    "title":        "Change the Territory / Border",
     "steps":
     [
       {
         "id":       "SEL_OLD_AREA",
         "num":      "1|2",
-        "title":    "select one or two countries <br/> to change their territories"
+        "title":    "select 1/2 countries <br/> to change territories"
       },
       {
         "id":       "SET_NEW_TERR",
@@ -92,13 +87,13 @@
   },
   {
     "id":           "NCH",
-    "title":        "change the name of a country",
+    "title":        "Change the Name",
     "steps":
     [
       {
         "id":       "SEL_OLD_AREA",
         "num":      "1",
-        "title":    "select country whose <br/> name is to be changed"
+        "title":    "select country to <br/> change its name"
       },
       {
         "id":       "SET_NEW_NAME",
@@ -109,24 +104,24 @@
   },
   {
     "id":           "PCH",
-    "title":        "change the options of a country",
+    "title":        "Change Special Properties",
     "steps":
     [
       {
         "id":       "SEL_OLD_AREA",
         "num":      "1",
-        "title":    "select country whose <br/> options are to be changed"
+        "title":    "select country to <br/> change its properties"
       },
       {
         "id":       "SET_NEW_PROP",
         "num":      "1",
-        "title":    "set new options"
+        "title":    "set special options"
       }
     ]
   },
   {
     "id":           "DES",
-    "title":        "destroy a country",
+    "title":        "Destroy a Country",
     "steps":
     [
       {

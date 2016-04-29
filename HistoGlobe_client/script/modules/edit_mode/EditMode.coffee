@@ -231,6 +231,9 @@ class HG.EditMode
     # remove new hivent button
     @_newHiventButton.destroy()
 
+    # remove new recognition button
+    @_newRecognitionButton.destroy()
+
     # deactivate edit button
     @_editButton.deactivate()
     @_editButton.changeState 'normal'
@@ -240,6 +243,7 @@ class HG.EditMode
     # disable all buttons
     @_editButton.disable()
     @_newHiventButton.disable()
+    @_newRecognitionButton.disable()
     @_operationButtons.foreach (opb) =>
       opb.button.disable()
 
@@ -261,6 +265,7 @@ class HG.EditMode
 
     # enable all buttons
     @_newHiventButton.enable()
+    @_newRecognitionButton.enable()
     @_operationButtons.foreach (obj) =>
       obj.button.enable()
     @_newHiventButton.enable()
