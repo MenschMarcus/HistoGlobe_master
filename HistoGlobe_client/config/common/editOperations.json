@@ -1,22 +1,29 @@
 [
   {
     "id":           "CRE",
+    "title":        "Create a new country",
     "steps":
     [
       {
         "id":       "SET_NEW_TERR",
         "num":      "1",
-        "title":    "create territory <br/> of new country"
+        "title":    "create new territory"
       },
       {
         "id":       "SET_NEW_NAME",
         "num":      "1",
-        "title":    "create name <br/> of new country"
+        "title":    "create new name"
+      },
+      {
+        "id":       "SET_NEW_PROP",
+        "num":      "1",
+        "title":    "set new options"
       }
     ]
   },
   {
     "id":           "UNI",
+    "title":        "unify two or many countries to a new country",
     "steps":
     [
       {
@@ -27,12 +34,18 @@
       {
         "id":       "SET_NEW_NAME",
         "num":      "1",
-        "title":    "create name <br/> of united country"
+        "title":    "create new name"
+      },
+      {
+        "id":       "SET_NEW_PROP",
+        "num":      "1",
+        "title":    "set new options"
       }
     ]
   },
   {
     "id":           "SEP",
+    "title":        "separate one country into two or more countries",
     "steps":
     [
       {
@@ -43,36 +56,43 @@
       {
         "id":       "SET_NEW_TERR",
         "num":      "2+",
-        "title":    "create territories <br/> of all separated countries"
+        "title":    "create new territories"
       },
       {
         "id":       "SET_NEW_NAME",
-        "title":    "create names <br/> of all separated countries"
+        "title":    "create new names"
+      },
+      {
+        "id":       "SET_NEW_PROP",
+        "num":      "1",
+        "title":    "set new options"
       }
     ]
   },
   {
     "id":           "TCH",
+    "title":        "change the territory of one or the border between two countries",
     "steps":
     [
       {
         "id":       "SEL_OLD_AREA",
         "num":      "1|2",
-        "title":    "select two countries whose <br/> border is to be changed"
+        "title":    "select one or two countries <br/> to change their territories"
       },
       {
         "id":       "SET_NEW_TERR",
         "num":      "1|2",
-        "title":    "create new territories <br/> of both countries"
+        "title":    "create new territories"
       },
       {
         "id":       "SET_NEW_NAME",
-        "title":    "reset names <br/> of both countries"
+        "title":    "reset name positions"
       }
     ]
   },
   {
     "id":           "NCH",
+    "title":        "change the name of a country",
     "steps":
     [
       {
@@ -83,18 +103,36 @@
       {
         "id":       "SET_NEW_NAME",
         "num":      "1",
-        "title":    "create new name <br/> of the country"
+        "title":    "create new name"
+      }
+    ]
+  },
+  {
+    "id":           "PCH",
+    "title":        "change the options of a country",
+    "steps":
+    [
+      {
+        "id":       "SEL_OLD_AREA",
+        "num":      "1",
+        "title":    "select country whose <br/> options are to be changed"
+      },
+      {
+        "id":       "SET_NEW_PROP",
+        "num":      "1",
+        "title":    "set new options"
       }
     ]
   },
   {
     "id":           "DES",
+    "title":        "destroy a country",
     "steps":
     [
       {
         "id":       "SEL_OLD_AREA",
         "num":      "1+",
-        "title":    "select all countries to be deleted"
+        "title":    "select a country to be destroyed"
       }
     ]
   }

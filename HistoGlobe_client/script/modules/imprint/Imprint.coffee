@@ -70,15 +70,14 @@ class HG.Imprint
   # ============================================================================
   hgInit: (@_hgInstance) ->
     @_hgInstance.getContainer().appendChild @_link
-    # TODO: append this only on click, so that it is not always there
-    @_hgInstance.getContainer().appendChild @_imprintOverlay
-
 
   # ============================================================================
   showBox:() ->
-    $(@_imprintOverlay).fadeIn()
+    @_hgInstance.getContainer().appendChild @_imprintOverlay
+    $(@_imprintOverlay).fadeIn HGConfig.fast_animation_time.val
 
   # ============================================================================
   hideBox:() ->
-    $(@_imprintOverlay).fadeOut()
+    $(@_imprintOverlay).fadeOut HGConfig.fast_animation_time.val, =>
+      @_hgInstance.getContainer().removeChild @_imprintOverlay
 

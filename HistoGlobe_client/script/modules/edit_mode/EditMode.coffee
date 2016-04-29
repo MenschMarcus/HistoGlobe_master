@@ -173,6 +173,20 @@ class HG.EditMode
       ]
     @_editButtonArea.addButton @_newHiventButton
 
+    # setup new area recognition button
+    @_editButtonArea.addSpacer()
+    @_newRecognitionButton = new HG.Button @_hgInstance,
+      'newRecognition', ['tooltip-bottom'],
+      [
+        {
+          'id':       'normal',
+          'tooltip':  "Declare New Area Recognition",
+          'iconOwn':  @_hgInstance.config.graphicsPath + 'buttons/new_recognition.svg',
+          'callback': 'onClick'
+        }
+      ]
+    @_editButtonArea.addButton @_newRecognitionButton
+
     # setup operation buttons
     @_editButtonArea.addSpacer()
     @_operationButtons = new HG.ObjectArray
@@ -184,7 +198,7 @@ class HG.EditMode
           {
             'id':       'normal',
             'tooltip':  operation.title,
-            'iconOwn':  @_hgInstance.config.graphicsPath + 'buttons/' + operation.id + '.svg',
+            'iconOwn':  @_hgInstance.config.graphicsPath + 'buttons/edit_operations/' + operation.id + '.svg',
             'callback': 'onClick'
           }
         ]

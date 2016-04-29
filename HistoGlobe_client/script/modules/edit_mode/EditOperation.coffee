@@ -49,6 +49,7 @@ class HG.EditOperation
     @operation =
       {
         id:                       operationConfig.id
+        title:                    operationConfig.title
         idx:                      0    # = step index -> 0 = start
         steps: [
           { # idx                 0
@@ -108,6 +109,22 @@ class HG.EditOperation
             }
           },
           { # idx                 4
+            id:                   'SET_NEW_PROP'
+            title:                null
+            userInput:            no
+            number:               {}
+            inData: {
+              areas:              []
+              areaNames:          []
+              areaTerritories:    []
+            }
+            outData: {
+              areas:              []
+              areaNames:          []
+              areaTerritories:    []
+            }
+          },
+          { # idx                 5
             id:                   'ADD_CHNG'
             title:                "add change <br /> to historical event"
             userInput:            yes
@@ -212,8 +229,9 @@ class HG.EditOperation
       when 1 then @_step = new HG.EditOperationStep.SelectOldAreas        @_hgInstance, direction
       when 2 then @_step = new HG.EditOperationStep.CreateNewTerritories  @_hgInstance, direction
       when 3 then @_step = new HG.EditOperationStep.CreateNewNames        @_hgInstance, direction
-      when 4 then @_step = new HG.EditOperationStep.AddChange             @_hgInstance, direction
-      when 5 then return @_finish()
+      when 4 then @_step = new HG.EditOperationStep.CreateNewProperties   @_hgInstance, direction
+      when 5 then @_step = new HG.EditOperationStep.AddChange             @_hgInstance, direction
+      when 6 then return @_finish()
 
     # react on user input
     if newStep?.userInput
