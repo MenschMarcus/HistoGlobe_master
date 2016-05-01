@@ -180,7 +180,7 @@ class HG.EditMode
       [
         {
           'id':       'normal',
-          'tooltip':  "Declare New Area Recognition",
+          'tooltip':  "Declare New Recognition",
           'iconOwn':  @_hgInstance.config.graphicsPath + 'buttons/new_recognition.svg',
           'callback': 'onClick'
         }
