@@ -103,8 +103,8 @@
     ]
   },
   {
-    "id":           "PCH",
-    "title":        "Change Special Properties",
+    "id":           "SCH",
+    "title":        "Change Status of a Territory or Country",
     "steps":
     [
       {
