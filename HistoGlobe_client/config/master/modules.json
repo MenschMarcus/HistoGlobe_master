@@ -6,7 +6,7 @@
   "HistoGlobe" :
   {
     "minYear": 1900,
-    "maxYear": 2020,
+    "maxYear": 2050,
     "nowYear": 2015,
     "startPoint": [50.9869531, 11.3205004],
     "dateFormat": "DD.MM.YYYY",
