@@ -20,7 +20,6 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
     @_prepareChange()
     @_stepData.outData.historicalChange = @_historicalChange
 
-
     ### SETUP OPERATION ###
 
     if direction is -1
@@ -46,7 +45,13 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
     @_hiventBox.destroy()
 
     # set all handles out of edit mode
-    for area in @_stepData.inData.areas
+    # HACK: with all I mean really all that have been involved in the operation
+    # old areas
+    for area in @_hgInstance.editOperation.operation.steps[1].outData.areas
+      area.handle.endEdit()
+      area.handle.deselect()
+    # new areas
+    for area in @_hgInstance.editOperation.operation.steps[3].outData.areas
       area.handle.endEdit()
       area.handle.deselect()
 
