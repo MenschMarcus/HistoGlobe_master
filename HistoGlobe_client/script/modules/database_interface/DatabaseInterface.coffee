@@ -420,7 +420,7 @@ class HG.DatabaseInterface
       return console.error "The id is not valid"
 
     # check if operation type is correct
-    if ['CRE','UNI','INC','SEP','SEC','NCH','TCH','DES'].indexOf(dataObj.operation) is -1
+    if ['CRE','UNI','INC','SEP','SEC','NCH','TCH','BCH','DES'].indexOf(dataObj.operation) is -1
       return console.error "The operation type " + dataObj.operation + " is not valid"
 
     # got all the way here? Then everything is good :)
