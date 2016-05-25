@@ -56,7 +56,7 @@ class HG.EditOperation
             userInput:            no
           }
           { # idx                 1
-            id:                   'SEL_OLD_AREA'
+            id:                   'SEL_OLD_AREAS'
             title:                null
             userInput:            no
             number:               {}
@@ -67,7 +67,7 @@ class HG.EditOperation
             }
           },
           { # idx                 2
-            id:                   'SET_NEW_TERR'
+            id:                   'SET_NEW_TERRITORIES'
             title:                null
             userInput:            no
             number:               {}
@@ -91,7 +91,7 @@ class HG.EditOperation
             }
           },
           { # idx                 3
-            id:                   'SET_NEW_NAME'
+            id:                   'SET_NEW_NAMES'
             title:                null
             userInput:            no
             number:               {}
@@ -108,7 +108,7 @@ class HG.EditOperation
             }
           },
           { # idx                 4
-            id:                   'ADD_CHNG'
+            id:                   'ADD_CHANGE'
             title:                "add change <br /> to historical event"
             userInput:            yes
             outData: {

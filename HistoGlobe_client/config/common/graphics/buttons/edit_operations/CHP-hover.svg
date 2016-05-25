@@ -14,7 +14,7 @@
    id="svg3774"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="NCH.svg"
+   sodipodi:docname="CHP.svg"
    inkscape:export-filename="/home/marcus/HistoGlobe/master/planning/test3_interaction/toolbar.png"
    inkscape:export-xdpi="300"
    inkscape:export-ydpi="300">
@@ -57,8 +57,8 @@
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="8.576943366655088"
-     inkscape:cx="31.54972270709487"
-     inkscape:cy="26.18183411862606"
+     inkscape:cx="0.4197515056962295"
+     inkscape:cy="26.76479238082453"
      inkscape:document-units="px"
      inkscape:current-layer="g4149"
      showgrid="true"
@@ -125,7 +125,7 @@
          sodipodi:nodetypes="cc"
          transform="matrix(-1.767139278371328,0,0,1,-227.5904551745957,104.7084894192824)"
          inkscape:connector-curvature="0"
-         style="fill:#d57d00;fill-opacity:1;stroke:#d57d00;stroke-width:4.51352500920000033;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         style="fill:#ffffff;fill-opacity:1;stroke:#d57d00;stroke-width:4.51352500920000033;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
          d="M -72.15388417444208,21.02807816359892 L -102.711747191198,21.02807816359892"
          id="path3806" />
       <path
@@ -144,32 +144,12 @@
       <g
          id="g4274"
          transform="translate(-1.999999907572814,2)">
-        <text
-           transform="matrix(-1.272345061192531,0,0,1.272345061192531,-34.96674510089751,100.5855740591401)"
-           sodipodi:linespacing="125%"
-           id="text4266"
-           y="10.56514"
-           x="13.453699"
-           style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#d57d00;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1px;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Latin Modern Sans;-inkscape-font-specification:Latin Modern Sans"
-           xml:space="preserve"><tspan
-             style="font-size:22.00660896300000147px;text-align:center;text-anchor:middle;fill:#d57d00;fill-opacity:1"
-             y="10.56514"
-             x="13.453699"
-             id="tspan4268"
-             sodipodi:role="line">A</tspan></text>
-        <text
-           xml:space="preserve"
-           style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:center;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:middle;baseline-shift:baseline;color:#000000;fill:#d57d00;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1px;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Latin Modern Sans;-inkscape-font-specification:Latin Modern Sans"
-           x="13.453699"
-           y="10.56514"
-           id="text4270"
-           sodipodi:linespacing="125%"
-           transform="matrix(-1.272345061192531,0,0,1.272345061192531,-71.96674510089749,100.5855740591401)"><tspan
-             sodipodi:role="line"
-             id="tspan4272"
-             x="13.453699"
-             y="10.56514"
-             style="font-size:22.00660896300000147px;text-align:center;text-anchor:middle;fill:#d57d00;fill-opacity:1">B</tspan></text>
+        <path
+           style="fill:#d57d00;fill-opacity:1"
+           transform="matrix(-0.2727168200630748,0,0,0.272716820063075,-71.15331363834864,83.08381382281092)"
+           inkscape:connector-curvature="0"
+           d="M 50.011,0 C 47.12710000000001,0 44.2971,0.25936 41.54680000000001,0.7280999999999997 L 40.20440000000001,14.9491 C 37.36000000000001,15.74197 34.66790000000001,16.8506 32.14980000000002,18.2711 L 21.1598,9.1926 C 16.5179,12.4786 12.45440000000001,16.5185 9.168800000000004,21.1606 L 18.27,32.15060000000001 C 16.8512,34.6657 15.718,37.36460000000001 14.9253,40.20520000000001 L 0.7283000000000042,41.55520000000002 C 0.2593700000000044,44.30520000000002 0,47.13520000000001 0,50.04520000000001 C 0,52.93490000000002 0.2577700000000044,55.75370000000001 0.7284000000000041,58.50930000000001 L 14.9264,59.85180000000001 C 15.71914000000001,62.69240000000002 16.8524,65.39130000000001 18.2711,67.9064 L 9.192600000000004,78.89640000000001 C 12.4722,83.5258 16.5087,87.5849 21.1376,90.8644 L 32.15060000000001,81.76310000000002 C 34.67030000000001,83.18480000000002 37.3588,84.31460000000002 40.20520000000001,85.10780000000002 L 41.5476,99.32880000000001 C 44.29790000000001,99.79760000000003 47.12790000000001,100.0342 50.0118,100.0342 C 52.8956,100.0342 55.7029,99.79760000000003 58.4532,99.32880000000001 L 59.7956,85.10780000000002 C 62.6421,84.31460000000002 65.3305,83.18480000000002 67.8502,81.76310000000002 L 78.8632,90.8644 C 83.4925,87.58470000000001 87.52900000000001,83.52560000000001 90.80819999999998,78.89640000000001 L 81.72969999999999,67.9064 C 83.14849999999998,65.39130000000001 84.2817,62.69240000000002 85.07439999999998,59.85180000000002 L 99.2724,58.50930000000002 C 99.74303,55.75370000000003 100.0005,52.93490000000002 100.0005,50.04520000000002 C 100.0005,47.16040000000002 99.74142999999999,44.33210000000002 99.2724,41.58100000000002 L 85.07439999999998,40.23860000000002 C 84.28166,37.39800000000002 83.14839999999999,34.69910000000002 81.72969999999999,32.18400000000002 L 90.83089999999998,21.19400000000002 C 87.5454,16.55170000000002 83.48189999999999,12.51190000000002 78.8399,9.226000000000016 L 67.8499,18.30450000000002 C 65.3318,16.88400000000002 62.63970000000001,15.77540000000002 59.79530000000001,14.98250000000002 L 58.45290000000001,0.7615000000000192 C 55.70260000000001,0.2927600000000194 52.89530000000002,0 50.01150000000001,0 z M 50.011,30.967 C 60.527,30.967 69.033,39.495 69.033,50.011 C 69.033,60.527 60.52770000000001,69.05499999999999 50.011,69.05499999999999 C 39.49500000000001,69.05499999999999 30.967,60.527 30.967,50.011 C 30.967,39.495 39.49500000000001,30.96699999999999 50.011,30.96699999999999 z"
+           id="path4840" />
       </g>
     </g>
   </g>

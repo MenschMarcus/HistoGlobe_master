@@ -114,7 +114,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
       # for NCH/ICH: set the current name of the area as default value
       # to work immediately on it or just use it
-      when 'NCH', 'ICH'
+      when 'REN', 'ICH'
         tempData.name = {
           shortName:  currName.shortName
           formalName: currName.formalName
@@ -122,7 +122,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
       # for TCH/BCH: set the current name of the area as default value
       # that can not be changed (only name position can be changed)
-      when 'TCH', 'BCH'
+      when 'CHB', 'BCH'
         tempData.name = {
           shortName:  currName.shortName
           formalName: currName.formalName
@@ -146,7 +146,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
 
         # ----------------------------------------------------------------------
-        when 'UNI'
+        when 'MRG'
 
           @_updateAreaName_reverse()
           @_updateRepresentativePoint_reverse()
@@ -157,7 +157,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
           @_continueIdentity_reverse()
 
         # ----------------------------------------------------------------------
-        when 'SEP', 'SEC'
+        when 'DIS', 'SEC'
 
           # define if this area was continued in its identity
           # -> Area that caused secession instead of separation
@@ -175,12 +175,12 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
             @_updateRepresentativePoint_reverse()
 
         # ----------------------------------------------------------------------
-        when 'TCH', 'BCH'
+        when 'CHB', 'BCH'
 
           @_updateRepresentativePoint_reverse()
 
         # ----------------------------------------------------------------------
-        when 'NCH'
+        when 'REN'
 
           @_updateAreaName_reverse()
 
@@ -262,7 +262,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
           }
 
         # ----------------------------------------------------------------------
-        when 'UNI', 'INC'
+        when 'MRG', 'INC'
 
           # find out if new area continues the identity of one of the old areas
           # -> check if formal name equals
@@ -273,7 +273,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
           # change of formal name => new identity => same as CRE operation
           if not origAreaName
-            @_setOperationId 'UNI'
+            @_setOperationId 'MRG'
             @_updateAreaName newShortName, newFormalName
             @_updateRepresentativePoint newPoint
 
@@ -286,7 +286,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
           return @finish()
 
         # ----------------------------------------------------------------------
-        when 'SEP', 'SEC'
+        when 'DIS', 'SEC'
 
           # find out if new area continues the identity of one of the old areas
           # -> check if formal name equals
@@ -302,7 +302,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
           # change of formal name => new identity => same as CRE operation
           if not origAreaName
-            @_setOperationId 'SEP' if not @_stepData.outData.handleToBeDeleted
+            @_setOperationId 'DIS' if not @_stepData.outData.handleToBeDeleted
             @_updateAreaName newShortName, newFormalName
             @_updateRepresentativePoint newPoint
 
@@ -338,7 +338,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
           }
 
         # ----------------------------------------------------------------------
-        when 'TCH'
+        when 'CHB'
 
           @_updateRepresentativePoint newPoint
           @_restoreAreaName()
@@ -383,7 +383,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
 
 
         # ----------------------------------------------------------------------
-        when 'NCH', 'ICH'
+        when 'REN', 'ICH'
 
           # find out if new area continues the identity of the old area
           # -> check if formal name equals
@@ -403,7 +403,7 @@ class HG.EditOperationStep.CreateNewNames extends HG.EditOperationStep
           else  # formal name stayed the same
 
             if shortNameChanged
-              @_setOperationId 'NCH'
+              @_setOperationId 'REN'
               @_updateAreaName newShortName, newFormalName
               @_updateRepresentativePoint newPoint
 

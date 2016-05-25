@@ -160,31 +160,32 @@ class HG.EditMode
     @_editButton.activate()
 
     # setup new hivent button
-    @_editButtonArea.addSpacer()
-    @_newHiventButton = new HG.Button @_hgInstance,
-      'newHivent', ['tooltip-bottom'],
-      [
-        {
-          'id':       'normal',
-          'tooltip':  "Add New Hivent",
-          'iconOwn':  @_hgInstance.config.graphicsPath + 'buttons/new_hivent.svg',
-          'callback': 'onClick'
-        }
-      ]
-    @_editButtonArea.addButton @_newHiventButton
+    # @_editButtonArea.addSpacer()
+    # @_newHiventButton = new HG.Button @_hgInstance,
+    #   'newHivent', ['tooltip-bottom'],
+    #   [
+    #     {
+    #       'id':       'normal',
+    #       'tooltip':  "Add New Hivent",
+    #       'iconOwn':  @_hgInstance.config.graphicsPath + 'buttons/new_hivent.svg',
+    #       'callback': 'onClick'
+    #     }
+    #   ]
+    # @_editButtonArea.addButton @_newHiventButton
 
     # setup operation buttons
     @_editButtonArea.addSpacer()
     @_operationButtons = new HG.ObjectArray
     @_editOperations.foreach (operation) =>
       # add button to UI
+      console.log operation
       coButton = new HG.Button @_hgInstance,
         operation.id, ['button-horizontal', 'tooltip-bottom'],
         [
           {
             'id':       'normal',
             'tooltip':  operation.title,
-            'iconOwn':  @_hgInstance.config.graphicsPath + 'buttons/' + operation.id + '.svg',
+            'iconOwn':  @_hgInstance.config.graphicsPath + 'buttons/edit_operations/' + operation.id + '.svg',
             'callback': 'onClick'
           }
         ]
@@ -211,11 +212,11 @@ class HG.EditMode
     @_title.destroy()
 
     # remove operation buttons
-    @_operationButtons.foreach (opb) =>
-      opb.button.destroy()
+    @_operationButtons.foreach (opBtn) =>
+      opBtn.button.destroy()
 
     # remove new hivent button
-    @_newHiventButton.destroy()
+    # @_newHiventButton.destroy()
 
     # deactivate edit button
     @_editButton.deactivate()
@@ -225,7 +226,7 @@ class HG.EditMode
   _setupOperation: () ->
     # disable all buttons
     @_editButton.disable()
-    @_newHiventButton.disable()
+    # @_newHiventButton.disable()
     @_operationButtons.foreach (opb) =>
       opb.button.disable()
 
@@ -246,8 +247,7 @@ class HG.EditMode
     (@_operationButtons.getById @_operationId).button.deactivate()
 
     # enable all buttons
-    @_newHiventButton.enable()
+    # @_newHiventButton.enable()
     @_operationButtons.foreach (obj) =>
       obj.button.enable()
-    @_newHiventButton.enable()
     @_editButton.enable()

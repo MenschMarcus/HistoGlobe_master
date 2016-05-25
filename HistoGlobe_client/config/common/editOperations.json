@@ -1,100 +1,106 @@
 [
   {
     "id":           "CRE",
+    "title":        "Create a new country",
     "steps":
     [
       {
-        "id":       "SET_NEW_TERR",
+        "id":       "SET_NEW_TERRITORIES",
         "num":      "1",
-        "title":    "create territory <br/> of new country"
+        "title":    "create a territory <br/> of the new country"
       },
       {
-        "id":       "SET_NEW_NAME",
+        "id":       "SET_NEW_NAMES",
         "num":      "1",
-        "title":    "create name <br/> of new country"
+        "title":    "create a name <br/> of the new country"
       }
     ]
   },
   {
-    "id":           "UNI",
+    "id":           "MRG",
+    "title":        "Merge multiple countries",
     "steps":
     [
       {
-        "id":       "SEL_OLD_AREA",
+        "id":       "SEL_OLD_AREAS",
         "num":      "2+",
-        "title":    "select all countries <br/> to be united"
+        "title":    "select all countries <br/> to be merged"
       },
       {
-        "id":       "SET_NEW_NAME",
+        "id":       "SET_NEW_NAMES",
         "num":      "1",
-        "title":    "create name <br/> of united country"
+        "title":    "create a name <br/> of the merged country"
       }
     ]
   },
   {
-    "id":           "SEP",
+    "id":           "DIS",
+    "title":        "Dissolve one country",
     "steps":
     [
       {
-        "id":       "SEL_OLD_AREA",
+        "id":       "SEL_OLD_AREAS",
         "num":      "1",
-        "title":    "select country <br/> to be separated"
+        "title":    "select a country <br/> to be dissolved"
       },
       {
-        "id":       "SET_NEW_TERR",
+        "id":       "SET_NEW_TERRITORIES",
         "num":      "2+",
-        "title":    "create territories <br/> of all separated countries"
+        "title":    "create a territory <br/> for each new country"
       },
       {
-        "id":       "SET_NEW_NAME",
-        "title":    "create names <br/> of all separated countries"
+        "id":       "SET_NEW_NAMES",
+        "title":    "create a name <br/> for each new country"
       }
     ]
   },
   {
-    "id":           "TCH",
+    "id":           "CHB",
+    "title":        "Change the border between two countries",
     "steps":
     [
       {
-        "id":       "SEL_OLD_AREA",
+        "id":       "SEL_OLD_AREAS",
         "num":      "1|2",
-        "title":    "select two countries whose <br/> border is to be changed"
+        "title":    "select two neighboring countries <br/> to change their border"
       },
       {
-        "id":       "SET_NEW_TERR",
+        "id":       "SET_NEW_TERRITORIES",
         "num":      "1|2",
-        "title":    "create new territories <br/> of both countries"
+        "title":    "create the new border <br/> between both countries"
       },
       {
-        "id":       "SET_NEW_NAME",
+        "id":       "SET_NEW_NAMES",
         "title":    "reset names <br/> of both countries"
       }
     ]
   },
   {
-    "id":           "NCH",
+    "id":           "REN",
+    "title":        "Rename a country",
     "steps":
     [
       {
-        "id":       "SEL_OLD_AREA",
+        "id":       "SEL_OLD_AREAS",
         "num":      "1",
-        "title":    "select country whose <br/> name is to be changed"
+        "title":    "select a country <br/> to change its name"
       },
       {
-        "id":       "SET_NEW_NAME",
+        "id":       "SET_NEW_NAMES",
         "num":      "1",
-        "title":    "create new name <br/> of the country"
+        "title":    "create a new name <br/> of the country"
       }
     ]
   },
   {
-    "id":           "DES",
+    "id":           "CES",
+    "title":        "Cease a country",
     "steps":
     [
       {
-        "id":       "SEL_OLD_AREA",
+        "id":       "SEL_OLD_AREAS",
         "num":      "1+",
-        "title":    "select all countries to be deleted"
+        "title":    "select a country to cease it"
       }
     ]
   }

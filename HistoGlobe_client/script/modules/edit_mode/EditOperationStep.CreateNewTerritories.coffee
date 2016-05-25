@@ -27,10 +27,10 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     @_hgInstance.editMode.enterAreaEditMode()
     @_hgInstance.areaController.enableMultiSelection HGConfig.max_area_selection.val
 
-    # for SEP and TCH operation, put selected area into edit mode and select it
+    # for DIS and CHB operation, put selected area into edit mode and select it
     if direction is 1
       switch @_getOperationId()
-        when 'SEP', 'SEC', 'TCH', 'BCH', 'NCH', 'ICH'
+        when 'DIS', 'SEC', 'CHB', 'BCH', 'REN', 'ICH'
           for area in @_stepData.inData.areas
             area.handle.startEdit()
             area.handle.select()
@@ -49,33 +49,33 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     switch @_getOperationId()
 
       # ------------------------------------------------------------------------
-      when 'UNI', 'INC'                            ## unification, incorporation
+      when 'MRG', 'INC'                            ## unification, incorporation
         if direction is 1   # forward
-          @_UNI()
+          @_MRG()
           return @finish()
 
         else                # backward
-          @_UNI_reverse()
+          @_MRG_reverse()
           return @abort()
 
       # ------------------------------------------------------------------------
-      when 'NCH', 'ICH'                          ## name change, identity change
+      when 'REN', 'ICH'                          ## name change, identity change
         if direction is 1   # forward
-          @_NCH()
+          @_REN()
           return @finish()
 
         else                # backward
-          @_NCH_reverse()
+          @_REN_reverse()
           return @abort()
 
       # ------------------------------------------------------------------------
-      when 'DES'                                                  ## destruction
+      when 'CES'                                                  ## destruction
         if direction is 1   # forward
-          @_DES()
+          @_CES()
           return @finish()
 
         else                # backward
-          @_DES_reverse()
+          @_CES_reverse()
           return @abort()
 
     # ==========================================================================
@@ -104,8 +104,8 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     if direction is -1
       switch @_getOperationId()
         when 'CRE'        then @_CRE_reverse()
-        when 'SEP', 'SEC' then @_SEP_reverse()
-        when 'TCH', 'BCH' then @_TCH_reverse()
+        when 'DIS', 'SEC' then @_DIS_reverse()
+        when 'CHB', 'BCH' then @_CHB_reverse()
 
     # set up NewTerritoryTool to define geometry of an area interactively
     newTerritoryTool = new HG.NewTerritoryTool @_hgInstance, drawLayer, @_areaIdx is 0
@@ -130,9 +130,9 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
           return @finish()
 
         # ----------------------------------------------------------------------
-        when 'SEP', 'SEC'                               ## separation, secession
+        when 'DIS', 'SEC'                               ## separation, secession
 
-          complete = @_SEP clipGeometry
+          complete = @_DIS clipGeometry
 
           # finish when old area was separated completely
           if complete
@@ -159,9 +159,9 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
             }
 
         # ----------------------------------------------------------------------
-        when 'TCH', 'BCH'                      # territory change, border change
+        when 'CHB', 'BCH'                      # territory change, border change
 
-          @_TCH clipGeometry
+          @_CHB clipGeometry
 
           # only one step necessary => finish
           return @finish()
@@ -215,8 +215,8 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     # approach to treat the rest of the areas that change because of the newly
     # created Area: clip new geometry to existing geometries and check for
     # intersection with each active area on the map
-    #   -> new Area overlaps current Area =>  TCH of the current Area
-    #   -> new Area covers current Area =>    DES of the current Area
+    #   -> new Area overlaps current Area =>  CHB of the current Area
+    #   -> new Area covers current Area =>    CES of the current Area
     # TODO: make more efficient later (Quadtree?)
 
     # manual loop, because some areas might be deleted on the way
@@ -237,7 +237,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
           # => clip the curr geometry to the new geometry and update its area
           newGeometry = @_geometryOperator.difference currTerritory.geometry, clipGeometry
 
-          # area has been clipped => TCH
+          # area has been clipped => CHB
           if newGeometry.isValid()
 
             # create new Territory
@@ -258,13 +258,13 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
             currArea.handle.update()
             currArea.handle.startEdit()
 
-            # add to workflow: treat as Areas in TCH operation
+            # add to workflow: treat as Areas in CHB operation
             @_stepData.outData.areas.push           currArea
             @_stepData.outData.areaNames.push       currName
             @_stepData.outData.areaTerritories.push newTerritory
 
 
-          # area has been hidden => DES
+          # area has been hidden => CES
           else
 
             # update Area
@@ -324,12 +324,12 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
 
   # ============================================================================
-  # UNI = unify selected areas to a new area
+  # MRG = unify selected areas to a new area
   # INC = incorporate selected areas into another selected area
   # -> automatically, no input required
   # ============================================================================
 
-  _UNI: () ->
+  _MRG: () ->
 
     # delete all selected areas
     oldGeometries = []
@@ -378,7 +378,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
 
   # ----------------------------------------------------------------------------
-  _UNI_reverse: () ->
+  _MRG_reverse: () ->
 
     # get areaHandle from operation workflow
     newArea = @_stepData.outData.areas[0]
@@ -405,11 +405,11 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
 
   # ============================================================================
-  # SEP = separate selected area into multiple areas (multiple iterations)
+  # DIS = separate selected area into multiple areas (multiple iterations)
   # SEC = seize multiple areas from one area
   # ============================================================================
 
-  _SEP: (clipGeometry) ->
+  _DIS: (clipGeometry) ->
 
     # area separated completely?
     separationComplete = no
@@ -503,7 +503,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
 
   # ----------------------------------------------------------------------------
-  _SEP_reverse: () ->
+  _DIS_reverse: () ->
 
     # remove new area => hides, deselects and leaves edit mode automatically
     newArea = @_stepData.outData.areas.pop()
@@ -543,23 +543,23 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
 
   # ============================================================================
-  # TCH = change territory of one area
+  # CHB = change territory of one area
   # BCH = change the border between two territories
   # ============================================================================
 
-  _TCH: (clipGeometry) ->
+  _CHB: (clipGeometry) ->
 
-    # distinction: 1 (TCH) or 2 (BCH) areas changed
+    # distinction: 1 (CHB) or 2 (BCH) areas changed
     if @_stepData.inData.areas.length is 1
-      @_setOperationId 'TCH'
+      @_setOperationId 'CHB'
     else if @_stepData.inData.areas.length is 2
       @_setOperationId 'BCH'
     else
-      return console.error "The TCH Operation does not have the necessary number of areas provided"
+      return console.error "The CHB Operation does not have the necessary number of areas provided"
 
 
     # --------------------------------------------------------------------------
-    if @_getOperationId() is 'TCH'                         # single-area territory change
+    if @_getOperationId() is 'CHB'                         # single-area territory change
 
       currArea        = @_stepData.inData.areas[0]
       currName        = @_stepData.inData.areaNames[0]
@@ -651,9 +651,9 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
 
   # ----------------------------------------------------------------------------
-  _TCH_reverse: () ->
+  _CHB_reverse: () ->
 
-    ## handles both TCH and BCH
+    ## handles both CHB and BCH
 
     idx = 0   # for each selected Area
     while idx < @_stepData.inData.areas.length
@@ -671,23 +671,23 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
 
 
   # ============================================================================
-  # NCH = change the name of an area
+  # REN = change the name of an area
   # ICH = identity change
   # ============================================================================
 
-  _NCH: () ->
+  _REN: () ->
     @_stepData.outData = @_stepData.inData
 
   # ----------------------------------------------------------------------------
-  _NCH_reverse: () ->
+  _REN_reverse: () ->
     @_stepData.inData = @_stepData.outData
 
 
   # ============================================================================
-  # DES = destruct an area
+  # CES = destruct an area
   # ============================================================================
 
-  _DES: () ->
+  _CES: () ->
     # get selected area
     oldArea =       @_stepData.inData.areas[0]
     oldName =       @_stepData.inData.areaNames[0]
@@ -701,7 +701,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
     oldArea.handle.hide()
 
   # ----------------------------------------------------------------------------
-  _DES_reverse: () ->
+  _CES_reverse: () ->
     # get selected area
     oldArea =       @_stepData.inData.areas[0]
     oldName =       @_stepData.inData.areaNames[0]
@@ -734,7 +734,7 @@ class HG.EditOperationStep.CreateNewTerritories extends HG.EditOperationStep
       @_hgInstance.editMode.leaveAreaEditMode()
       @_hgInstance.areaController.disableMultiSelection()
       switch @_getOperationId()
-        when 'SEP', 'SEC', 'TCH', 'BCH', 'NCH', 'ICH'
+        when 'DIS', 'SEC', 'CHB', 'BCH', 'REN', 'ICH'
           for area in @_stepData.inData.areas
             area.handle.deselect()
             area.handle.endEdit()
