@@ -1,21 +1,22 @@
 # ==============================================================================
-# An HistoricalChange belongs to an Hivent and defines what has historically
-# changed because of that Hivent.
+# An HistoricalChange is one high-level change that has occured to a set of
+# Areas in history. It is created by one explicit Edit Operation and belongs to
+# exactly one Hivent.
+# A set of AreaChanges will be referenced to this HistoricalChange
 #
 # ------------------------------------------------------------------------------
-# Hivent 1:n HistoricalChange
+# HistoricalChange n:1 Hivent
 #
 # ------------------------------------------------------------------------------
 # operations:
-#   CRE) creation of new area:                         -> A
-#   UNI) unification of many to one area:         A, B -> C
-#   INC) incorporation of many into one area:     A, B -> A
-#   SEP) separation of one into many areas:       A -> B, C
-#   SEC) secession of many areas from one:        A -> A, B
-#   NCH) name change of one or many areas:        A -> A', B -> B'
-#   TCH) territory change of one or many areas:   A -> A', B -> B'
-#   DES) destruction of an area:                  A ->
+#   CRE) Create
+#   MRG) Merge
+#   DIS) Dissolve
+#   CHB) Change Borders
+#   REN) Rename
+#   CES) Cease
 # ==============================================================================
+
 
 from django.db import models
 from django.utils import timezone
@@ -23,15 +24,19 @@ from django.contrib import gis
 from djgeojson.fields import *
 from django.forms.models import model_to_dict
 
-
-#------------------------------------------------------------------------------
+# ==============================================================================
 class HistoricalChange(models.Model):
 
+  # superordinate: Hivent
   hivent            = models.ForeignKey ('Hivent', related_name='change_hivent')
-  operation         = models.CharField  (default='XXX', max_length=3)
 
+  # own attribute:
+  edit_operation    = models.CharField  (default='XXX', max_length=3)
+
+  # ----------------------------------------------------------------------------
   def __unicode__(self):
     return self.operation
 
+  # ----------------------------------------------------------------------------
   class Meta:
     app_label = 'HistoGlobe_server'
