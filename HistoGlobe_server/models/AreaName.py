@@ -5,7 +5,9 @@
 #
 # ------------------------------------------------------------------------------
 # AreaName n:1 Area
-# AreaName n:2 AreaChange
+# AreaName 1:1 OldArea
+# AreaName 1:1 NewArea
+# AreaName 2:2 UpdateArea
 #
 # ------------------------------------------------------------------------------
 # TODO: currently only English -> to be extended
@@ -20,10 +22,6 @@ class AreaName(models.Model):
 
   # superordinate: Area
   area =                  models.ForeignKey         ('Area',   related_name='name_area', default='0')
-
-  # superordinate: AreaChange (historical context)
-  start_change =          models.ForeignKey         ('AreaChange', related_name='name_start_change', null=True)
-  end_change =            models.ForeignKey         ('AreaChange', related_name='name_end_change', null=True)
 
   # own attributes
   short_name =            models.CharField          (max_length=100, default='')

@@ -247,8 +247,26 @@ class HG.DatabaseInterface
                     console.log acAreas
 
                   newAreas = []
+                  newAreaNames = []
+                  newAreaTerritories = []
                   acAreas.foreach (areaData) ->
                     newAreas.push areaData.area
+                    newAreaNames.push areaData.newName
+                    newAreaTerritories.push areaData.newTerritory
+
+                  # TODO: generic way to add this to an AreaChange
+                  # constructor of AreaChange
+                  #   oldAreas
+                  #   newAreas
+                  #   oldNames
+                  #   newNames
+                  #   oldTerritories
+                  #   newTerritories
+
+                  # or back to old model?
+                  # AreaChange is actually one singular change
+
+                  # Hivent -> HistoricalChange -> HGOperation -> AreaChange ???
 
                   areaChange = new HG.AreaChange.SEC(
                       acData.id, preserveArea, oldTerritory, newAreas

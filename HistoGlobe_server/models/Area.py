@@ -7,7 +7,9 @@
 # it becomes a new Area.
 #
 # ------------------------------------------------------------------------------
-# Area n:2 AreaChange
+# Area 1:1 OldArea
+# Area 1:1 NewArea
+# Area 1:n UpdateArea
 # Area 1:n AreaName
 # Area 1:n AreaTerritory
 #
@@ -19,10 +21,6 @@ from django.forms.models import model_to_dict
 
 # ==============================================================================
 class Area(models.Model):
-
-  # superordinate: AreaChange (historical context)
-  start_change =          models.ForeignKey         ('AreaChange', related_name='start_change', null=True)
-  end_change =            models.ForeignKey         ('AreaChange', related_name='end_change', null=True)
 
   # own attribute
   universe =              models.BooleanField       (default=False)

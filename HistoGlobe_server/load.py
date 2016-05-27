@@ -121,7 +121,6 @@ def run(verbose=True):
   #     ( LNG_MAX, -LAT_MAX),
   #     (-LNG_MAX, -LAT_MAX)
   #   )))
-
   # universe_territory = AreaTerritory(
   #     area =      universe,
   #     geometry =  full_world_dimension
@@ -183,7 +182,7 @@ def run(verbose=True):
 
       print("Area " + str(area.id) + ': ' + area_name.short_name + " updated")
 
-      # create hivent + change (add new country)
+      # create hivent + change
       creation_date = iso8601.parse_date(row['creation_date'])
       hivent = Hivent(
           name =        str(row['hivent_name']),
@@ -191,29 +190,34 @@ def run(verbose=True):
         )
       hivent.save()
 
+      # Edit Operation: Create
       historical_change = HistoricalChange(
           hivent =              hivent,
           edit_operation =      'CRE'
         )
       historical_change.save()
 
+      # HG Operation: Secession from the universe
       area_change = AreaChange(
           historical_change =   historical_change,
           hg_operation =        'SEC'
         )
       area_change.save()
 
-      area.start_change = area_change
-      area.save()
+      # universe does not update its territory (yet)
+      update_area = UpdateArea(
+          area_change = area_change,
+          area =        universe
+        )
+      update_area.save()
 
-      area_name.start_change = area_change
-      area_name.save()
-
-      area_territory.start_change = area_change
-      area_territory.save()
-
-      # area is still active, therefore it has no end_change
-      # handling of territory of the universe omitted for now
+      new_area = NewArea(
+          area_change = area_change,
+          area =        area,
+          name =        area_name,
+          territory =   area_territory
+        )
+      new_area.save()
 
       print("Hivent " + hivent.name + " saved")
 
@@ -267,10 +271,10 @@ def run(verbose=True):
         # dissolve operation: secede territory as new Area from homeland
         if row['edit_operation'] == 'DIS':
 
-          # get old area
-          old_area_name = AreaName.objects.get(short_name=row['old_area'])
-          old_area = old_area_name.area
-          old_home_area_territory = AreaTerritory.objects.filter(area=old_area).last()
+          # get home area
+          home_area_name = AreaName.objects.get(short_name=row['old_area'])
+          home_area = home_area_name.area
+          old_home_area_territory = AreaTerritory.objects.filter(area=home_area).last()
 
           # geometry of homeland before SEC operation
           old_home_geom = old_home_area_territory.geometry
@@ -282,11 +286,12 @@ def run(verbose=True):
 
           # create new territory of homeland
           new_home_area_territory = AreaTerritory(
-              area =      old_area,
+              area =      home_area,
               geometry =  new_home_geom
             )
+          new_home_area_territory.save()
 
-          # create hivent + change (add new country)
+          # create hivent + change
           creation_date = iso8601.parse_date(row['creation_date'])
           hivent = Hivent(
               name =        str(row['hivent_name']),
@@ -294,38 +299,37 @@ def run(verbose=True):
             )
           hivent.save()
 
+          # Edit Operation: Dissolve
           historical_change = HistoricalChange(
               hivent =              hivent,
               edit_operation =      'DIS'
             )
           historical_change.save()
 
+          # HG Operation: Secession from homeland
           area_change = AreaChange(
               historical_change =   historical_change,
               hg_operation =        'SEC'
             )
           area_change.save()
 
-          # create secession country in this change
+          update_area = UpdateArea(
+              area_change =   area_change,
+              area =          home_area,
+              old_territory = old_home_area_territory,
+              new_territory = new_home_area_territory
+            )
+          update_area.save()
 
-          new_sec_area.start_change = area_change
-          new_sec_area.save()
+          new_area = NewArea (
+              area_change =   area_change,
+              area =          new_sec_area,
+              name =          new_sec_area_name,
+              territory =     new_sec_area_territory
+            )
+          new_area.save()
 
-          new_sec_area_name.start_change = area_change
-          new_sec_area_name.save()
-
-          new_sec_area_territory.start_change = area_change
-          new_sec_area_territory.save()
-
-          # update homeland territory in this change
-
-          old_home_area_territory.end_change = area_change
-          old_home_area_territory.save()
-
-          new_home_area_territory.start_change = area_change
-          new_home_area_territory.save()
-
-          print(new_sec_area_name.short_name + " separated from " + old_area_name.short_name + " by start hivent " + hivent.name)
+          print(new_sec_area_name.short_name + " separated from " + home_area_name.short_name + " by start hivent " + hivent.name)
 
 
         # create operation: secede territory from universe
@@ -345,25 +349,29 @@ def run(verbose=True):
             )
           historical_change.save()
 
+          # HG Operation: Secession from universe
           area_change = AreaChange(
               historical_change =   historical_change,
               hg_operation =        'SEC'
             )
           area_change.save()
 
-          # create secession country in this change
+          update_area = UpdateArea(
+              area_change =   area_change,
+              area =          universe
+            )
+          update_area.save()
 
-          new_sec_area.start_change = area_change
-          new_sec_area.save()
+          new_area = NewArea (
+              area_change =   area_change,
+              area =          new_sec_area,
+              name =          new_sec_area_name,
+              territory =     new_sec_area_territory
+            )
+          new_area.save()
 
-          new_sec_area_name.start_change = area_change
-          new_sec_area_name.save()
 
-          new_sec_area_territory.start_change = area_change
-          new_sec_area_territory.save()
-
-
-  ## merge areas that are parts of each other
+  ## merge areas that are parts of another area
 
   with open(get_file('areas_to_merge.csv'), 'r') as in_file:
     reader = csv.DictReader(in_file, delimiter='|', quotechar='"')
@@ -411,24 +419,15 @@ def run(verbose=True):
         terr_area_name.formal_name =  row['formal_name'].decode('utf-8')   # encoding problem :/
         terr_area_name.save()
 
-        # add their creation event (SEC from universe)
-        # to historical change of associated country
-        historical_change = home_area.start_change.historical_change
+        # add as NewArea to their creation event (SEC from universe)
+        area_change = NewArea.objects.get(area=home_area).area_change
 
-        area_change = AreaChange(
-            historical_change =   historical_change,
-            hg_operation =        'SEC'
+        new_area = NewArea (
+            area_change = area_change,
+            area =        terr_area,
+            name =        terr_area_name,
+            territory =   terr_area_territory
           )
-        area_change.save()
-
-        terr_area.start_change = area_change
-        terr_area.save()
-
-        terr_area_name.start_change = area_change
-        terr_area_name.save()
-
-        terr_area_territory.start_change = area_change
-        terr_area_territory.save()
 
         print(terr_area_name.short_name + " added to creation hivent of " + home_area_name.short_name)
 

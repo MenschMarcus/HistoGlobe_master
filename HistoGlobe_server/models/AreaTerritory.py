@@ -5,7 +5,9 @@
 #
 # ------------------------------------------------------------------------------
 # AreaTerritory n:1 Area
-# AreaTerritory n:2 AreaChange
+# AreaTerritory 1:1 OldArea
+# AreaTerritory 1:1 NewArea
+# AreaTerritory 2:2 UpdateArea
 #
 # ------------------------------------------------------------------------------
 # TODO: calculate reasonable name position with intelligent algorithm
@@ -22,10 +24,6 @@ class AreaTerritory(models.Model):
 
   # superordinate: Area
   area =                  models.ForeignKey               ('Area',   related_name='territory_area', default='0')
-
-  # superordinate: AreaChange (historical context)
-  start_change =          models.ForeignKey               ('AreaChange', related_name='territory_start_change', null=True)
-  end_change =            models.ForeignKey               ('AreaChange', related_name='territory_end_change', null=True)
 
   # own attributes
   geometry =              gis.db.models.MultiPolygonField (default='MULTIPOLYGON EMPTY')
@@ -46,18 +44,9 @@ class AreaTerritory(models.Model):
 
   def prepare_output(self):
 
-    start_change = None
-    end_change = None
-    if self.start_change:
-      start_change = self.start_change.id
-    if self.end_change:
-      end_change = self.end_change.id
-
     return({
       'id':                   self.id,
       'area':                 self.area.id,
-      'start_change':         start_change,
-      'end_change':           end_change,
       'representative_point': self.representative_point.wkt,
       'geometry':             self.geometry.wkt
     })
