@@ -19,19 +19,22 @@ window.HG ?= {}
 #
 # ------------------------------------------------------------------------------
 # structure of function parameters
-#
-# oldAreas / newAreas = [{
-#   area          HG.Area
-#   name          HG.AreaName
-#   territory     HG.AreaTerritory
-# }]
-#
-# updateArea = {
-#   area          HG.Area
-#   oldName       HG.AreaName
-#   newName       HG.AreaName
-#   oldTerritory  HG.AreaTerritory
-#   newTerritory  HG.AreaTerritory
+# data = {
+#   id              int
+#   operation       'XXX'
+#   oldAreas = [{
+#     area          HG.Area
+#     name          HG.AreaName
+#     territory     HG.AreaTerritory
+#   }]
+#   newAreas =      ... same structure as oldAreas
+#   updateArea = {
+#     area          HG.Area
+#     oldName       HG.AreaName
+#     newName       HG.AreaName
+#     oldTerritory  HG.AreaTerritory
+#     newTerritory  HG.AreaTerritory
+#   }
 # }
 # ==============================================================================
 
@@ -42,8 +45,17 @@ class HG.AreaChange
   #                            PUBLIC INTERFACE                                #
   ##############################################################################
 
-  # ----------------------------------------------------------------------------
-  constructor: (@id, @oldAreas=[], @newAreas=[], @updateArea=null) ->
+  # ============================================================================
+  constructor: (data) ->
+
+    ## init members
+
+    @id           = data.id
+    @hgOperation  = data.hgOperation
+    @oldAreas     = data.oldAreas
+    @newAreas     = data.newAreas
+    @updateArea   = data.updateArea
+
 
     ## establish double-links
 
@@ -70,23 +82,52 @@ class HG.AreaChange
 
     ## establish historical relationships
 
-    for oldArea in @oldAreas
-      for newArea in @newAreas
-        oldArea.area.successors.push newArea.area
-        newArea.area.predecessors.push oldArea.area
+    switch @hgOperation
 
+      when 'UNI', 'SEP'
+        for oldArea in @oldAreas
+          for newArea in @newAreas
+            oldArea.area.successors.push newArea.area
+            newArea.area.predecessors.push oldArea.area
 
-  # ----------------------------------------------------------------------------
+      when 'INC'
+        for oldArea in @oldAreas
+          oldArea.area.successors.push @updateArea.area
+          @updateArea.area.predecessors.push oldArea.area
+
+      when 'SEC'
+        for newArea in @newAreas
+          @updateArea.area.successors.push newArea.area
+          newArea.area.predecessors.push @updateArea.area
+
+  # ============================================================================
   destroy: () ->
 
     ## remove historical relationships
 
-    for oldArea in @oldAreas
-      for newArea in @newAreas
-        succIdx = oldArea.area.successors.indexOf newArea.area
-        oldArea.area.successors.splice succIdx, 1
-        predIdx = newArea.area.predecessors.indexOf oldArea.area
-        newArea.area.predecessors.splice predIdx, 1
+    switch @hgOperation
+
+      when 'UNI', 'SEP'
+        for oldArea in @oldAreas
+          for newArea in @newAreas
+            succIdx = oldArea.area.successors.indexOf newArea.area
+            oldArea.area.successors.splice succIdx, 1
+            predIdx = newArea.area.predecessors.indexOf oldArea.area
+            newArea.area.predecessors.splice predIdx, 1
+
+      when 'INC'
+        for oldArea in @oldAreas
+          succIdx = oldArea.area.successors.indexOf @updateArea.area
+          oldArea.area.successors.splice succIdx, 1
+          predIdx = @updateArea.area.predecessors.indexOf oldArea.area
+          @updateArea.area.predecessors.splice predIdx, 1
+
+      when 'SEC'
+        for newArea in @newAreas
+          succIdx = @updateArea.area.successors.indexOf newArea.area
+          @updateArea.area.successors.splice succIdx, 1
+          predIdx = newArea.area.predecessors.indexOf @updateArea.area
+          newArea.area.predecessors.splice predIdx, 1
 
 
     ## remove double-links
@@ -112,8 +153,8 @@ class HG.AreaChange
       @updateArea.oldTerritory?.endChange = null
       @updateArea.newTerritory?.startChange = null
 
-  # ----------------------------------------------------------------------------
-  execute: () ->
+  # ============================================================================
+  execute: (direction) ->
 
     # TODO: can lines 51/52 resp. 56/57 be omitted?
     # -> do name/territory reference has to be reset all the time

@@ -31,7 +31,7 @@ class HG.HistoricalChange
     @hivent         = null    # HG.Hivent
 
     # properties
-    @operation      = data.operation  # 'XXX' of the list above
+    @editOperation  = data.editOperation  # 'XXX' of the list above
 
     # subordinate: AreaChanges
     @areaChanges    = []      # HG.AreaChange
@@ -65,17 +65,13 @@ class HG.HistoricalChange
     tchStr = @_joinToEnum tchAreaNames
     nchStr = @_joinToEnum nchAreaNames, "to"
 
-    switch @operation
-      when 'CRE' then return "Creation of " + newStr
-      when 'UNI' then return "Unification of " + oldStr + " to " + newStr
-      when 'INC' then return "Incorporation of " + oldStr + " into " + tchStr
-      when 'SEP' then return "Separation of " + oldStr + " into " + newStr
-      when 'SEC' then return "Secession of " + newStr + " from " + tchStr
-      when 'TCH' then return "Territory Change of " + tchStr
-      when 'BCH' then return "Border Change between " + tchStr
-      when 'NCH' then return "Name Change of " + nchStr
-      when 'ICH' then return "Name Change of " + nchStr + " (new identity)"
-      when 'DES' then return "Destruction of " + oldStr
+    switch @editOperation
+      when 'CRE' then return "Create " + newStr
+      when 'MRG' then return "Merge " + oldStr + " to " + tchStr
+      when 'DIS' then return "Dissolve " + oldStr + " intoto " + newStr
+      when 'CHB' then return "Change Border between " + tchStr
+      when 'REN' then return "Rename " + nchStr
+      when 'CES' then return "Cease " + oldStr
 
 
   # ============================================================================

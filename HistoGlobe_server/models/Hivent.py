@@ -56,8 +56,10 @@ class Hivent(models.Model):
 
   def prepare_output(self):
 
-    from HistoGlobe_server.models import HistoricalChange, AreaChange
+    from HistoGlobe_server.models import HistoricalChange, AreaChange, OldArea, NewArea, UpdateArea
     from HistoGlobe_server import utils
+    import chromelogger as console
+
 
     # get original Hivent with all properties
     # -> except for change
@@ -68,11 +70,23 @@ class Hivent(models.Model):
     for historical_change_model in HistoricalChange.objects.filter(hivent=self):
       historical_change = model_to_dict(historical_change_model)
 
-      # get all AreaChanges associated to the Hivent
+      # get all AreaChanges associated to the HistoricalChange
       historical_change['area_changes'] = []
       for area_change_model in AreaChange.objects.filter(historical_change=historical_change_model):
-        historical_change['area_changes'].append(model_to_dict(area_change_model))
+        area_change = model_to_dict(area_change_model)
 
+        # get all OldAreas, NewAreas and UpdateArea associated to the AreaChange
+        area_change['old_areas'] = []
+        area_change['new_areas'] = []
+        area_change['update_area'] = None
+        for old_area_model in OldArea.objects.filter(area_change=area_change_model):
+          area_change['old_areas'].append(model_to_dict(old_area_model))
+        for new_area_model in NewArea.objects.filter(area_change=area_change_model):
+          area_change['new_areas'].append(model_to_dict(new_area_model))
+        for update_area_model in UpdateArea.objects.filter(area_change=area_change_model):
+          area_change['update_area'] = model_to_dict(update_area_model)
+
+        historical_change['area_changes'].append(area_change)
       hivent['historical_changes'].append(historical_change)
 
     # prepare date for output

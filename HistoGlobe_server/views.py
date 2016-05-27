@@ -86,6 +86,7 @@ def get_all(empty_request):
     'territory_relation': []
   }
 
+
   # 1) get all Hivents
   for hivent in Hivent.objects.all():
     response['hivents'].append(hivent.prepare_output())
