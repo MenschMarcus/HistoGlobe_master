@@ -12,7 +12,8 @@ Thumbs.db
 
 ### DATA FOLDERS
 
-HistoGlobe_server/data/
+HistoGlobe_server/data/init_source_areas
+HistoGlobe_server/data/maps
 HistoGlobe_client/config/common/tiles
 HistoGlobe_client/config/full
 
