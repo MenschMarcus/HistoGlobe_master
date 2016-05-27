@@ -16,16 +16,16 @@ class HG.AreaTerritory
 
     @id                   = data.id
 
-    # main properties
-    @geometry             = data.geometry             # HG.Geometry
-    @representativePoint  = data.representativePoint  # HG.Point
-
-    # superordinate object
+    # superordinate: Area
     @area                 = null                      # HG.Area
 
-    # historical context
+    # superordinate: AreaChange (historical context)
     @startChange          = null                      # HG.AreaChange
     @endChange            = null                      # HG.AreaChange
+
+    # properties
+    @geometry             = data.geometry             # HG.Geometry
+    @representativePoint  = data.representativePoint  # HG.Point
 
 
   # ============================================================================

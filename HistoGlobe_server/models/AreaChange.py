@@ -7,10 +7,12 @@
 #   - A set of new Areas, AreaNames and AreaTerritories that are created
 #
 # ------------------------------------------------------------------------------
-# AreaChange n:1 HistoricalChange
-# AreaChange 2:n Area
-# AreaChange 2:n AreaName
-# AreaChange 2:n AreaTerritory
+# AreaChange              n:1 HistoricalChange
+# AreaChange.old_areas    1:n Area
+# AreaChange.new_areas    1:n Area
+# AreaChange.update_area  n:1 Area
+# AreaChange              2:n AreaName
+# AreaChange              2:n AreaTerritory
 #
 # ------------------------------------------------------------------------------
 # Historical Geographic Operations
@@ -35,6 +37,7 @@ class AreaChange(models.Model):
 
   # own attribute
   hg_operation        = models.CharField  (default='XXX', max_length=3)
+  update_area         = models.ForeignKey ('Area', related_name='update_area', null=True)
 
   # ----------------------------------------------------------------------------
   def __unicode__(self):

@@ -13,22 +13,23 @@ class HG.Area
   ##############################################################################
 
   # ============================================================================
-  constructor: (id) ->
+  constructor: (data) ->
 
-    @id             = id
+    @id             = data.id
 
-    # properties (can change over time)
-    @territory      = null            # HG.AreaTerritory
-    @name           = null            # HG.AreaName
-
-    # superordinate object
-    @handle         = null            # HG.AreaHandle
-
-    # historical changes
+    # superordinate: AreaChange (historical context)
     @startChange    = null            # HG.AreaChange
     @updateChanges  = []              # HG.AreaChange
     @endChange      = null            # HG.AreaChange
 
-    # historical context
+    # superordinate: AreaHandle
+    @handle         = null            # HG.AreaHandle
+
+    # properties (can change over time)
+    @isUniverse     = data.universe   # bool
+    @territory      = null            # HG.AreaTerritory
+    @name           = null            # HG.AreaName
+
+    # historical relations
     @predecessors   = []              # HG.Area
     @successors     = []              # HG.Area

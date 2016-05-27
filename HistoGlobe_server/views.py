@@ -86,15 +86,15 @@ def get_all(empty_request):
     'territory_relation': []
   }
 
-  # 1) get all hivents
+  # 1) get all Hivents
   for hivent in Hivent.objects.all():
     response['hivents'].append(hivent.prepare_output())
 
-  # 2) get all areas
+  # 2) get all Areas
   for area in Area.objects.all():
     response['areas'].append(model_to_dict(area))
 
-  # 3) get all Areanamess
+  # 3) get all AreaNames
   for area_name in AreaName.objects.all():
     response['area_names'].append(model_to_dict(area_name))
 

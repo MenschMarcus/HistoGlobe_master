@@ -16,13 +16,13 @@ class HG.AreaName
 
     @id           = data.id
 
-    # main properties
-    @shortName    = data.shortName      # String
-    @formalName   = data.formalName     # String
-
-    # superordinate object
+    # superordinate: Area
     @area         = null                # HG.Area
 
-    # historical context
+    # superordinate: AreaChange (historical context)
     @startChange  = null                # HG.AreaChange
     @endChange    = null                # HG.AreaChange
+
+    # properties
+    @shortName    = data.shortName      # String
+    @formalName   = data.formalName     # String

@@ -22,11 +22,17 @@ class HG.ObjectArray
 
   # ============================================================================
   # get number of elements in ObjectArray
+  # ============================================================================
+
   length: () ->         @_arr.length
+  len: () ->            @_arr.length
   num: () ->            @_arr.length
+  size: () ->           @_arr.length
 
   # ============================================================================
   # push an element to the end of the ObjectArray
+  # ============================================================================
+
   push: (obj) ->        @_pushToBack obj
   pushBack: (obj) ->    @_pushToBack obj
   add: (obj) ->         @_pushToBack obj
@@ -34,48 +40,69 @@ class HG.ObjectArray
 
   # ============================================================================
   # push an element to the front of the ObjectArray
+  # ============================================================================
+
   pushFront: (obj) ->   @_pushToFront obj
   addFront: (obj) ->    @_pushToFront obj
   prepend: (obj) ->     @_pushToFront obj
 
   # ============================================================================
   # empty the ObjectArray
+  # ============================================================================
+
   empty: () ->          @_arr = []
   clear: () ->          @_arr = []
 
   # ============================================================================
   # get an element in the ObjectArray by providing a name and a value of the property
   # usage: myObjArr.getByPropValue 'name', name_I_am_looking_for
+  # ============================================================================
+
   getByPropVal: (prop, val) ->        @_getByPropVal prop, val
   getByPropertyValue: (prop, val) ->  @_getByPropVal prop, val
 
   # ============================================================================
   # get an element in the ObjectArray by providing its id
   # usage: myObjArr.getById id_I_am_looking_for
+  # ============================================================================
+
   getById: (val) ->       @_getByPropVal 'id', val
 
   # ============================================================================
   # get an element by its position in the ObjectArray
-  # usage: myObjArr.getByIdx 0                  -> first element
-  # usage: myObjArr.getByIdx myObjArr.num()-1   -> last element
+  # ============================================================================
+
   getByIdx: (idx) ->      @_getByIdx idx
   getByIndex: (idx) ->    @_getByIdx idx
 
   # ============================================================================
-  # find element whose property has this value and deletes it (multiple names for convenience)
+  # get first / last object in ObjectArray
+  # ============================================================================
+
+  getFirst: () ->         @_getByIdx 0
+  getLast: () ->          @_getByIdx @_arr.length-1
+
+  # ============================================================================
+  # find element whose property has this value and delete it
   # usage: myObjArr.remove 'name', name_I_am_looking_for
+  # ============================================================================
+
   remove: (prop, val) ->  @_remove prop, val
   delete: (prop, val) ->  @_remove prop, val
 
   # ============================================================================
   # delete element by its id
   # usage: myObjArr.removeById, id
+  # ============================================================================
+
   removeById: (val) ->    @_remove 'id', val
   deleteById: (val) ->    @_remove 'id', val
 
   # ============================================================================
   # execute a function on each object of the array
   # usage: arr.foreach (elem) => console.log elem
+  # ============================================================================
+
   foreach: (cb) ->        cb el for el in @_arr
     # maaaagic!
     # executes given callback for each element in the array

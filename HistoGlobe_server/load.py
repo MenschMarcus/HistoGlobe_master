@@ -296,7 +296,7 @@ def run(verbose=True):
 
           historical_change = HistoricalChange(
               hivent =              hivent,
-              edit_operation =      'CRE'
+              edit_operation =      'DIS'
             )
           historical_change.save()
 
@@ -330,7 +330,7 @@ def run(verbose=True):
 
         # create operation: secede territory from universe
         # -> omitted for now, so just simply create it new
-        if row['edit_operation'] == 'DIS':
+        elif row['edit_operation'] == 'CRE':
 
           creation_date = iso8601.parse_date(row['creation_date'])
           hivent = Hivent(

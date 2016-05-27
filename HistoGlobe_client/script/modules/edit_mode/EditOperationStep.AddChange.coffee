@@ -76,8 +76,10 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
 
     # => main HistoricalChange object that contains the AreaChanges
     # made in the workflow
-    @_historicalChange = new HG.HistoricalChange @_getId()
-    @_historicalChange.operation = @_getOperationId()
+    @_historicalChange = new HG.HistoricalChange {
+      id:         @_getId()
+      operation:  @_getOperationId()
+    }
 
 
     ### PREPARE AREA CHANGES ###

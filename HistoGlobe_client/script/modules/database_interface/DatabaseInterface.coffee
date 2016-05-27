@@ -2,7 +2,7 @@ window.HG ?= {}
 
 # ==============================================================================
 # loads initial areas and hivents from the server and creates their links
-# to each other via start/end hivents and ChangeAreas/ChangeAreaNames/Territorie
+# to each other via start/end hivents and AreaChange
 # ==============================================================================
 
 class HG.DatabaseInterface
@@ -45,27 +45,151 @@ class HG.DatabaseInterface
       success: (response) =>
         dataObj = $.parseJSON response
 
-        # create Areas
-        for areaData in dataObj.areas
-          area = new HG.Area areaData.id
-          areaHandle = new HG.AreaHandle @_hgInstance, area
-          area.handle = areaHandle
+        # temporary object array for all data regarding AreaChanges
+        tempAreaChanges = new HG.ObjectArray
 
-        # create AreaNames and AreaTerritories and store them
-        # so they can be linked to ChangeAreas later
-        areaNames = []
+        # universe Area
+        universe = new HG.Area {
+          id:       -1
+          universe: yes
+        }
+        universeTerritory = {}  # empty object, to prevent problems
+        universe.territory = universeTerritory
+
+        # (@_hgInstance.areaController.getAreaHandle dataObj.area).getArea()
+
+        # create AreaNames
+        # and store them in areaChange objArr so they can be linked to AreaChange later
         for anData in dataObj.area_names
           anData = @_areaNameToClient anData
           areaName = new HG.AreaName anData
-          areaName.area = anData.area
-          areaNames.push areaName
 
-        areaTerritories = []
+          # put start change into temporary array for area changes
+          # to connect them together later
+          # check if area change already exists in list
+          currChange = tempAreaChanges.getById anData.startChange
+          if not currChange
+            tempAreaChanges.push {
+              id:   anData.startChange
+              areas: new HG.ObjectArray
+            }
+            currChange = tempAreaChanges.getLast()
+
+          # check if area in areaName already exists in list
+          areaInChange = currChange.areas.getById anData.area
+          # finally put areaName and area in objArr
+          if areaInChange
+            areaInChange.newName = areaName
+          else
+            currChange.areas.push {
+              id:           anData.area
+              oldName:      null
+              newName:      areaName
+              oldTerritory: null
+              newTerritory: null
+            }
+
+          # put end change into temporary array for area changes
+          # to connect them together later
+          if anData.endChange
+            # check if area change already exists in list
+            currChange = tempAreaChanges.getById anData.endChange
+            if not currChange
+              tempAreaChanges.push {
+                id:   anData.startChange
+                areas: new HG.ObjectArray
+              }
+              currChange = tempAreaChanges.getLast()
+
+            # check if area in areaName already exists in list
+            areaInChange = currChange.areas.getById anData.area
+            # finally put areaName and area in objArr
+            if areaInChange
+              areaInChange.oldName = areaName
+            else
+              currChange.areas.push {
+                id:           anData.area
+                oldName:      areaName
+                newName:      null
+                oldTerritory: null
+                newTerritory: null
+              }
+
+        # create AreaTerritories
+        # and store them in areaChange objArr so they can be linked to AreaChange later
         for atData in dataObj.area_territories
           atData = @_areaTerritoryToClient atData
           areaTerritory = new HG.AreaTerritory atData
-          areaTerritory.area = atData.area
-          areaTerritories.push areaTerritory
+
+          # put start change into temporary array for area changes
+          # to connect them together later
+          # check if area change already exists in list
+          currChange = tempAreaChanges.getById atData.startChange
+          if not currChange
+            tempAreaChanges.push {
+              id:   atData.startChange
+              areas: new HG.ObjectArray
+            }
+            currChange = tempAreaChanges.getLast()
+
+          # check if area in areaTerritory already exists in list
+          areaInChange = currChange.areas.getById atData.area
+          # finally put areaTerritory and area in objArr
+          if areaInChange
+            areaInChange.newTerritory = areaTerritory
+          else
+            currChange.areas.push {
+              id:             atData.area
+              oldName:        null
+              newName:        null
+              oldTerritory:   null
+              newTerritory:   areaTerritory
+            }
+
+          # put end change into temporary array for area changes
+          # to connect them together later
+          if atData.endChange
+            # check if area change already exists in list
+            currChange = tempAreaChanges.getById atData.endChange
+            if not currChange
+              tempAreaChanges.push {
+                id:   anData.startChange
+                areas: new HG.ObjectArray
+              }
+              currChange = tempAreaChanges.getLast()
+
+            # check if area in areaTerritory already exists in list
+            areaInChange = currChange.areas.getById atData.area
+            # finally put areaTerritory and area in objArr
+            if areaInChange
+              areaInChange.oldTerritory = areaTerritory
+            else
+              currChange.areas.push {
+                id:           atData.area
+                oldName:      null
+                newName:      null
+                oldTerritory: areaTerritory
+                newTerritory: null
+              }
+
+        # create Areas + handles
+        for areaData in dataObj.areas
+          areaData = @_areaToClient areaData
+          area = new HG.Area areaData
+          areaHandle = new HG.AreaHandle @_hgInstance, area
+          area.handle = areaHandle
+
+          # put into tempAreaChanges and
+          # connect with AreaName and AreaTerritory
+          tempAreaChanges.foreach (areaChange) =>
+            areas = areaChange.areas
+            areas.foreach (areaData) =>
+              if areaData.id = area.id
+                areaData.area = area
+                areaData.oldName?.area = area
+                areaData.newName?.area = area
+                areaData.oldTerritory?.area = area
+                areaData.newTerritory?.area = area
 
         # keep track of earliest data to know where to start tracing the changes
         minDate = moment()
@@ -79,51 +203,73 @@ class HG.DatabaseInterface
           for hcData in hData.historical_changes
             hcData = @_historicalChangeToClient hcData
             hcData = @_validateHistoricalChange hcData
-            historicalChange = new HG.HistoricalChange  hcData.id
-            historicalChange.operation =                hcData.operation
-            historicalChange.hivent =                   hcData.hivent
+            historicalChange = new HG.HistoricalChange hcData
 
             # create AreaChanges
             for acData in hcData.areaChanges
-              acData = @_areaChangeToClient acData, areaNames, areaTerritories
+              acData = @_areaChangeToClient acData
               acData = @_validateAreaChange acData
-              areaChange = new HG.AreaChange acData.id
-              areaChange.operation =        acData.operation
-              areaChange.historicalChange = historicalChange
-              areaChange.area =             acData.area
-              areaChange.oldAreaName =      acData.oldAreaName
-              areaChange.newAreaName =      acData.newAreaName
-              areaChange.oldAreaTerritory = acData.oldAreaTerritory
-              areaChange.newAreaTerritory = acData.newAreaTerritory
 
-              # link HistoricalChange <- ChangeArea
+              # get areas for AreaChange
+              acAreas = (tempAreaChanges.getById acData.id).areas
+
+              # create AreaChange
+              areaChange = null
+
+              switch acData.operation
+
+                # when 'UNI'  # unification
+                #   areaChange = new HG.AreaChange.UNI(
+
+                #     )
+
+
+                # when 'INC'  # incorporation
+                #   areaChange = new HG.AreaChange.INC(
+
+                #     )
+
+
+                # when 'SEP'  # separation
+                #   areaChange = new HG.AreaChange.SEP(
+
+                #    )
+
+
+                when 'SEC'  # secession
+
+                  # hack: in 'CRE' operation, 'SEC' = secession from the universe
+                  # universe is omitted in this prototype
+                  if historicalChange.operation is 'CRE'
+                    preserveArea = universe
+                    oldTerritory = universeTerritory
+                  else
+                    console.log acAreas
+
+                  newAreas = []
+                  acAreas.foreach (areaData) ->
+                    newAreas.push areaData.area
+
+                  areaChange = new HG.AreaChange.SEC(
+                      acData.id, preserveArea, oldTerritory, newAreas
+                    )
+
+                  console.log areaChange
+
+
+                # when 'NCH'  # name change
+                #   areaChange = new HG.AreaChange.NCH(
+
+                #     )
+
+
+              # link HistoricalChange <-> ChangeArea
+              areaChange.historicalChange = historicalChange
               historicalChange.areaChanges.push areaChange
 
-              # link ChangeArea <- Area / AreaName / AreaTerritory
-              switch areaChange.operation
-
-                when 'ADD'
-                  areaChange.area.startChange =             areaChange
-                  areaChange.newAreaName.startChange =      areaChange
-                  areaChange.newAreaTerritory.startChange = areaChange
-
-                when 'DEL'
-                  areaChange.area.endChange =               areaChange
-                  areaChange.oldAreaName.endChange =        areaChange
-                  areaChange.oldAreaTerritory.endChange =   areaChange
-
-                when 'TCH'
-                  areaChange.area.updateChanges.push        areaChange
-                  areaChange.oldAreaTerritory.endChange =   areaChange
-                  areaChange.newAreaTerritory.startChange = areaChange
-
-                when 'NCH'
-                  areaChange.area.updateChanges.push        areaChange
-                  areaChange.oldAreaName.endChange =        areaChange
-                  areaChange.newAreaName.startChange =      areaChange
-
-              # link Hivent <- HistoricalChange
-              hivent.historicalChanges.push historicalChange
+            # link Hivent <-> HistoricalChange
+            historicalChange.hivent = hivent
+            hivent.historicalChanges.push historicalChange
 
           # finalize handle
           hiventHandle = new HG.HiventHandle @_hgInstance, hivent
@@ -312,25 +458,22 @@ class HG.DatabaseInterface
   # data objects from the client to the server to each other
   # ============================================================================
 
-  _areaTerritoryToServer: (dataObj) ->
+  # ----------------------------------------------------------------------------
+  _areaToServer: (dataObj) ->
     {
-      id:                   parseInt dataObj.id
-      geometry:             dataObj.geometry.wkt()
-      representative_point: dataObj.representativePoint.wkt()
-      area:                 dataObj.area?.id
-      start_change:         dataObj.startChange?.id
-      end_change:           dataObj.endChange?.id
+      id:           parseInt dataObj.id
+      universe:     dataObj.universe
+      start_change: dataObj.startChange?.id
+      end_change:   dataObj.endChange?.id
     }
 
   # ----------------------------------------------------------------------------
-  _areaTerritoryToClient: (dataObj) ->
+  _areaToClient: (dataObj) ->
     {
-      id:                   parseInt dataObj.id
-      geometry:             @_geometryReader.read dataObj.geometry
-      representativePoint:  @_geometryReader.read dataObj.representative_point
-      area:                 (@_hgInstance.areaController.getAreaHandle dataObj.area).getArea()
-      startChange:          dataObj.start_change  # only id!
-      endChange:            dataObj.end_change    # only id!
+      id:           parseInt dataObj.id
+      universe:     dataObj.universe
+      startChange:  dataObj.start_change  # only id!
+      endChange:    dataObj.end_change    # only id!
     }
 
   # ----------------------------------------------------------------------------
@@ -350,9 +493,31 @@ class HG.DatabaseInterface
       id:           parseInt dataObj.id
       shortName:    dataObj.short_name
       formalName:   dataObj.formal_name
-      area:         (@_hgInstance.areaController.getAreaHandle dataObj.area).getArea()
+      area:         dataObj.area          # only id!
       startChange:  dataObj.start_change  # only id!
       endChange:    dataObj.end_change    # only id!
+    }
+
+  # ----------------------------------------------------------------------------
+  _areaTerritoryToServer: (dataObj) ->
+    {
+      id:                   parseInt dataObj.id
+      geometry:             dataObj.geometry.wkt()
+      representative_point: dataObj.representativePoint.wkt()
+      area:                 dataObj.area?.id
+      start_change:         dataObj.startChange?.id
+      end_change:           dataObj.endChange?.id
+    }
+
+  # ----------------------------------------------------------------------------
+  _areaTerritoryToClient: (dataObj) ->
+    {
+      id:                   parseInt dataObj.id
+      geometry:             @_geometryReader.read dataObj.geometry
+      representativePoint:  @_geometryReader.read dataObj.representative_point
+      area:                 dataObj.area          # only id!
+      startChange:          dataObj.start_change  # only id!
+      endChange:            dataObj.end_change    # only id!
     }
 
   # ----------------------------------------------------------------------------
@@ -381,9 +546,9 @@ class HG.DatabaseInterface
   _historicalChangeToClient: (dataObj) ->
     {
       id:           parseInt dataObj.id
-      operation:    dataObj.operation
+      operation:    dataObj.edit_operation
       hivent:       dataObj.hivent
-      areaChanges:  dataObj.area_changes  # not changed, yet
+      areaChanges:  dataObj.area_changes
     }
 
   # ----------------------------------------------------------------------------
@@ -391,16 +556,11 @@ class HG.DatabaseInterface
     # TODO if necessary
 
   # ----------------------------------------------------------------------------
-  _areaChangeToClient: (dataObj, areaNames, areaTerritories) ->
+  _areaChangeToClient: (dataObj) ->
     {
       id:               parseInt dataObj.id
-      operation:        dataObj.operation
       historicalChange: dataObj.historical_change # not changed, yet
-      area:             (@_hgInstance.areaController.getAreaHandle dataObj.area)?.getArea()
-      oldAreaName:      areaNames.filter (obj) -> obj.id is dataObj.old_area_name
-      newAreaName:      areaNames.filter (obj) -> obj.id is dataObj.new_area_name
-      oldAreaTerritory: areaTerritories.filter (obj) -> obj.id is dataObj.old_area_territory
-      newAreaTerritory: areaTerritories.filter (obj) -> obj.id is dataObj.new_area_territory
+      operation:        dataObj.hg_operation
     }
 
   # ----------------------------------------------------------------------------
@@ -420,7 +580,7 @@ class HG.DatabaseInterface
       return console.error "The id is not valid"
 
     # check if operation type is correct
-    if ['CRE','UNI','INC','SEP','SEC','NCH','TCH','BCH','DES'].indexOf(dataObj.operation) is -1
+    if ['CRE','MRG','DIS','CHB','REN','CES'].indexOf(dataObj.operation) is -1
       return console.error "The operation type " + dataObj.operation + " is not valid"
 
     # got all the way here? Then everything is good :)
@@ -438,91 +598,20 @@ class HG.DatabaseInterface
     dataObj.id = parseInt dataObj.id
     if isNaN(dataObj.id)
       return console.error "The id is not valid"
+
     # check if operation type is correct
-    if ['ADD','DEL','TCH','NCH'].indexOf(dataObj.operation) is -1
+    if ['UNI','INC','SEP','SEC','NCH'].indexOf(dataObj.operation) is -1
       return console.error "The operation type " + dataObj.operation + " is not valid"
-
-    # check if area is given
-    if not dataObj.area
-      return console.error "The associated Area could not been found"
-
-    # check if old/new area name/territories are singular
-    if dataObj.oldAreaName.length is 0
-      dataObj.oldAreaName = null
-    else if dataObj.oldAreaName.length is 1
-      dataObj.oldAreaName = dataObj.oldAreaName[0]
-    else
-      return console.error "There have been multiple AreaNames found, this is impossible"
-
-    if dataObj.newAreaName.length is 0
-      dataObj.newAreaName = null
-    else if dataObj.newAreaName.length is 1
-      dataObj.newAreaName = dataObj.newAreaName[0]
-    else
-      return console.error "There have been multiple AreaNames found, this is impossible"
-
-    if dataObj.oldAreaTerritory.length is 0
-      dataObj.oldAreaTerritory = null
-    else if dataObj.oldAreaTerritory.length is 1
-      dataObj.oldAreaTerritory = dataObj.oldAreaTerritory[0]
-    else
-      return console.error "There have been multiple AreaTerritorys found, this is impossible"
-
-    if dataObj.newAreaTerritory.length is 0
-      dataObj.newAreaTerritory = null
-    else if dataObj.newAreaTerritory.length is 1
-      dataObj.newAreaTerritory = dataObj.newAreaTerritory[0]
-    else
-      return console.error "There have been multiple AreaTerritorys found, this is impossible"
-
-    # check if operation has necessary new/old area name/territory
-    switch dataObj.operation
-
-      when 'ADD'
-        if not (
-            (dataObj.newAreaName)           and
-            (dataObj.newAreaTerritory)      and
-            (not dataObj.oldAreaName)       and
-            (not dataObj.oldAreaTerritory)
-          )
-          return console.error "The ADD operation does not have the expected data provided"
-
-      when 'DEL'
-        if not (
-            (not dataObj.newAreaName)       and
-            (not dataObj.newAreaTerritory)  and
-            (dataObj.oldAreaName)           and
-            (dataObj.oldAreaTerritory)
-          )
-          return console.error "The DEL operation does not have the expected data provided"
-
-      when 'TCH'
-        if not (
-            (not dataObj.newAreaName)       and
-            (dataObj.newAreaTerritory)      and
-            (not dataObj.oldAreaName)       and
-            (dataObj.oldAreaTerritory)
-          )
-          return console.error "The TCH operation does not have the expected data provided"
-
-      when 'NCH'
-        if not (
-            (dataObj.newAreaName)           and
-            (not dataObj.newAreaTerritory)  and
-            (dataObj.oldAreaName)           and
-            (not dataObj.oldAreaTerritory)
-          )
-          return console.error "The NCH operation does not have the expected data provided"
 
     # got all the way here? Then everything is good :)
     return dataObj
 
 
-    # ==========================================================================
-    # error callback
-    # ==========================================================================
+  # ==========================================================================
+  # error callback
+  # ==========================================================================
 
-    _errorCallback: (xhr, status, errorThrown) ->
-      console.log xhr
-      console.log status
-      console.log errorThrown
+  _errorCallback: (xhr, status, errorThrown) ->
+    console.log xhr
+    console.log status
+    console.log errorThrown

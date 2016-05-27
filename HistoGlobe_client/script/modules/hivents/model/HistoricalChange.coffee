@@ -4,19 +4,16 @@ window.HG ?= {}
 # ==============================================================================
 # MODEL
 # HistoricalChange defines what has historically changed because of an Hivent.
+# relates to one EditOperation
 # DTO => no functionality
 #
-# operations:                                     AreaChanges
-#   CRE) creation of new area:                    0 -> A
-#   UNI) unification of many to one area:         A, B -> C
-#   INC) incorporation of many into one area:     A, B -> A
-#   SEP) separation of one into many areas:       A -> B, C
-#   SEC) secession of many areas from one:        A -> A, B
-#   TCH) territory change of one areas:           A -> A'
-#   BCH) border change between two areas:         A -> A', B -> B'
-#   NCH) name change of one area:                 A -> A'
-#   ICH) identity change of an area:              A -> 0, 0 -> B
-#   DES) destruction of an area:                  A -> 0
+# EditOperations:
+#   CRE) Create
+#   MRG) Merge
+#   DIS) Dissolve
+#   CHB) Change Borders
+#   REN) Rename
+#   CES) Cease
 # ==============================================================================
 
 
@@ -26,10 +23,17 @@ class HG.HistoricalChange
   #                            PUBLIC INTERFACE                                #
   ##############################################################################
 
-  constructor: (id)  ->
-    @id             = id
+  constructor: (data)  ->
+
+    @id             = data.id
+
+    # superordinate: Hivent
     @hivent         = null    # HG.Hivent
-    @operation      = null    # 'XXX' of the list above
+
+    # properties
+    @operation      = data.operation  # 'XXX' of the list above
+
+    # subordinate: AreaChanges
     @areaChanges    = []      # HG.AreaChange
 
 
@@ -38,6 +42,8 @@ class HG.HistoricalChange
   # ============================================================================
 
   getDescription: () ->
+
+    # TODO: work with new operations
 
     # get short names of all old and new areas
     oldAreaNames = []
@@ -81,68 +87,12 @@ class HG.HistoricalChange
     # +1: execute change forward
     # -1: execute change backward
 
-    # TODO: visualize transition if user has not scrolled too far
-    if timeLeap < HGConfig.time_leap_threshold.val
-
-      switch @operation
-
-        when 'CRE'
-          # fade in new border
-          # fade in new name
-          @_executeAreaChanges direction
-
-        when 'UNI'
-          # fade out common border
-          # fade out old names
-          @_executeAreaChanges direction
-          # fade in new name
-
-        when 'INC'
-          # fade out common border
-          # fade out old name
-          @_executeAreaChanges direction
-          # move existing name
-
-        when 'SEP'
-          # fade in common border
-          # fade in new names
-          @_executeAreaChanges direction
-          # fade out old name
-
-        when 'SEC'
-          # fade in common border
-          # fade in new name
-          @_executeAreaChanges direction
-          # move existing name
-
-        when 'NCH'
-          # fade out old name
-          @_executeAreaChanges direction
-          # fade in new name
-
-        when 'TCH'
-          # fade in transition borders
-          @_executeAreaChanges direction
-          # fade out transition borders
-
-        when 'DES'
-          @_executeAreaChanges direction
-          # fade out old border
-          # fade out old name
-
-    else
-      @_executeAreaChanges direction
-
-
-
-  # ============================================================================
-  # execute all its associated AreaChanges
-  # ============================================================================
-
-  _executeAreaChanges: (direction) ->
-    # execute all its changes
     for areaChange in @areaChanges
       areaChange.execute direction
+
+    # TODO: visualize transition if user has not scrolled too far
+    # if timeLeap < HGConfig.time_leap_threshold.val
+
 
   # ============================================================================
   # join with a keyword as the separator between the last two elements
