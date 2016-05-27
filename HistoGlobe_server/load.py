@@ -284,6 +284,13 @@ def run(verbose=True):
           if new_home_geom.geom_type != 'MultiPolygon':
             new_home_geom = MultiPolygon(new_home_geom)
 
+          # geometry of secession country after SEC operation
+          new_sec_geom = new_sec_geom.intersection(old_home_geom)
+          if new_sec_geom.geom_type != 'MultiPolygon':
+            new_sec_geom = MultiPolygon(new_sec_geom)
+          new_sec_area_territory.geometry = new_sec_geom
+          new_sec_area_territory.save()
+
           # create new territory of homeland
           new_home_area_territory = AreaTerritory(
               area =      home_area,
