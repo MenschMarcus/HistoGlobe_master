@@ -1,6 +1,6 @@
 short_name|formal_name|international_status|sovereignty_status|UN_member_recognition|non_UN_member_recognition|creation_date|hivent_name|edit_operation|old_area|source
 Tuvalu|Tuvalu|F|F|193||1978-10-01|Creation of Tuvalu|CRE||Tuvalu_add.geojson
+Transnistria|Pridnestrovian Moldavian Republic|N|N|0|3|1991-08-28|Declaration of Independence from Moldova|DIS|Moldova|Transnistria_clip.geojson
 Nagorno-Karabakh|Nagorno-Karabakh Republic|N|N|0|3|1991-09-02|Declaration of Independence from Azerbaijan|DIS|Azerbaijan|Nagorno_Karabakh_clip.geojson
-Transnistria|Pridnestrovian Moldavian Republic|N|N|0|3|1990-09-02|Declaration of Independence from Moldova|DIS|Moldova|Transnistria_clip.geojson
+South Ossetia|Republic of South Ossetia|N|P|5|3|1991-12-26|Declaration of Independence from Georgia|DIS|Georgia|South_Ossetia_clip.geojson
 Abkhazia|Republic of Abkhazia|N|P|6|3|1999-10-12|Act of State Independence from Georgia|DIS|Georgia|Abkhazia_clip.geojson
-South Ossetia|Republic of South Ossetia|N|P|5|3|2008-12-25|Declaration of Independence from Georgia|DIS|Georgia|South_Ossetia_clip.geojson
