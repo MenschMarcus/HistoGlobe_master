@@ -50,8 +50,7 @@ class Hivent(models.Model):
 
 
   # ============================================================================
-  # return Hivent with all its associated
-  # Changes, ChangeAreas, ChangeNames and ChangeTerritories
+  # return Hivent with all its associated Changes
   # ============================================================================
 
   def prepare_output(self):

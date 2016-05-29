@@ -13,17 +13,17 @@ class HG.Hivent
   ##############################################################################
 
   constructor: (data)  ->
-    @id                 = data.id
+    @id             = data.id
 
     # superordinate: HiventHandle
-    @handle             = null  # HG.HiventHandle
+    @handle         = null  # HG.HiventHandle
 
     # properties
-    @name               = data.name
-    @date               = data.date
-    @location           = data.location
-    @description        = data.description
-    @link               = data.link
+    @name           = data.name
+    @date           = data.date
+    @location       = data.location
+    @description    = data.description
+    @link           = data.link
 
-    # subordinate: HistoricalChanges
-    @historicalChanges  = []     # HG.HistoricalChange
+    # subordinate: EditOperations
+    @editOperations = []     # HG.EditOperation

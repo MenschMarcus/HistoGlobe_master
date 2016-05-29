@@ -16,9 +16,9 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
     # inherit functionality from base class
     super @_hgInstance, direction
 
-    # get the historical change data and add to workflow
+    # get the EditOperation data and add to workflow
     @_prepareChange()
-    @_stepData.outData.historicalChange = @_historicalChange
+    @_stepData.outData.editOperation = @_editOperation
 
     ### SETUP OPERATION ###
 
@@ -27,7 +27,7 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
       @_hgInstance.editMode.enterAreaEditMode()
 
     # hivent box: select existing or create new hivent
-    @_hiventBox = new HG.NewHiventBox @_hgInstance, @_historicalChange.getDescription()
+    @_hiventBox = new HG.NewHiventBox @_hgInstance, @_editOperation.getDescription()
 
     @_hiventBox.onSubmit @, (hiventData) ->
       @_stepData.outData.hiventData = hiventData
@@ -64,7 +64,7 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
 
 
   # ============================================================================
-  # assemble HistoricalChange including all AreaChanges
+  # assemble EditOperation including all HiventOperations
   # ============================================================================
 
   _prepareChange: () ->
@@ -74,9 +74,9 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
     @_oldAreas = stepsData[1].outData
     @_newAreas = stepsData[3].outData
 
-    # => main HistoricalChange object that contains the AreaChanges
+    # => main EditOperation object that contains the HiventOperations
     # made in the workflow
-    @_historicalChange = new HG.HistoricalChange {
+    @_editOperation = new HG.EditOperation {
       id:         @_getId()
       operation:  @_getOperationId()
     }
@@ -131,7 +131,7 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
         while idx < @_oldAreas.areas.length
 
           # incorporation area creates a TCH, because it continues the identity
-          # if formal name has changed, add this NCH areaChange as well
+          # if formal name has changed, add this NCH hiventOperation as well
           if @_oldAreas.areas[idx] is incArea
             @_makeTCH idx, 0
             @_makeNCH idx, 0 if @_oldAreas.areaNames[idx] isnt @_newAreas.areaNames[0]
@@ -163,7 +163,7 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
         while idx < @_newAreas.areas.length
 
           # secession area creates a TCH, because it continues the identity
-          # if formal name has changed, add this NCH areaChange as well
+          # if formal name has changed, add this NCH hiventOperation as well
           if @_newAreas.areas[idx] is secArea
             @_makeTCH 0, idx
             @_makeNCH 0, idx if @_oldAreas.areaNames[0] isnt @_newAreas.areaNames[idx]
@@ -196,44 +196,44 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
 
 
   # ============================================================================
-  # helper functions to create a single AreaChange for each operation
+  # helper functions to create a single HiventOperation for each operation
   # ============================================================================
 
   _makeADD: (idx) ->
-    newChange = new HG.AreaChange @_getId()
+    newChange = new HG.HiventOperation @_getId()
     newChange.operation =        'ADD'
-    newChange.historicalChange = @_historicalChange
+    newChange.editOperation = @_editOperation
     newChange.area =             @_newAreas.areas[idx]
     newChange.newAreaName =      @_newAreas.areaNames[idx]
     newChange.newAreaTerritory = @_newAreas.areaTerritories[idx]
-    @_historicalChange.areaChanges.push newChange
+    @_editOperation.hiventOperations.push newChange
 
   # ----------------------------------------------------------------------------
   _makeDEL: (idx) ->
-    newChange = new HG.AreaChange @_getId()
+    newChange = new HG.HiventOperation @_getId()
     newChange.operation =        'DEL'
-    newChange.historicalChange = @_historicalChange
+    newChange.editOperation = @_editOperation
     newChange.area =             @_oldAreas.areas[idx]
     newChange.oldAreaName =      @_oldAreas.areaNames[idx]
     newChange.oldAreaTerritory = @_oldAreas.areaTerritories[idx]
-    @_historicalChange.areaChanges.push newChange
+    @_editOperation.hiventOperations.push newChange
 
   # ----------------------------------------------------------------------------
   _makeNCH: (oldIdx, newIdx) ->
-    newChange = new HG.AreaChange @_getId()
+    newChange = new HG.HiventOperation @_getId()
     newChange.operation =        'NCH'
-    newChange.historicalChange = @_historicalChange
+    newChange.editOperation = @_editOperation
     newChange.area =             @_oldAreas.areas[oldIdx]
     newChange.oldAreaName =      @_oldAreas.areaNames[oldIdx]
     newChange.newAreaName =      @_newAreas.areaNames[newIdx]
-    @_historicalChange.areaChanges.push newChange
+    @_editOperation.hiventOperations.push newChange
 
   # ----------------------------------------------------------------------------
   _makeTCH: (oldIdx, newIdx) ->
-    newChange = new HG.AreaChange @_getId()
+    newChange = new HG.HiventOperation @_getId()
     newChange.operation =        'TCH'
-    newChange.historicalChange = @_historicalChange
+    newChange.editOperation = @_editOperation
     newChange.area =             @_oldAreas.areas[oldIdx]
     newChange.oldAreaTerritory = @_oldAreas.areaTerritories[oldIdx]
     newChange.newAreaTerritory = @_newAreas.areaTerritories[newIdx]
-    @_historicalChange.areaChanges.push newChange
+    @_editOperation.hiventOperations.push newChange

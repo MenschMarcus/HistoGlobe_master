@@ -57,8 +57,8 @@ class HG.EditOperationStep.SelectOldAreas extends HG.EditOperationStep
   ##############################################################################
 
   # ============================================================================
-  # select an area = make him part of the HistoricalChange
-  # -> create an 'DEL' AreaChange for it
+  # select an area = make him part of the EditOperation
+  # -> create an 'DEL' HiventOperation for it
   # ============================================================================
 
   _select: (areaHandle) ->

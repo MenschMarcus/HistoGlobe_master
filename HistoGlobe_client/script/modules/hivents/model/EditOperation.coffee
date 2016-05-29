@@ -3,7 +3,7 @@ window.HG ?= {}
 
 # ==============================================================================
 # MODEL
-# HistoricalChange defines what has historically changed because of an Hivent.
+# EditOperation defines what has historically changed because of an Hivent.
 # relates to one EditOperation
 # DTO => no functionality
 #
@@ -17,7 +17,7 @@ window.HG ?= {}
 # ==============================================================================
 
 
-class HG.HistoricalChange
+class HG.EditOperation
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
@@ -25,16 +25,16 @@ class HG.HistoricalChange
 
   constructor: (data)  ->
 
-    @id             = data.id
+    @id               = data.id
 
     # superordinate: Hivent
-    @hivent         = null    # HG.Hivent
+    @hivent           = null    # HG.Hivent
 
     # properties
-    @editOperation  = data.editOperation  # 'XXX' of the list above
+    @operation        = data.operation  # 'XXX' of the list above
 
-    # subordinate: AreaChanges
-    @areaChanges    = []      # HG.AreaChange
+    # subordinate: HiventOperations
+    @hiventOperations = []      # HG.HiventOperation
 
 
   # ============================================================================
@@ -50,7 +50,7 @@ class HG.HistoricalChange
     newAreaNames = []
     tchAreaNames = []
     nchAreaNames = []
-    for change in @areaChanges
+    for change in @hiventOperations
       switch change.operation
         when 'ADD' then newAreaNames.push change.newAreaName.shortName
         when 'DEL' then oldAreaNames.push change.oldAreaName.shortName
@@ -65,7 +65,7 @@ class HG.HistoricalChange
     tchStr = @_joinToEnum tchAreaNames
     nchStr = @_joinToEnum nchAreaNames, "to"
 
-    switch @editOperation
+    switch @operation
       when 'CRE' then return "Create " + newStr
       when 'MRG' then return "Merge " + oldStr + " to " + tchStr
       when 'DIS' then return "Dissolve " + oldStr + " intoto " + newStr
@@ -76,15 +76,15 @@ class HG.HistoricalChange
 
   # ============================================================================
   # execute the change: visualize areas of interest and
-  # then execute all its associated AreaChanges
+  # then execute all its associated HiventOperations
   # ============================================================================
 
   execute: (direction, timeLeap) ->
     # +1: execute change forward
     # -1: execute change backward
 
-    for areaChange in @areaChanges
-      areaChange.execute direction
+    for hiventOperation in @hiventOperations
+      hiventOperation.execute direction
 
     # TODO: visualize transition if user has not scrolled too far
     # if timeLeap < HGConfig.time_leap_threshold.val

@@ -19,9 +19,9 @@ class HG.AreaName
     # superordinate: Area
     @area         = null                # HG.Area
 
-    # superordinate: AreaChange (historical context)
-    @startChange  = null                # HG.AreaChange
-    @endChange    = null                # HG.AreaChange
+    # superordinate: HiventOperation (historical context)
+    @startChange  = null                # HG.HiventOperation
+    @endChange    = null                # HG.HiventOperation
 
     # properties
     @shortName    = data.shortName      # String

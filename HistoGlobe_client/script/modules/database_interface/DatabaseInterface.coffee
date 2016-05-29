@@ -1,8 +1,8 @@
 window.HG ?= {}
 
 # ==============================================================================
-# loads initial areas and hivents from the server and creates their links
-# to each other via start/end hivents and ChangeAreas/ChangeAreaNames/Territorie
+# loads initial Areas and Hivents from the server and creates their links
+# to each other via start/end operations
 # ==============================================================================
 
 class HG.DatabaseInterface
@@ -54,66 +54,66 @@ class HG.DatabaseInterface
           areas.push area
 
         # create AreaNames and AreaTerritories and store them
-        # so they can be linked to ChangeAreas later
+        # so they can be linked to HiventOperations later
         areaNames = []
-        for anData in dataObj.area_names
-          anData = @_areaNameToClient anData
-          areaName = new HG.AreaName anData
-          areaName.area = anData.area
+        for areaNameData in dataObj.area_names
+          areaNameData = @_areaNameToClient areaNameData
+          areaName = new HG.AreaName areaNameData
+          areaName.area = areaNameData.area
           areaNames.push areaName
 
         areaTerritories = []
-        for atData in dataObj.area_territories
-          atData = @_areaTerritoryToClient atData
-          areaTerritory = new HG.AreaTerritory atData
-          areaTerritory.area = atData.area
+        for areaTerritoryData in dataObj.area_territories
+          areaTerritoryData = @_areaTerritoryToClient areaTerritoryData
+          areaTerritory = new HG.AreaTerritory areaTerritoryData
+          areaTerritory.area = areaTerritoryData.area
           areaTerritories.push areaTerritory
 
-        # keep track of earliest data to know where to start tracing the changes
+        # keep track of earliest data to know where to start tracing the operation
         minDate = moment()
 
         # create Hivents
-        for hData in dataObj.hivents
-          hivent = new HG.Hivent @_hiventToClient hData
+        for hiventData in dataObj.hivents
+          hivent = new HG.Hivent @_hiventToClient hiventData
           minDate = moment.min(minDate, hivent.date)
 
-          # create HistoricalChanges
-          for hcData in hData.historical_changes
-            hcData = @_historicalChangeToClient hcData
-            hcData = @_validateHistoricalChange hcData
-            historicalChange = new HG.HistoricalChange hcData
+          # create EditOperations
+          for editOperationData in hiventData.edit_operations
+            editOperationData = @_editOperationToClient editOperationData
+            editOperationData = @_validateEditOperation editOperationData
+            editOperation = new HG.EditOperation editOperationData
 
-            # create AreaChanges
-            for acData in hcData.areaChanges
-              acData = @_areaChangeToClient acData, areaNames, areaTerritories
-              acData = @_validateAreaChange acData
+            # create HiventOperations
+            for hiventOperationInData in editOperationData.hiventOperations
+              hiventOperationInData = @_hiventOperationToClient hiventOperationInData
+              hiventOperationInData = @_validateHiventOperation hiventOperationInData
 
-              # assemble AreaChange and link to Area(Name/Territory)
-              areaChangeData = {
-                id:           acData.id
-                hgOperation:  acData.hgOperation
+              # assemble HiventOperation and link to Area(Name/Territory)
+              hiventOperationOutData = {
+                id:           hiventOperationInData.id
+                operation:  hiventOperationInData.operation
                 oldAreas:     []
                 newAreas:     []
                 updateArea:   null
               }
 
-              for oldArea in acData.oldAreas
-                areaChangeData.oldAreas.push {
+              for oldArea in hiventOperationInData.oldAreas
+                hiventOperationOutData.oldAreas.push {
                   area:       areas.find (obj) -> obj.id is oldArea.area
                   name:       areaNames.find (obj) -> obj.id is oldArea.name
                   territory:  areaTerritories.find (obj) -> obj.id is oldArea.territory
                 }
 
-              for newArea in acData.newAreas
-                areaChangeData.newAreas.push {
+              for newArea in hiventOperationInData.newAreas
+                hiventOperationOutData.newAreas.push {
                   area:       areas.find (obj) -> obj.id is newArea.area
                   name:       areaNames.find (obj) -> obj.id is newArea.name
                   territory:  areaTerritories.find (obj) -> obj.id is newArea.territory
                 }
 
-              if acData.updateArea
-                updArea = acData.updateArea
-                areaChangeData.updateArea = {
+              if hiventOperationInData.updateArea
+                updArea = hiventOperationInData.updateArea
+                hiventOperationOutData.updateArea = {
                   area:         areas.find (obj) -> obj.id is updArea.area
                   oldName:      areaNames.find (obj) -> obj.id is updArea.old_name
                   newName:      areaNames.find (obj) -> obj.id is updArea.new_name
@@ -121,15 +121,15 @@ class HG.DatabaseInterface
                   newTerritory: areaTerritories.find (obj) -> obj.id is updArea.new_territory
                 }
 
-              areaChange = new HG.AreaChange areaChangeData
+              hiventOperation = new HG.HiventOperation hiventOperationOutData
 
-              # link HistoricalChange <-> ChangeArea
-              areaChange.historicalChange = historicalChange
-              historicalChange.areaChanges.push areaChange
+              # link EditOperation <-> HiventOperation
+              hiventOperation.editOperation = editOperation
+              editOperation.hiventOperations.push hiventOperation
 
-            # link Hivent <-> HistoricalChange
-            historicalChange.hivent = hivent
-            hivent.historicalChanges.push historicalChange
+            # link Hivent <-> EditOperation
+            editOperation.hivent = hivent
+            hivent.editOperations.push editOperation
 
           # finalize handle
           hiventHandle = new HG.HiventHandle @_hgInstance, hivent
@@ -147,20 +147,20 @@ class HG.DatabaseInterface
 
   # ============================================================================
   # Save the outcome of an historical Operation to the server: the Hivent,
-  # its associated HistoricalChange and their AreaChanges, including their
+  # its associated EditOperation and their HiventOperations, including their
   # associated Areas, AreaNames and AreaTerritories.
   # All objects have temporary IDs, the server will create real IDs and return
   # them. This function also updates the IDs.
   # ============================================================================
 
-  saveHistoricalOperation: (hiventData, historicalChange) ->
+  saveHistoricalOperation: (hiventData, editOperation) ->
 
     # request data sent to the server
 
     request = {
       hivent:               null
       hivent_is_new:        yes
-      historical_change:    {}
+      edit_operation:       {}
       new_areas:            []
       new_area_names:       []
       new_area_territories: []
@@ -168,7 +168,7 @@ class HG.DatabaseInterface
 
     # assemble relevant data for the request, resolving the circular double-link
     # structure to a one-directional hierarchical structure:
-    # Hivent -> HistoricalChange -> [AreaChange] --> Area
+    # Hivent -> EditOperation -> [HiventOperation] --> Area
     #                                            |-> AreaName / AreaTerritory
 
     ## Hivent: create new or update?
@@ -188,50 +188,50 @@ class HG.DatabaseInterface
     request.hivent_is_new = hiventData.isNew
 
 
-    ## HistoricalChange: omit Hivent (link upward)
-    request.historical_change = {
-      id:           historicalChange.id
-      operation:    historicalChange.operation
-      area_changes: []  # store only ids, so they can be associated
+    ## EditOperation: omit Hivent (link upward)
+    request.edit_operation = {
+      id:           editOperation.id
+      operation:    editOperation.operation
+      hivent_operations: []  # store only ids, so they can be associated
     }
 
-    ## AreaChanges: omit HistoricalChange (link upward), save only ids of Areas
-    for areaChange in historicalChange.areaChanges
-      request.historical_change.area_changes.push {
-        id:                   areaChange.id
-        operation:            areaChange.operation
-        area:                 areaChange.area.id
-        old_area_name:        areaChange.oldAreaName?.id
-        old_area_territory:   areaChange.oldAreaTerritory?.id
-        new_area_name:        areaChange.newAreaName?.id
-        new_area_territory:   areaChange.newAreaTerritory?.id
+    ## HiventOperations: omit EditOperation (link upward), save only ids of Areas
+    for hiventOperation in editOperation.hiventOperations
+      request.edit_operation.hivent_operations.push {
+        id:                   hiventOperation.id
+        operation:            hiventOperation.operation
+        area:                 hiventOperation.area.id
+        old_area_name:        hiventOperation.oldAreaName?.id
+        old_area_territory:   hiventOperation.oldAreaTerritory?.id
+        new_area_name:        hiventOperation.newAreaName?.id
+        new_area_territory:   hiventOperation.newAreaTerritory?.id
       }
 
       ## new Area is part of each ADD operation
-      if areaChange.operation is 'ADD'
+      if hiventOperation.operation is 'ADD'
         request.new_areas.push {
-          id:   areaChange.area.id
+          id:   hiventOperation.area.id
         }
 
       ## new AreaName is part of each ADD and NCH operation
-      if areaChange.operation is 'ADD' or areaChange.operation is 'NCH'
+      if hiventOperation.operation is 'ADD' or hiventOperation.operation is 'NCH'
         request.new_area_names.push {
-          id:           areaChange.newAreaName.id
-          short_name:   areaChange.newAreaName.shortName
-          formal_name:  areaChange.newAreaName.formalName
+          id:           hiventOperation.newAreaName.id
+          short_name:   hiventOperation.newAreaName.shortName
+          formal_name:  hiventOperation.newAreaName.formalName
         }
 
       ## new AreaTerritory is part of each ADD and TCH operation
-      if areaChange.operation is 'ADD' or areaChange.operation is 'TCH'
+      if hiventOperation.operation is 'ADD' or hiventOperation.operation is 'TCH'
         request.new_area_territories.push {
-          id:                   areaChange.newAreaTerritory.id
-          geometry:             areaChange.newAreaTerritory.geometry.wkt()
-          representative_point: areaChange.newAreaTerritory.representativePoint.wkt()
+          id:                   hiventOperation.newAreaTerritory.id
+          geometry:             hiventOperation.newAreaTerritory.geometry.wkt()
+          representative_point: hiventOperation.newAreaTerritory.representativePoint.wkt()
         }
 
-      # make hivent and historicalChange accessible in success callback
+      # make hivent and editOperation accessible in success callback
       @_hivent =            hivent
-      @_historicalChange =  historicalChange
+      @_editOperation =  editOperation
 
 
       $.ajax
@@ -250,56 +250,56 @@ class HG.DatabaseInterface
           @_hivent = $.extend @_hivent, @_hiventToClient dataObj.hivent
 
 
-          ## HistoricalChange
-          @_historicalChange.id = dataObj.historical_change_id
+          ## EditOperation
+          @_editOperation.id = dataObj.edit_operation_id
 
-          # Hivent <-> HistoricalChange
-          hivent.historicalChanges.push @_historicalChange
-          @_historicalChange.hivent = hivent
+          # Hivent <-> EditOperation
+          hivent.editOperations.push @_editOperation
+          @_editOperation.hivent = hivent
 
 
-          ## AreaChanges
-          for areaChange in @_historicalChange.areaChanges
+          ## HiventOperations
+          for hiventOperation in @_editOperation.hiventOperations
 
-            # find associated areaChangeData id in response data
-            for area_change in dataObj.area_changes
-              if areaChange.id is area_change.old_id
+            # find associated hiventOperationData id in response data
+            for hivent_operation in dataObj.hivent_operations
+              if hiventOperation.id is hivent_operation.old_id
 
                 # update id
-                areaChange.id = area_change.new_id
+                hiventOperation.id = hivent_operation.new_id
 
                 ## Area
-                areaChange.area.id = area_change.area_id
+                hiventOperation.area.id = hivent_operation.area_id
 
-                # AreaChange <- Area
-                switch areaChange.operation
-                  when 'ADD' then         areaChange.area.startChange =       areaChange
-                  when 'DEL' then         areaChange.area.endChange =         areaChange
-                  when 'TCH', 'NCH' then  areaChange.area.updateChanges.push  areaChange
+                # HiventOperation <- Area
+                switch hiventOperation.operation
+                  when 'ADD' then         hiventOperation.area.startChange =       hiventOperation
+                  when 'DEL' then         hiventOperation.area.endChange =         hiventOperation
+                  when 'TCH', 'NCH' then  hiventOperation.area.updateChanges.push  hiventOperation
 
                 ## AreaName
-                if areaChange.oldAreaName
+                if hiventOperation.oldAreaName
                   # id is already up to data
-                  # AreaChange <- AreaName
-                  areaChange.oldAreaName.endChange = areaChange
+                  # HiventOperation <- AreaName
+                  hiventOperation.oldAreaName.endChange = hiventOperation
 
-                if areaChange.newAreaName
+                if hiventOperation.newAreaName
                   # update id
-                  areaChange.newAreaName.id = area_change.new_area_name_id
-                  # AreaChange <- AreaName
-                  areaChange.newAreaName.startChange = areaChange
+                  hiventOperation.newAreaName.id = hivent_operation.new_area_name_id
+                  # HiventOperation <- AreaName
+                  hiventOperation.newAreaName.startChange = hiventOperation
 
                 ## AreaTerritory
-                if areaChange.oldAreaTerritory
+                if hiventOperation.oldAreaTerritory
                   # id is already up to data
-                  # AreaChange <- AreaTerritory
-                  areaChange.oldAreaTerritory.endChange = areaChange
+                  # HiventOperation <- AreaTerritory
+                  hiventOperation.oldAreaTerritory.endChange = hiventOperation
 
-                if areaChange.newAreaTerritory
+                if hiventOperation.newAreaTerritory
                   # update id
-                  areaChange.newAreaTerritory.id = area_change.new_area_territory_id
-                  # AreaChange <- AreaTerritory
-                  areaChange.newAreaTerritory.startChange = areaChange
+                  hiventOperation.newAreaTerritory.id = hivent_operation.new_area_territory_id
+                  # HiventOperation <- AreaTerritory
+                  hiventOperation.newAreaTerritory.startChange = hiventOperation
 
           # finalize: make Hivent known to HistoGlobe (HiventController)
           @_hgInstance.hiventController.addHiventHandle @_hivent.handle
@@ -376,59 +376,59 @@ class HG.DatabaseInterface
     }
 
   # ----------------------------------------------------------------------------
-  _historicalChangeToClient: (dataObj) ->
+  _editOperationToClient: (dataObj) ->
     {
       id:             parseInt dataObj.id
-      editOperation:  dataObj.edit_operation
+      operation:      dataObj.operation
       hivent:         dataObj.hivent
-      areaChanges:    dataObj.area_changes  # not changed, yet
+      hiventOperations:    dataObj.hivent_operations  # not changed, yet
     }
 
   # ----------------------------------------------------------------------------
-  _historicalChangeToServer: (dataObj) ->
+  _editOperationToServer: (dataObj) ->
     # TODO if necessary
 
   # ----------------------------------------------------------------------------
-  _areaChangeToClient: (dataObj, areaNames, areaTerritories) ->
+  _hiventOperationToClient: (dataObj, areaNames, areaTerritories) ->
     {
       id:               parseInt dataObj.id
-      historicalChange: dataObj.historical_change # not changed, yet
-      hgOperation:      dataObj.hg_operation
+      editOperation:    dataObj.edit_operation # not changed, yet
+      operation:        dataObj.operation
       oldAreas:         dataObj.old_areas
       newAreas:         dataObj.new_areas
       updateArea:       dataObj.update_area
     }
 
   # ----------------------------------------------------------------------------
-  _areaChangeToServer: (dataObj) ->
+  _hiventOperationToServer: (dataObj) ->
     # TODO if necessary
 
 
   # ============================================================================
-  # validation for all data in HistoricalChange
-  # ensures that HistoricalChange can correctly be executed
+  # validation for all data in EditOperation
+  # ensures that EditOperation can correctly be executed
   # ============================================================================
 
-  _validateHistoricalChange: (dataObj) ->
+  _validateEditOperation: (dataObj) ->
 
     # check if id is a number
     if isNaN(dataObj.id)
       return console.error "The id is not valid"
 
     # check if operation type is correct
-    if ['CRE','MRG','DIS','CHB','REN','CES'].indexOf(dataObj.editOperation) is -1
-      return console.error "The operation type " + dataObj.editOperation + " is not valid"
+    if ['CRE','MRG','DIS','CHB','REN','CES'].indexOf(dataObj.operation) is -1
+      return console.error "The operation type " + dataObj.operation + " is not valid"
 
     # got all the way here? Then everything is good :)
     return dataObj
 
 
   # ============================================================================
-  # validation for all data in AreaChange
-  # ensures that AreaChange can correctly be executed
+  # validation for all data in HiventOperation
+  # ensures that HiventOperation can correctly be executed
   # ============================================================================
 
-  _validateAreaChange: (dataObj) ->
+  _validateHiventOperation: (dataObj) ->
 
     # check if id is a number
     dataObj.id = parseInt dataObj.id
@@ -436,8 +436,8 @@ class HG.DatabaseInterface
       return console.error "The id is not valid"
 
     # check if operation type is correct
-    if ['UNI','INC','SEP','SEC','NCH'].indexOf(dataObj.hgOperation) is -1
-      return console.error "The operation type " + dataObj.hgOperation + " is not valid"
+    if ['UNI','INC','SEP','SEC','NCH'].indexOf(dataObj.operation) is -1
+      return console.error "The operation type " + dataObj.operation + " is not valid"
 
     # check all old areas
     for oldArea in dataObj.oldAreas

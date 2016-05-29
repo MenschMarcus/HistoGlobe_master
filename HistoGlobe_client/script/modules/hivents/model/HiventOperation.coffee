@@ -2,10 +2,10 @@ window.HG ?= {}
 
 # ==============================================================================
 # MODEL class
-# contains data about a specific AreaChange for one specific area
+# contains data about a specific HiventOperation for one specific area
 # and can execute it
 #
-# AreaChange <-> HistoricalGeographicOperation
+# HiventOperation <-> HistoricalGeographicOperation
 #
 # ------------------------------------------------------------------------------
 # operation             area change terr change name change
@@ -39,7 +39,7 @@ window.HG ?= {}
 # ==============================================================================
 
 
-class HG.AreaChange
+class HG.HiventOperation
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
@@ -51,7 +51,7 @@ class HG.AreaChange
     ## init members
 
     @id           = data.id
-    @hgOperation  = data.hgOperation
+    @operation  = data.operation
     @oldAreas     = data.oldAreas
     @newAreas     = data.newAreas
     @updateArea   = data.updateArea
@@ -59,19 +59,19 @@ class HG.AreaChange
 
     ## establish double-links
 
-    # AreaChange <- old Areas
+    # HiventOperation <- old Areas
     for oldArea in @oldAreas
       oldArea.area.endChange = @
       oldArea.name.endChange = @
       oldArea.territory.endChange = @
 
-    # AreaChange <- new Areas
+    # HiventOperation <- new Areas
     for newArea in @newAreas
       newArea.area.startChange = @
       newArea.name.startChange = @
       newArea.territory.startChange = @
 
-    # AreaChange <- update Area
+    # HiventOperation <- update Area
     if @updateArea
       @updateArea.area.updateChanges.push @
       @updateArea.oldName?.endChange = @
@@ -82,7 +82,7 @@ class HG.AreaChange
 
     ## establish historical relationships
 
-    switch @hgOperation
+    switch @operation
 
       when 'UNI', 'SEP'
         for oldArea in @oldAreas
@@ -105,7 +105,7 @@ class HG.AreaChange
 
     ## remove historical relationships
 
-    switch @hgOperation
+    switch @operation
 
       when 'UNI', 'SEP'
         for oldArea in @oldAreas
@@ -132,19 +132,19 @@ class HG.AreaChange
 
     ## remove double-links
 
-    # AreaChange <- old Areas
+    # HiventOperation <- old Areas
     for oldArea in @oldAreas
       oldArea.area.endChange = null
       oldArea.name.endChange = null
       oldArea.territory.endChange = null
 
-    # AreaChange <- new Areas
+    # HiventOperation <- new Areas
     for newArea in @newAreas
       newArea.area.startChange = null
       newArea.name.startChange = null
       newArea.territory.startChange = null
 
-    # AreaChange <- update Area
+    # HiventOperation <- update Area
     if @updateArea
       updIdx = @updateArea.area.updateChanges.indexOf @
       @updateArea.area.updateChanges.splice updIdx, 1

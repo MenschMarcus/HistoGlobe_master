@@ -22,7 +22,6 @@ class HG.HiventController
     HG.CallbackContainer.call @
 
     @addCallback 'onHiventAdded'
-    @addCallback 'onChangeAreas'
 
 
     ## init config
@@ -69,7 +68,7 @@ class HG.HiventController
         oldDate = minDate
         nowDate = @_hgInstance.timeController.getNowDate()
 
-        @_findHistoricalChanges oldDate, nowDate
+        @_findEditOperations oldDate, nowDate
 
         @_nowDate = @_hgInstance.timeController.getNowDate()
 
@@ -91,7 +90,7 @@ class HG.HiventController
         oldDate = @_nowDate
         newDate = nowDate
 
-        @_findHistoricalChanges oldDate, newDate
+        @_findEditOperations oldDate, newDate
 
         @_nowDate = nowDate
 
@@ -231,7 +230,7 @@ class HG.HiventController
   # find Hivents happening between two dates and execute their changes
   # ============================================================================
 
-  _findHistoricalChanges: (oldDate, newDate) ->
+  _findEditOperations: (oldDate, newDate) ->
 
       # change direction: forward (+1) or backward (-1)
       changeDir = if oldDate < newDate then +1 else -1
@@ -262,8 +261,8 @@ class HG.HiventController
           inChangeRange = yes
 
           # TODO: make nicer later
-          for historicalChange in hiventHandle.getHivent().historicalChanges
-            historicalChange.execute changeDir, timeLeap
+          for editOperation in hiventHandle.getHivent().editOperations
+            editOperation.execute changeDir, timeLeap
 
         # N.B: if everything is screwed up: comment the following three lines ;)
         else
@@ -272,7 +271,7 @@ class HG.HiventController
 
 
       # tell everyone if new changes
-      # @notifyAll 'onChangeAreas', changes, changeDir, timeLeap if changes.length isnt 0
+      # @notifyAll 'onAreaÄÄÄChanges', changes, changeDir, timeLeap if changes.length isnt 0
 
 
 

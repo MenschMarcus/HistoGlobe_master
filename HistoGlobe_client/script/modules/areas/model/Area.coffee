@@ -17,10 +17,10 @@ class HG.Area
 
     @id             = data.id
 
-    # superordinate: AreaChange (historical context)
-    @startChange    = null            # HG.AreaChange
-    @updateChanges  = []              # HG.AreaChange
-    @endChange      = null            # HG.AreaChange
+    # superordinate: HiventOperation (historical context)
+    @startChange    = null            # HG.HiventOperation
+    @updateChanges  = []              # HG.HiventOperation
+    @endChange      = null            # HG.HiventOperation
 
     # superordinate: AreaHandle
     @handle         = null            # HG.AreaHandle

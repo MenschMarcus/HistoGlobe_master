@@ -6,7 +6,7 @@ window.HG ?= {}
 # handle communication with backend (get data, send data)
 # ==============================================================================
 
-class HG.EditOperation
+class HG.EditModeOperation
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #
@@ -113,7 +113,7 @@ class HG.EditOperation
             userInput:            yes
             outData: {
               hiventData:         {}
-              historicalChange:   null
+              editOperation:   null
             }
           }
         ]
@@ -249,11 +249,11 @@ class HG.EditOperation
 
   _finish: () ->
 
-    # get data for hivent and historical change
-    hiventData =        @operation.steps[4].outData.hiventData
-    historicalChange =  @operation.steps[4].outData.historicalChange
+    # get data for Hivent and EditOperation
+    hiventData =     @operation.steps[4].outData.hiventData
+    editOperation =  @operation.steps[4].outData.editOperation
 
-    @_hgInstance.databaseInterface.saveHistoricalOperation hiventData, historicalChange
+    @_hgInstance.databaseInterface.saveHistoricalOperation hiventData, editOperation
 
     @_hgInstance.databaseInterface.onFinishSavingHistoricalOperation @, () =>
       @notifyAll 'onFinish'

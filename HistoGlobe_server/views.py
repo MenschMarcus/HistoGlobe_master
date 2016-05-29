@@ -119,8 +119,8 @@ def save_operation(request):
   # prepare output to response
   response = {
     'hivent':   {} ,   # dictionary of properties
-    'historical_change_id': None,  # int
-    'area_changes': [
+    'edit_operation_id': None,  # int
+    'hivent_operations': [
     # {
     #   'old_id':                 int
     #   'new_id':                 int
@@ -134,12 +134,12 @@ def save_operation(request):
   # load input from request
   request_data = json.loads(request.body)
 
-  hivent_data =             request_data['hivent']
-  hivent_is_new =           request_data['hivent_is_new']
-  historical_change_data =  request_data['historical_change']
-  new_areas =               request_data['new_areas']
-  new_area_names =          request_data['new_area_names']
-  new_area_territories =    request_data['new_area_territories']
+  hivent_data =           request_data['hivent']
+  hivent_is_new =         request_data['hivent_is_new']
+  edit_operation_data =   request_data['edit_operation']
+  new_areas =             request_data['new_areas']
+  new_area_names =        request_data['new_area_names']
+  new_area_territories =  request_data['new_area_territories']
 
 
   ### PROCESS HIVENT ###
@@ -152,11 +152,11 @@ def save_operation(request):
     # error handling
     if validated_hivent_data is False: return HttpResponse(error_message)
     hivent = Hivent(
-        name =            validated_hivent_data['name'],           # CharField          (max_length=150)
-        date =            validated_hivent_data['date'],           # DateTimeField      (default=timezone.now)
-        location =        validated_hivent_data['location'],       # CharField          (null=True, max_length=150)
-        description =     validated_hivent_data['description'],    # CharField          (null=True, max_length=1000)
-        link =            validated_hivent_data['link'],           # CharField          (max_length=300)
+        name =        validated_hivent_data['name'],           # CharField          (max_length=150)
+        date =        validated_hivent_data['date'],           # DateTimeField      (default=timezone.now)
+        location =    validated_hivent_data['location'],       # CharField          (null=True, max_length=150)
+        description = validated_hivent_data['description'],    # CharField          (null=True, max_length=1000)
+        link =        validated_hivent_data['link'],           # CharField          (max_length=300)
       )
     hivent.save()
 
@@ -175,25 +175,25 @@ def save_operation(request):
   response['hivent'] = hivent_output
 
 
-  ### PROCESS HISTORICAL CHANGE ###
-  [h_operation, error_message] = utils.validate_historical_operation_id(historical_change_data['operation'])
-  historical_change = HistoricalChange (
+  ### PROCESS EDIT OPERATION ###
+  [h_operation, error_message] = utils.validate_historical_operation_id(edit_operation_data['operation'])
+  edit_operation = EditOperation (
       hivent =    hivent,
       operation = h_operation
     )
-  historical_change.save()
+  edit_operation.save()
 
   # add to output
-  response['historical_change_id'] = historical_change.id
+  response['edit_operation_id'] = edit_operation.id
 
 
   ### PROCESS AREA CHANGES ###
 
-  for area_change_data in historical_change_data['area_changes']:
+  for hivent_operation_data in edit_operation_data['hivent_operations']:
 
-    [operation, error_message] = utils.validate_area_operation_id(area_change_data['operation'])
+    [operation, error_message] = utils.validate_area_operation_id(hivent_operation_data['operation'])
 
-    ## get Area of the AreaChange
+    ## get Area of the HiventOperation
     area = None
 
     # for 'ADD' changes, it is a new Area
@@ -202,23 +202,23 @@ def save_operation(request):
       area.save()
     # for all other changes, the Area already existed
     else:
-      area = Area.objects.get(id=area_change_data['area'])
+      area = Area.objects.get(id=hivent_operation_data['area'])
 
 
-    ## get AreaName of old and new AreaChanges
+    ## get AreaName of old and new HiventOperations
 
     old_area_name = None
     new_area_name = None
 
     # for 'DEL' and 'NCH' => old AreaName
     if (operation == 'DEL') or (operation == 'NCH'):
-      old_area_name = AreaName.objects.get(id=area_change_data['old_area_name'])
+      old_area_name = AreaName.objects.get(id=hivent_operation_data['old_area_name'])
 
     # for 'ADD' and 'NCH' => new AreaName
     if (operation == 'ADD') or (operation == 'NCH'):
       # find the new AreaName
       for area_name_data in new_area_names:
-        if area_name_data['id'] == area_change_data['new_area_name']:
+        if area_name_data['id'] == hivent_operation_data['new_area_name']:
           # validate and save it
           [area_name_data, error_message] = utils.validate_name(area_name_data)
           new_area_name = AreaName (
@@ -229,20 +229,20 @@ def save_operation(request):
           new_area_name.save()
 
 
-    ## get AreaTerritory of old and new AreaChanges
+    ## get AreaTerritory of old and new HiventOperations
 
     old_area_territory = None
     new_area_territory = None
 
     # for 'DEL' and 'TCH' => old AreaTerritory
     if (operation == 'DEL') or (operation == 'TCH'):
-      old_area_territory = AreaTerritory.objects.get(id=area_change_data['old_area_territory'])
+      old_area_territory = AreaTerritory.objects.get(id=hivent_operation_data['old_area_territory'])
 
     # for 'ADD' and 'TCH' => new AreaTerritory
     if (operation == 'ADD') or (operation == 'TCH'):
       # find the new AreaTerritory
       for area_territory_data in new_area_territories:
-        if area_territory_data['id'] == area_change_data['new_area_territory']:
+        if area_territory_data['id'] == hivent_operation_data['new_area_territory']:
           # validate and save it
           [area_territory_data, error_message] = utils.validate_territory(area_territory_data)
           new_area_territory = AreaTerritory (
@@ -252,9 +252,9 @@ def save_operation(request):
             )
           new_area_territory.save()
 
-    # create new AreaChange
-    area_change = AreaChange(
-        historical_change =   historical_change,
+    # create new HiventOperation
+    hivent_operation = HiventOperation(
+        edit_operation =   edit_operation,
         operation =           operation,
         area =                area,
         old_area_name =       old_area_name,
@@ -262,33 +262,33 @@ def save_operation(request):
         old_area_territory =  old_area_territory,
         new_area_territory =  new_area_territory
       )
-    area_change.save()
+    hivent_operation.save()
 
-    # AreaChange <- Area
+    # HiventOperation <- Area
     if operation == 'ADD':
-      area.start_change = area_change
+      area.start_change = hivent_operation
       area.save()
 
     elif operation == 'DEL':
-      area.end_change = area_change
+      area.end_change = hivent_operation
       area.save()
 
-    # AreaChange <- AreaName
+    # HiventOperation <- AreaName
     if old_area_name:
-      old_area_name.end_change = area_change
+      old_area_name.end_change = hivent_operation
       old_area_name.save()
 
     if new_area_name:
-      new_area_name.start_change = area_change
+      new_area_name.start_change = hivent_operation
       new_area_name.save()
 
-    # AreaChange <- AreaTerritory
+    # HiventOperation <- AreaTerritory
     if old_area_territory:
-      old_area_territory.end_change = area_change
+      old_area_territory.end_change = hivent_operation
       old_area_territory.save()
 
     if new_area_territory:
-      new_area_territory.start_change = area_change
+      new_area_territory.start_change = hivent_operation
       new_area_territory.save()
 
     # add to output
@@ -299,14 +299,14 @@ def save_operation(request):
     new_area_territory_id = None
     if new_area_territory: new_area_territory_id = new_area_territory.id
 
-    area_change_dict = {
-      'old_id':                 area_change_data['id'],
-      'new_id':                 area_change.id,
+    hivent_operation_dict = {
+      'old_id':                 hivent_operation_data['id'],
+      'new_id':                 hivent_operation.id,
       'area_id':                area.id,
       'new_area_name_id':       new_area_name_id,
       'new_area_territory_id':  new_area_territory_id
     }
-    response['area_changes'].append(area_change_dict)
+    response['hivent_operations'].append(hivent_operation_dict)
 
 
   ### OUTPUT ###

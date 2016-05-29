@@ -8,7 +8,7 @@ TEST_BUTTON = no
 #   manage operation window (init, send data, get data)
 #   handle communication with backend (get data, send data)
 #
-# hierachy: EditMode -> EditOperation -> EditOperationStep -> action
+# hierachy: EditMode -> EditModeOperation -> EditOperationStep -> action
 # ==============================================================================
 
 
@@ -126,7 +126,7 @@ class HG.EditMode
 
             # setup new operation and move all the controlling logic in there
             @_setupOperation()
-            operation = new HG.EditOperation @_hgInstance, currentOperation
+            operation = new HG.EditModeOperation @_hgInstance, currentOperation
 
             # wait for operation to finish
             operation.onFinish @, () =>
