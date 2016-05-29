@@ -185,37 +185,37 @@ def run(verbose=True):
       # create hivent + change
       creation_date = iso8601.parse_date(row['creation_date'])
       hivent = Hivent(
-          name =        str(row['hivent_name']),
-          date =        creation_date
+          name = str(row['hivent_name']),
+          date = creation_date
         )
       hivent.save()
 
       # Edit Operation: Create
-      historical_change = HistoricalChange(
-          hivent =              hivent,
-          edit_operation =      'CRE'
+      edit_operation = EditOperation(
+          hivent =    hivent,
+          operation = 'CRE'
         )
-      historical_change.save()
+      edit_operation.save()
 
-      # HG Operation: Secession from the universe
-      area_change = AreaChange(
-          historical_change =   historical_change,
-          hg_operation =        'SEC'
+      # Hivent Operation: Secession from the universe
+      hivent_operation = HiventOperation(
+          edit_operation =   edit_operation,
+          operation =        'SEC'
         )
-      area_change.save()
+      hivent_operation.save()
 
       # universe does not update its territory (yet)
       update_area = UpdateArea(
-          area_change = area_change,
-          area =        universe
+          hivent_operation = hivent_operation,
+          area = universe
         )
       update_area.save()
 
       new_area = NewArea(
-          area_change = area_change,
-          area =        area,
-          name =        area_name,
-          territory =   area_territory
+          hivent_operation =  hivent_operation,
+          area =              area,
+          name =              area_name,
+          territory =         area_territory
         )
       new_area.save()
 
@@ -307,32 +307,32 @@ def run(verbose=True):
           hivent.save()
 
           # Edit Operation: Dissolve
-          historical_change = HistoricalChange(
-              hivent =              hivent,
-              edit_operation =      'DIS'
+          edit_operation = EditOperation(
+              hivent =    hivent,
+              operation = 'DIS'
             )
-          historical_change.save()
+          edit_operation.save()
 
-          # HG Operation: Secession from homeland
-          area_change = AreaChange(
-              historical_change =   historical_change,
-              hg_operation =        'SEC'
+          # Hivent Operation: Secession from homeland
+          hivent_operation = HiventOperation(
+              edit_operation =  edit_operation,
+              operation =       'SEC'
             )
-          area_change.save()
+          hivent_operation.save()
 
           update_area = UpdateArea(
-              area_change =   area_change,
-              area =          home_area,
-              old_territory = old_home_area_territory,
-              new_territory = new_home_area_territory
+              hivent_operation =  hivent_operation,
+              area =              home_area,
+              old_territory =     old_home_area_territory,
+              new_territory =     new_home_area_territory
             )
           update_area.save()
 
           new_area = NewArea (
-              area_change =   area_change,
-              area =          new_sec_area,
-              name =          new_sec_area_name,
-              territory =     new_sec_area_territory
+              hivent_operation =  hivent_operation,
+              area =              new_sec_area,
+              name =              new_sec_area_name,
+              territory =         new_sec_area_territory
             )
           new_area.save()
 
@@ -345,35 +345,35 @@ def run(verbose=True):
 
           creation_date = iso8601.parse_date(row['creation_date'])
           hivent = Hivent(
-              name =        str(row['hivent_name']),
-              date =        creation_date,
+              name =  str(row['hivent_name']),
+              date =  creation_date,
             )
           hivent.save()
 
-          historical_change = HistoricalChange(
-              hivent =              hivent,
-              edit_operation =      'CRE'
+          edit_operation = EditOperation(
+              hivent =    hivent,
+              operation = 'CRE'
             )
-          historical_change.save()
+          edit_operation.save()
 
-          # HG Operation: Secession from universe
-          area_change = AreaChange(
-              historical_change =   historical_change,
-              hg_operation =        'SEC'
+          # Hivent Operation: Secession from universe
+          hivent_operation = HiventOperation(
+              edit_operation =  edit_operation,
+              operation =       'SEC'
             )
-          area_change.save()
+          hivent_operation.save()
 
           update_area = UpdateArea(
-              area_change =   area_change,
-              area =          universe
+              hivent_operation =  hivent_operation,
+              area =              universe
             )
           update_area.save()
 
           new_area = NewArea (
-              area_change =   area_change,
-              area =          new_sec_area,
-              name =          new_sec_area_name,
-              territory =     new_sec_area_territory
+              hivent_operation =  hivent_operation,
+              area =              new_sec_area,
+              name =              new_sec_area_name,
+              territory =         new_sec_area_territory
             )
           new_area.save()
 
@@ -413,12 +413,12 @@ def run(verbose=True):
       elif (row['territory_of'] != ''):
 
         # get areas
-        home_area_name = AreaName.objects.get(short_name=row['territory_of'])
-        home_area = home_area_name.area
+        home_area_name =      AreaName.objects.get(short_name=row['territory_of'])
+        home_area =           home_area_name.area
         home_area_territory = AreaTerritory.objects.get(area=home_area)
 
-        terr_area_name = AreaName.objects.get(short_name=row['init_source_name'])
-        terr_area = terr_area_name.area
+        terr_area_name =      AreaName.objects.get(short_name=row['init_source_name'])
+        terr_area =           terr_area_name.area
         terr_area_territory = AreaTerritory.objects.get(area=terr_area)
 
         # update areas
@@ -427,13 +427,13 @@ def run(verbose=True):
         terr_area_name.save()
 
         # add as NewArea to their creation event (SEC from universe)
-        area_change = NewArea.objects.get(area=home_area).area_change
+        hivent_operation = NewArea.objects.get(area=home_area).hivent_operation
 
         new_area = NewArea (
-            area_change = area_change,
-            area =        terr_area,
-            name =        terr_area_name,
-            territory =   terr_area_territory
+            hivent_operation =  hivent_operation,
+            area =              terr_area,
+            name =              terr_area_name,
+            territory =         terr_area_territory
           )
 
         print(terr_area_name.short_name + " added to creation hivent of " + home_area_name.short_name)

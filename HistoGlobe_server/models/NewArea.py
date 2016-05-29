@@ -1,9 +1,9 @@
 # ==============================================================================
 # A NewArea is one specific Area + AreaName + AreaTerritory that starts
-# due to exactly one AreaChange.
+# due to exactly one HiventOperation.
 #
 # ------------------------------------------------------------------------------
-# NewArea n:1 AreaChange
+# NewArea n:1 HiventOperation
 # NewArea 1:1 Area
 # NewArea 1:1 AreaName
 # NewArea 1:1 AreaTerritory
@@ -16,8 +16,8 @@ from django.forms.models import model_to_dict
 # ==============================================================================
 class NewArea(models.Model):
 
-  # superordinate: AreaChange
-  area_change   = models.ForeignKey ('AreaChange', related_name='new_area_change', default=0)
+  # superordinate: HiventOperation
+  hivent_operation   = models.ForeignKey ('HiventOperation', related_name='new_hivent_operation', default=0)
 
   # own attributes
   area          = models.ForeignKey ('Area', related_name='new_area', default=0)
