@@ -40,11 +40,9 @@ class HG.HiventController
     ## init member variables
     @_hiventHandles     = new HG.DoublyLinkedList
 
-    # reference pointers to ...
-    @_prevHandleNode  = null  # the handle executed next in backward direction
-    @_nextHandleNode  = null  # the handle executed next in forwad direction
+    @_lastHandleNode  = null  # reference pointer to the historically last handle
 
-    @_nowDate = null            # copy of the current date
+    @_nowDate = null          # copy of the current date
 
 
   # ============================================================================
@@ -88,8 +86,7 @@ class HG.HiventController
           currHandle.executeOperations 1 # forward!
 
           # set reference pointers
-          @_prevHandleNode = currNode
-          @_nextHandleNode = currNode.next
+          @_lastHandleNode = currNode
 
           # check next node
           currNode = currNode.next
@@ -117,7 +114,7 @@ class HG.HiventController
         ## forward => iteratively check for next hivent if it happened
         if changeDir is 1
 
-          currNode = @_nextHandleNode
+          currNode = @_lastHandleNode.next
 
           while not currNode.isTail()
             currHandle = currNode.data
@@ -125,8 +122,7 @@ class HG.HiventController
             # if hivent has happened => execute changes and reset reference pointers
             if currHandle.happenedBetween oldDate, newDate
               currHandle.executeOperations changeDir
-              @_prevHandleNode = currNode
-              @_nextHandleNode = currNode.next
+              @_lastHandleNode = currNode
 
               # check for next node
               currNode = currNode.next
@@ -138,7 +134,7 @@ class HG.HiventController
         ## backward => iteratively check for next hivent if it happened
         else # changeDir is -1
 
-          currNode = @_prevHandleNode
+          currNode = @_lastHandleNode
 
           while not currNode.isHead()
             currHandle = currNode.data
@@ -146,8 +142,7 @@ class HG.HiventController
             # if hivent has happened => execute changes and reset reference pointers
             if currHandle.happenedBetween newDate, oldDate # N.B. swap old and new Date !!!
               currHandle.executeOperations changeDir
-              @_nextHandleNode = currNode
-              @_prevHandleNode = currNode.prev
+              @_lastHandleNode = currNode.prev
 
               # check for previous node
               currNode = currNode.prev
