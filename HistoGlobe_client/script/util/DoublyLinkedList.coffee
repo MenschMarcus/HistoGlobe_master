@@ -9,6 +9,7 @@ class HG.DoublyLinkedList
 
   # ============================================================================
   constructor: () ->
+
     @head = new HG.DoublyLinkedListNode null   # head.next = pointer to first item
     @tail = new HG.DoublyLinkedListNode null   # tail.prev = pointer to last item
 
@@ -16,7 +17,7 @@ class HG.DoublyLinkedList
     @head.next = @tail    # @head.prev is null
     @tail.prev = @head    # @tail.next is null
 
-    @_length = 0    # length of list
+    @_length = 0          # length of list
 
 
   # ============================================================================
@@ -61,12 +62,14 @@ class HG.DoublyLinkedList
   pushBack: (element) ->                @_addBefore element, @tail
   append: (element) ->                  @_addBefore element, @tail
 
+
   # ============================================================================
   # remove a node or an element from the list
   # ============================================================================
 
   removeElement: (element) ->           @_remove @_getNode element
   removeNode: (node) ->                 @_remove node
+
 
   # ============================================================================
   # get the node associated to that element
@@ -99,6 +102,9 @@ class HG.DoublyLinkedList
 
     @_length++
 
+    return newNode
+
+
   # ----------------------------------------------------------------------------
   _addBefore: (element, successor) ->
     predecessor = successor.prev
@@ -118,6 +124,8 @@ class HG.DoublyLinkedList
       @head = newNode
 
     @_length++
+
+    return newNode
 
 
   # ============================================================================

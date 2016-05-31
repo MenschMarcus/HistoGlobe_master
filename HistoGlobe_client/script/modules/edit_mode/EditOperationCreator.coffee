@@ -6,7 +6,7 @@ window.HG ?= {}
 # handle communication with backend (get data, send data)
 # ==============================================================================
 
-class HG.EditModeOperation
+class HG.EditOperationCreator
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #

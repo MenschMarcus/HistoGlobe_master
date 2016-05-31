@@ -4,7 +4,12 @@ window.HG ?= {}
 # HiventController is used to load Hivent data from files and store them into
 # buffers. Additionally, this class provides functionality to filter and access
 # Hivents.
+#
+# TODO: use doubly-linked list for @_hiventHandles to not iterate through whole
+# array all the time.
 # ==============================================================================
+
+
 class HG.HiventController
 
   ##############################################################################
@@ -33,16 +38,13 @@ class HG.HiventController
 
 
     ## init member variables
-    @_hiventHandles           = []
-    @_handlesNeedSorting      = false
+    @_hiventHandles     = new HG.DoublyLinkedList
 
-    @_currentTimeFilter       = null  # {start: <Date>, end: <Date>}
-    @_currentSpaceFilter      = null  # { min: {lat: <float>, long: <float>},
-                                      #   max: {lat: <float>, long: <float>}}
-    @_currentCategoryFilter   = null  # [category_a, category_b, ...]
-    @_categoryFilter          = null
+    # reference pointers to ...
+    @_prevHandleNode  = null  # the handle executed next in backward direction
+    @_nextHandleNode  = null  # the handle executed next in forwad direction
 
-    @_nowDate = null                  # current date
+    @_nowDate = null            # copy of the current date
 
 
   # ============================================================================
@@ -58,24 +60,39 @@ class HG.HiventController
 
     @_hgInstance.onAllModulesLoaded @, () =>
 
+
+      ### INITIALIZE ###
+
       # load initial Hivents on load from DatabaseInterface
-      @_hgInstance.databaseInterface.onFinishLoadingInitData @, (minDate) ->
+      @_hgInstance.databaseInterface.onFinishLoadingInitData @, () ->
 
-        @_sortHivents()
-
-        # create current state on the map
-        # -> accumulate all changes from the earliest hivent until now
-        oldDate = minDate
-        nowDate = @_hgInstance.timeController.getNowDate()
-
-        @_findEditOperations oldDate, nowDate
-
+        # get inital NowDate
         @_nowDate = @_hgInstance.timeController.getNowDate()
 
+        ## create current state on the map
+        # -> accumulate all changes from the earliest hivent until now
 
-      # load initial Hivents on load from DatabaseInterface
-      @_hgInstance.databaseInterface.onFinishSavingHistoricalOperation @, () ->
-        @_sortHivents()
+        # start with first element
+        currNode = @_hiventHandles.head.next
+
+        # check for each hiventHandle (until the tail of the list is reached)
+        while not currNode.isTail()
+
+          currHandle = currNode.data
+
+          # find the first Hivent later than the NowDate
+          # => break, because we do not want to execute the change for this Hivent
+          break if currHandle.getHivent().date > @_nowDate
+
+          # execute operations associated to the Hivent
+          currHandle.executeOperations 1 # forward!
+
+          # set reference pointers
+          @_prevHandleNode = currNode
+          @_nextHandleNode = currNode.next
+
+          # check next node
+          currNode = currNode.next
 
 
       ### VIEW ###
@@ -83,52 +100,111 @@ class HG.HiventController
       ## load hivents that have happened since last now change
       @_hgInstance.timeController.onNowChanged @, (nowDate) =>
 
-        # error handling: nowDate will not be set
+        # error handling: ensure that initial function will be executed first
         return if not @_nowDate
 
         # get change dates
         oldDate = @_nowDate
         newDate = nowDate
 
-        @_findEditOperations oldDate, newDate
+        # change direction: forward (+1) or backward (-1)
+        changeDir = if oldDate < newDate then +1 else -1
 
+        # get distance user has scrolled
+        timeLeap = Math.abs(oldDate.year() - newDate.year())
+
+
+        ## forward => iteratively check for next hivent if it happened
+        if changeDir is 1
+
+          currNode = @_nextHandleNode
+
+          while not currNode.isTail()
+            currHandle = currNode.data
+
+            # if hivent has happened => execute changes and reset reference pointers
+            if currHandle.happenedBetween oldDate, newDate
+              currHandle.executeOperations changeDir
+              @_prevHandleNode = currNode
+              @_nextHandleNode = currNode.next
+
+              # check for next node
+              currNode = currNode.next
+
+            # if hivent has not happened => break the loop
+            else break
+
+
+        ## backward => iteratively check for next hivent if it happened
+        else # changeDir is -1
+
+          currNode = @_prevHandleNode
+
+          while not currNode.isHead()
+            currHandle = currNode.data
+
+            # if hivent has happened => execute changes and reset reference pointers
+            if currHandle.happenedBetween newDate, oldDate # N.B. swap old and new Date !!!
+              currHandle.executeOperations changeDir
+              @_nextHandleNode = currNode
+              @_prevHandleNode = currNode.prev
+
+              # check for previous node
+              currNode = currNode.prev
+
+            # if hivent has not happened => break the loop
+            else break
+
+
+        # update now Date
         @_nowDate = nowDate
 
 
-
   # ============================================================================
-  # Sets the current time filter to the value of "timeFilter". The passed value
-  # has to be an object of format {start: <Date>, end: <Date>}
-  # ============================================================================
-
-  setTimeFilter: (timeFilter) ->
-    @_currentTimeFilter = timeFilter
-    @_filterHivents();
-
-
-  # ============================================================================
-  # Sets the current space filter to the value of "spaceFilter". The passed
-  # value has to be an object of format
-  # { min: {lat: <float>, long: <float>},
-  #   max: {lat: <float>, long: <float>}}
-  # ===========================================================================
-
-  setSpaceFilter: (spaceFilter) ->
-    @_currentSpaceFilter = spaceFilter
-    @_filterHivents()
-
-
-  # ============================================================================
-  # Adds a created HiventHandle to the list
+  # Adds a created HiventHandle to the Doubly-Linked List at its chronologically
+  # correct position
   # ============================================================================
 
   addHiventHandle: (hiventHandle) ->
-    @_hiventHandles.push hiventHandle
-    @_handlesNeedSorting = yes
 
-    # listen to destruction callback and tell everybody about it
+    # in case of empty list, put it as first element
+    if @_hiventHandles.isEmpty()
+      @_hiventHandles.addFront hiventHandle
+
+    # otherwise find its position in hiventHandleList
+    else
+
+      # start with first element
+      currNode = @_hiventHandles.head.next
+
+      # check for each hiventHandle (until the tail of the list is reached)
+      while not currNode.isTail()
+
+        currHandle = currNode.data
+
+        # find the first Hivent with an earlier date
+        # => break, because this node is the one we want to add the handle after
+        break if hiventHandle.getHivent().date < currHandle.getHivent().date
+
+        # check next node
+        currNode = currNode.next
+
+
+      # insert node into hiventHandle list and store node
+      node = @_hiventHandles.addBefore hiventHandle, currNode
+
+      # store node in the handle
+      hiventHandle.handleListNode = node
+
+
+    # if handle is destroyed
     hiventHandle.onDestroy @, () =>
-      @_hiventHandles.splice(@_hiventHandles.indexOf(hiventHandle), 1)
+
+      # remove it from the list
+      @_hiventHandles.removeNode hiventHandle.handleListNode
+
+      # and remove link to node in handle
+      hiventHandle.handleListNode = null
 
 
   # ============================================================================
@@ -139,13 +215,20 @@ class HG.HiventController
   # ============================================================================
 
   getHivents: (object, callbackFunc) ->
-    if object? and callbackFunc?
-      @onHiventAdded object, callbackFunc
+    hiventHandles = []
 
-      for handle in @_hiventHandles
+    currNode = @_hiventHandles.head.next
+    while not currNode.isTail()
+      handle = currNode.data
+
+      hiventHandles.push handle
+
+      if object? and callbackFunc?
         @notify "onHiventAdded", object, handle
 
-    @_hiventHandles
+      currNode = currNode.next
+
+    hiventHandles
 
 
   # ============================================================================
@@ -154,71 +237,14 @@ class HG.HiventController
   # ============================================================================
 
   getHiventHandle: (hiventId) ->
-    for handle in @_hiventHandles
-      if handle.getHivent().id is hiventId
-        return handle
+    currNode = @_hiventHandles.head.next
+    while not currNode.isTail()
+      handle = currNode.data
+      return handle if handle.getHivent().id is hiventId
+      currNode = currNode.next
+
     console.log "A Hivent with the id \"#{hiventId}\" does not exist!"
     return null
-
-
-  # ============================================================================
-  # Returns a HiventHandle by the specified index of the internal array.
-  # ============================================================================
-  getHiventHandleByIndex: (handleIndex) ->
-    return @_hiventHandles[handleIndex]
-
-
-  # ============================================================================
-  # Get the next / previous HiventHandle.
-  # Next / Previous in this case means the chronologically closest Hivent
-  # after / before the date specified by the passed Date object "now".
-  # "ignoredIds" can be specified to exclude specific HiventHandles from being
-  # selected.
-  # ============================================================================
-
-  getNextHiventHandle: (now, ignoredIds=[]) ->
-    result = null
-    distance = -1
-    handles = @_hiventHandles
-
-    for handle in handles
-      if handle._state isnt 0 and not (handle.getHivent().id in ignoredIds)
-        diff = handle.getHivent().date.getTime() - now.getTime()
-        if (distance is -1 or diff < distance) and diff >= 0
-          distance = diff
-          result = handle
-    return result
-
-
-  # ----------------------------------------------------------------------------
-
-  getPreviousHiventHandle: (now, ignoredIds=[]) ->
-    result = null
-    distance = -1
-    handles = @_hiventHandles
-
-    for handle in handles
-      if handle._state isnt 0 and not (handle.getHivent().id in ignoredIds)
-        diff = now.getTime() - handle.getHivent().date.getTime()
-        if (distance is -1 or diff < distance) and diff >= 0
-          distance = diff
-          result = handle
-    return result
-
-
-  # ============================================================================
-  # Blends in all visible Hivents.
-  # ============================================================================
-
-  showVisibleHivents: ->
-    for handle in @_hiventHandles
-
-      state = handle._state
-
-      if state isnt 0
-        handle.setState 0
-        handle.setState state
-
 
 
   ##############################################################################
@@ -230,7 +256,7 @@ class HG.HiventController
   # find Hivents happening between two dates and execute their changes
   # ============================================================================
 
-  _findEditOperations: (oldDate, newDate) ->
+  _executeOperations: (oldDate, newDate) ->
 
       # change direction: forward (+1) or backward (-1)
       changeDir = if oldDate < newDate then +1 else -1
@@ -268,92 +294,3 @@ class HG.HiventController
         else
           # loop went out of change range => no hivent will be following
           break if inChangeRange
-
-
-      # tell everyone if new changes
-      # @notifyAll 'onAreaÄÄÄChanges', changes, changeDir, timeLeap if changes.length isnt 0
-
-
-
-  # ============================================================================
-  # Sorts all HiventHandles by date
-  # ============================================================================
-
-  _sortHivents: ->
-    # filter by date
-    @_hiventHandles.sort (a, b) =>
-      if a? and b?
-        # sort criterion 1) effect date
-        unless a.getHivent().date is b.getHivent().date
-          return a.getHivent().date - b.getHivent().date
-        # sort criterion 2) id
-        else
-          if a.getHivent().id > b.getHivent().id
-            return 1
-          else if a.getHivent().id < b.getHivent().id
-            return -1
-      return 0
-
-
-  # ============================================================================
-  # Filters all HiventHandles according to all current filters
-  # ============================================================================
-
-  _filterHivents: ->
-    if @_handlesNeedSorting
-      @_sortHivents()
-
-    for handle, i in @_hiventHandles
-      if @_handlesNeedSorting
-        handle.sortingIndex = i
-      hivent = handle.getHivent()
-
-      state = 1
-      # 0 --> invisible
-      # 1 --> visiblePast
-      # 2 --> visibleFuture
-
-      # filter by category
-      if @_currentCategoryFilter?
-        noCategoryFilter = @_currentCategoryFilter.length is 0
-        defaultCategory = hivent.category is "default"
-        inCategory = @_areEqual hivent.category, @_currentCategoryFilter
-        unless noCategoryFilter or defaultCategory or inCategory
-          state = 0
-
-      if state isnt 0 and @_currentTimeFilter?
-        # start date in visible future
-        if hivent.date.getTime() > @_currentTimeFilter.now.getTime() and hivent.date.getTime() < @_currentTimeFilter.end.getTime()
-          #make them visible in future
-          state = 1
-        # completely  outside
-        else if hivent.date.getTime() > @_currentTimeFilter.end.getTime() or hivent.endDate.getTime() < @_currentTimeFilter.start.getTime()
-          state = 0
-
-      # filter by location
-      if state isnt 0 and @_currentSpaceFilter?
-        unless hivent.lat >= @_currentSpaceFilter.min.lat and
-               hivent.long >= @_currentSpaceFilter.min.long and
-               hivent.lat <= @_currentSpaceFilter.max.lat and
-               hivent.long <= @_currentSpaceFilter.max.long
-          state = 0
-
-      if @_ab.hiventsOnTl is "A"
-        handle.setState state
-      else if @_ab.hiventsOnTl is "B"
-        handle._tmp_state = state
-
-      if state isnt 0
-        if @_currentTimeFilter?
-          # half of timeline:
-          #new_age = Math.min(1, (hivent.endDate.getTime() - @_currentTimeFilter.start.getTime()) / (@_currentTimeFilter.now.getTime() - @_currentTimeFilter.start.getTime()))
-          # quarter of timeline:
-          new_age = Math.min(1, ((hivent.endDate.getTime() - @_currentTimeFilter.start.getTime()) / (0.5*(@_currentTimeFilter.now.getTime() - @_currentTimeFilter.start.getTime())))-1)
-          if new_age isnt handle._age
-            handle.setAge new_age
-
-    @_handlesNeedSorting = false
-
-  # ============================================================================
-  _areEqual: (str1, str2) ->
-    (str1?="").localeCompare(str2) is 0

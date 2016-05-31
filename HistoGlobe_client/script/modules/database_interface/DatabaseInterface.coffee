@@ -69,13 +69,9 @@ class HG.DatabaseInterface
           areaTerritory.area = areaTerritoryData.area
           areaTerritories.push areaTerritory
 
-        # keep track of earliest data to know where to start tracing the operation
-        minDate = moment()
-
         # create Hivents
         for hiventData in dataObj.hivents
           hivent = new HG.Hivent @_hiventToClient hiventData
-          minDate = moment.min(minDate, hivent.date)
 
           # create EditOperations
           for editOperationData in hiventData.edit_operations
@@ -137,10 +133,7 @@ class HG.DatabaseInterface
           @_hgInstance.hiventController.addHiventHandle hiventHandle
 
         # DONE!
-        # hack: make min date slightly smaller to detect also first change
-        newMinDate = minDate.clone()
-        newMinDate.subtract 10, 'year'
-        @notifyAll 'onFinishLoadingInitData', newMinDate
+        @notifyAll 'onFinishLoadingInitData'
 
       error: @_errorCallback
 

@@ -80,6 +80,15 @@ class HG.HiventHandle
 
 
   # ============================================================================
+  # Executes all EditOperations associated to the Hivent
+  # ============================================================================
+
+  executeOperations: (direction) ->
+    for editOperation in @_hivent.editOperations
+      editOperation.execute direction
+
+
+  # ============================================================================
   # Notifies listeners that the HiventHandle is now active. Usually, this is
   # triggered when a map or timeline icon belonging to a Hivent is being
   # clicked. "mousePixelPosition" may be passed and should be the click's
