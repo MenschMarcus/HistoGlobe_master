@@ -45,26 +45,36 @@ class HG.DatabaseInterface
       success: (response) =>
         dataObj = $.parseJSON response
 
+        console.log dataObj
+
         # create Areas
+        areas = []
         for areaData in dataObj.areas
           area = new HG.Area areaData.id
           areaHandle = new HG.AreaHandle @_hgInstance, area
           area.handle = areaHandle
+          areas.push area
 
         # create AreaNames and AreaTerritories and store them
         # so they can be linked to ChangeAreas later
         areaNames = []
         for anData in dataObj.area_names
-          anData = @_areaNameToClient anData
-          areaName = new HG.AreaName anData
-          areaName.area = anData.area
+          areaName = new HG.AreaName {
+            id:           anData.id
+            shortName:    anData.short_name
+            formalName:   anData.formal_name
+          }
+          areaName.area = areas.find (obj) -> obj.id is anData.area
           areaNames.push areaName
 
         areaTerritories = []
         for atData in dataObj.area_territories
-          atData = @_areaTerritoryToClient atData
-          areaTerritory = new HG.AreaTerritory atData
-          areaTerritory.area = atData.area
+          areaTerritory = new HG.AreaTerritory {
+            id:                   atData.id
+            geometry:             @_geometryReader.read atData.geometry
+            representativePoint:  @_geometryReader.read atData.representative_point
+          }
+          areaTerritory.area = areas.find (obj) -> obj.id is atData.area
           areaTerritories.push areaTerritory
 
         # keep track of earliest data to know where to start tracing the changes
@@ -72,55 +82,250 @@ class HG.DatabaseInterface
 
         # create Hivents
         for hData in dataObj.hivents
-          hivent = new HG.Hivent @_hiventToClient hData
+          hivent = new HG.Hivent {
+            id:           hData.id
+            name:         hData.name
+            date:         moment(hData.date)
+            location:     hData.location    ?= null
+            description:  hData.description ?= null
+            link:         hData.link        ?= null
+          }
+
           minDate = moment.min(minDate, hivent.date)
 
           # create HistoricalChanges
-          for hcData in hData.historical_changes
-            hcData = @_historicalChangeToClient hcData
-            hcData = @_validateHistoricalChange hcData
-            historicalChange = new HG.HistoricalChange  hcData.id
-            historicalChange.operation =                hcData.operation
-            historicalChange.hivent =                   hcData.hivent
+          for eoData in hData.edit_operations
+            historicalChange = new HG.HistoricalChange  eoData.id
+            historicalChange.operation =                eoData.operation
+            historicalChange.hivent =                   eoData.hivent
 
             # create AreaChanges
-            for acData in hcData.areaChanges
-              acData = @_areaChangeToClient acData, areaNames, areaTerritories
-              acData = @_validateAreaChange acData
-              areaChange = new HG.AreaChange acData.id
-              areaChange.operation =        acData.operation
-              areaChange.historicalChange = historicalChange
-              areaChange.area =             acData.area
-              areaChange.oldAreaName =      acData.oldAreaName
-              areaChange.newAreaName =      acData.newAreaName
-              areaChange.oldAreaTerritory = acData.oldAreaTerritory
-              areaChange.newAreaTerritory = acData.newAreaTerritory
-
-              # link HistoricalChange <- ChangeArea
-              historicalChange.areaChanges.push areaChange
+            for hoData in eoData.hivent_operations
 
               # link ChangeArea <- Area / AreaName / AreaTerritory
-              switch areaChange.operation
+              switch hoData.operation
 
-                when 'ADD'
-                  areaChange.area.startChange =             areaChange
-                  areaChange.newAreaName.startChange =      areaChange
-                  areaChange.newAreaTerritory.startChange = areaChange
+                # --------------------------------------------------------------
+                when 'UNI'
+                  # old areas
+                  for oldArea, i in hoData.old_areas
+                    ac = new HG.AreaChange hoData.id+"OA"+i
+                    ac.historicalChange = historicalChange
+                    ac.operation = 'DEL'
 
-                when 'DEL'
-                  areaChange.area.endChange =               areaChange
-                  areaChange.oldAreaName.endChange =        areaChange
-                  areaChange.oldAreaTerritory.endChange =   areaChange
+                    # find associated area, name and territory
+                    a = areas.find (obj) -> obj.id is oldArea.area
+                    n = areaNames.find (obj) -> obj.id is oldArea.name
+                    t = areaTerritories.find (obj) -> obj.id is oldArea.territory
 
-                when 'TCH'
-                  areaChange.area.updateChanges.push        areaChange
-                  areaChange.oldAreaTerritory.endChange =   areaChange
-                  areaChange.newAreaTerritory.startChange = areaChange
+                    # link AreaChange <-> Area(Name/Territory)
+                    ac.area = a
+                    ac.oldAreaName = n
+                    ac.oldAreaTerritory = t
+                    a.endChange = ac
+                    n.endChange = ac  if n
+                    t.endChange = ac  if t
 
+                    # link HistoricalChange <- ChangeArea
+                    historicalChange.areaChanges.push ac
+
+                  # new area
+                  if true
+                    newArea = hoData.new_areas[0]
+
+                    ac = new HG.AreaChange hoData.id+"NA"+0
+                    ac.historicalChange = historicalChange
+                    ac.operation = 'ADD'
+
+                    # find associated area, name and territory
+                    a = areas.find (obj) -> obj.id is newArea.area
+                    n = areaNames.find (obj) -> obj.id is newArea.name
+                    t = areaTerritories.find (obj) -> obj.id is newArea.territory
+
+                    # link AreaChange <-> Area(Name/Territory)
+                    ac.area = a
+                    ac.newAreaName = n
+                    ac.newAreaTerritory = t
+                    a.startChange = ac
+                    n.startChange = ac  if n
+                    t.startChange = ac  if t
+
+                    # link HistoricalChange <- ChangeArea
+                    historicalChange.areaChanges.push ac
+
+                # --------------------------------------------------------------
+                when 'INC'
+                  # old areas
+                  for oldArea, i in hoData.old_areas
+                    ac = new HG.AreaChange hoData.id+"OA"+i
+                    ac.historicalChange = historicalChange
+                    ac.operation = 'DEL'
+
+                    # find associated area, name and territory
+                    a = areas.find (obj) -> obj.id is oldArea.area
+                    n = areaNames.find (obj) -> obj.id is oldArea.name
+                    t = areaTerritories.find (obj) -> obj.id is oldArea.territory
+
+                    # link AreaChange <-> Area(Name/Territory)
+                    ac.area = a
+                    ac.oldAreaName = n
+                    ac.oldAreaTerritory = t
+                    a.endChange = ac
+                    n.endChange = ac  if n
+                    t.endChange = ac  if t
+
+                    # link HistoricalChange <- ChangeArea
+                    historicalChange.areaChanges.push ac
+
+                  # update area
+                  if true
+                    updArea = hoData.update_area
+
+                    ac = new HG.AreaChange hoData.id+"UA"+0
+                    ac.historicalChange = historicalChange
+                    ac.operation = 'TCH'
+
+                    # find associated area, name and territory
+                    a = areas.find (obj) -> obj.id is updArea.area
+                    ot = areaTerritories.find (obj) -> obj.id is updArea.old_territory
+                    nt = areaTerritories.find (obj) -> obj.id is updArea.new_territory
+
+                    # link AreaChange <-> Area(Name/Territory)
+                    ac.area = a
+                    ac.oldAreaTerritory = ot
+                    ac.newAreaTerritory = nt
+                    a.updateChanges.push ac
+                    ot.endChange = ac     if ot
+                    nt.startChange = ac   if nt
+
+                    # link HistoricalChange <- ChangeArea
+                    historicalChange.areaChanges.push ac
+
+                # --------------------------------------------------------------
+                when 'SEP'
+                  # old area
+                  if true
+                    oldArea = hoData.old_areas[0]
+
+                    ac = new HG.AreaChange hoData.id+"OA"+0
+                    ac.historicalChange = historicalChange
+                    ac.operation = 'DEL'
+
+                    # find associated area, name and territory
+                    a = areas.find (obj) -> obj.id is oldArea.area
+                    n = areaNames.find (obj) -> obj.id is oldArea.name
+                    t = areaTerritories.find (obj) -> obj.id is oldArea.territory
+
+                    # link AreaChange <-> Area(Name/Territory)
+                    ac.area = a
+                    ac.oldAreaName = n
+                    ac.oldAreaTerritory = t
+                    a.endChange = ac
+                    n.endChange = ac  if n
+                    t.endChange = ac  if t
+
+                    # link HistoricalChange <- ChangeArea
+                    historicalChange.areaChanges.push ac
+
+                  # new area
+                  for newArea, i in hoData.new_areas
+                    ac = new HG.AreaChange hoData.id+"NA"+i
+                    ac.historicalChange = historicalChange
+                    ac.operation = 'ADD'
+
+                    # find associated area, name and territory
+                    a = areas.find (obj) -> obj.id is newArea.area
+                    n = areaNames.find (obj) -> obj.id is newArea.name
+                    t = areaTerritories.find (obj) -> obj.id is newArea.territory
+
+                    # link AreaChange <-> Area(Name/Territory)
+                    ac.area = a
+                    ac.newAreaName = n
+                    ac.newAreaTerritory = t
+                    a.startChange = ac
+                    n.startChange = ac  if n
+                    t.startChange = ac  if t
+
+                    # link HistoricalChange <- ChangeArea
+                    historicalChange.areaChanges.push ac
+
+                # --------------------------------------------------------------
+                when 'SEC'
+                  # new areas
+                  for newArea, i in hoData.new_areas
+                    ac = new HG.AreaChange hoData.id+"NA"+i
+                    ac.historicalChange = historicalChange
+                    ac.operation = 'ADD'
+
+                    # find associated area, name and territory
+                    a = areas.find (obj) -> obj.id is newArea.area
+                    n = areaNames.find (obj) -> obj.id is newArea.name
+                    t = areaTerritories.find (obj) -> obj.id is newArea.territory
+
+                    # link AreaChange <-> Area(Name/Territory)
+                    ac.area = a
+                    ac.newAreaName = n
+                    ac.newAreaTerritory = t
+                    a.startChange = ac
+                    n.startChange = ac    if n
+                    t.startChange = ac    if t
+
+                    # link HistoricalChange <- ChangeArea
+                    historicalChange.areaChanges.push ac
+
+                  # update area
+                  if true
+                    updArea = hoData.update_area
+
+                    ac = new HG.AreaChange hoData.id+"UA"+0
+                    ac.historicalChange = historicalChange
+                    ac.operation = 'TCH'
+
+                    # find associated area, name and territory
+                    a = areas.find (obj) -> obj.id is updArea.area
+                    ot = areaTerritories.find (obj) -> obj.id is updArea.old_territory
+                    nt = areaTerritories.find (obj) -> obj.id is updArea.new_territory
+
+                    # HACK: ignore omega
+                    break if not ot and not nt
+
+                    ac.area = a
+                    ac.oldAreaTerritory = ot
+                    ac.newAreaTerritory = nt
+                    a.updateChanges.push ac
+                    ot.endChange = ac     if ot
+                    nt.startChange = ac   if nt
+
+                    # link HistoricalChange <- ChangeArea
+                    historicalChange.areaChanges.push ac
+
+                # --------------------------------------------------------------
                 when 'NCH'
-                  areaChange.area.updateChanges.push        areaChange
-                  areaChange.oldAreaName.endChange =        areaChange
-                  areaChange.newAreaName.startChange =      areaChange
+                  if true
+                    updArea = hoData.update_area
+
+                    ac = new HG.AreaChange hoData.id+"UA"+0
+                    ac.historicalChange = historicalChange
+                    ac.operation = 'NCH'
+
+                    # find associated area, name and territory
+                    a = areas.find (obj) -> obj.id is updArea.area
+                    ot = areaNames.find (obj) -> obj.id is updArea.old_name
+                    nt = areaNames.find (obj) -> obj.id is updArea.new_name
+
+                    # link AreaChange <-> Area(Name/Territory)
+                    ac.area = a
+                    ac.oldAreaName = ot
+                    ac.newAreaName = nt
+                    a.updateChanges.push ac
+                    ot.endChange = ac     if ot
+                    nt.startChange = ac   if nt
+
+                    # link HistoricalChange <- ChangeArea
+                    historicalChange.areaChanges.push ac
+
+              # ----------------------------------------------------------------
+              # console.log historicalChange
 
               # link Hivent <- HistoricalChange
               hivent.historicalChanges.push historicalChange
