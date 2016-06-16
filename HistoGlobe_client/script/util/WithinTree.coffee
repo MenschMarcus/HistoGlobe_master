@@ -20,22 +20,24 @@ class HG.WithinTree
     @_root = new HG.WithinTreeNode 'ROOT'
     @_nodes.push @_root
 
+
   # ============================================================================
   insert: (newNode, parentNode=@_root) ->
-  # N = node to be inserted in the tree
-  # P = parent node / root node of the subtree it is inserted into
+
   # initially all polygons are within ROOT node
-  # => first function call for all polygons: insert(N, @_root)
+  # => first function call for all polygons: insert(newNode, @_root)
 
     ## PREPARATION
-    # check for each child C of the parent node P if they have any
-    # hierarchical relation to the inserted node N
+    # check for each child of the parent node if they have any
+    # hierarchical relation to the inserted new node
     # there are 3 cases:
-    # 1) N also in 1 child of P -> withinChild
-    # 2) 1+ children of P in N -> containChildren
-    # 3) no hierarchical relation between N and any child of P
+    # 1) newNode also in 1 child of parentNode -> withinChild
+    # 2) 1+ children of parentNode in newNode -> containChildren
+    # 3) no hierarchical relation between newNode and any child of the parentNode
+
     withinChild = null
     containChildren = []
+
     for child in parentNode.getChildren()
       childNode = @_getNode child
 
@@ -50,7 +52,9 @@ class HG.WithinTree
       else if @_isWithin childNode, newNode
         containChildren.push childNode
 
+
     ## EXECUTION
+
     # case 1) N in 1 child of P
     # => insert N into this child node -> recursion :)
     if withinChild
@@ -65,6 +69,7 @@ class HG.WithinTree
 
       # case 2) 1+ children of P in N
       # => re-place all these as children of N and detach from P
+
       for containChild in containChildren
         containChild.setParent newNode.getId()
         newNode.addChild containChild.getId()
@@ -77,6 +82,7 @@ class HG.WithinTree
 
   # ============================================================================
   extract: () ->
+
   # initial condition: all nodes are in the hierarchical tree
   # extract always the first child (FC) of the root node -> will be outer ring
   # its children (Ci) -> will be inner ring(s) / hole(s)
@@ -93,7 +99,9 @@ class HG.WithinTree
     # reset relations and remove extracted nodes
     @_root.removeChild firstChildNode.getId()
     @_removeNode firstChildNode
+
     for childNode in childNodes
+
       # children of children of first child become new children of root
       for childChild in childNode.getChildren()
         childChildNode = @_getNode childChild
@@ -103,8 +111,8 @@ class HG.WithinTree
 
     # prepare output
     polygon = [firstChildNode.getPolyline()]
-    for C in childNodes
-      polygon.push C.getPolyline()
+    for child in childNodes
+      polygon.push child.getPolyline()
 
     polygon
 

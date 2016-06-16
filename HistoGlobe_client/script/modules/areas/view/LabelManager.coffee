@@ -30,8 +30,8 @@ class HG.LabelManager
     newLabel.coveredBy = []     # all labels that cover the current label (passice)
     newLabel.covers = []        # all labels covered by the current label (active)
     newLabel.center = @_map.project newLabel._latlng
-    newLabel.width = newLabel._container.offsetWidth * LABEL_PADDING
-    newLabel.height = newLabel._container.offsetHeight * LABEL_PADDING
+    newLabel.width = newLabel._container.offsetWidth + LABEL_PADDING
+    newLabel.height = newLabel._container.offsetHeight + LABEL_PADDING
 
 
     # in case of empty list, put it as first element
@@ -270,8 +270,8 @@ class HG.LabelManager
 
     # update properties
     label.center = @_map.project label._latlng
-    label.width = label._container.offsetWidth * LABEL_PADDING
-    label.height = label._container.offsetHeight * LABEL_PADDING
+    label.width = label._container.offsetWidth + LABEL_PADDING
+    label.height = label._container.offsetHeight + LABEL_PADDING
 
     # hide again, if necessary
     if not label.isVisible
@@ -321,7 +321,7 @@ class HG.LabelManager
   #                            STATIC INTERFACE                                #
   ##############################################################################
 
-  LABEL_PADDING = 1.15
+  LABEL_PADDING = 20
 
   # ============================================================================
   DEBUG: () ->

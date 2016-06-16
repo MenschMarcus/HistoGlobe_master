@@ -4,7 +4,7 @@ window.HG ?= {}
 # Step 4 in Edit Operation Workflow: Add change to a Hivent
 # ==============================================================================
 
-class HG.EditOperationStep.AddChange extends HG.EditOperationStep
+class HG.EditOperationStep.AddToHivent extends HG.EditOperationStep
 
   ##############################################################################
   #                            PUBLIC INTERFACE                                #

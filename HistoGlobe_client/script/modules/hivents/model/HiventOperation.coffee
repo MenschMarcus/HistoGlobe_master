@@ -51,7 +51,7 @@ class HG.HiventOperation
     ## init members
 
     @id           = data.id
-    @operation  = data.operation
+    @operation    = data.operation
     @oldAreas     = data.oldAreas
     @newAreas     = data.newAreas
     @updateArea   = data.updateArea
@@ -155,10 +155,6 @@ class HG.HiventOperation
 
   # ============================================================================
   execute: (direction) ->
-
-    # TODO: can lines 51/52 resp. 56/57 be omitted?
-    # -> do name/territory reference has to be reset all the time
-    # -> actually no, but what about the initial case?
 
     # forward change
     if direction is 1

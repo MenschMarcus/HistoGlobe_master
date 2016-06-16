@@ -263,6 +263,8 @@ class HG.NewTerritoryTool
       geometries = []
       geometries.push @_geometryReader.read layer for layer in @_featureGroup.getLayers()
       finalGeometry = @_geometryOperator.merge geometries
+
+      # use WithinTree to setup correct structure of polypolygon
       finalGeometry.fixHoles()
 
       # merge all of them together

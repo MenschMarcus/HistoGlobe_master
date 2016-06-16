@@ -212,7 +212,7 @@ class HG.EditOperationCreator
       when 1 then @_step = new HG.EditOperationStep.SelectOldAreas        @_hgInstance, direction
       when 2 then @_step = new HG.EditOperationStep.CreateNewTerritories  @_hgInstance, direction
       when 3 then @_step = new HG.EditOperationStep.CreateNewNames        @_hgInstance, direction
-      when 4 then @_step = new HG.EditOperationStep.AddChange             @_hgInstance, direction
+      when 4 then @_step = new HG.EditOperationStep.AddToHivent           @_hgInstance, direction
       when 5 then return @_finish()
 
     # react on user input
