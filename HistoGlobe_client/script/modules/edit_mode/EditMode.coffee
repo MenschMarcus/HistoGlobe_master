@@ -178,7 +178,6 @@ class HG.EditMode
     @_operationButtons = new HG.ObjectArray
     @_editOperations.foreach (operation) =>
       # add button to UI
-      console.log operation
       coButton = new HG.Button @_hgInstance,
         operation.id, ['button-horizontal', 'tooltip-bottom'],
         [
