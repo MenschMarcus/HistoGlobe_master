@@ -65,6 +65,9 @@ countries_reduced = 'ne_50m_admin_0_countries.geojson'   # source: Natural Earth
 
 init_data_version_date = '2014-10-10'
 
+LNG_MAX = 180.0
+LAT_MAX =  90.0
+
 
 # ------------------------------------------------------------------------------
 def get_file(file_id):
@@ -89,11 +92,9 @@ def get_init_countries_file():
 
 # ==============================================================================
 ### MAIN FUNCTION ###
+# TODO: automate this using: psycopg2
 
 def run(verbose=True):
-
-  # automate this using:
-  # psycopg2
 
 
   ### CLEANUP ###
@@ -104,6 +105,31 @@ def run(verbose=True):
 
 
   ### INIT AREAS ###
+
+  ## init universe (omega)
+  universe = Area(
+      universe = True
+    )
+  universe.save()
+
+  # initial territory: full world
+  # -> omitted for now, because it is not necessary, it will not be shown anyway
+  # full_world_dimension = MultiPolygon(((
+  #     (-LNG_MAX, -LAT_MAX),
+  #     (-LNG_MAX,  LAT_MAX),
+  #     ( LNG_MAX,  LAT_MAX),
+  #     ( LNG_MAX, -LAT_MAX),
+  #     (-LNG_MAX, -LAT_MAX)
+  #   )))
+  # universe_territory = AreaTerritory(
+  #     area =      universe,
+  #     geometry =  full_world_dimension
+  #   )
+  # universe_territory.save()
+
+  # the universe has no name
+
+  print("Universe Area created")
 
 
   ## load initial areas from shapefile
@@ -137,18 +163,17 @@ def run(verbose=True):
     print("Area " + short_name + " created")
 
 
-
   ## update properties of initial areas
-  ## and create creation hivent for this area
+  ## and make creation hivent for this area
 
   with open(get_file('areas_to_update.csv'), 'r') as in_file:
     reader = csv.DictReader(in_file, delimiter='|', quotechar='"')
     for row in reader:
 
       # get area objects
-      area_name = AreaName.objects.get(short_name=row['init_source_name'])
-      area = area_name.area
-      area_territory = AreaTerritory.objects.get(area=area)
+      area_name =       AreaName.objects.get(short_name=row['init_source_name'])
+      area =            area_name.area
+      area_territory =  AreaTerritory.objects.get(area=area)
 
       # update area
       area_name.short_name =    row['short_name'].decode('utf-8')
@@ -157,39 +182,42 @@ def run(verbose=True):
 
       print("Area " + str(area.id) + ': ' + area_name.short_name + " updated")
 
-      # create hivent + change (add new country)
+      # create hivent + change
       creation_date = iso8601.parse_date(row['creation_date'])
       hivent = Hivent(
-          name =        str(row['hivent_name']),
-          date =        creation_date,
+          name = str(row['hivent_name']),
+          date = creation_date
         )
       hivent.save()
 
-      historical_change = HistoricalChange(
-          hivent =              hivent,
-          operation =           'CRE'
+      # Edit Operation: Create
+      edit_operation = EditOperation(
+          hivent =    hivent,
+          operation = 'CRE'
         )
-      historical_change.save()
+      edit_operation.save()
 
-      area_change = AreaChange(
-          historical_change =   historical_change,
-          operation =           'ADD',
-          area =                area,
-          new_area_name =       area_name,
-          new_area_territory =  area_territory
+      # Hivent Operation: Secession from the universe
+      hivent_operation = HiventOperation(
+          edit_operation =   edit_operation,
+          operation =        'SEC'
         )
-      area_change.save()
+      hivent_operation.save()
 
-      area.start_change = area_change
-      area.save()
+      # universe does not update its territory (yet)
+      update_area = UpdateArea(
+          hivent_operation = hivent_operation,
+          area = universe
+        )
+      update_area.save()
 
-      area_name.start_change = area_change
-      area_name.save()
-
-      area_territory.start_change = area_change
-      area_territory.save()
-
-      # area is still active, therefore it has no end_change
+      new_area = NewArea(
+          hivent_operation =  hivent_operation,
+          area =              area,
+          name =              area_name,
+          territory =         area_territory
+        )
+      new_area.save()
 
       print("Hivent " + hivent.name + " saved")
 
@@ -216,89 +244,141 @@ def run(verbose=True):
       with open(get_file(row['source'])) as geom_source_file:
         new_geom_json = json.load(geom_source_file)
         new_geom_string = json.dumps(new_geom_json)
-        new_geom = GEOSGeometry(new_geom_string)
 
-        # separate from original country (clip)
-        if row['operation'] == 'SEP':
-          # get area
-          old_area_name = AreaName.objects.get(short_name=row['old_area'])
-          old_area = old_area_name.area
-          old_area_territory = AreaTerritory.objects.get(area=old_area)
+        # geometry of the seceded territory after SEC operation
+        new_sec_geom = GEOSGeometry(new_geom_string)
+        if new_sec_geom.geom_type != 'MultiPolygon':
+          new_sec_geom = MultiPolygon(new_sec_geom)
 
-          # clip old and new geom
-          B = new_geom
-          A = old_area_territory.geometry
-          old_geom = A.difference(B)
-          new_geom = A.intersection(B)
+        # create area, name and territory
+        new_sec_area = Area()
+        new_sec_area.save()
 
-          # assign old geometry to old area
-          # geometry need to be MultiPolygon to fit to model
-          if old_geom.geom_type != 'MultiPolygon':
-            old_geom = MultiPolygon(old_geom)
-          old_area_territory.geometry = old_geom
-
-          old_area_territory.save()
-          old_area.save()
-
-          print(row['short_name'] + " separated from " + old_area_name.short_name)
-
-
-        # geometry need to be MultiPolygon to fit to model
-        if new_geom.geom_type != 'MultiPolygon':
-          new_geom = MultiPolygon(new_geom)
-
-        new_area = Area ()
-        new_area.save()
-
-        new_area_territory = AreaTerritory (
-            area =          new_area,
-            geometry =      new_geom
+        new_sec_area_territory = AreaTerritory (
+            area =          new_sec_area,
+            geometry =      new_sec_geom
           )
-        new_area_territory.save()
+        new_sec_area_territory.save()
 
-        new_area_name = AreaName (
-            area =          new_area,
+        new_sec_area_name = AreaName (
+            area =          new_sec_area,
             short_name =    row['short_name'].decode('utf-8'),
-            formal_name =   row['formal_name'].decode('utf-8'),
+            formal_name =   row['formal_name'].decode('utf-8')
           )
-        new_area_name.save()
-
-        # create hivent + change (add new country)
-        creation_date = iso8601.parse_date(row['creation_date'])
-        hivent = Hivent(
-            name =        str(row['hivent_name']),
-            date =        creation_date,
-          )
-        hivent.save()
-
-        historical_change = HistoricalChange(
-            hivent =              hivent,
-            operation =           'CRE'
-          )
-        historical_change.save()
-
-        area_change = AreaChange(
-            historical_change =   historical_change,
-            operation =           'ADD',
-            area =                new_area,
-            new_area_name =       new_area_name,
-            new_area_territory =  new_area_territory
-          )
-        area_change.save()
-
-        new_area.start_change = area_change
-        new_area.save()
-
-        new_area_name.start_change = area_change
-        new_area_name.save()
-
-        new_area_territory.start_change = area_change
-        new_area_territory.save()
-
-        print("Area for " + new_area_name.short_name + " with start hivent " + hivent.name + " created")
+        new_sec_area_name.save()
 
 
-  ## merge areas that are parts of each other, mark territories
+        # dissolve operation: secede territory as new Area from homeland
+        if row['edit_operation'] == 'DIS':
+
+          # get home area
+          home_area_name = AreaName.objects.get(short_name=row['old_area'])
+          home_area = home_area_name.area
+          old_home_area_territory = AreaTerritory.objects.filter(area=home_area).last()
+
+          # geometry of homeland before SEC operation
+          old_home_geom = old_home_area_territory.geometry
+
+          # geometry of homeland after SEC operation
+          new_home_geom = old_home_geom.difference(new_sec_geom)
+          if new_home_geom.geom_type != 'MultiPolygon':
+            new_home_geom = MultiPolygon(new_home_geom)
+
+          # geometry of secession country after SEC operation
+          new_sec_geom = new_sec_geom.intersection(old_home_geom)
+          if new_sec_geom.geom_type != 'MultiPolygon':
+            new_sec_geom = MultiPolygon(new_sec_geom)
+          new_sec_area_territory.geometry = new_sec_geom
+          new_sec_area_territory.save()
+
+          # create new territory of homeland
+          new_home_area_territory = AreaTerritory(
+              area =      home_area,
+              geometry =  new_home_geom
+            )
+          new_home_area_territory.save()
+
+          # create hivent + change
+          creation_date = iso8601.parse_date(row['creation_date'])
+          hivent = Hivent(
+              name =        str(row['hivent_name']),
+              date =        creation_date,
+            )
+          hivent.save()
+
+          # Edit Operation: Dissolve
+          edit_operation = EditOperation(
+              hivent =    hivent,
+              operation = 'DIS'
+            )
+          edit_operation.save()
+
+          # Hivent Operation: Secession from homeland
+          hivent_operation = HiventOperation(
+              edit_operation =  edit_operation,
+              operation =       'SEC'
+            )
+          hivent_operation.save()
+
+          update_area = UpdateArea(
+              hivent_operation =  hivent_operation,
+              area =              home_area,
+              old_territory =     old_home_area_territory,
+              new_territory =     new_home_area_territory
+            )
+          update_area.save()
+
+          new_area = NewArea (
+              hivent_operation =  hivent_operation,
+              area =              new_sec_area,
+              name =              new_sec_area_name,
+              territory =         new_sec_area_territory
+            )
+          new_area.save()
+
+          print(new_sec_area_name.short_name + " separated from " + home_area_name.short_name + " by start hivent " + hivent.name)
+
+
+        # create operation: secede territory from universe
+        # -> omitted for now, so just simply create it new
+        elif row['edit_operation'] == 'CRE':
+
+          creation_date = iso8601.parse_date(row['creation_date'])
+          hivent = Hivent(
+              name =  str(row['hivent_name']),
+              date =  creation_date,
+            )
+          hivent.save()
+
+          edit_operation = EditOperation(
+              hivent =    hivent,
+              operation = 'CRE'
+            )
+          edit_operation.save()
+
+          # Hivent Operation: Secession from universe
+          hivent_operation = HiventOperation(
+              edit_operation =  edit_operation,
+              operation =       'SEC'
+            )
+          hivent_operation.save()
+
+          update_area = UpdateArea(
+              hivent_operation =  hivent_operation,
+              area =              universe
+            )
+          update_area.save()
+
+          new_area = NewArea (
+              hivent_operation =  hivent_operation,
+              area =              new_sec_area,
+              name =              new_sec_area_name,
+              territory =         new_sec_area_territory
+            )
+          new_area.save()
+
+
+  ## merge areas that are parts of another area
 
   with open(get_file('areas_to_merge.csv'), 'r') as in_file:
     reader = csv.DictReader(in_file, delimiter='|', quotechar='"')
@@ -308,12 +388,12 @@ def run(verbose=True):
       if (row['part_of'] != ''):
 
         # get areas
-        home_area_name = AreaName.objects.get(short_name=row['part_of'])
-        home_area = home_area_name.area
+        home_area_name =      AreaName.objects.get(short_name=row['part_of'])
+        home_area =           home_area_name.area
         home_area_territory = AreaTerritory.objects.get(area=home_area)
 
-        part_area_name = AreaName.objects.get(short_name=row['init_source_name'])
-        part_area = part_area_name.area
+        part_area_name =      AreaName.objects.get(short_name=row['init_source_name'])
+        part_area =           part_area_name.area
         part_area_territory = AreaTerritory.objects.get(area=part_area)
 
         # update geometry
@@ -328,16 +408,17 @@ def run(verbose=True):
         print(part_area_name.short_name + " was incorporated into " + home_area_name.short_name)
 
 
-      # subordinate if territory of another country
+      # handle as normal area if it is territory of another country
+      # TODO: when hierarchies of Areas are introduced, handle these cases accordingly
       elif (row['territory_of'] != ''):
 
         # get areas
-        home_area_name = AreaName.objects.get(short_name=row['territory_of'])
-        home_area = home_area_name.area
+        home_area_name =      AreaName.objects.get(short_name=row['territory_of'])
+        home_area =           home_area_name.area
         home_area_territory = AreaTerritory.objects.get(area=home_area)
 
-        terr_area_name = AreaName.objects.get(short_name=row['init_source_name'])
-        terr_area = terr_area_name.area
+        terr_area_name =      AreaName.objects.get(short_name=row['init_source_name'])
+        terr_area =           terr_area_name.area
         terr_area_territory = AreaTerritory.objects.get(area=terr_area)
 
         # update areas
@@ -345,27 +426,15 @@ def run(verbose=True):
         terr_area_name.formal_name =  row['formal_name'].decode('utf-8')   # encoding problem :/
         terr_area_name.save()
 
+        # add as NewArea to their creation event (SEC from universe)
+        hivent_operation = NewArea.objects.get(area=home_area).hivent_operation
 
-        # add its area to the creation event
-        historical_change = AreaChange.objects.get(area=home_area).historical_change
-
-        area_change = AreaChange(
-            historical_change =   historical_change,
-            operation =           'ADD',
-            area =                terr_area,
-            new_area_name =       terr_area_name,
-            new_area_territory =  terr_area_territory
+        new_area = NewArea (
+            hivent_operation =  hivent_operation,
+            area =              terr_area,
+            name =              terr_area_name,
+            territory =         terr_area_territory
           )
-        area_change.save()
-
-        terr_area.start_change = area_change
-        terr_area.save()
-
-        terr_area_name.start_change = area_change
-        terr_area_name.save()
-
-        terr_area_territory.start_change = area_change
-        terr_area_territory.save()
 
         print(terr_area_name.short_name + " added to creation hivent of " + home_area_name.short_name)
 
