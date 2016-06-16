@@ -250,13 +250,55 @@ class HG.EditOperation
   _finish: () ->
 
     # get data for hivent and historical change
-    hiventData =        @operation.steps[4].outData.hiventData
-    historicalChange =  @operation.steps[4].outData.historicalChange
+    hiventData =            @operation.steps[4].outData.hiventData
+    historicalChangeData =  @operation.steps[4].outData.historicalChange
 
-    @_hgInstance.databaseInterface.saveHistoricalOperation hiventData, historicalChange
+    # HACK: prevent writing into database
+    # @_hgInstance.databaseInterface.saveHistoricalOperation hiventData, historicalChange
 
-    @_hgInstance.databaseInterface.onFinishSavingHistoricalOperation @, () =>
-      @notifyAll 'onFinish'
+    # @_hgInstance.databaseInterface.onFinishSavingHistoricalOperation @, () =>
+
+    ## HACK: create objects manually
+
+    # create Hivent
+    hivent = new HG.Hivent {
+      id :            hiventData.id
+      name :          hiventData.name
+      date :          moment(hiventData.date)
+      location :      hiventData.location
+      description :   hiventData.description
+    }
+
+    # create HistoricalChange
+    historicalChange = new HG.HistoricalChange historicalChangeData.id
+    historicalChange.operation = historicalChangeData.operation
+
+    # create AreaChanges
+    for areaChangeData in historicalChangeData.areaChanges
+      areaChange = new HG.AreaChange areaChangeData.id
+      areaChange.operation = areaChangeData.operation
+      areaChange.area = areaChangeData.area
+      areaChange.oldAreaName = areaChangeData.oldAreaName
+      areaChange.newAreaName = areaChangeData.newAreaName
+      areaChange.oldAreaTerritory = areaChangeData.oldAreaTerritory
+      areaChange.newAreaTerritory = areaChangeData.newAreaTerritory
+
+      # link HistoricalChange <-> AreaChange
+      areaChange.historicalChange = historicalChange
+      historicalChange.areaChanges.push areaChange
+
+    # link Hivent <-> HistoricalChange
+    historicalChange.hivent = hivent
+    hivent.historicalChanges.push historicalChange
+
+    # link HiventHandle <-> Hivent
+    hiventHandle = new HG.HiventHandle @_hgInstance, hivent
+    hivent.handle = hiventHandle
+
+    # add to HG
+    @_hgInstance.hiventController.addHiventHandle hiventHandle
+
+    @notifyAll 'onFinish'
 
 
   # ============================================================================

@@ -45,8 +45,6 @@ class HG.DatabaseInterface
       success: (response) =>
         dataObj = $.parseJSON response
 
-        console.log dataObj
-
         # create Areas
         areas = []
         for areaData in dataObj.areas
@@ -325,8 +323,6 @@ class HG.DatabaseInterface
                     historicalChange.areaChanges.push ac
 
               # ----------------------------------------------------------------
-              # console.log historicalChange
-
               # link Hivent <- HistoricalChange
               hivent.historicalChanges.push historicalChange
 

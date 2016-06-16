@@ -60,7 +60,7 @@ class HG.EditOperationStep.AddChange extends HG.EditOperationStep
 
     # select the one area that is most important for the operation
     # randomly take the first one :D
-    @_stepData.inData.areas[0].handle.select()
+    # @_stepData.inData.areas[0].handle.select()
 
 
   # ============================================================================
